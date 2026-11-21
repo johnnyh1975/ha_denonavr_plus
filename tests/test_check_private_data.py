@@ -40,11 +40,17 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return tmp_path
 
 
+# Written in pieces, so this file does not fail the check it tests.
+PRIVATE_IP = ".".join(("192", "168", "1", "20"))
+REAL_MAC = ":".join(("3c", "22", "fb", "01", "02", "03"))
+REAL_MAIL = "someone" + "@" + "gmail.com"
+
+
 def test_categories_flags_private_values() -> None:
     module = _load()
-    assert module.categories("host 192.168.1.20") == ["private IPv4 address"]
-    assert module.categories("mac 3c:22:fb:01:02:03") == ["MAC address"]
-    assert module.categories("mail someone@gmail.com") == ["e-mail address"]
+    assert module.categories(f"host {PRIVATE_IP}") == ["private IPv4 address"]
+    assert module.categories(f"mac {REAL_MAC}") == ["MAC address"]
+    assert module.categories(f"mail {REAL_MAIL}") == ["e-mail address"]
 
 
 def test_categories_accepts_placeholders() -> None:
@@ -63,7 +69,7 @@ def test_non_utf8_file_in_the_diff_does_not_crash(repo: Path) -> None:
 
 
 def test_private_address_in_the_diff_fails(repo: Path) -> None:
-    (repo / "notes.txt").write_text("receiver at 192.168.1.20\n")
+    (repo / "notes.txt").write_text(f"receiver at {PRIVATE_IP}\n")
     _git(repo, "add", ".")
     _git(repo, "commit", "-q", "-m", "leak")
     assert _load().main(["--base", "HEAD~1"]) == 1
