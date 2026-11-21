@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "Line-coverage floors for modules that are not at 95 % yet.",
+    "May only go up; see scripts/check_coverage_per_module.py.",
+    "Measured on Home Assistant 2026.10 (phahc 0.13.375), half a point of margin."
+  ],
+  "floors": {
+    "__init__.py": 0.7807,
+    "avr/device.py": 0.5968,
+    "avr/graphic_eq.py": 0.4385,
+    "avr/models.py": 0.9383,
+    "avr/parser.py": 0.5212,
+    "avr/profile.py": 0.8299,
+    "avr/transport/goform.py": 0.2783,
+    "avr/transport/heos.py": 0.2666,
+    "avr/transport/tcp_client.py": 0.1962,
+    "avr/transport/telnet.py": 0.2401,
+    "avr/transport/upnp.py": 0.5404,
+    "avr/transport/webconfig.py": 0.4788,
+    "avr/video_config.py": 0.3735,
+    "button.py": 0.918,
+    "coordinator.py": 0.9394,
+    "helpers.py": 0.6172,
+    "media_player.py": 0.7858,
+    "select.py": 0.6073,
+    "switch.py": 0.7807
+  }
+}

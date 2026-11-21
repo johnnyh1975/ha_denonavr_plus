@@ -1,0 +1,177 @@
+"""Tests for avr/parser.py: Deviceinfo, UPnP description and telnet lines."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from custom_components.denonavr_plus.avr.models import AvrState, Discovery
+from custom_components.denonavr_plus.avr.parser import (
+    TelnetParser,
+    parse_device_info,
+    parse_upnp_description,
+)
+from custom_components.denonavr_plus.avr.profile import load_profile
+
+from .conftest import all_deviceinfo_files, deviceinfo
+
+
+def _parse(name: str) -> Discovery:
+    profile = load_profile()
+    features = {s.feature for s in profile.controls.values() if s.feature}
+    enums = {
+        s.feature
+        for s in profile.controls.values()
+        if s.kind == "enum" and s.feature
+    }
+    return parse_device_info(
+        deviceinfo(name), features, enums, receiver_type=profile.receiver_type
+    )
+
+
+# ── Deviceinfo ────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    ("name", "model", "zones", "sources"),
+    [
+        ("AVC-X3700H-Deviceinfo-8080.xml", "AVC-X3700H", 2, 13),
+        ("AVR-X4300H-Deviceinfo-8080.xml", "AVR-X4500H", 3, 13),
+        ("SR6012-Deviceinfo-8080.xml", "SR6012", 2, 13),
+        ("NR1609-Deviceinfo-8080.xml", "NR1609", 2, 13),
+        ("AVR-X2100W-2-Deviceinfo.xml", "AVR-X2100W", 2, 18),
+        ("AVR-X2000-Deviceinfo.xml", "AVR-X2000", 2, 18),
+    ],
+)
+def test_parse_device_info_real_receivers(
+    name: str, model: str, zones: int, sources: int
+) -> None:
+    discovery = _parse(name)
+    assert discovery.device.model_name == model
+    assert len(discovery.zones) == zones
+    assert discovery.zones[0].is_main
+    assert [z.id for z in discovery.zones[1:]] == [f"zone{i}" for i in range(2, zones + 1)]
+    assert len(discovery.sources) == sources
+
+
+def test_parse_device_info_formats_the_mac() -> None:
+    discovery = _parse("AVC-X3700H-Deviceinfo-8080.xml")
+    # The recorded documents carry the placeholder 0123456789AB.
+    assert discovery.device.mac_address == "01:23:45:67:89:ab"
+
+
+def test_parse_device_info_classifies_avr_x() -> None:
+    assert _parse("AVC-X3700H-Deviceinfo-8080.xml").device.hardware_type == "avr-x-2016"
+
+
+def test_parse_device_info_reads_volume_scale() -> None:
+    volume = _parse("AVC-X3700H-Deviceinfo-8080.xml").volume
+    assert volume["absolute_max"] > 0
+    assert volume["step"] == 0.5
+
+
+@pytest.mark.parametrize("path", all_deviceinfo_files(), ids=lambda p: p.name)
+def test_parse_device_info_never_raises(path: Path) -> None:
+    # Every recorded receiver parses without an exception, including the
+    # pre-AVR-X models whose document has a different shape.
+    discovery = _parse(path.name)
+    assert discovery.zones
+
+
+def test_parse_device_info_tolerates_garbage() -> None:
+    discovery = parse_device_info("<not xml")
+    assert discovery.device.model_name is None
+    assert discovery.zones == []
+
+
+def test_parse_device_info_strips_region_marker() -> None:
+    xml = "<Device_Info><ModelName>*AVR-X2600H</ModelName><DeviceZones>2</DeviceZones></Device_Info>"
+    discovery = parse_device_info(xml)
+    assert discovery.device.model_name == "AVR-X2600H"
+    assert len(discovery.zones) == 2
+
+
+# ── UPnP description ──────────────────────────────────────────────────────
+
+
+def test_parse_upnp_description_reads_identity() -> None:
+    xml = (
+        '<root xmlns="urn:schemas-upnp-org:device-1-0" xmlns:d="urn:x-denon">'
+        "<device><manufacturer>Denon</manufacturer>"
+        "<serialNumber>SN0000000000</serialNumber>"
+        "<d:firmware_version>3.88.614</d:firmware_version>"
+        "<deviceList><device><manufacturer>Other</manufacturer></device></deviceList>"
+        "</device></root>"
+    )
+    result = parse_upnp_description(xml)
+    assert result == {
+        "manufacturer": "Denon",
+        "serial_number": "SN0000000000",
+        "firmware_version": "3.88.614",
+    }
+
+
+def test_parse_upnp_description_garbage() -> None:
+    assert parse_upnp_description("<broken") == {}
+
+
+# ── Telnet lines ──────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def parser_and_state() -> tuple[TelnetParser, AvrState]:
+    discovery = _parse("AVC-X3700H-Deviceinfo-8080.xml")
+    return TelnetParser(load_profile(), discovery), AvrState()
+
+
+def test_feed_core_main_zone_lines(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    parser, state = parser_and_state
+    for line in ("PWON", "ZMON", "MV505", "MVMAX 98", "MUOFF", "SITV"):
+        assert parser.feed(line, state)
+    main = state.zone("main")
+    assert state.system_power is True
+    assert main.power is True
+    assert main.volume_raw == 50.5
+    assert main.volume_max_raw == 98.0
+    assert main.muted is False
+    assert main.source == "TV"
+
+
+def test_feed_standby_and_mute(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    parser, state = parser_and_state
+    parser.feed("PWSTANDBY", state)
+    parser.feed("MUON", state)
+    assert state.system_power is False
+    assert state.zone("main").muted is True
+
+
+def test_feed_quick_select(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    parser, state = parser_and_state
+    assert parser.feed("MSQUICK2", state)
+    assert state.values["quick_select"] == 2
+    assert not parser.feed("MSQUICK", state)
+
+
+def test_feed_zone2(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    parser, state = parser_and_state
+    for line in ("Z2ON", "Z240", "Z2MUON", "Z2CD"):
+        parser.feed(line, state)
+    zone = state.zone("zone2")
+    assert zone.power is True
+    assert zone.volume_raw == 40.0
+    assert zone.muted is True
+    assert zone.source == "CD"
+
+
+def test_feed_ignores_empty_and_unknown(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    parser, state = parser_and_state
+    assert not parser.feed("", state)
+    assert not parser.feed("\r", state)
+    assert not parser.feed("XYZZY", state)
+
+
+def test_feed_volume_not_a_number(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    parser, state = parser_and_state
+    assert not parser.feed("MVOFF", state)
+    assert state.zone("main").volume_raw is None
