@@ -66,6 +66,9 @@ _PLACEHOLDER_MACS = (
     re.compile(r"(?i)^00[:-]11[:-]22[:-]33[:-]44[:-][0-9a-f]{2}$"),
     re.compile(r"(?i)^02([:-]00){4}[:-][0-9a-f]{2}$"),
     re.compile(r"(?i)^11[:-]22[:-]33[:-]44[:-]55[:-]66$"),
+    # The placeholder in the recorded denonavr Deviceinfo documents
+    # (0123456789AB), as the parser formats it.
+    re.compile(r"(?i)^01[:-]23[:-]45[:-]67[:-]89[:-]ab$"),
 )
 _EMAIL = re.compile(
     r"(?<![\w.+-])[\w.+-]+@((?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})(?![\w.-])"
@@ -148,8 +151,14 @@ def find(lines: Iterable[tuple[str, int, str]]) -> list[Finding]:
 
 
 def _git(*args: str) -> str:
+    # NOT STRICT UTF-8. A diff can carry text in other encodings (the
+    # Latin-1 licence of the recorded receiver data did), and a strict
+    # decode crashed the check instead of checking anything. A byte that
+    # is not UTF-8 becomes U+FFFD; the patterns this script looks for are
+    # all ASCII, so nothing they could match is lost.
     return subprocess.run(
-        ["git", *args], capture_output=True, text=True, check=True
+        ["git", *args], capture_output=True, text=True, check=True,
+        encoding="utf-8", errors="replace",
     ).stdout
 
 
@@ -199,8 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "\n  Use placeholders: 192.0.2.x for addresses, aa:bb:cc:dd:ee:ff for\n"
         "  MACs, user@example.com for accounts. A third-party file that\n"
-        "  names its authors goes in"
-        "  ALLOWED_PATHS."
+        "  names its authors goes in ALLOWED_PATHS."
     )
     return 1
 
