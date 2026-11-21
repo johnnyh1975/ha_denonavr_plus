@@ -1,5 +1,7 @@
 {
   "name": "Denon AVR Plus",
   "render_readme": true,
-  "homeassistant": "2026.8.0"
+  "homeassistant": "2026.8.0",
+  "zip_release": true,
+  "filename": "ha_denonavr_plus.zip"
 }

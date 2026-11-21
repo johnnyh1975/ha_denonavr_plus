@@ -1,0 +1,176 @@
+# Home Assistant integration quality scale, tracked as in Roomba+.
+#
+# The scale is defined for core integrations and nobody grades a custom
+# integration, so this file is a self-assessment. It is kept honest: a rule
+# is `done` only when the code does it today. `todo` comments name the
+# package of the roadmap that closes the gap.
+#
+# State at the start of the project (code of denon_avr 1.1.2): Bronze is
+# not complete yet (config-flow field descriptions, removal docs, config
+# flow tests).
+rules:
+  # ── Bronze ────────────────────────────────────────────────────────────────
+  action-setup:
+    status: exempt
+    comment: >
+      No actions yet. The planned send_command action is registered in
+      async_setup when it arrives.
+  appropriate-polling:
+    status: done
+    comment: >
+      State is pushed over telnet. An HTTP reconciliation poll runs every
+      60 s. It also re-reads the setup API menus, which is more than needed
+      and is reduced later.
+  brands:
+    status: done
+    comment: Brand images ship in the inline brand/ directory.
+  common-modules:
+    status: done
+    comment: >
+      Base entity in entity.py, push coordinator in coordinator.py, the
+      receiver client without Home Assistant in avr/.
+  config-flow:
+    status: todo
+    comment: >
+      User, SSDP and reconfigure steps exist. Missing: data_description for
+      the host field in strings.json.
+  config-flow-test-coverage:
+    status: todo
+    comment: Started with the first test suite; not yet at 100 %.
+  dependency-transparency:
+    status: done
+    comment: No external Python requirements; the client lives in avr/.
+  docs-actions:
+    status: exempt
+    comment: No actions yet.
+  docs-configuration-parameters:
+    status: exempt
+    comment: No options flow yet.
+  docs-installation-instructions:
+    status: done
+  docs-installation-parameters:
+    status: done
+    comment: The only parameter is the receiver's IP address (README).
+  docs-removal-instructions:
+    status: todo
+  entity-event-setup:
+    status: done
+    comment: Entities subscribe through CoordinatorEntity.
+  entity-unique-id:
+    status: done
+    comment: MAC address (else serial number) plus a stable key.
+  has-entity-name:
+    status: done
+  runtime-data:
+    status: done
+  test-before-setup:
+    status: done
+    comment: An unreachable receiver raises ConfigEntryNotReady.
+  unique-config-entry:
+    status: done
+    comment: Unique id is the MAC address; without one, the host is matched.
+
+  # ── Silver ────────────────────────────────────────────────────────────────
+  action-exceptions:
+    status: todo
+    comment: >
+      Writes over the setup API ignore a failed result, so a failed
+      graphic-EQ apply discards the staged values without an error.
+  config-entry-unloading:
+    status: done
+  docs-supported-functions:
+    status: done
+  entity-translations:
+    status: done
+  entity-unavailable:
+    status: done
+    comment: >
+      Entities follow the telnet link. The HTTP fallback state is never
+      shown while telnet is down; making the media player stay available
+      with it is planned.
+  integration-owner:
+    status: done
+  log-when-unavailable:
+    status: todo
+    comment: Connection failures are logged at debug level only.
+  parallel-updates:
+    status: todo
+    comment: PARALLEL_UPDATES is not declared on the platforms.
+  reauthentication-flow:
+    status: exempt
+    comment: The receiver has no authentication.
+  test-coverage:
+    status: todo
+    comment: >
+      95 % per module is the target; modules below it are held at floors in
+      scripts/coverage_floors.json that may only go up.
+
+  # ── Gold ──────────────────────────────────────────────────────────────────
+  devices:
+    status: done
+  diagnostics:
+    status: done
+    comment: >
+      MAC address redacted. The serial number is still included and will be
+      redacted (AGENTS.md, rule 6).
+  discovery:
+    status: done
+    comment: SSDP for Denon AIOS devices; Marantz discovery is planned.
+  discovery-update-info:
+    status: done
+    comment: A rediscovered receiver updates the stored host.
+  docs-data-update:
+    status: done
+  docs-examples:
+    status: todo
+  docs-high-level-description:
+    status: done
+  docs-known-limitations:
+    status: done
+  docs-supported-devices:
+    status: done
+    comment: README table of confirmed and expected series.
+  docs-troubleshooting:
+    status: todo
+  docs-use-cases:
+    status: todo
+  dynamic-devices:
+    status: exempt
+    comment: Zones and sub-devices are fixed per receiver.
+  entity-category:
+    status: done
+  entity-device-class:
+    status: todo
+    comment: Not reviewed for every platform yet.
+  entity-disabled-by-default:
+    status: done
+    comment: Channel entities of unconfigured speakers start disabled.
+  exception-translations:
+    status: todo
+  icon-translations:
+    status: todo
+    comment: Icons are still set in code.
+  reconfiguration-flow:
+    status: done
+  repair-issues:
+    status: todo
+    comment: Planned for a receiver that stays unreachable over telnet.
+  stale-devices:
+    status: exempt
+    comment: One receiver per config entry; its sub-devices are fixed.
+
+  # ── Platinum ─────────────────────────────────────────────────────────────
+  async-dependency:
+    status: done
+    comment: The avr/ client is asyncio throughout.
+  inject-websession:
+    status: done
+    comment: Home Assistant's aiohttp session is passed to the client.
+  test-before-configure:
+    status: done
+    comment: The config flow fetches the receiver's device info before creating the entry.
+  strict-typing:
+    status: todo
+    comment: >
+      mypy --strict runs in CI against a baseline that may only go down
+      (scripts/check_typing_baseline.py); it starts at 94.

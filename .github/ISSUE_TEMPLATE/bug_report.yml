@@ -1,0 +1,51 @@
+name: Bug report
+description: Something does not work as described.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce
+      placeholder: "1. ...\n2. ...\n3. ..."
+  - type: input
+    id: model
+    attributes:
+      label: Receiver model
+      placeholder: AVR-X2600H
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Receiver firmware
+      description: Shown on the device page in Home Assistant, or in the receiver's setup menu.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Denon AVR Plus and Home Assistant versions
+      placeholder: 0.1.0 / 2026.11.1
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >
+        Settings → Devices & Services → Denon AVR Plus → ⋮ → Download
+        diagnostics, then drag the file here. It contains no IP address or MAC.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug log (optional)
+      description: >
+        Enable debug logging for Denon AVR Plus on its integration page,
+        reproduce the problem, then disable it and paste the relevant part.
+      render: text

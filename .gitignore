@@ -5,3 +5,19 @@ __pycache__/
 .vscode/
 .idea/
 launch.json
+
+# Tool caches and local test environments
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.venv*/
+
+# Coverage output, written by the CI command when it is run locally
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Editor leftovers
+*.orig
+*.rej

@@ -1,0 +1,47 @@
+# mypy --strict, in its own workflow so it can carry a badge.
+#
+# Strict typing is a Platinum rule of Home Assistant's quality scale, and the
+# only one a badge can evidence. scripts/check_typing_baseline.py is a
+# ratchet: the error count may fall and may not rise, and a fall has to be
+# recorded in the same commit. The target is zero.
+name: Typing
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typing:
+    name: Typing (mypy --strict)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: python -m pip install "uv==0.12.18"
+
+      # Typing runs against the supported minimum, HA 2026.8. phahc pins
+      # Home Assistant exactly (0.13.357 -> homeassistant==2026.8.3), so
+      # this one version number fixes the whole environment.
+      - name: Install Home Assistant 2026.8 and mypy
+        run: |
+          uv pip install --system "pytest-homeassistant-custom-component==0.13.357" \
+                      "mypy==2.4.1"
+
+      - name: Run mypy against the baseline
+        run: python scripts/check_typing_baseline.py

@@ -1,8 +1,13 @@
 # Denon AVR Plus
 
-[![GitHub Release][releases-shield]][releases]
-[![Maintainer][maintainer-shield]][maintainer]
-[![HACS Custom][hacs-shield]][hacs-url]
+[![Version](https://img.shields.io/badge/Version-0.1.0-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
+[![HA Version](https://img.shields.io/badge/HA-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
+[![Local Push](https://img.shields.io/badge/IoT%20Class-Local%20Push-green.svg)](https://www.home-assistant.io/blog/2016/02/12/classifying-the-internet-of-things/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Hassfest](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hassfest.yml/badge.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hassfest.yml)
+[![HACS Validation](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hacs.yml/badge.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hacs.yml)
+[![Typing](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/typing.yml/badge.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/typing.yml)
 
 Local-push Home Assistant integration for Denon and Marantz AV receivers and
 preamps, with full control of zones, sources, sound modes, Audyssey, graphic EQ
@@ -221,6 +226,15 @@ Other Denon/Marantz HEOS generation receivers should work as the integration
 adapts to whatever the device reports, but only this combination has been
 exercised end to end.
 
+## Contributing
+
+Bug reports and pull requests are welcome. Read [AGENTS.md](AGENTS.md)
+first: it lists the checks every change has to pass
+(`bash scripts/check_all.sh`) and the rules for tests, private data and
+protocol facts. For a receiver that is not fully supported, the
+diagnostics file is what makes support possible; the issue form asks
+for it.
+
 ## Origin
 
 Denon AVR Plus is based on **[Denon AVR](https://github.com/LaserGuruGuy/denon_avr)
@@ -266,9 +280,3 @@ not imply any affiliation or endorsement.
 Any other product or company names mentioned are the trademarks of their
 respective owners.
 
-[releases-shield]: https://img.shields.io/github/v/release/johnnyh1975/ha_denonavr_plus.svg?style=for-the-badge
-[releases]: https://github.com/johnnyh1975/ha_denonavr_plus/releases/
-[maintainer-shield]: https://img.shields.io/badge/maintainer-johnnyh1975-blue.svg?style=for-the-badge
-[maintainer]: https://github.com/johnnyh1975
-[hacs-shield]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge
-[hacs-url]: https://github.com/johnnyh1975/ha_denonavr_plus

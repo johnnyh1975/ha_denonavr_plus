@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""Fails when the mypy error count goes up.
+
+WHY A RATCHET RATHER THAN A GATE (same approach as Roomba+).
+
+The code inherited from denon_avr 1.1.2 had 94 errors under --strict when
+this project started. Requiring zero today would mean 94 errors between
+here and any green build, so nobody would run it.
+
+A ratchet is checkable from the first day. The number may fall and may
+not rise, and the file it is written in is the one thing that has to be
+edited deliberately.
+
+Nothing is disabled in mypy.ini: the baseline counts every --strict
+error. The target is zero (Platinum: strict-typing).
+"""
+
+from __future__ import annotations
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+#: Errors reported by `mypy custom_components/denonavr_plus` under the
+#: settings in mypy.ini. Lower this when you fix things. Raising it
+#: should be an argued decision, not a convenience.
+BASELINE = 94
+
+
+def main() -> int:
+    root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(
+        [sys.executable, "-m", "mypy", "custom_components/denonavr_plus"],
+        cwd=root, capture_output=True, text=True,
+    )
+    match = re.search(r"Found (\d+) errors?", result.stdout)
+    if not match:
+        if "Success" in result.stdout:
+            if BASELINE == 0:
+                print("OK: mypy is clean.")
+                return 0
+            print(f"mypy: clean. Lower BASELINE from {BASELINE} to 0.")
+            return 1
+        print("Could not read a count from mypy:")
+        print(result.stdout[-800:] or result.stderr[-800:])
+        return 1
+
+    found = int(match.group(1))
+    if found > BASELINE:
+        # PRINT THE ERRORS, NOT JUST THE COUNT. This reported only
+        # "2 errors, baseline is 0" for a long time, which tells a CI
+        # reader nothing they can act on -- the run has to be
+        # reproduced locally, against the same Python and the same
+        # library pins, before anyone can see what broke.
+        print(f"mypy: {found} errors, baseline is {BASELINE} — up by {found - BASELINE}.\n")
+        for line in result.stdout.splitlines():
+            if ": error:" in line or ": note:" in line:
+                print(f"  {line}")
+        return 1
+    if found < BASELINE:
+        print(
+            f"mypy: {found} errors, baseline is {BASELINE}. "
+            f"Lower BASELINE to {found} in this file."
+        )
+        return 1
+    print(f"OK: mypy reports {found} errors, matching the baseline.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,45 @@
+name: CodeQL
+
+# Separate from validate.yml so CodeQL's runtime doesn't slow down the fast
+# feedback loop. The weekly schedule catches drift from updated queries even
+# without code changes.
+#
+# Worth having here: the integration opens raw sockets (telnet, HEOS),
+# builds URLs from device data and writes settings over the receiver's
+# HTTPS setup API.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 3 * * 1"  # Mondays, offset from the nightly runs
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: python
+          # Scan what ships. Test fixtures legitimately contain things CodeQL
+          # flags elsewhere (sample data, broad excepts in fakes).
+          config: |
+            paths-ignore:
+              - tests
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4

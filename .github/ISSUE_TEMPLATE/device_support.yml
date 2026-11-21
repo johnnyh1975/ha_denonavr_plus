@@ -1,0 +1,46 @@
+name: My receiver is not fully supported
+description: A model that is missing controls, shows wrong values, or is not in the supported list yet.
+labels: ["device support"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        The integration builds its entities from what the receiver reports,
+        so the diagnostics file is what makes support possible. Without it
+        this issue usually cannot be worked on.
+  - type: input
+    id: model
+    attributes:
+      label: Receiver model
+      placeholder: Marantz SR6015
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Receiver firmware
+    validations:
+      required: true
+  - type: textarea
+    id: missing
+    attributes:
+      label: What is missing or wrong?
+      description: Controls that exist on the receiver or in the Denon/Marantz app but not in Home Assistant, or values that look wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >
+        Settings → Devices & Services → Denon AVR Plus → ⋮ → Download
+        diagnostics, then drag the file here.
+    validations:
+      required: true
+  - type: checkboxes
+    id: works
+    attributes:
+      label: What works already
+      options:
+        - label: Power, volume and source selection work
+        - label: Sound mode selection works

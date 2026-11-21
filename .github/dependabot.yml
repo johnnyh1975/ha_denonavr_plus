@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Test tooling and the platform we build against. Weekly: nothing here
+  # ships to users, so no urgency that justifies daily PR noise.
+  #
+  # Allow-list only what this project chooses. Home Assistant's transitive
+  # dependencies are HA's choice; bumping one independently can break
+  # against the HA version we pin.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-name: "homeassistant"
+      - dependency-name: "pytest"
+      - dependency-name: "pytest-*"
+      - dependency-name: "ruff"
+      - dependency-name: "mypy"
+
+  # The workflow files themselves (actions/checkout, hacs/action, ...).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

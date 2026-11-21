@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from homeassistant.const import CONF_HOST, Platform
+from homeassistant.const import CONF_HOST, Platform  # noqa: F401 -- CONF_HOST re-exported, see below
 
 DOMAIN = "denonavr_plus"
 

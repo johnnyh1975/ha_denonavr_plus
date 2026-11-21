@@ -1,0 +1,45 @@
+[tool.ruff]
+# Lint what ships. Same scope and rule set as Roomba+: the integration only,
+# Pyflakes (F) only. Formatting and style rules are a separate decision.
+include = ["custom_components/denonavr_plus/**/*.py"]
+
+[tool.ruff.lint]
+# Deliberate exceptions are annotated inline with `# noqa: <code> -- reason`
+# at the line they apply to, never hidden here.
+select = ["F"]
+
+[tool.pytest.ini_options]
+# phahc ships `hass` as an async fixture; auto mode resolves it.
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+# A dropped coroutine reaches the receiver as a command that silently does
+# nothing. Make the warnings for it errors; leave deprecations from Home
+# Assistant or its dependencies alone, they are not this project's to fix.
+filterwarnings = [
+    "error::RuntimeWarning",
+    "error::pytest.PytestUnraisableExceptionWarning",
+]
+markers = [
+    # ASSERTS ON SOMETHING NOT CONFIRMED ON A RECEIVER (from Roomba+).
+    #
+    # Much of the Denon protocol here comes from documentation or the
+    # denonavr library, not from a live receiver. A green test on a guessed
+    # token preserves the guess. Usage:
+    #   @pytest.mark.assumed("what is unconfirmed, and what would settle it")
+    # The tests still run and must pass; the marker makes the set
+    # enumerable, so a field report can be traced to the tests that guessed.
+    "assumed(reason): asserts on a value that is not confirmed on a receiver",
+]
+
+# The same exclusions Home Assistant core uses, so the figure matches the
+# one the quality scale's test-coverage rule is judged by.
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if TYPE_CHECKING:",
+  "@overload",
+]

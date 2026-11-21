@@ -1,0 +1,178 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+# Cancels superseded runs on rapid successive pushes to the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# HACS, Hassfest and Typing live in their own workflows so each can carry a
+# README badge (GitHub badges address workflows, not jobs). Same layout as
+# Roomba+.
+jobs:
+
+  # TWO HOME ASSISTANT VERSIONS, deliberately not a matrix: the supported
+  # minimum (2026.8, from hacs.json) and the newest one phahc ships. Both
+  # need Python 3.14. pytest-homeassistant-custom-component (phahc) pins
+  # Home Assistant exactly, so its version alone fixes the environment:
+  #   0.13.357 -> homeassistant==2026.8.3
+  #   0.13.375 -> homeassistant==2026.10.4
+  #
+  # Coverage is measured on the newer one, with sys.monitoring for speed.
+  test-newer-ha:
+    name: Test Suite (HA 2026.10 / Python 3.14)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: python -m pip install "uv==0.12.18"
+
+      - name: Install a recent Home Assistant and test tooling
+        run: uv pip install --system "pytest-homeassistant-custom-component==0.13.375"
+
+      - name: Run full test suite with coverage
+        env:
+          COVERAGE_CORE: sysmon
+        run: |
+          python -m pytest tests/ -q -p no:randomly -n auto \
+            --cov=custom_components/denonavr_plus --cov-branch \
+            --cov-report=term-missing --cov-report=xml
+
+      # 95 % per module is the rule (as in Roomba+). Modules that are not
+      # there yet are held at a recorded floor that may only go up; see the
+      # script's docstring and scripts/coverage_floors.json.
+      - name: Check line coverage per module
+        run: python scripts/check_coverage_per_module.py coverage.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 30
+
+  test:
+    name: Test Suite (HA 2026.8 / Python 3.14 — the supported minimum)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: python -m pip install "uv==0.12.18"
+
+      - name: Install Home Assistant 2026.8 and test tooling
+        run: uv pip install --system "pytest-homeassistant-custom-component==0.13.357"
+
+      - name: Run full test suite
+        run: python -m pytest tests/ -q -n auto
+
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      # Pinned: an unpinned linter turns each of its releases into a build
+      # break nobody chose. Rule selection lives in pyproject.toml.
+      - name: Install ruff
+        run: pip install "ruff==0.17.3"
+
+      - name: Run ruff check
+        run: ruff check .
+
+  translations:
+    name: Translation Completeness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Check strings.json vs. all translations/*.json
+        run: python3 scripts/check_translations.py
+
+  private-data:
+    name: No Private Data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Check the lines this change adds
+        env:
+          # A pull request against its base, a push against what was there
+          # before it. A schedule or a manual run has neither.
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: |
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            BASE="HEAD"
+          fi
+          python3 scripts/check_private_data.py --base "$BASE"
+
+  version-badge:
+    name: Version Badge Consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Check README badge vs. manifest.json
+        run: python3 scripts/check_version_badge.py
+
+  markdown-links:
+    name: Markdown Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Check relative markdown links
+        run: python3 scripts/check_markdown_links.py

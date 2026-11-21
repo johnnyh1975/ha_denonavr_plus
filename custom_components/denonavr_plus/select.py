@@ -223,7 +223,6 @@ class DenonAvrCrossover(DenonAvrEntity, SelectEntity):
         )
         self._group = group
         self._attr_entity_registry_enabled_default = enabled
-        discovery = coordinator.device.discovery
         crossover = coordinator.device.profile.crossover
         self._unit = crossover.get("unit", "Hz")
         # The crossover grid is a fixed Denon protocol constant (same across the

@@ -1,0 +1,140 @@
+name: Release
+
+# Two ways to run this (same as Roomba+):
+# 1. Push a tag matching v*.*.* (e.g. `git tag v0.1.0 && git push --tags`).
+# 2. Actions tab -> Release -> "Run workflow" -> enter a tag. Builds from the
+#    branch selected in the dropdown; the tag is created at that commit.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to package and release (e.g. v0.1.0)."
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          # Every tag, for the comparison with the previous release in the
+          # release body (scripts/build_release_body.py).
+          fetch-depth: 0
+
+      - name: Derive version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          # a/b/rc after the patch number marks a pre-release (v0.2.0b1).
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(a|b|rc)[0-9]+$ ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # THE TAG MUST POINT AT THE CODE IT NAMES. Turns a release cut from the
+      # wrong branch into a failed run instead of a silent mismatch.
+      - name: Refuse a tag that does not match manifest.json
+        run: |
+          WANT="${{ steps.version.outputs.version }}"
+          HAVE=$(python3 -c "import json;print(json.load(open('custom_components/denonavr_plus/manifest.json'))['version'])")
+          if [ "$WANT" != "$HAVE" ]; then
+            echo "::error::Tag ${{ steps.version.outputs.tag }} would be cut against manifest version ${HAVE}."
+            exit 1
+          fi
+          echo "OK: tag matches manifest ${HAVE}"
+
+      # Release gate: the full suite on the supported minimum must pass
+      # before anything is packaged. Same suite as validate.yml.
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: python -m pip install "uv==0.12.18"
+
+      - name: Install Home Assistant 2026.8 and test tooling
+        run: uv pip install --system "pytest-homeassistant-custom-component==0.13.357"
+
+      - name: Run full test suite (release gate)
+        run: python -m pytest tests/ -q -n auto
+
+      - name: Prepare release notes
+        id: notes
+        run: |
+          NOTES_FILE="release-notes/${{ steps.version.outputs.tag }}.md"
+          if [ ! -f "$NOTES_FILE" ]; then
+            echo "::error::No $NOTES_FILE -- commit the release notes before tagging."
+            exit 1
+          fi
+          python3 scripts/build_release_body.py "${{ steps.version.outputs.tag }}" > "${RUNNER_TEMP}/release-body.md"
+          echo "path=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+          echo "body=${RUNNER_TEMP}/release-body.md" >> "$GITHUB_OUTPUT"
+
+      # zip_release extracts the zip directly into
+      # custom_components/denonavr_plus/ without stripping a prefix, so the
+      # zip root must hold the integration's files themselves.
+      - name: Build HACS-install ZIP
+        run: |
+          mkdir -p /tmp/hacs-package
+          cp -r custom_components/denonavr_plus/. /tmp/hacs-package/
+          cd /tmp/hacs-package
+          zip -r "${GITHUB_WORKSPACE}/ha_denonavr_plus.zip" .
+
+      - name: Validate HACS ZIP structure
+        run: |
+          FILE_LIST=$(unzip -l ha_denonavr_plus.zip | awk 'NR>3 {print $4}' | grep -v '^$')
+          if ! echo "$FILE_LIST" | grep -qx "manifest.json"; then
+            echo "::error::manifest.json not at the zip root"
+            exit 1
+          fi
+          if echo "$FILE_LIST" | grep -q "custom_components"; then
+            echo "::error::custom_components/ found inside the zip (doubled nesting)"
+            exit 1
+          fi
+          if echo "$FILE_LIST" | grep -qx "hacs.json"; then
+            echo "::error::hacs.json must not be inside the zip"
+            exit 1
+          fi
+          echo "ha_denonavr_plus.zip structure OK"
+
+      - name: Build full-review ZIP
+        run: |
+          mkdir -p /tmp/full-package
+          cp -r custom_components tests docs scripts .github /tmp/full-package/
+          cp hacs.json README.md pyproject.toml mypy.ini AGENTS.md /tmp/full-package/
+          cp "${{ steps.notes.outputs.path }}" "/tmp/full-package/RELEASE_NOTES_${{ steps.version.outputs.tag }}.md"
+          cd /tmp/full-package
+          zip -r "${GITHUB_WORKSPACE}/ha_denonavr_plus-${{ steps.version.outputs.tag }}-full.zip" .
+
+      - name: Create GitHub Release with assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          # The commit this run built, not the default branch.
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: ${{ steps.notes.outputs.body }}
+          draft: false
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          files: |
+            ha_denonavr_plus.zip
+            ha_denonavr_plus-${{ steps.version.outputs.tag }}-full.zip
