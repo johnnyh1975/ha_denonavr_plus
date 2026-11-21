@@ -4,17 +4,30 @@
 [![Maintainer][maintainer-shield]][maintainer]
 [![HACS Custom][hacs-shield]][hacs-url]
 
-This is a HACS custom integration for Denon (HEOS generation) AV receivers such
-as the AVR-X3600H.
+Local-push Home Assistant integration for Denon and Marantz AV receivers and
+preamps, with full control of zones, sources, sound modes, Audyssey, graphic EQ
+and speaker setup.
 
-It is an independent continuation of
-[LaserGuruGuy/denon_avr](https://github.com/LaserGuruGuy/denon_avr), which does
-not take issues or pull requests. All credit for the original design and code
-goes to its author; see [Origin](#origin). Domain: `denonavr_plus`. It can be
-installed alongside the original (`denon_avr`) and the official Home Assistant
-integration (`denonavr`), but only one of them should be connected to a receiver
-at a time: many Denon receivers accept only a single telnet session.
+Domain: `denonavr_plus`. It can be installed alongside other Denon integrations,
+such as the official one (`denonavr`), but only one of them should be connected
+to a receiver at a time: many receivers accept only a single telnet session.
 
+## Supported devices
+
+Network-connected receivers of the HEOS generation (2016 and later).
+
+| Brand   | Series                    | Status |
+|---------|---------------------------|--------|
+| Denon   | AVR-X                     | Confirmed: AVR-X3600H |
+| Denon   | AVR-S, AVC-X              | Expected, not yet confirmed |
+| Marantz | SR, NR, Cinema, AV        | Expected, not yet confirmed; add by IP address (automatic discovery is planned) |
+
+Receivers from before 2016 are not supported yet; support is planned.
+
+Own one of the unconfirmed models? Please open an issue with your model,
+firmware version and the integration's diagnostics file (Settings → Devices &
+Services → Denon AVR Plus → ⋮ → Download diagnostics), so it can be added to
+the list.
 
 ## Features
 
