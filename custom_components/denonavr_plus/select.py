@@ -1,4 +1,4 @@
-"""Select platform for the Denon AVR integration.
+"""Select platform for the Denon AVR Plus integration.
 
 One select entity is created per enum control the receiver advertises (for
 example Dynamic Compression, Dynamic Volume, MultEQ, Restorer). The option

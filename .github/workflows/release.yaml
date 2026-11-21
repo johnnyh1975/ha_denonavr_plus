@@ -1,0 +1,33 @@
+name: Release
+
+# Push a tag like v0.1.0 to publish a GitHub release. The tag must match the
+# version in manifest.json, so HACS always shows the version that is installed.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check that the tag matches manifest.json
+        run: |
+          manifest_version=$(jq -r .version custom_components/denonavr_plus/manifest.json)
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [ "$manifest_version" != "$tag_version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match manifest version $manifest_version"
+            exit 1
+          fi
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

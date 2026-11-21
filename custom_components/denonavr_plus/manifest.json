@@ -1,0 +1,23 @@
+{
+  "domain": "denonavr_plus",
+  "name": "Denon AVR Plus",
+  "codeowners": [
+    "@johnnyh1975"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/johnnyh1975/ha_denonavr_plus",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/johnnyh1975/ha_denonavr_plus/issues",
+  "loggers": [
+    "custom_components.denonavr_plus"
+  ],
+  "requirements": [],
+  "ssdp": [
+    {
+      "deviceType": "urn:schemas-denon-com:device:AiosDevice:1",
+      "manufacturer": "Denon"
+    }
+  ],
+  "version": "0.1.0"
+}

@@ -1,4 +1,4 @@
-"""Number platform for the Denon AVR integration.
+"""Number platform for the Denon AVR Plus integration.
 
 Creates adjustable number entities for the level style controls the receiver
 advertises (bass, treble, subwoofer level, LFE), the sleep timer, and one per

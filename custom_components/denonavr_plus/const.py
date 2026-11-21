@@ -1,4 +1,4 @@
-"""Constants for the Denon AVR integration.
+"""Constants for the Denon AVR Plus integration.
 
 Only Home Assistant level constants live here. All protocol grammar is in
 avr/protocol_profile.json and all device specific configuration is discovered
@@ -11,7 +11,7 @@ from datetime import timedelta
 
 from homeassistant.const import CONF_HOST, Platform
 
-DOMAIN = "denon_avr"
+DOMAIN = "denonavr_plus"
 
 # CONF_HOST (the receiver address, == homeassistant.const.CONF_HOST) is imported
 # above and re-exported here so the rest of the integration keeps a single import

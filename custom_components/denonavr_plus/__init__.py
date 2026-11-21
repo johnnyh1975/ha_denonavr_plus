@@ -1,4 +1,4 @@
-"""The Denon AVR integration.
+"""The Denon AVR Plus integration.
 
 Sets up a single receiver from a config entry: it discovers the device over
 HTTP, starts the telnet push transport, and forwards the platforms. The

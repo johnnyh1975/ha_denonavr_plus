@@ -1,4 +1,4 @@
-"""Button platform for the Denon AVR integration.
+"""Button platform for the Denon AVR Plus integration.
 
 Momentary actions that do not map to a stateful entity. Currently the manual
 graphic-EQ helper on the EQ sub-device: copy the reference (Audyssey / flat)

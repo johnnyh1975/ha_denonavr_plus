@@ -1,4 +1,4 @@
-"""Binary sensor platform for the Denon AVR integration.
+"""Binary sensor platform for the Denon AVR Plus integration.
 
 Exposes the telnet connectivity as a diagnostic connectivity binary sensor. It
 reports the raw link state and therefore stays functional even when the other

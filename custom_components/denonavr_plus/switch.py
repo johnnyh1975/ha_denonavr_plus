@@ -1,4 +1,4 @@
-"""Switch platform for the Denon AVR integration.
+"""Switch platform for the Denon AVR Plus integration.
 
 One switch is created per on/off feature control the receiver advertises (for
 example Tone Control, Dynamic EQ, Loudness Management, Cinema EQ).

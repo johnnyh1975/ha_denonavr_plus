@@ -3,18 +3,18 @@
     "flow_title": "{name}",
     "step": {
       "user": {
-        "title": "Denon AVR",
+        "title": "Denon AVR Plus",
         "description": "Enter the IP address of your Denon receiver. The name and capabilities are read from the device automatically.",
         "data": {
           "host": "IP address"
         }
       },
       "ssdp_confirm": {
-        "title": "Denon AVR",
+        "title": "Denon AVR Plus",
         "description": "Do you want to add the discovered receiver {name}?"
       },
       "reconfigure": {
-        "title": "Denon AVR",
+        "title": "Denon AVR Plus",
         "description": "Update the IP address of your Denon receiver.",
         "data": {
           "host": "IP address"

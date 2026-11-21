@@ -1,4 +1,4 @@
-# Denon AVR
+# Denon AVR Plus
 
 [![GitHub Release][releases-shield]][releases]
 [![Maintainer][maintainer-shield]][maintainer]
@@ -6,6 +6,14 @@
 
 This is a HACS custom integration for Denon (HEOS generation) AV receivers such
 as the AVR-X3600H.
+
+It is an independent continuation of
+[LaserGuruGuy/denon_avr](https://github.com/LaserGuruGuy/denon_avr), which does
+not take issues or pull requests. All credit for the original design and code
+goes to its author; see [Origin](#origin). Domain: `denonavr_plus`. It can be
+installed alongside the original (`denon_avr`) and the official Home Assistant
+integration (`denonavr`), but only one of them should be connected to a receiver
+at a time: many Denon receivers accept only a single telnet session.
 
 
 ## Features
@@ -26,20 +34,20 @@ as the AVR-X3600H.
 
 ## Installation
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=LaserGuruGuy&repository=denon_avr&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=johnnyh1975&repository=ha_denonavr_plus&category=integration)
 
 1. Install [HACS](https://hacs.xyz/) if you haven't already
 2. HACS → Integrations → three dots → Custom repositories.
 3. Add this repository as a [custom integration repository](https://hacs.xyz/docs/faq/custom_repositories), category "Integration".
-4. Install integration "Denon AVR".
+4. Install integration "Denon AVR Plus".
 5. Restart Home Assistant.
 
 ### Manual
-Copy the `denon_avr` folder into `<config>/custom_components/` and restart Home Assistant.
+Copy the `denonavr_plus` folder into `<config>/custom_components/` and restart Home Assistant.
 
 ## Configuration
 
-Settings → Devices & Services → Add Integration → **Denon AVR**, then enter the
+Settings → Devices & Services → Add Integration → **Denon AVR Plus**, then enter the
 receiver's **IP address**. The name and all capabilities are read from the device
 automatically; no other input is required.
 
@@ -185,7 +193,8 @@ to match yours.
 
 ## Testing
 
-Protocol behavior was verified live against the following.
+Protocol behavior was verified live by the original author against the
+following.
 
 | Component                    | Version |
 |------------------------------|---------|
@@ -198,6 +207,15 @@ Protocol behavior was verified live against the following.
 Other Denon/Marantz HEOS generation receivers should work as the integration
 adapts to whatever the device reports, but only this combination has been
 exercised end to end.
+
+## Origin
+
+Denon AVR Plus is based on **[Denon AVR](https://github.com/LaserGuruGuy/denon_avr)
+by [LaserGuruGuy](https://github.com/LaserGuruGuy)** (MIT licence), version 1.1.2.
+The full commit history of that project is preserved in this repository. Its
+copyright notice is kept in [LICENSE](LICENSE). This project is not affiliated
+with or endorsed by LaserGuruGuy; please report problems with Denon AVR Plus
+here, not upstream.
 
 ## Credits
 
@@ -235,9 +253,9 @@ not imply any affiliation or endorsement.
 Any other product or company names mentioned are the trademarks of their
 respective owners.
 
-[releases-shield]: https://img.shields.io/github/v/release/LaserGuruGuy/denon_avr.svg?style=for-the-badge
-[releases]: https://github.com/LaserGuruGuy/denon_avr/releases/
-[maintainer-shield]: https://img.shields.io/badge/maintainer-LaserGuruGuy-blue.svg?style=for-the-badge
-[maintainer]: https://github.com/LaserGuruGuy
+[releases-shield]: https://img.shields.io/github/v/release/johnnyh1975/ha_denonavr_plus.svg?style=for-the-badge
+[releases]: https://github.com/johnnyh1975/ha_denonavr_plus/releases/
+[maintainer-shield]: https://img.shields.io/badge/maintainer-johnnyh1975-blue.svg?style=for-the-badge
+[maintainer]: https://github.com/johnnyh1975
 [hacs-shield]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge
-[hacs-url]: https://github.com/LaserGuruGuy/denon_avr
+[hacs-url]: https://github.com/johnnyh1975/ha_denonavr_plus

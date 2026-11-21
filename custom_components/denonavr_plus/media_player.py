@@ -1,4 +1,4 @@
-"""Media player platform for the Denon AVR integration.
+"""Media player platform for the Denon AVR Plus integration.
 
 One media player entity is created per discovered zone. The main zone also
 exposes the sound mode; additional zones do not. The selectable source list and

@@ -1,4 +1,4 @@
-"""Config flow for the Denon AVR integration.
+"""Config flow for the Denon AVR Plus integration.
 
 The user only provides the receiver's IP address. The flow validates it by
 fetching the Deviceinfo document, then uses the discovered MAC address as the

@@ -4,7 +4,7 @@ Since Home Assistant 2026.2 (the brands proxy API), a custom integration can
 ship its own brand images locally, and they take priority over the central
 brands CDN. No pull request to home-assistant/brands is needed.
 
-The images live in `custom_components/denon_avr/brand/`:
+The images live in `custom_components/denonavr_plus/brand/`:
 
 ```
 brand/icon.png            brand/icon@2x.png

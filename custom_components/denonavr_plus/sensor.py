@@ -1,4 +1,4 @@
-"""Sensor platform for the Denon AVR integration.
+"""Sensor platform for the Denon AVR Plus integration.
 
 Creates read only sensors from what the receiver reports: the audio input
 information (sample rate, decoder, format, signal), the current sound mode, and

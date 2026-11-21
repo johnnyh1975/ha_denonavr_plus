@@ -3,83 +3,83 @@
     "flow_title": "{name}",
     "step": {
       "user": {
-        "title": "Denon AVR",
-        "description": "Voer het IP-adres van je Denon-receiver in. De naam en mogelijkheden worden automatisch van het apparaat gelezen.",
+        "title": "Denon AVR Plus",
+        "description": "Enter the IP address of your Denon receiver. The name and capabilities are read from the device automatically.",
         "data": {
-          "host": "IP-adres"
+          "host": "IP address"
         }
       },
       "ssdp_confirm": {
-        "title": "Denon AVR",
-        "description": "Wil je de gevonden receiver {name} toevoegen?"
+        "title": "Denon AVR Plus",
+        "description": "Do you want to add the discovered receiver {name}?"
       },
       "reconfigure": {
-        "title": "Denon AVR",
-        "description": "Werk het IP-adres van je Denon-receiver bij.",
+        "title": "Denon AVR Plus",
+        "description": "Update the IP address of your Denon receiver.",
         "data": {
-          "host": "IP-adres"
+          "host": "IP address"
         }
       }
     },
     "error": {
-      "cannot_connect": "Kon de receiver niet bereiken. Controleer het IP-adres en of de receiver aan staat en op het netwerk zit."
+      "cannot_connect": "Could not reach the receiver. Check the IP address and that the receiver is powered on and on the network."
     },
     "abort": {
-      "already_configured": "Deze receiver is al geconfigureerd.",
-      "wrong_device": "Dat adres hoort bij een andere receiver dan de geconfigureerde.",
-      "reconfigure_successful": "Het IP-adres is bijgewerkt."
+      "already_configured": "This receiver is already configured.",
+      "wrong_device": "That address belongs to a different receiver than the one configured.",
+      "reconfigure_successful": "The IP address was updated."
     }
   },
   "entity": {
     "binary_sensor": {
       "connectivity": {
-        "name": "Verbinding"
+        "name": "Connectivity"
       }
     },
     "sensor": {
       "sound_mode": {
-        "name": "Geluidsmodus"
+        "name": "Sound Mode"
       },
       "volume": {
         "name": "Volume"
       },
       "input_signal": {
-        "name": "Ingangssignaal"
+        "name": "Input Signal"
       },
       "sample_rate": {
-        "name": "Bemonsteringsfrequentie"
+        "name": "Sample Rate"
       },
       "audio_format": {
-        "name": "Audioformaat"
+        "name": "Audio Format"
       },
       "decoder": {
         "name": "Decoder"
       },
       "mode_info": {
-        "name": "Modusinformatie"
+        "name": "Mode Info"
       }
     },
     "select": {
       "sound_mode_group": {
-        "name": "Geluidsmodusgroep"
+        "name": "Sound Mode Group"
       },
       "sound_mode": {
-        "name": "Geluidsmodus"
+        "name": "Sound Mode"
       },
       "quick_select": {
-        "name": "Snelkeuze"
+        "name": "Quick Select"
       },
       "dynamic_compression": {
-        "name": "Dynamische compressie"
+        "name": "Dynamic Compression"
       },
       "room_size": {
-        "name": "Kamergrootte"
+        "name": "Room Size"
       },
       "dynamic_volume": {
-        "name": "Dynamisch volume"
+        "name": "Dynamic Volume"
       },
       "reference_level_offset": {
-        "name": "Referentieniveau-offset"
+        "name": "Reference Level Offset"
       },
       "multeq": {
         "name": "MultEQ"
@@ -88,135 +88,135 @@
         "name": "Restorer"
       },
       "volume_scale": {
-        "name": "Volumeschaal"
+        "name": "Volume Scale"
       },
       "volume_limit": {
-        "name": "Volumelimiet"
+        "name": "Volume Limit"
       },
       "muting_level": {
-        "name": "Dempingsniveau"
+        "name": "Muting Level"
       },
       "subwoofer_mode": {
-        "name": "Subwoofermodus"
+        "name": "Subwoofer Mode"
       },
       "front_speaker": {
-        "name": "Voorluidspreker"
+        "name": "Front Speaker"
       },
       "lpf_for_lfe": {
-        "name": "LPF voor LFE"
+        "name": "LPF for LFE"
       },
       "eco_mode": {
-        "name": "Eco-modus"
+        "name": "Eco Mode"
       },
       "dimmer": {
         "name": "Dimmer"
       },
       "video_mode": {
-        "name": "Videomodus"
+        "name": "Video Mode"
       },
       "picture_mode": {
-        "name": "Beeldmodus"
+        "name": "Picture Mode"
       },
       "noise_reduction": {
-        "name": "Ruisonderdrukking"
+        "name": "Noise Reduction"
       },
       "hdmi_video_output": {
-        "name": "HDMI-video-uitgang"
+        "name": "HDMI Video Output"
       },
       "aspect_ratio": {
-        "name": "Beeldverhouding"
+        "name": "Aspect Ratio"
       },
       "hdmi_audio_out": {
-        "name": "HDMI-audio-uitgang"
+        "name": "HDMI Audio Out"
       },
       "resolution_hdmi": {
-        "name": "HDMI-resolutie"
+        "name": "Resolution HDMI"
       },
       "input_mode": {
-        "name": "Ingangsmodus"
+        "name": "Input Mode"
       },
       "hdmi_power_off_control": {
-        "name": "HDMI-uitschakelbediening"
+        "name": "HDMI Power Off Control"
       },
       "pass_through_source": {
-        "name": "Doorvoerbron"
+        "name": "Pass Through Source"
       },
       "rc_select": {
-        "name": "RC-selectie"
+        "name": "RC Select"
       },
       "osd_volume": {
-        "name": "Volume op scherm"
+        "name": "On-Screen Volume"
       },
       "osd_now_playing": {
-        "name": "Nu speelt-weergave"
+        "name": "Now Playing Display"
       },
       "hdmi_signal_format": {
-        "name": "4K-signaalformaat"
+        "name": "4K Signal Format"
       },
       "tv_format": {
-        "name": "Tv-formaat"
+        "name": "TV Format"
       },
       "amp_assign": {
-        "name": "Toewijsmodus"
+        "name": "Amp Assign"
       },
       "floor_layout": {
-        "name": "Vloerindeling"
+        "name": "Floor Layout"
       },
       "height_speaker": {
-        "name": "Hoogteluidsprekers"
+        "name": "Height Speakers"
       },
       "crossover_speaker_selection": {
-        "name": "Luidsprekerselectie crossover"
+        "name": "Crossover Speaker Selection"
       },
       "all_crossover": {
-        "name": "Alle crossover"
+        "name": "All Crossover"
       },
       "subwoofer_count": {
         "name": "Subwoofers"
       },
       "eq_speaker_selection": {
-        "name": "Luidsprekerselectie"
+        "name": "Speaker Selection"
       },
       "eq_channel": {
-        "name": "Kanaal"
+        "name": "Channel"
       }
     },
     "switch": {
       "main_power": {
-        "name": "Aan/uit"
+        "name": "Main Power"
       },
       "main_mute": {
-        "name": "Dempen"
+        "name": "Main Mute"
       },
       "tone_control": {
-        "name": "Toonregeling"
+        "name": "Tone Control"
       },
       "dynamic_eq": {
-        "name": "Dynamische EQ"
+        "name": "Dynamic EQ"
       },
       "graphic_eq": {
-        "name": "Ingeschakeld"
+        "name": "Enabled"
       },
       "headphone_eq": {
-        "name": "Hoofdtelefoon-EQ"
+        "name": "Headphone EQ"
       },
       "auto_lip_sync": {
-        "name": "Automatische lipsynchronisatie"
+        "name": "Auto Lip Sync"
       },
       "loudness_management": {
-        "name": "Loudness-beheer"
+        "name": "Loudness Management"
       },
       "cinema_eq": {
-        "name": "Cinema-EQ"
+        "name": "Cinema EQ"
       },
       "subwoofer_switch": {
-        "name": "Subwooferschakelaar"
+        "name": "Subwoofer Switch"
       },
       "all_zone_stereo": {
-        "name": "Alle zones stereo"
+        "name": "All Zone Stereo"
       },
       "speaker_virtualizer": {
-        "name": "Luidsprekervirtualisatie"
+        "name": "Speaker Virtualizer"
       },
       "center_spread": {
         "name": "Center Spread"
@@ -225,83 +225,83 @@
         "name": "DTS Neural:X"
       },
       "low_frequency_containment": {
-        "name": "Lagefrequentiebeperking"
+        "name": "Low Frequency Containment"
       },
       "hdmi_control": {
-        "name": "HDMI-bediening"
+        "name": "HDMI Control"
       },
       "arc": {
         "name": "ARC"
       },
       "tv_audio_switching": {
-        "name": "Tv-audio-omschakeling"
+        "name": "TV Audio Switching"
       },
       "hdmi_power_saving": {
-        "name": "HDMI-energiebesparing"
+        "name": "HDMI Power Saving"
       },
       "smart_menu": {
         "name": "Smart Menu"
       },
       "hdmi_pass_through": {
-        "name": "HDMI-doorvoer"
+        "name": "HDMI Pass Through"
       },
       "osd_info": {
-        "name": "Info op scherm"
+        "name": "On-Screen Info"
       }
     },
     "number": {
       "bass": {
-        "name": "Lage tonen"
+        "name": "Bass"
       },
       "treble": {
-        "name": "Hoge tonen"
+        "name": "Treble"
       },
       "lfe": {
         "name": "LFE"
       },
       "dialog_level": {
-        "name": "Dialoogniveau"
+        "name": "Dialog Level"
       },
       "subwoofer_level": {
-        "name": "Subwooferniveau"
+        "name": "Subwoofer Level"
       },
       "sleep_timer": {
-        "name": "Slaaptimer"
+        "name": "Sleep Timer"
       },
       "effect_level": {
-        "name": "Effectniveau"
+        "name": "Effect Level"
       },
       "containment_amount": {
-        "name": "Beperkingsniveau"
+        "name": "Containment Amount"
       },
       "audio_delay": {
-        "name": "Audiovertraging"
+        "name": "Audio Delay"
       },
       "dialog_control": {
-        "name": "Dialoogregeling"
+        "name": "Dialog Control"
       },
       "contrast": {
         "name": "Contrast"
       },
       "brightness": {
-        "name": "Helderheid"
+        "name": "Brightness"
       },
       "saturation": {
-        "name": "Verzadiging"
+        "name": "Saturation"
       },
       "enhancer": {
-        "name": "Beeldverbetering"
+        "name": "Enhancer"
       }
     },
     "button": {
       "eq_apply": {
-        "name": "Toepassen"
+        "name": "Apply"
       },
       "eq_copy_curve": {
-        "name": "Curve kopiëren"
+        "name": "Copy Curve"
       },
       "eq_default": {
-        "name": "Standaard"
+        "name": "Default"
       }
     }
   }

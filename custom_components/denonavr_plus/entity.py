@@ -1,4 +1,4 @@
-"""Base entity for the Denon AVR integration.
+"""Base entity for the Denon AVR Plus integration.
 
 All entities share the device identity (built from discovery data) and become
 unavailable together when the telnet link drops. Entity names come from the

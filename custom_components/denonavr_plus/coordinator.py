@@ -1,4 +1,4 @@
-"""Data update coordinator for the Denon AVR integration.
+"""Data update coordinator for the Denon AVR Plus integration.
 
 The receiver pushes state changes over telnet, so this coordinator is push
 driven: the device calls back whenever anything changes and the coordinator
