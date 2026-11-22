@@ -75,7 +75,8 @@ items are marked "new".
 |---|---|---|
 | goform port fixed to 8080 | AVR-X2000 setup fails | 16 |
 | Entities gated only on `FuncName`; AVR-X2000 lists 55 names without Audyssey, tone levels or video | Even with the port fixed, most settings would stay hidden | 16, new: probe telnet queries as a second gate for receivers with `CommApiVers` below 0300 |
-| Choose the port from `CommApiVers` / model, not by fallback | Avoids storing a waking receiver on the wrong port | 16 |
+| Choose the port from `CommApiVers` / model, not by fallback | Avoids storing a waking receiver on the wrong port; port 80 for 0210 to 0300, the old encodings only for 0210 | 16 |
+| The 2018 and FY21 Denon protocol spreadsheets are missing | Many AVR-X2600H facts stay "To test" | add to the project sources |
 | `MV99` = minimum on pre-2012 models | Volume read as +19 dB | 16 |
 | Picture controls are two-digit on the AVR-X2000 | Wrong values written | 16 |
 | `CV?` ends without `CVEND` and reports unused channels as `50` on the AVR-X2000 | The parser does not wait for `CVEND` today (keep it so); unused channels must not create enabled entities | 16 |

@@ -13,14 +13,23 @@ describes what, and where the documents disagree.
 | Control protocol v8.6.0 | 2012 | AVR-1713, AVR-1613 | Ethernet |
 | Control protocol v04 | 2012–2013 | AVR-2113CI, AVR-1913 | Ethernet, RS-232C (2113CI) |
 | Control protocol v03 (rev 10.1.0) | 2013 | **AVR-X2000**, AVR-E400 | Ethernet, RS-232C (X2000 North America) |
+| Control protocol V06 | 2014 | AVR-S700W, S900W, X1100W, X2100W, X3100W, X4100W, X5200W, X7200W | Ethernet, RS-232C (read through a text extract; see note) |
 | Control protocol v02 | 2015 | AVR-X1200W, X2200W, X3200W, X4200W | Ethernet, RS-232C |
 | Community guide (marantz-denon-mqtt) | current | Marantz Cinema 70s | Ethernet |
 
-There is no published document for the AVR-X2600H. The closest official
-reference is the 2015 X-W document; the integration's own findings on the
-AVR-X3600H (2019, same platform generation) fill the rest. Every
-X2600H-specific statement is therefore **To test** unless a page says
-otherwise.
+No document for the AVR-X2600H is in the sources. Denon published
+spreadsheets for later years (2017: AVR-X6400H to S730H; 2018: AVC-X6500H
+to S640H, including the AVR-X2500H; 2020: "FY21" for that year's models),
+but their links on denon.com no longer resolve from here; see
+[References](references.md#manufacturer-control-protocols). Until one of
+them is added, the closest official reference is the 2015 X-W document, and
+the integration's own findings on the AVR-X3600H (2019, same platform
+generation) fill the rest. Every X2600H-specific statement is therefore
+**To test** unless a page says otherwise.
+
+The 2014 V06 document was read through an automated text extract of its PDF,
+not page by page; its statements below are good enough to date a change, and
+should be checked against the PDF before code depends on them.
 
 ## Command families
 
@@ -54,20 +63,26 @@ the other.
 
 | Topic | Older documents | Newer documents | Impact here |
 |---|---|---|---|
-| Master volume minimum | 2011: `MV99` = minimum, `MV00` = −80 dB, `MV995` = −80.5 dB | 2012 onward: `MV00` = minimum, `MV005` = −79.5 dB | The codec reads `99` as +19 dB. Matters for pre-2012 models only; AVR-X2000 To test at volume minimum |
-| Volume minimum, wording | The 2012 and 2013 documents state "99" in their notes and "00" in their tables | 2015: "00" throughout | Follow the tables and the 2015 document |
-| `CV?` reply | Every channel of the layout, unused ones as `50` | Configured speakers only, then `CVEND` | Do not rely on `CVEND` for the AVR-X2000 |
-| Picture adjust (`PVCN`, `PVST`, `PVHUE`) | AVR-X2000: two digits, 44–56, `50` = 0 | 2015: three digits, `000`–`100`, `050` = 0; `PVHUE` gone | The integration writes three digits; To test on the AVR-X2000 |
+| Master volume minimum | 2011: `MV99` = minimum, `MV00` = −80 dB, `MV995` = −80.5 dB | 2012 onward (also 2014, 2015): `MV00` = minimum, `MV005` = −79.5 dB | The codec reads `99` as +19 dB. Matters for pre-2012 models only; AVR-X2000 To test at volume minimum |
+| Volume minimum, wording | The 2012 and 2013 documents state "99" in their notes and "00" in their tables | 2014 and 2015: "00" throughout | Follow the tables and the 2015 document |
+| `CV?` reply | Up to 2013: every channel of the layout, unused ones as `50` | 2014 onward: configured speakers only, then `CVEND` | Do not rely on `CVEND` for the AVR-X2000 |
+| Picture adjust (`PVCN`, `PVST`, `PVHUE`) | AVR-X2000 (2013): two digits, 44–56, `50` = 0 | 2014 onward: three digits, `000`–`100`, `050` = 0; `PVHUE` listed but unavailable on every model | The integration writes three digits; To test on the AVR-X2000 |
 | Picture `PVBR` | 00–12 | `000`–`100`, `050` = 0 | as above |
 | Dynamic Volume | 2011: `NGT`, `EVE`, `DAY` | 2012 onward: `OFF`, `LIT`, `MED`, `HEV` | Profile has the newer set |
 | Audio Restorer | 2011–2013 (2112CI, 1713, 2113CI): `MODE1`–`MODE3`, `OFF` | AVR-X2000 and 2015: `LOW`, `MED`, `HI`, `OFF` (2015 maps LOW = MODE3, MED = MODE2, HI = MODE1) | Profile fits the AVR-X2000 |
-| Tuner preset numbers | 2011 and AVR-X2000 v03: `A1`–`G8` | 2113CI v04 (May 2013, "corrected") and 2015: `01`–`56` | AVR-X2000 To test |
-| All Zone Stereo state | AVR-X2000: set with `MNZST ON/OFF`, state only from the `MSALL ZONE STEREO` event | 2015: `MNZST?` query | The integration queries `MNZST ?`; AVR-X2000 To test |
+| Tuner preset numbers | 2011 and AVR-X2000 v03: `A1`–`G8` | 2113CI v04 (May 2013, "corrected"), 2014 and 2015: `01`–`56` | AVR-X2000 To test |
+| All Zone Stereo state | AVR-X2000: set with `MNZST ON/OFF`, state only from the `MSALL ZONE STEREO` event | 2014 onward: `MNZST?` query (2014 reply column inconsistent) | The integration queries `MNZST ?`; AVR-X2000 To test |
 | Sound modes | Pro Logic II/IIx/IIz, Neo:6 combinations, no `MSAUTO` command | Atmos, DTS:X, Neural:X, Dolby Surround, `MSAUTO`; PL II and Neo:6 gone | Mode list is read from the receiver (`OPSML`), which the AVR-X2000 probably lacks (To test) |
 | Front speaker A/B | AVR-X2000 command table: `PSFRONT SPA+B`; its event table: `PSFRONT A+B` | 2015: `A+B` | Profile uses `A+B` |
 | Quick Select slots | `MSQUICK1`–`5` documented for all | same | The AVR-X2000 description lists four (`Quick Select1`–`4`); To test |
-| Zone 2 tone, HPF, channel mode | not documented | 2015: X3200W and X4200W only | X2600H To test |
-| Auto standby, ECO, dimmer, triggers | not documented | 2015: all four models (triggers X3200W/X4200W) | AVR-X2000: expect absent |
+| Zone 2 tone, HPF, channel mode | not documented | 2014 and 2015: the larger models only (2014: X7200W to X3100W) | X2600H To test |
+| Auto standby, ECO, dimmer, triggers | not documented | 2014 and 2015: all models (triggers on the larger ones) | AVR-X2000: expect absent |
+| Subwoofer level `PSSWL`, dialog level `PSDIL`, `SIBT`, `PSGEQ`, `PSLFC`, `PSCNTAMT` | not documented | from 2014 (`PSLFC`, `PSCNTAMT` larger models only) | AVR-X2000: expect absent |
+| Auro-3D strength `PSAUROST` | — | 2015: 1–16 | The `denonavr` library sends and tests 0–15; To test on an Auro model |
+
+Most of the AVR-X2000's differences are therefore the 2013/2014 boundary,
+not the 2016 HEOS boundary: the AVR-X2100W (2014) already uses the newer
+encodings.
 
 ## Undocumented tokens on current receivers
 
@@ -130,7 +145,8 @@ documents five; use four.
 One community note to read with care: the marantz-denon-mqtt guide
 describes `PSSWL 475` as "500 = 0 dB, 0.1 dB per unit". The half-step rule
 explains the same observation: `475` is 47.5, which is −2.5 dB from the
-`50` reference, and steps are 0.5 dB, not 0.1 dB.
+`50` reference, and steps are 0.5 dB, not 0.1 dB. The `denonavr` library's
+level table says the same (`385` = −11.5 dB, `505` = +0.5 dB).
 
 ## Small commands worth knowing
 

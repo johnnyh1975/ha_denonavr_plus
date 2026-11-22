@@ -85,6 +85,7 @@ subwoofer is off in Direct mode.
 |---|---|
 | AVR-X2000 | `FL`, `FR`, `C`, `SW`, `SL`, `SR`, `SBL`, `SBR`, `SB`, `FHL`, `FHR` (Documented) |
 | AVR-X2600H | The 7.2 layout with two subwoofers and Atmos heights: expect `SW2` and some of `TFL/TFR`, `TML/TMR`, `FDL/FDR`, `SDL/SDR` (To test) |
+| Superset (`denonavr` library) | adds `SW3`, `SW4` and `CH` (center height) for larger models |
 
 ## Speaker setup
 
@@ -123,6 +124,13 @@ The HTTP API encodes some values differently from telnet:
 
 The HTTP column comes from the community guide; the graphic EQ row is
 Tested on AVR-X3600H by this integration.
+
+The same guide says `PSMULTEQ:` does not answer on the Cinema 70s and the
+HTTP API is the only way to read MultEQ there. Its probe file does not
+support that conclusion: the probe ran with the receiver in standby, and it
+queried `PSMULTEQ:?`, `PSCINEMA EQ.?`, `PSRSZ?`, `PSRSTR?` and `SPPR?`
+without the space the documents use (`PSMULTEQ: ?`, `PSRSZ ?`). Treat those
+"unsupported" results as inconclusive.
 
 ## Audyssey over AppCommand0300 (port 8080)
 

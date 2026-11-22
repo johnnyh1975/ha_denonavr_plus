@@ -22,6 +22,11 @@ but no `Audyssey`, `MultEq`, `DynamicEq`, `Bass`, `Treble`, `ChannelLevel`,
 `SubwooferLevel` or any video name. Its telnet document has commands for
 all of them.
 
+Recorded AVR-X2000 answers over HTTP (library test data): `AppCommand.xml`
+returns only the renamed and deleted sources; the tone-control and
+sound-mode requests return nothing. The goform zone pages report the volume
+in dB (`-26`), not on the 0–98 scale. A Zone 3 page exists but is empty.
+
 Firmware version and serial number come from the UPnP description on port
 60006 (HEOS era) and from HEOS `get_players`. For the AVR-X2000 no network
 source of the firmware version is known; `UGIDN` returns the upgrade ID,
@@ -48,6 +53,18 @@ Undocumented status replies seen on current receivers (community, Cinema
 `SYSDA` (stream format), `OPINFINS`, `OPINFASP` (bit masks), `SSINFAISFSV`,
 `BTTX` and `OPTXM` (sent on power-on). Not expected on the AVR-X2000 (To
 test).
+
+For comparison, the `denonavr` library's full resynchronisation sends:
+`SI? MV? MU? Z2? Z2MU? Z3? Z3MU? MS? MNMEN? TR? PSTONE CTRL ? PSDYNEQ ?
+PSLFC ? PSNEURAL ? PSIMAXAUD ? PSIMAXSWM ? PSSWR ? SSTTR ? VSAUDIO ? PSCES ?
+PSLOM ? PSCINEMA EQ. ? BTTX ? PSSPV ? PSGEQ ? PSHEQ ? PSBAS ? PSTRE ?
+PSCNTAMT ? PSMULTEQ: ? PSREFLEV ? PSDYNVOL ? DIM ? PSDELAY ? ECO? VSMONI ?
+PSDIRAC ? CV? PSIMAX ? PSIMAXHPF ? PSIMAXLPF ? PSIMAXSWO ? PSSWL ? STBY?
+Z2STBY? Z3STBY? SLP? VSVPM ? PSLFE ? PSBSC ? PSDEH ? PSAUROPR ? PSAUROST ?
+PSAUROMODE ? PSRSZ ? SPPR ? PSDIC ? PSSP: ? PSDRC ? PSDEL ? PSRSTR ?`,
+plus `MSQUICK ?` on Denon and `MSSMART ?`, `PSMDAX ?`, `PSDACFIL ?`,
+`ILB ?`, `SSHOS ?` on Marantz. `SPPR` (speaker preset) and `SSTTR` are in
+no Denon document available here.
 
 Unknown lines must never break anything: the official integration once
 failed its setup on the unknown `ILB` reply. Roadmap item 29 adds a test for

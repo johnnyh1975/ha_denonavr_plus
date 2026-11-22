@@ -63,8 +63,11 @@ Typical controllers use one connection for events and one for commands.
 | `system/heart_beat` | Health probe | |
 | `system/reboot` | Reboot the connected device | Avoid in an integration |
 
-Not CLI commands, although a community document lists them:
-`browse/play_url`, `browse/get_heos_playlists`, `browse/rename_heos_playlist`.
+Not CLI commands, although the marantz-denon-mqtt bridge sends them:
+`browse/play_url`, `browse/browse_source_containers`,
+`browse/get_heos_playlists`, `browse/rename_heos_playlist`,
+`browse/delete_heos_playlist`, `browse/get_heos_history`. Its documents do
+not report a test of these; expect error 1 (command not recognized).
 The specification plays a URL with `browse/play_stream` and handles
 playlists with `browse/browse`, `browse/rename_playlist` and
 `browse/delete_playlist`.

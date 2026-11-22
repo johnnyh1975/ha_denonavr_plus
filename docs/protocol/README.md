@@ -73,8 +73,9 @@ AVR-X2600H").
    settles it per model.
 5. **Value encodings changed between protocol versions** (picture controls,
    the volume minimum, tuner preset numbers, Dynamic Volume values,
-   `CV?` replies). Code that is correct for one generation can misread the
-   other ([details](03-command-reference.md#differences-between-protocol-versions)).
+   `CV?` replies). Most changes date from 2014, so the AVR-X2000 (2013) is on
+   the old side and even the AVR-X2100W (2014) on the new one. Code that is
+   correct for one generation can misread the other ([details](03-command-reference.md#differences-between-protocol-versions)).
 6. **The HEOS client needs hardening** before a beta with other HEOS devices
    in the home: choose the receiver's own player, filter events by player,
    send a heart beat ([details](05-heos.md#how-this-integration-uses-heos)).

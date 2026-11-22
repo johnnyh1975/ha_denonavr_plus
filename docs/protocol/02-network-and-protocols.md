@@ -71,6 +71,10 @@ Community measurements on a Marantz Cinema 70s suggest 80–100 ms between
 commands and 3–5 s for a full boot after `PWON`. The receiver drops
 commands sent faster; the drop is silent.
 
+Keeping the session alive: the `denonavr` library sends `PW?` after 30 s
+without any line from the receiver and reconnects after 60 s; this
+integration probes after 30 s idle as well (`KEEPALIVE_INTERVAL`).
+
 Side effects to expect after one command:
 
 - A source change can change the sound mode; the receiver then sends the
@@ -85,8 +89,8 @@ Side effects to expect after one command:
 
 Telnet is only reachable in standby when the receiver keeps its network up.
 The AVR-X2000 calls the setting **IP Control** (`Always On` /
-`Off In Standby`); later models call it **Network Control** or
-**Network Standby**. With the power-saving choice, a receiver in standby
+`Off In Standby`); the 2014 document puts a **Network Standby Mode** option
+under IP Control, and the 2015 document calls the menu **Network Control**. With the power-saving choice, a receiver in standby
 cannot be switched on over the network; this integration then needs IR or
 HDMI-CEC (roadmap item 38).
 
