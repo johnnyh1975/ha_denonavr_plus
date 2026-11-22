@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONF_HOST, STATE_ON, STATE_UNAVAILABLE
+from homeassistant.const import CONF_HOST, CONF_PORT, STATE_ON, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -228,3 +228,10 @@ async def test_unreachable_receiver_retries_setup(
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.SETUP_RETRY
+
+
+async def test_setup_remembers_the_goform_port(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """An entry created without a port learns it at its first setup."""
+    assert loaded_entry.data[CONF_PORT] == 8080

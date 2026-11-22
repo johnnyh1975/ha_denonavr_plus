@@ -21,6 +21,7 @@ from homeassistant.util import dt as dt_util
 
 from .avr import AvrState, DenonAvrDevice
 from .const import (
+    CONF_PORT,
     DOMAIN,
     RECONCILE_INTERVAL,
     TELNET_OUTAGE_GRACE,
@@ -44,7 +45,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             config_entry=entry,
         )
         session = async_get_clientsession(hass)
-        self.device = DenonAvrDevice(session, host)
+        self.device = DenonAvrDevice(session, host, entry.data.get(CONF_PORT))
         self.device.register_update_callback(self._handle_device_update)
         # Registry id of the main receiver device, set once at setup so the
         # sub-devices can link to it via `via_device_id` (HA 2026.8+).

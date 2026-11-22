@@ -26,11 +26,13 @@ from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ProtocolProfile, load_profile
 from . import graphic_eq, video_config
 from .transport import (
+    DEFAULT_PORT,
     GoformClient,
     HeosClient,
     TelnetClient,
     UpnpClient,
     WebConfigClient,
+    async_detect_port,
     async_probe,
 )
 
@@ -43,8 +45,17 @@ _UPDATE_DEBOUNCE = 0.1
 class DenonAvrDevice:
     """Own, dependency light client for a Denon AVR over telnet and HTTP."""
 
-    def __init__(self, session: aiohttp.ClientSession, host: str) -> None:
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        host: str,
+        http_port: int | None = None,
+    ) -> None:
         self._host = host
+        self._session = session
+        # The goform port; None until it is known (detected at the first
+        # Deviceinfo read, or given from the stored config entry).
+        self._http_port = http_port
         self._profile: ProtocolProfile = load_profile()
         self._discovery = Discovery()
         self._state = AvrState()
@@ -54,7 +65,7 @@ class DenonAvrDevice:
         # goform HTTP for discovery/poll, UPnP for firmware/serial, and telnet for
         # live control. The length-framed TCP status channel is used only for a
         # one-shot read at discovery (amp assignment).
-        self._goform = GoformClient(session, host)
+        self._goform = GoformClient(session, host, http_port or DEFAULT_PORT)
         self._upnp = UpnpClient(session, host)
         # Setup-interface config API (HTTPS 10443), used for the manual graphic
         # EQ per-band values, which are not on the telnet channel. The EQ
@@ -192,10 +203,29 @@ class DenonAvrDevice:
         full discovery performs. Raises ConnectionError when unreachable.
         """
 
-        xml_text = await self._goform.async_get_device_info()
-        if xml_text is None:
+        return parse_device_info(await self._async_device_info()).device
+
+    @property
+    def http_port(self) -> int | None:
+        """The goform port in use, once known (8080, or 80 on older receivers)."""
+
+        return self._http_port
+
+    async def _async_device_info(self) -> str:
+        """Read Deviceinfo.xml, detecting the goform port the first time.
+
+        Raises ConnectionError when the receiver cannot be reached.
+        """
+
+        if self._http_port is None:
+            port, xml_text = await async_detect_port(self._session, self._host)
+            self._http_port = port
+            self._goform = GoformClient(self._session, self._host, port)
+            return xml_text
+        text = await self._goform.async_get_device_info()
+        if text is None:
             raise ConnectionError(f"No Deviceinfo response from {self._host}")
-        return parse_device_info(xml_text).device
+        return text
 
     async def async_discover(self) -> Discovery:
         """Fetch the Deviceinfo document and populate the discovery model.
@@ -204,9 +234,7 @@ class DenonAvrDevice:
         config flow can report a clear failure.
         """
 
-        xml_text = await self._goform.async_get_device_info()
-        if xml_text is None:
-            raise ConnectionError(f"No Deviceinfo response from {self._host}")
+        xml_text = await self._async_device_info()
         # Tell the parser which feature blocks to read titles/labels from, using
         # the feature names the profile associates with its controls.
         feature_names = {

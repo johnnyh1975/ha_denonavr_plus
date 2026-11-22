@@ -9,12 +9,16 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from homeassistant.const import CONF_HOST, Platform  # noqa: F401 -- CONF_HOST re-exported, see below
+from homeassistant.const import (
+    CONF_HOST as CONF_HOST,
+    CONF_PORT as CONF_PORT,
+    Platform,
+)
 
 DOMAIN = "denonavr_plus"
 
-# CONF_HOST (the receiver address, == homeassistant.const.CONF_HOST) is imported
-# above and re-exported here so the rest of the integration keeps a single import
+# CONF_HOST (the receiver address) and CONF_PORT (the goform port, 8080 or 80)
+# are imported above and re-exported here so the rest of the integration keeps a single import
 # site; everything else about the device is discovered at runtime.
 
 

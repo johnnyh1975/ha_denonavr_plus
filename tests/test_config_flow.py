@@ -2,20 +2,25 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from aiohttp import ClientError
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import DOMAIN
+
+from .conftest import deviceinfo
 
 HOST = "192.0.2.10"
 MAC = "aa:bb:cc:dd:ee:ff"
@@ -204,3 +209,25 @@ async def test_reconfigure_cannot_connect(hass: HomeAssistant) -> None:
         )
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "cannot_connect"}
+
+
+async def test_older_receiver_is_set_up_on_port_80(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """An AVR-X2000 answers on port 80 only; the entry remembers the port."""
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10:8080/goform/Deviceinfo\.xml$"), exc=ClientError()
+    )
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10/goform/Deviceinfo\.xml$"),
+        text=deviceinfo("AVR-X2000-Deviceinfo.xml"),
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: HOST}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["title"] == "AVR-X2000"
+    assert result["data"] == {CONF_HOST: HOST, CONF_PORT: 80}

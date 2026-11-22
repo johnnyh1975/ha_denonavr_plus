@@ -25,6 +25,7 @@ from .avr import DenonAvrDevice
 from .avr.profile import load_profile
 from .const import (
     CONF_HOST,
+    CONF_PORT,
     DOMAIN,
 )
 
@@ -41,16 +42,30 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._host: str | None = None
         self._name: str = "Denon AVR"
+        self._port: int | None = None
 
     async def _async_identify(self, host: str) -> tuple[str | None, str]:
-        """Fetch the receiver's MAC and model name. Raises ConnectionError."""
+        """Fetch the receiver's MAC and model name. Raises ConnectionError.
+
+        Also learns the goform port (8080, or 80 on older receivers), which
+        _entry_data stores with the address.
+        """
 
         session = async_get_clientsession(self.hass)
         # Warm the profile cache off the loop before constructing the device.
         await self.hass.async_add_executor_job(load_profile)
         device = DenonAvrDevice(session, host)
         identity = await device.async_fetch_identity()
+        self._port = device.http_port
         return identity.mac_address, identity.model_name or "Denon AVR"
+
+    def _entry_data(self, host: str) -> dict[str, Any]:
+        """The entry data: the address, and the goform port once it is known."""
+
+        data: dict[str, Any] = {CONF_HOST: host}
+        if self._port is not None:
+            data[CONF_PORT] = self._port
+        return data
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -67,10 +82,10 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 if mac:
                     await self.async_set_unique_id(mac)
-                    self._abort_if_unique_id_configured(updates={CONF_HOST: host})
+                    self._abort_if_unique_id_configured(updates=self._entry_data(host))
                 else:
                     self._async_abort_entries_match({CONF_HOST: host})
-                return self.async_create_entry(title=name, data={CONF_HOST: host})
+                return self.async_create_entry(title=name, data=self._entry_data(host))
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors
@@ -90,7 +105,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="cannot_connect")
         if mac:
             await self.async_set_unique_id(mac)
-            self._abort_if_unique_id_configured(updates={CONF_HOST: host})
+            self._abort_if_unique_id_configured(updates=self._entry_data(host))
         else:
             self._async_abort_entries_match({CONF_HOST: host})
         self._host = host
@@ -105,8 +120,9 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         """Confirm adding an SSDP discovered receiver."""
 
         if user_input is not None:
+            assert self._host is not None
             return self.async_create_entry(
-                title=self._name, data={CONF_HOST: self._host}
+                title=self._name, data=self._entry_data(self._host)
             )
         return self.async_show_form(
             step_id="ssdp_confirm",
@@ -133,7 +149,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
                     await self.async_set_unique_id(mac)
                     self._abort_if_unique_id_mismatch(reason="wrong_device")
                 return self.async_update_reload_and_abort(
-                    entry, data_updates={CONF_HOST: host}
+                    entry, data_updates=self._entry_data(host)
                 )
 
         return self.async_show_form(

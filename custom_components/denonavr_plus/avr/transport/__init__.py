@@ -16,7 +16,7 @@ and parser) or Home Assistant.
 
 from __future__ import annotations
 
-from .goform import GoformClient
+from .goform import DEFAULT_PORT, GoformClient, async_detect_port
 from .heos import HeosClient
 from .tcp_client import TcpClient
 from .telnet import TelnetClient, async_probe
@@ -24,11 +24,13 @@ from .upnp import UpnpClient
 from .webconfig import WebConfigClient
 
 __all__ = [
+    "DEFAULT_PORT",
     "GoformClient",
     "HeosClient",
     "TcpClient",
     "TelnetClient",
     "UpnpClient",
     "WebConfigClient",
+    "async_detect_port",
     "async_probe",
 ]

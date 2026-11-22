@@ -15,7 +15,7 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
 from .avr.profile import load_profile
-from .const import CONF_HOST, DOMAIN, PLATFORMS
+from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,6 +50,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         raise
 
     entry.runtime_data = coordinator
+    # Entries created before the port was stored learn it at their first setup,
+    # so later setups never have to guess it again.
+    port = coordinator.device.http_port
+    if port is not None and entry.data.get(CONF_PORT) != port:
+        hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_PORT: port})
     # Register the main receiver device up front so the logical sub-devices
     # (Audio/Video/Speakers/…) can link to it by id via `via_device_id`; the old
     # `via_device` identifier tuple is deprecated (removed in HA 2027.8.0).

@@ -1,4 +1,4 @@
-"""The goform HTTP transport (port 8080) for the Denon AVR client library.
+"""The goform HTTP transport (port 8080, or 80 on older receivers).
 
 The goform HTTP API is used for two things only:
 
@@ -11,11 +11,18 @@ The goform HTTP API is used for two things only:
 The heavy lifting (control and real time updates) is done over telnet; this is
 the stateless safety net. This module owns its own port and discovery path; no
 other transport shares them.
+
+Receivers from 2016 on (CommApiVers 0301) serve the API on port 8080. Older
+ones (CommApiVers 0300 and below, or none at all) serve it on port 80. The port
+is chosen from what the receiver reports, never by falling back after a failed
+attempt: newer firmware redirects port 80 to HTTPS, and a newer receiver that
+is still waking up must not be stored on the wrong port.
 """
 
 from __future__ import annotations
 
 import logging
+import re
 import xml.etree.ElementTree as ET
 
 import aiohttp
@@ -24,16 +31,55 @@ from ..const import HTTP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
-_PORT = 8080
+DEFAULT_PORT = 8080
+LEGACY_PORT = 80
 _DEVICEINFO_PATH = "/goform/Deviceinfo.xml"
+# CommApiVers from which the receiver serves goform on port 8080 (2016 on).
+_PORT_8080_FROM = 301
+_COMMAPI_RE = re.compile(r"<CommApiVers>\s*(\d+)\s*</CommApiVers>")
+
+
+def _comm_api_version(text: str) -> int | None:
+    match = _COMMAPI_RE.search(text)
+    return int(match.group(1)) if match else None
+
+
+async def async_detect_port(
+    session: aiohttp.ClientSession, host: str
+) -> tuple[int, str]:
+    """Find the goform port from what the receiver reports.
+
+    Returns the port and the Deviceinfo document read from it. Raises
+    ConnectionError when no port gives an answer that fits: port 80 only
+    counts for a receiver that reports an older CommApiVers (or none), so a
+    newer receiver whose port 8080 is not up yet is retried later instead.
+    """
+
+    text = await GoformClient(session, host, DEFAULT_PORT).async_get_device_info()
+    if text and "<Device_Info" in text:
+        return DEFAULT_PORT, text
+    text = await GoformClient(session, host, LEGACY_PORT).async_get_device_info()
+    if text and "<Device_Info" in text:
+        version = _comm_api_version(text)
+        if version is None or version < _PORT_8080_FROM:
+            return LEGACY_PORT, text
+        _LOGGER.debug(
+            "%s answers on port 80 with CommApiVers %s; waiting for port 8080",
+            host,
+            version,
+        )
+    raise ConnectionError(f"No Deviceinfo response from {host}")
 
 
 class GoformClient:
-    """Minimal async client for the goform HTTP API (port 8080)."""
+    """Minimal async client for the goform HTTP API."""
 
-    def __init__(self, session: aiohttp.ClientSession, host: str) -> None:
+    def __init__(
+        self, session: aiohttp.ClientSession, host: str, port: int = DEFAULT_PORT
+    ) -> None:
         self._session = session
-        self._base = f"http://{host}:{_PORT}"
+        self._base = f"http://{host}:{port}"
+        self.port = port
 
     async def async_get_device_info(self) -> str | None:
         """Fetch the raw Deviceinfo XML, or None on failure."""
@@ -58,7 +104,10 @@ class GoformClient:
         url = f"{self._base}{path}"
         try:
             timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
-            async with self._session.get(url, timeout=timeout) as response:
+            # Never follow a redirect: newer firmware sends port 80 to HTTPS.
+            async with self._session.get(
+                url, timeout=timeout, allow_redirects=False
+            ) as response:
                 if response.status != 200:
                     _LOGGER.debug("GET %s returned HTTP %s", url, response.status)
                     return None
