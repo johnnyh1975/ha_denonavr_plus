@@ -193,8 +193,7 @@ setup, amp assignment.
 - Read: `GET /ajax/<section>/get_config?type=<id>` returns XML.
 - Write: `GET /ajax/<section>/set_config?type=<id>&data=<url-encoded XML>`.
   This integration found that a POST is rejected with HTTP 400 on the
-  AVR-X3600H. (The module docstring in `avr/transport/webconfig.py` still
-  mentions a POST in its first paragraph; the code uses GET.)
+  AVR-X3600H.
 - Self-signed certificate on 10443.
 - Community reports from a 2022-era Marantz describe the same API on plain
   HTTP port 11080 with 10443 closed. This integration does not try 11080.

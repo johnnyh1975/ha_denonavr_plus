@@ -63,9 +63,11 @@ sound mode reads `ALL ZONE STEREO`; the previous mode comes back when it is
 switched off (To test). It is not a HEOS group: no other HEOS device takes
 part, and HEOS does not report it.
 
-Idea from the maintainer's plan (item 32): map "join Zone 2" in the
-Home Assistant media player to All Zone Stereo. Only plannable after the
-behaviour above is tested.
+Roadmap item 32: joining Zone 2 to the main zone with Home Assistant's
+`media_player.join`, using `Z2SOURCE` (Zone 2 follows the main zone) or All
+Zone Stereo, and `unjoin` restoring Zone 2's previous source. It needs the
+tests above, plus whether `Z2SOURCE` works on the AVR-X2600H; the
+documents list it for the AVR-X2000 and the 2015 models.
 
 ## HEOS groups
 
@@ -80,9 +82,13 @@ group.
 
 ## Home Assistant model
 
-- One device per receiver, one `media_player` per physical zone.
-- Zone 2 as its own device (room assignment, voice control) is roadmap
-  item 15.
+- One device per receiver, one `media_player` per physical zone, all on
+  the receiver device. Zones do not become devices of their own.
+- A zone's media player can be given its own area in Home Assistant; an
+  entity's area takes precedence over its device's, so room assignment and
+  voice control work per zone.
 - All Zone Stereo as a switch on the receiver device.
+- Joining zones uses `media_player.join`/`unjoin` (roadmap item 32), not a
+  separate playback mode entity.
 - HEOS players and groups stay with the HEOS integration or Music Assistant;
   this integration reads now playing from HEOS but does not group.

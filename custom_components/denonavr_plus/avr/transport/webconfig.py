@@ -2,9 +2,9 @@
 
 The receiver's setup web interface reads and writes audio configuration through
 a small config API that is distinct from telnet and goform: a GET of
-``/ajax/<section>/get_config?type=<id>`` returns an XML document, and a POST to
-``/ajax/<section>/set_config`` with a form body ``type=<id>&data=<url-encoded
-XML>`` applies a change. Sections are ``audio`` and ``globals``; each config
+``/ajax/<section>/get_config?type=<id>`` returns an XML document, and a GET of
+``/ajax/<section>/set_config?type=<id>&data=<url-encoded XML>`` applies a
+change (the receiver rejects a POST with HTTP 400). Sections are ``audio`` and ``globals``; each config
 ``type`` selects one settings group (for example the graphic equaliser).
 
 Neither the read nor the write enters a calibration session, so both are
