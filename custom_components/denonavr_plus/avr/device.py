@@ -107,6 +107,9 @@ class DenonAvrDevice:
         self._refresh_groups = self._profile.refresh_groups
         self._refresh_scheduled: set[str] = set()
         self._available = False
+        # Whether the last HTTP reconciliation poll got an answer. Tells a
+        # blocked or occupied telnet port apart from a receiver that is off.
+        self._http_reachable = False
         # Deviceinfo derived source list, used only if telnet introspection
         # yields no sources (see async_discover / async_await_ready).
         self._fallback_sources: list = []
@@ -135,6 +138,12 @@ class DenonAvrDevice:
     @property
     def available(self) -> bool:
         return self._available
+
+    @property
+    def http_reachable(self) -> bool:
+        """Whether the receiver answered the last HTTP reconciliation poll."""
+
+        return self._http_reachable
 
     @property
     def profile(self) -> ProtocolProfile:
@@ -341,6 +350,7 @@ class DenonAvrDevice:
             "status_lite_main", "/goform/formMainZone_MainZoneXmlStatusLite.xml"
         )
         status = await self._goform.async_get_status(main_path)
+        self._http_reachable = status is not None
         if status is None:
             # HTTP unreachable; rely on the telnet availability signal.
             return

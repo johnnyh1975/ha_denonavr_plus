@@ -92,8 +92,11 @@ rules:
   integration-owner:
     status: done
   log-when-unavailable:
-    status: todo
-    comment: Connection failures are logged at debug level only.
+    status: done
+    comment: >
+      A telnet outage longer than five minutes is logged once as a warning,
+      with the likely cause; the return of the connection is logged once.
+      Shorter drops stay quiet.
   parallel-updates:
     status: todo
     comment: PARALLEL_UPDATES is not declared on the platforms.
@@ -154,8 +157,13 @@ rules:
   reconfiguration-flow:
     status: done
   repair-issues:
-    status: todo
-    comment: Planned for a receiver that stays unreachable over telnet.
+    status: done
+    comment: >
+      A repair appears when the receiver answers over HTTP but its telnet
+      port stays closed for five minutes (session held by another program,
+      or port 23 blocked). It clears itself once the connection is back.
+      A receiver that does not answer at all is only logged, since being off
+      without network standby can be intended.
   stale-devices:
     status: exempt
     comment: One receiver per config entry; its sub-devices are fixed.

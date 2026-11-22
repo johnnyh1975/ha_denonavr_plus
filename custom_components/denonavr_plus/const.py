@@ -33,3 +33,8 @@ PLATFORMS: list[Platform] = [
 # telnet push; this poll only confirms reachability and recovers state when the
 # push channel is temporarily down.
 RECONCILE_INTERVAL = timedelta(seconds=60)
+
+# How long the telnet link may stay down before the integration says so in the
+# log and, if the receiver still answers over HTTP, as a repair. Short drops
+# (a reboot, a firmware update, a brief network hiccup) stay quiet.
+TELNET_OUTAGE_GRACE = timedelta(minutes=5)
