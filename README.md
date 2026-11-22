@@ -93,6 +93,8 @@ Notes:
   app and other controllers.
 - The HEOS (1255) and setup‑config (10443) channels are only opened when the
   receiver advertises the matching capability; both are non‑disruptive.
+- Protocol details per receiver generation, a model comparison and test
+  procedures are in [docs/protocol](docs/protocol/README.md).
 
 ## What you get
 
