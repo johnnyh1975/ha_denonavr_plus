@@ -92,7 +92,7 @@ it remains To test on the AVR-X2600H.
 
 | Integration | AVR-X2000 | AVR-X2600H |
 |---|---|---|
-| `denonavr` (core) | Supported by its library | Supported |
+| `denonavr` (core) | Listed as supported (Sourced) | Listed as supported (Sourced) |
 | `heos` (core) | n/a | Supported |
 | `denonavr_plus` (this) | Not yet: port 80 and function-list gating | Supported generation |
 

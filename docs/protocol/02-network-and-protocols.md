@@ -99,14 +99,25 @@ Sources disagree, and the answer probably depends on the model:
 | Official Home Assistant docs (`denonavr`) | Each receiver is limited to one telnet connection |
 | ioBroker adapter, openHAB community | One connection; a second is refused, at least on older models |
 | marantz-denon-mqtt (Cinema 70s) | One connection; the second fails silently |
+| denon2mqtt (AVR-X2500H) | One connection at a time |
+| ha-denon-marantz-avr | Receivers "only reliably support one Telnet client"; runs everything over one session |
 | This repository's README, "Network ports and protocols" | Several connections, events sent to all |
 | This repository's README, introduction | Many receivers accept only one session |
 
 Until the [test](09-status-diagnostics-and-discovery.md#test-concurrent-telnet-sessions)
 has been run on both receivers, treat port 23 as single-client: only one of
 this integration, the official integration, an MQTT bridge or a script.
-Whether the Denon and HEOS apps hold a telnet session is unverified; the
-test above shows it too.
+The Denon 2016 AVR Remote app controls the receiver over
+`/goform/AppCommand.xml` (a 2019 network capture in the `denonavr`
+repository); whether it or the HEOS app also opens telnet is unverified, and
+the test shows it.
+
+The `denonavr` library, and with it the official integration, sends commands
+over telnet while its telnet connection is up and falls back to HTTP
+(`formiPhoneAppDirect.xml`) otherwise. So with its telnet option on
+(the default for new installations) it does hold the session. The denon2mqtt
+README says the official integration "uses HTTP and is fine next to it";
+that is only true with the telnet option off.
 
 ## HTTP (port 80 or 8080)
 
@@ -171,6 +182,20 @@ setup, amp assignment.
 - Community reports from a 2022-era Marantz describe the same API on plain
   HTTP port 11080 with 10443 closed. This integration does not try 11080.
 
+The same `/ajax` interface has two more sections that matter for live
+state (ha-denon-marantz-avr, on port 11080, models not named):
+
+| Request | Content |
+|---|---|
+| `/ajax/info/get_config?type=1` | Source, input signal, decoding |
+| `/ajax/info/get_config?type=2` | Volume, input signal channels, active speakers, Dirac state |
+| `/ajax/info/get_config?type=3` | HDMI in and out: resolution, HDR, color space, pixel depth, FRL, ALLM, QFT |
+| `/ajax/control/get_config?type=9` | Sound modes offered for the current input, with the active one |
+| `/ajax/control/set_config?type=4&data=<SoundMode>n</SoundMode>` | Select a sound mode by its list index |
+
+Whether these sections also answer on 10443 is To test; they are the most
+direct source for the video signal sensors (roadmap item 39).
+
 Details of the audio and speaker groups are on the
 [audio page](06-audio-audyssey-speakers.md#setup-config-api).
 
@@ -180,6 +205,22 @@ A length-framed JSON protocol used by the Audyssey MultEQ apps. It reads and
 writes speaker setup and room-correction filters. Entering a calibration
 session interrupts playback, and the port has no push. This integration has
 a transport for it (`avr/transport/tcp_client.py`) but does not use it.
+
+## Other ports seen on HEOS-era receivers
+
+ha-denon-marantz-avr lists further services, citing the receiver's own
+documentation without naming it. Unverified; listed for firewall planning,
+none is needed by this integration.
+
+| Port | Service as described there |
+|---|---|
+| 443/tcp, 1256/tcp | "Secure variants" of HTTP and the HEOS CLI (conflicts with this integration's finding that 1256 carries the length-framed calibration protocol) |
+| 3100/tcp, 3101/tcp | Tidal Connect, Qobuz Connect |
+| 5353/udp | mDNS discovery |
+| 7000/tcp | AirPlay |
+| 8015/tcp, 60080/tcp | Internal UPnP server and controller |
+| 8090/tcp | Dirac Live control |
+| 10101, 10234, 10555, 10800/tcp; 1678–1687/udp | Internal HEOS services |
 
 ## RS-232C
 

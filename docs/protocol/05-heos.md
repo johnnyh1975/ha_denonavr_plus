@@ -116,16 +116,45 @@ specification:
 1. **The player is chosen as the first entry of `get_players`.** That list
    holds every HEOS device in the home. With HEOS speakers next to the
    receiver, the first entry can be a speaker. The receiver's own player
-   could be matched by `serial`, which this integration also reads from
-   port 60006 (To test that both report the same value), or by model name.
-   To fix and test with a second HEOS device.
+   should be matched by IP address, as pyheos and ha-denon-marantz-avr do
+   (the player list carries an `ip` field in practice, although the 2019
+   specification does not list it), or by `serial` (To test that it equals
+   the serial from port 60006). To fix and test with a second HEOS device.
 2. **`player_state_changed` events are applied without checking `pid`.** A
    speaker starting or pausing would change the receiver's state in
    Home Assistant. Same fix: ignore events for other players.
 
 Smaller points: events are registered before the state is read (the
-specification suggests the reverse), and `player_now_playing_progress` is
-ignored, which roadmap item 23 (position and duration) will need.
+specification suggests the reverse); `player_now_playing_progress` is
+ignored, which roadmap item 23 (position and duration) will need; and there
+is no `system/heart_beat`, so an idle connection relies on the TCP stack to
+notice a drop (see the practical notes). Events are registered again on
+every reconnect, as they must be.
+
+## Practical notes from other implementations
+
+Collected by the marantz-denon-mqtt project on a Marantz Cinema 70s (HEOS
+firmware 3.88.614). Each is a behaviour, not a specification.
+
+| Behaviour | Consequence |
+|---|---|
+| `get_now_playing_media` returns the last track even when paused or stopped | Show track data only while the play state is `play`, or clear it on `stop` |
+| Event registration belongs to the connection | Register again after every reconnect |
+| Idle connections dropped after 60 s or more; 30 s heart beat was safe | Send `system/heart_beat` about every 30 s |
+| `heos.result` is `success` on this firmware, `ok` in some examples | Accept both |
+| `sid` values differ between firmware and regions | Identify the service by the `mid` prefix (`spotify:track:` …), never by a fixed `sid` table |
+| `type: station` also for Spotify radio with full track data | Do not treat `station` as radio |
+| `set_volume` clears mute on this firmware | Do not assume volume and mute are independent |
+| Long titles arrive truncated | Nothing to recover |
+
+## The official HEOS integration
+
+From the Home Assistant documentation: one `media_player` per HEOS device,
+including receivers; `media_player.join`/`unjoin` for groups; `play_media`
+with favorites, playlists, Quick Selects, queue positions and URLs of at
+most 255 characters; no zone control, no receiver power, no text-to-speech.
+Receiver power and zones therefore stay with a receiver integration such as
+this one ([Home Assistant page](10-home-assistant.md)).
 
 ## Open questions for the AVR-X2600H
 

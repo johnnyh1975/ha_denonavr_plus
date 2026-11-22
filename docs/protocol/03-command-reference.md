@@ -69,6 +69,53 @@ the other.
 | Zone 2 tone, HPF, channel mode | not documented | 2015: X3200W and X4200W only | X2600H To test |
 | Auto standby, ECO, dimmer, triggers | not documented | 2015: all four models (triggers X3200W/X4200W) | AVR-X2000: expect absent |
 
+## Undocumented tokens on current receivers
+
+Found by this integration and by community projects; no Denon document
+describes them. All are To test on the AVR-X2600H and not expected on the
+AVR-X2000.
+
+| Query | Reply | Seen by |
+|---|---|---|
+| `NSFRN ?` | Friendly name, e.g. `NSFRN Denon AVC-X4700H` | denon_avr_parameter (AVC-X4700H) |
+| `SYSMI ?` | Active sound mode as display text | marantz-denon-mqtt, denon_avr_parameter |
+| `SYSDA ?` | Incoming audio format as text (`PCM`, `FLAC`, …) | same |
+| `SYSDVIN ?`, `SYSDVOUT ?` | Video input and output format, e.g. `1080p60` | denon_avr_parameter |
+| `SSINFAISFOR ?` | Input channel layout as `front/surround/.LFE`, e.g. `2/0/.0` | denon_avr_parameter |
+| `SSOUTFAISFOR ?` | Answers with the `CV…` lines of the active output channels, ending in `CVEND` | denon_avr_parameter |
+| `SSINFAISFSV ?` | Sampling frequency (`441` = 44.1 kHz) according to one marantz-denon-mqtt document, "speaker setup flag" according to another | marantz-denon-mqtt (contradictory) |
+| `SSSMG ?` | Sound mode group `MOV`, `MUS`, `GAM`, `PUR` | marantz-denon-mqtt; this integration |
+| `OPSML ?`, `OPSMLALL ?` | Available sound modes per group, ending in `OPSMLALL END` | this integration; marantz-denon-mqtt |
+| `PSAUROMODE ?` | Auro-3D mode | denon_avr_parameter, `denonavr` |
+
+The `SYSDVIN`/`SYSDVOUT` and `SSINFAISFOR` replies are candidates for the
+video and input-signal sensors (roadmap item 39).
+
+## Sound mode tokens: set form and reported form
+
+The token a receiver reports is not always the token it accepts.
+Community tests on a Marantz Cinema 70s:
+
+| Mode | Works as a set command | Reported as | Did not work |
+|---|---|---|---|
+| Multi Ch Stereo | `MSMCH STEREO` | `MSMCH STEREO` | `MSMULTI CH STEREO` |
+| Dolby Surround | depends on source and group | `MSDOLBY AUDIO-DSUR` | `MSDOLBY SURROUND` from the tested state |
+| DTS Neural:X | `MSNEURAL:X` | `MSNEURAL:X` | — |
+| DTS Virtual:X | `MSVIRTUAL:X` | `MSVIRTUAL:X` | — |
+
+This integration therefore takes the selectable list from the receiver and
+keeps only a few overrides in its profile (`sound_mode_wire_overrides`).
+
+## Quick Select and Smart Select
+
+Denon models recall presets with `MSQUICK<n>`, Marantz models with
+`MSSMART<n>`. `MSSMART` without a number is a separate surround mode on
+some Marantz models. Never send a slot number beyond what the receiver
+advertises: on the Cinema 70s, `MSSMART5` on a four-slot unit left the
+receiver unstable until it was power-cycled (marantz-denon-mqtt test log).
+The AVR-X2000 description lists four Quick Selects while its document
+documents five; use four.
+
 ## Value encodings
 
 | Encoding | Example | Used by |

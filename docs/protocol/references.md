@@ -14,6 +14,8 @@ actually sent; community sources are leads, never the only evidence.
 | Denon AVR control protocol v8.6.0, AVR-1713/1613, 2012 | Older encodings | <https://assets.denon.com/DocumentMaster/UK/AVR1713_AVR1613_PROTOCOL_V860.pdf> |
 | Denon AVR control protocol v7.4.0, AVR-2112CI/1912, 2011 | Volume minimum `99`, Dynamic Volume `NGT/EVE/DAY` | <https://assets.denon.com/documentmaster/master/avr2112ci_avr1912_protocol_v740.pdf> |
 | HEOS CLI Protocol Specification 1.14, 2019 | HEOS commands, events, errors, limits | Project sources (`heos_cli_protocolspecification-version.pdf`) |
+| Denon AVR control protocol V06, AVR-S700W to AVR-X7200W, 2014 | The generation between the AVR-X2000 and the 2015 document | Found online (<https://www.mikrocontroller.net/attachment/343965/IP_Protocol_AVR-Xx100.pdf>), not analysed |
+| `FY21AVR_DENON_PROTOCOL_V02_04062020.xlsx`, 2020 | The newest Denon protocol document known to exist; would cover HEOS-era models | Named in the denon_avr_parameter README; not found publicly |
 
 ## Manufacturer: product information
 
@@ -42,16 +44,16 @@ the owner's manual when it is added.
 |---|---|
 | <https://www.home-assistant.io/integrations/denonavr/> | Official integration: ports 23, 8080, 60006; single telnet connection; options |
 | <https://www.home-assistant.io/integrations/heos/> | Official HEOS integration |
-| <https://github.com/ol-iver/denonavr> | Library behind the official integration: port detection, `AppCommand` interfaces, telnet handling, SSDP |
+| <https://github.com/ol-iver/denonavr> | Library behind the official integration: port detection, `AppCommand` interfaces, telnet handling (commands over telnet while connected, HTTP otherwise), SSDP; `doc/XML_data_dump.txt` holds AppCommand captures of the Denon 2016 AVR Remote app on an AVR-X1500H |
 
 ## Community
 
 | Source | Used for | Caution |
 |---|---|---|
-| <https://github.com/alsak0de/marantz-denon-mqtt> | Telnet and HEOS notes from a Marantz Cinema 70s; the setup config API on port 11080; undocumented status replies | One model; some HEOS command names are not in the specification; `PSSWL` scale misread (see [command reference](03-command-reference.md#value-encodings)) |
-| <https://github.com/handijk/denon2mqtt> | Further telnet bridge implementation | Not analysed here yet |
-| <https://github.com/namornoditz/denon_avr_parameter> | Parameter handling | Not analysed here yet |
-| <https://github.com/TheFab21/ha-denon-marantz-avr> | Alternative Home Assistant integration | Not analysed here yet |
+| <https://github.com/alsak0de/marantz-denon-mqtt> | Telnet and HEOS notes from a Marantz Cinema 70s (HEOS firmware 3.88.614): setup config API on port 11080, undocumented status replies, sound mode set/report forms, Smart Select instability, HEOS practical behaviour, IR fallback | One model; some HEOS command names are not in the specification; `PSSWL` scale misread and `SSINFAISFSV` described two ways (see [command reference](03-command-reference.md#undocumented-tokens-on-current-receivers)). The repository's `AUDYSSEY.md` and telnet guide have the same sections as the project copies |
+| <https://github.com/handijk/denon2mqtt> | Telnet-only MQTT bridge, tested on an AVR-X2500H: one session, 60 ms command gap, query set `PW? ZM? MV? MU? SI? SV? MS? Z2? Z2MU?` | Its claim that the official integration uses only HTTP holds only with telnet off |
+| <https://github.com/namornoditz/denon_avr_parameter> | Scripts reading undocumented status tokens (`NSFRN`, `SYSDVIN`, `SYSDVOUT`, `SSINFAISFOR`, `SSOUTFAISFOR`) on an AVC-X4700H; one short telnet connection per query | Script quality is basic; the tokens are the useful part |
+| <https://github.com/TheFab21/ha-denon-marantz-avr> | Community Home Assistant integration on `denonavr` + pyheos: `/ajax/info` and `/ajax/control` on 11080, HEOS player matched by IP, telnet-gated settings, port list | Port list cites receiver documentation without naming it; models for the 11080 findings not named |
 | ioBroker Denon adapter, openHAB community | Single telnet connection on older models | Second-hand statements |
 
 ## Gaps in the sources
@@ -59,5 +61,6 @@ the owner's manual when it is added.
 - No control protocol document for any HEOS-era model after 2015.
 - No owner's manual for either reference receiver.
 - No recorded data from an AVR-X2600H.
-- The three community repositories marked "not analysed" were listed in
-  the planning paper but are not in the project sources.
+- The 2014 V06 document and the 2020 FY21 document are not in the sources;
+  the FY21 document would be the closest official reference for the
+  AVR-X2600H.

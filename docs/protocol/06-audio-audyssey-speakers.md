@@ -15,6 +15,12 @@ receiver's own menu.
 | Genre groups | Deviceinfo lists MOVIE/MUSIC/GAME/PURE | `MSSMG`/`SSSMG` (undocumented, Tested on AVR-X3600H) |
 | Quick Select | `MSQUICK1`–`5`, `MSQUICK0` = none active | same |
 
+A third source is the setup interface: `/ajax/control/get_config?type=9`
+returns the modes offered for the current input with the active one marked,
+and `set_config?type=4` selects one by index (ha-denon-marantz-avr, port
+11080). The reported token can differ from the accepted one, see the
+[command reference](03-command-reference.md#sound-mode-tokens-set-form-and-reported-form).
+
 Sound modes are a frequent source of trouble in the official integration,
 which works from a fixed list. This integration learns the list from the
 receiver; for the AVR-X2000 a fixed fallback list from its document would

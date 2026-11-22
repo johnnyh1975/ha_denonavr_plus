@@ -141,6 +141,26 @@ Then `get_now_playing_media`, `get_volume` (compare with `MV?`),
 `get_quickselects`, `check_update`, and `browse/play_stream?pid=<pid>&url=<test stream>`.
 Note whether `get_players` returns `serial`.
 
+### Test: live status over the setup interface (AVR-X2600H)
+
+```bash
+for port in 10443 11080; do
+  for q in info/get_config?type=1 info/get_config?type=3 control/get_config?type=9; do
+    curl -sk --max-time 3 "https://192.0.2.10:$port/ajax/$q" | head -5
+    curl -s  --max-time 3 "http://192.0.2.10:$port/ajax/$q"  | head -5
+  done
+done
+```
+
+Note which port and scheme answer and whether the XML carries the video
+format and sound mode list.
+
+### Test: undocumented status queries
+
+With the query helper above: `NSFRN ?`, `SYSMI ?`, `SYSDA ?`, `SYSDVIN ?`,
+`SYSDVOUT ?`, `SSINFAISFOR ?`, `SSINFAISFSV ?`, `SSSMG ?`, `OPSMLALL ?`.
+Note reply or silence.
+
 ### Recording data for tests
 
 A telnet log of the full resynchronisation (the integration's debug log, or

@@ -8,10 +8,31 @@
 | HEOS (`heos`, core) | HEOS CLI 1255 | No HEOS | HEOS player, groups, favorites |
 | Denon AVR Plus (`denonavr_plus`, this) | telnet 23, HTTP 8080, 60006, 1255, 10443 | Not yet (port 80, function list) | Supported generation; Tested on AVR-X3600H |
 | Music Assistant | HEOS or AirPlay | AirPlay | HEOS provider or AirPlay 2 |
+| ha-denon-marantz-avr (`denon_marantz_avr`, community) | `denonavr` library, HEOS via pyheos, setup interface on 11080 | as `denonavr` | yes, plus live sound modes and signal sensors |
+| denon2mqtt, marantz-denon-mqtt (community, MQTT) | telnet 23; HEOS 1255 (marantz-denon-mqtt) | telnet basics | telnet basics, HEOS |
 
-The official integration lists ports 23, 8080 and 60006 for VLAN setups
-and warns that each receiver allows a single telnet connection (Sourced,
-Home Assistant documentation).
+### Official `denonavr`
+
+From the Home Assistant documentation:
+
+- Ports 23, 8080 and 60006 for VLAN setups.
+- `use_telnet` gives local push; each receiver allows only one telnet
+  connection; on by default for new installations, off for older ones.
+- Options: `show_all_sources`, `zone2`, `zone3`, `update_audyssey`
+  (can take up to 10 s).
+- Actions: `denonavr.get_command` (raw HTTP command),
+  `denonavr.set_dynamic_eq`, `denonavr.update_audyssey`.
+- Marantz receivers need Auto-Standby enabled to be powered on remotely.
+- The list of known supported devices names both the AVR-X2000 and the
+  AVR-X2600H.
+
+### Official `heos`
+
+One `media_player` per HEOS device; join and unjoin; `play_media` for
+favorites, playlists, Quick Selects, queue items and URLs up to 255
+characters; group volume and queue actions. No zone control, no receiver
+power, no text-to-speech; the documentation points to a universal media
+player for combining it with a receiver integration.
 
 ## Recommended setup per receiver
 
@@ -69,6 +90,25 @@ items are marked "new".
 | README says both "one telnet session" and "several sessions" | Users get contradictory advice | 34, after the concurrency test |
 | `webconfig.py` docstring mentions POST, code uses GET | Misleads contributors | small cleanup |
 | Marantz manufacturer strings not in the SSDP matcher | No automatic discovery | 17 |
+| No HEOS heart beat | Idle HEOS connection may drop unnoticed (community: drops after 60 s or more) | new |
+| Now playing kept while HEOS reports `stop` | Stale title in the media player | 23 |
+| Quick Select numbers beyond the advertised count | A Marantz became unstable after an out-of-range recall | 13, 30 |
+| Live sound mode list and video signal via `/ajax/control` and `/ajax/info` | Better sound mode handling, video sensors | 30, 39 (To test on 10443) |
+| Telnet `SYSDVIN`, `SYSDVOUT`, `SSINFAISFOR` | Signal sensors without HTTP | 39 (To test) |
+
+### Lessons from ha-denon-marantz-avr
+
+The closest comparable project merges three community integrations on top
+of the `denonavr` library. Points worth adopting:
+
+- One HEOS player chosen by the receiver's IP address.
+- Live sound mode list and signal sensors from the setup interface, read
+  only while the receiver is on, one request at a time, every 30 s, with a
+  5-minute pause after a failure.
+- Settings entities created only when the receiver answers the telnet
+  query, which is the gating the AVR-X2000 would need.
+- The main-zone media player turns into the HEOS player while a network
+  source is selected, instead of a second entity.
 
 ## Rules for new functions
 

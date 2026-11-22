@@ -59,6 +59,17 @@ three digits; on the AVR-X2000 that is the wrong width (To test).
 Picture writes only take effect with an active HDMI video signal
 (maintainer's notes, AVR-X3600H).
 
+## Signal status
+
+The receiver reports the current video signal in three undocumented places:
+telnet `SYSDVIN ?` / `SYSDVOUT ?` (format such as `1080p60`), and the setup
+interface's `/ajax/info/get_config?type=3` (resolution, HDR format, color
+space, pixel depth, FRL rate, ALLM, QFT for input and output). Both come
+from community projects on newer models; AVR-X2600H To test. They are the
+candidates for roadmap item 39 (video signal sensors). See the
+[command reference](03-command-reference.md#undocumented-tokens-on-current-receivers)
+and the [network page](02-network-and-protocols.md#setup-config-api-https-10443-http-11080).
+
 ## HDMI setup
 
 HDMI-CEC, ARC/eARC, pass-through in standby, power-off control, TV audio

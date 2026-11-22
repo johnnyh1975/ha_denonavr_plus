@@ -67,14 +67,21 @@ AVR-X2600H").
    HEOS (1255), the UPnP description (60006), the setup config API (10443)
    and the calibration port (1256) exist only on the 2016 generation.
 4. **"Only one telnet session" is not settled.** The official Home Assistant
-   documentation and community sources say one session; this repository's
-   README says both one session and several. The test in
+   documentation and four community projects say one session; this
+   repository's README says both one session and several. The test in
    [Status and diagnostics](09-status-diagnostics-and-discovery.md#test-concurrent-telnet-sessions)
    settles it per model.
 5. **Value encodings changed between protocol versions** (picture controls,
    the volume minimum, tuner preset numbers, Dynamic Volume values,
    `CV?` replies). Code that is correct for one generation can misread the
    other ([details](03-command-reference.md#differences-between-protocol-versions)).
+6. **The HEOS client needs hardening** before a beta with other HEOS devices
+   in the home: choose the receiver's own player, filter events by player,
+   send a heart beat ([details](05-heos.md#how-this-integration-uses-heos)).
+7. **The setup interface carries live state too.** `/ajax/info` and
+   `/ajax/control` return the video signal and the sound modes offered for
+   the current input; community projects use them on port 11080
+   ([details](02-network-and-protocols.md#setup-config-api-https-10443-http-11080)).
 
 ## Not here
 
