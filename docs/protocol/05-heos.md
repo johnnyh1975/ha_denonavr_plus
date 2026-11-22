@@ -119,10 +119,15 @@ specification:
 1. **The player is chosen as the first entry of `get_players`.** That list
    holds every HEOS device in the home. With HEOS speakers next to the
    receiver, the first entry can be a speaker. The receiver's own player
-   should be matched by IP address, as pyheos and ha-denon-marantz-avr do
-   (the player list carries an `ip` field in practice, although the 2019
-   specification does not list it), or by `serial` (To test that it equals
-   the serial from port 60006). To fix and test with a second HEOS device.
+   should be matched by IP address: `get_players` carries an `ip` field
+   in practice (pyheos reads it, although the 2019 specification does not
+   list it), and ha-denon-marantz-avr matches on it. Music Assistant warns
+   that several HEOS players can share one address, "the zones of an AVR";
+   if the AVR-X2600H reports more than one player for its address, the
+   main-zone player has to be chosen by name or by a test. `serial` is the
+   other key (pyheos re-identifies players by serial first, then `pid`, then
+   name, because a `pid` can change after a reset). To fix and test with a
+   second HEOS device.
 2. **`player_state_changed` events are applied without checking `pid`.** A
    speaker starting or pausing would change the receiver's state in
    Home Assistant. Same fix: ignore events for other players.
@@ -149,6 +154,30 @@ firmware 3.88.614). Each is a behaviour, not a specification.
 | `type: station` also for Spotify radio with full track data | Do not treat `station` as radio |
 | `set_volume` clears mute on this firmware | Do not assume volume and mute are independent |
 | Long titles arrive truncated | Nothing to recover |
+
+## How pyheos and the official integrations handle it
+
+pyheos 1.0.6 is the client behind the official HEOS integration and the
+Music Assistant HEOS provider.
+
+| Point | pyheos / official integration | This integration |
+|---|---|---|
+| Heart beat | `system/heart_beat` after 10 s without traffic | none |
+| Reconnect | automatic, unlimited, events registered again | automatic, events registered again |
+| Player identity | by `serial`, then `pid`, then name; IP address kept per player | first entry of `get_players` |
+| Event routing | by `pid` in the event | not filtered |
+| Progress events | official integration turns `all_progress_events` off | ignored |
+| Success test | `result == "success"` only (the community note about `ok` is not covered) | — |
+| Preferred host | wired, firmware 3.34.0 or newer, valid IP; fails over to another host | the receiver itself |
+| URL playback | `browse/play_stream?pid=&url=` | — |
+| Quick Select | `player/get_quickselects`, `player/play_quickselect` | telnet `MSQUICK` |
+| Inputs | `browse/play_input` | telnet `SI` |
+
+Music Assistant plays everything through `play_url` with a stream it
+serves itself; it has no power control and states that HEOS cannot pass an
+AirPlay input on to group members. HEOS URL playback therefore works on
+current firmware in general; whether it does on the AVR-X2600H is still To
+test.
 
 ## The official HEOS integration
 

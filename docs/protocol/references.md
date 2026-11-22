@@ -48,6 +48,15 @@ the owner's manual when it is added.
 | <https://www.home-assistant.io/integrations/heos/> | Official HEOS integration |
 | <https://github.com/ol-iver/denonavr> | Library behind the official integration: port detection, `AppCommand` interfaces, telnet handling (commands over telnet while connected, HTTP otherwise; keepalive `PW?` after 30 s, reconnect after 60 s), resynchronisation query list, value tables (levels, dimmer, auto standby, ECO, dialog enhancer, Bluetooth output, Auro, IMAX, Dirac, channel tokens), SSDP; `doc/XML_data_dump.txt` holds AppCommand captures of the Denon 2016 AVR Remote app on an AVR-X1500H |
 
+## Code of the official integrations and their clients
+
+| Source | Used for |
+|---|---|
+| Home Assistant core, `homeassistant/components/denonavr` | Discovery matchers, unique ids, polling, telnet use |
+| Home Assistant core, `homeassistant/components/heos` | Discovery, options, `play_media` paths |
+| <https://github.com/andrewsayre/pyheos> 1.0.6 | HEOS client: heart beat, reconnect, player identity, preferred host, `ip` field |
+| <https://github.com/music-assistant/server>, `providers/heos` | URL playback as the main path, AVR zones as separate HEOS players, grouping limits |
+
 ## Community
 
 | Source | Used for | Caution |

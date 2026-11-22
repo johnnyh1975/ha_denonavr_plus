@@ -26,8 +26,19 @@ From the Home Assistant documentation:
 - The list of known supported devices names both the AVR-X2000 and the
   AVR-X2600H.
 
+From the integration's code (Home Assistant core, `denonavr==1.3.3`):
+
+- Config entry unique id `{model}-{serial}`, with the model's leading `*`
+  removed; media player unique ids `{model}-{serial}-{zone}`, falling back to
+  the entry id when no serial was found. Needed for the migration assistant
+  (roadmap item 18).
+- HTTP poll every 10 s, skipped while telnet is connected and healthy;
+  `PARALLEL_UPDATES = 1`; timeout 5 s.
+- Zone 2 and Zone 3 entities are removed when their option is switched off.
+
 ### Official `heos`
 
+Quality scale platinum, pyheos 1.0.6, discovery over SSDP and mDNS.
 One `media_player` per HEOS device; join and unjoin; `play_media` for
 favorites, playlists, Quick Selects, queue items and URLs up to 255
 characters; group volume and queue actions. No zone control, no receiver
@@ -91,7 +102,9 @@ items are marked "new".
 | README says both "one telnet session" and "several sessions" | Users get contradictory advice | 34, after the concurrency test |
 | `webconfig.py` docstring mentions POST, code uses GET | Misleads contributors | small cleanup |
 | Marantz manufacturer strings not in the SSDP matcher | No automatic discovery | 17 |
-| No HEOS heart beat | Idle HEOS connection may drop unnoticed (community: drops after 60 s or more) | new |
+| No HEOS heart beat | Idle HEOS connection may drop unnoticed (community: drops after 60 s or more; pyheos beats after 10 s idle) | new |
+| SSDP matches only AiosDevice + `Denon` | No discovery for Marantz, `DENON`-labelled or pre-2016 units | 16, 17 |
+| Official entity unique ids `{model}-{serial}-{zone}` | Key for taking over entity ids | 18 |
 | Now playing kept while HEOS reports `stop` | Stale title in the media player | 23 |
 | Quick Select numbers beyond the advertised count | A Marantz became unstable after an out-of-range recall | 13, 30 |
 | Live sound mode list and video signal via `/ajax/control` and `/ajax/info` | Better sound mode handling, video sensors | 30, 39 (To test on 10443) |

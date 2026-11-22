@@ -162,10 +162,23 @@ port 8080 instead.
 
 Receivers answer M-SEARCH for `upnp:rootdevice` and
 `urn:schemas-upnp-org:device:MediaRenderer:1`. HEOS-era receivers also
-answer the HEOS search target `urn:schemas-denon-com:device:ACT-Denon:1`.
+announce the device type `urn:schemas-denon-com:device:AiosDevice:1` and
+answer the HEOS search target `urn:schemas-denon-com:device:ACT-Denon:1`;
+they are also found over mDNS as `_heos-audio._tcp.local.` (the official
+HEOS integration and Music Assistant use it).
+
 The manufacturer string varies (`Denon`, `DENON`, `DENON PROFESSIONAL`,
-`Marantz`); this integration's manifest matches `Denon` only, which is why
-Marantz needs manual setup today (roadmap item 17).
+`Marantz`). How the integrations match:
+
+| Integration | SSDP match |
+|---|---|
+| Official `denonavr` | Device types MediaRenderer, MediaServer and AiosDevice, each with all four manufacturer strings (12 entries); aborts when model name or serial is missing |
+| Official `heos` | Search target `ACT-Denon:1`, plus mDNS |
+| This integration | AiosDevice with manufacturer `Denon` only |
+
+So this integration discovers neither Marantz nor `DENON`-labelled units,
+and no pre-2016 receiver, because those have no AiosDevice description
+(roadmap items 16 and 17).
 
 ## HEOS CLI (port 1255)
 

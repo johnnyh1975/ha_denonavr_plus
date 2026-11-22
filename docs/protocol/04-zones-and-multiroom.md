@@ -69,7 +69,11 @@ behaviour above is tested.
 
 ## HEOS groups
 
-A HEOS-era receiver is one HEOS player, whatever zones it has. Grouping it
+A HEOS-era receiver appears as one HEOS player in the documents and in
+this integration's tests on the AVR-X3600H. Music Assistant's HEOS provider
+notes that "the zones of an AVR" can appear as several HEOS players on one
+address; whether the AVR-X2600H does that when Zone 2 plays a network
+source is To test. Grouping it
 with HEOS speakers is a HEOS command (`group/set_group`), see
 [HEOS](05-heos.md#groups). The AVR-X2000 has no HEOS and cannot be in a HEOS
 group.
