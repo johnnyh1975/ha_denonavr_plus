@@ -8,12 +8,18 @@ receiver, so the entity ids naturally get the model based prefix (for example
 
 from __future__ import annotations
 
+from collections.abc import Callable, Coroutine
+from functools import wraps
+from typing import Any, cast
+
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import (
     CONNECTION_NETWORK_MAC,
     DeviceInfo,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .avr.errors import SetupWriteError
 from .const import DOMAIN
 from .coordinator import DenonAvrCoordinator
 
@@ -28,6 +34,30 @@ SUB_DEVICE_NAMES = {
     "speakers": "Speakers",
     "eq": "Graphic EQ",
 }
+
+
+def setup_write[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _FuncT) -> _FuncT:
+    """Report a setting the receiver rejected as an error in Home Assistant.
+
+    For actions that write through the setup API (graphic EQ, video and speaker
+    setup). Without this a rejected write only shows as the old value coming
+    back, with no hint why.
+    """
+
+    @wraps(func)
+    async def wrapper(self: DenonAvrEntity, *args: Any, **kwargs: Any) -> Any:
+        try:
+            return await func(self, *args, **kwargs)
+        except SetupWriteError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="setup_write_failed",
+                translation_placeholders={
+                    "model": self._device.discovery.device.model_name or "Denon AVR"
+                },
+            ) from err
+
+    return cast(_FuncT, wrapper)
 
 
 class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):

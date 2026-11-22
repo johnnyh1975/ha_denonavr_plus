@@ -74,8 +74,9 @@ rules:
   action-exceptions:
     status: todo
     comment: >
-      Writes over the setup API ignore a failed result, so a failed
-      graphic-EQ apply discards the staged values without an error.
+      Writes over the setup API (graphic EQ, video and speaker setup) raise a
+      translated error when the receiver rejects them. Telnet commands sent
+      while the connection is down do not raise yet.
   config-entry-unloading:
     status: done
   docs-supported-functions:
@@ -146,6 +147,7 @@ rules:
     comment: Channel entities of unconfigured speakers start disabled.
   exception-translations:
     status: todo
+    comment: The setup API write error is translated; telnet errors follow.
   icon-translations:
     status: todo
     comment: Icons are still set in code.

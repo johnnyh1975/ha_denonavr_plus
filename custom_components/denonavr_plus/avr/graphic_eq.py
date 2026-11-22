@@ -13,6 +13,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import Any
 
+from .errors import SetupWriteError
 from .models import GraphicEqState
 
 
@@ -213,7 +214,10 @@ class GraphicEqController:
     async def _apply_payload(self, payload: str) -> None:
         if not self.supported:
             return
-        await self._webconfig.async_set(self._section(), self._type(), payload)
+        if not await self._webconfig.async_set(self._section(), self._type(), payload):
+            # Raise before anything is cleared: staged band edits stay, so the
+            # user can retry instead of having the sliders silently jump back.
+            raise SetupWriteError("graphic EQ")
         # Re-read so state reflects exactly what the receiver applied.
         await self.refresh()
 

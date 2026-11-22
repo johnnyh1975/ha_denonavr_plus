@@ -25,6 +25,8 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import Any
 
+from .errors import SetupWriteError
+
 # Per-field display flags used by the setup config API.
 _NOT_AVAILABLE = 1
 _GRAYOUT = 2
@@ -263,6 +265,9 @@ class VideoConfigController:
         root = self._grammar.get("menus", {}).get(str(control["type"]))
         if self._grammar.get("wrap_root") and root:
             payload = f"<{root}>{payload}</{root}>"
-        await self._webconfig.async_set(self._section, int(control["type"]), payload)
+        if not await self._webconfig.async_set(
+            self._section, int(control["type"]), payload
+        ):
+            raise SetupWriteError(control_id)
         # Re-read so state reflects exactly what the receiver applied.
         await self.refresh()

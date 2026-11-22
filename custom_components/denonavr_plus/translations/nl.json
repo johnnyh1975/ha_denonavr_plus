@@ -310,5 +310,10 @@
         "name": "Standaard"
       }
     }
+  },
+  "exceptions": {
+    "setup_write_failed": {
+      "message": "De {model} heeft de instelling niet geaccepteerd. Sluit het instellingenmenu op de tv als het open is en controleer of de instellingenvergrendeling van de receiver uit staat. Probeer het daarna opnieuw."
+    }
   }
 }

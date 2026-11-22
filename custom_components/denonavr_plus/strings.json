@@ -310,5 +310,10 @@
         "name": "Default"
       }
     }
+  },
+  "exceptions": {
+    "setup_write_failed": {
+      "message": "The {model} did not accept the setting. Close the setup menu on the TV if it is open and check that the receiver's setup lock is off, then try again."
+    }
   }
 }

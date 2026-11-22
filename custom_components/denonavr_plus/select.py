@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .avr import graphic_eq
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, setup_write
 from .helpers import control_sub_device, enum_options, group_name
 
 
@@ -450,6 +450,7 @@ class DenonAvrEqSpeakerSelection(DenonAvrEntity, SelectEntity):
         code = self.coordinator.device.graphic_eq.state.speaker_selection
         return self._by_code.get(code) if code else None
 
+    @setup_write
     async def async_select_option(self, option: str) -> None:
         code = self._by_label.get(option)
         if code:
@@ -539,6 +540,7 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
     def current_option(self) -> str | None:
         return self._ctrl.options(self._id).get(self._ctrl.value(self._id))
 
+    @setup_write
     async def async_select_option(self, option: str) -> None:
         for wire, label in self._ctrl.options(self._id).items():
             if label == option:

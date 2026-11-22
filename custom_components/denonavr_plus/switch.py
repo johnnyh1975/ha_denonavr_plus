@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, setup_write
 from .helpers import control_sub_device
 
 
@@ -110,8 +110,10 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
     def is_on(self) -> bool:
         return self._video.value(self._id) == self._on
 
+    @setup_write
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._video.async_set(self._id, self._on)
 
+    @setup_write
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._video.async_set(self._id, self._off)
