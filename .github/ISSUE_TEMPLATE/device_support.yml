@@ -37,6 +37,15 @@ body:
         diagnostics, then drag the file here.
     validations:
       required: true
+  - type: textarea
+    id: probe
+    attributes:
+      label: Probe result (optional, very helpful)
+      description: >
+        Run tools/probe_receiver.py from this repository against the receiver
+        (it only reads, nothing is changed) and drag both result files here:
+        avr-probe-<model>.md and avr-probe-<model>.json. Addresses, MAC and
+        serial number are replaced; read the files before you attach them.
   - type: checkboxes
     id: works
     attributes:

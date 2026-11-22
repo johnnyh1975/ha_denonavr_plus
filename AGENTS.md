@@ -18,6 +18,7 @@ without a telnet command, and HEOS (port 1255) for now playing.
 | Tests | `tests/test_<module>.py`, `tests/test_avr_<module>.py` for `avr/` |
 | Recorded receiver data for tests | `tests/fixtures/` |
 | Repository checks | `scripts/check_*.py` |
+| Read-only probe of a receiver's capabilities | `tools/probe_receiver.py` |
 | Release notes, one file per version | `release-notes/` |
 | Upgrade notes | `docs/UPGRADING.md` |
 

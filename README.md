@@ -251,7 +251,11 @@ first: it lists the checks every change has to pass
 (`bash scripts/check_all.sh`) and the rules for tests, private data and
 protocol facts. For a receiver that is not fully supported, the
 diagnostics file is what makes support possible; the issue form asks
-for it.
+for it. Where the integration cannot be set up at all, or to find out what a
+model can do, run `python3 tools/probe_receiver.py <address>`: it asks the
+receiver every documented query, changes nothing, and writes a summary of
+its capabilities plus the raw answers with addresses and serial numbers
+replaced.
 
 ## Origin
 

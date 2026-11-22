@@ -77,6 +77,32 @@ receiver's real address in place of `192.0.2.10`; do not commit it.
 Disconnect other telnet clients first, including Home Assistant
 integrations.
 
+### Automated probe
+
+`tools/probe_receiver.py` runs the read-only part of these tests in one go:
+the port test, the device description and status pages, every documented
+telnet query (about 150, from the 2012 to 2015 protocol documents, the
+2016+ queries the integration sends and the undocumented ones listed
+below), the HEOS player list and status, and the setup interface pages.
+
+```bash
+python3 tools/probe_receiver.py 192.0.2.10
+python3 tools/probe_receiver.py 192.0.2.10 --quick   # about 20 queries
+```
+
+It sends only queries (commands ending in `?`, plus the screen-text
+requests `NSE`, `NSA` and `NSH`) and refuses anything else, so it cannot
+change a setting. It writes `avr-probe-<model>.md`, a table per
+capability group with "yes", "no reply", "rejected" or "other lines
+only", and `avr-probe-<model>.json` with every reply line. Addresses, the
+MAC, serial numbers and friendly names are replaced before writing. The
+JSON is the input for test fixtures and for the
+[capability matrix](models/capability-matrix.md); "yes" there counts as
+Tested for that model and firmware.
+
+The tests below that change state (zones, All Zone Stereo, network
+standby, concurrent sessions) are not part of the probe and stay manual.
+
 ### Test: reachable ports
 
 ```bash
