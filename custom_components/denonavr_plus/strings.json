@@ -7,6 +7,9 @@
         "description": "Enter the IP address of your Denon receiver. The name and capabilities are read from the device automatically.",
         "data": {
           "host": "IP address"
+        },
+        "data_description": {
+          "host": "The IP address of the receiver, for example 192.0.2.10. You find it in the receiver's network information or in your router. A fixed address (DHCP reservation) keeps the connection stable."
         }
       },
       "ssdp_confirm": {
@@ -18,6 +21,9 @@
         "description": "Update the IP address of your Denon receiver.",
         "data": {
           "host": "IP address"
+        },
+        "data_description": {
+          "host": "The IP address of the receiver, for example 192.0.2.10. You find it in the receiver's network information or in your router. A fixed address (DHCP reservation) keeps the connection stable."
         }
       }
     },

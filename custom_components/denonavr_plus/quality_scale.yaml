@@ -30,13 +30,12 @@ rules:
       Base entity in entity.py, push coordinator in coordinator.py, the
       receiver client without Home Assistant in avr/.
   config-flow:
-    status: todo
+    status: done
     comment: >
-      User, SSDP and reconfigure steps exist. Missing: data_description for
-      the host field in strings.json.
+      User, SSDP and reconfigure steps, with a data_description for the host
+      field.
   config-flow-test-coverage:
-    status: todo
-    comment: Started with the first test suite; not yet at 100 %.
+    status: done
   dependency-transparency:
     status: done
     comment: No external Python requirements; the client lives in avr/.
@@ -52,7 +51,8 @@ rules:
     status: done
     comment: The only parameter is the receiver's IP address (README).
   docs-removal-instructions:
-    status: todo
+    status: done
+    comment: README, section "Removal".
   entity-event-setup:
     status: done
     comment: Entities subscribe through CoordinatorEntity.

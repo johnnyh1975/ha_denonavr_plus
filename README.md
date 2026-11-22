@@ -69,6 +69,22 @@ Settings → Devices & Services → Add Integration → **Denon AVR Plus**, then
 receiver's **IP address**. The name and all capabilities are read from the device
 automatically; no other input is required.
 
+To change the address later, open the integration's menu (three dots) and choose
+**Reconfigure**. The new address must belong to the same receiver.
+
+## Removal
+
+1. Settings → Devices & Services → **Denon AVR Plus** → three dots on the receiver
+   entry → **Delete**. This removes the device and all its entities. The settings
+   stored on the receiver itself are not changed.
+2. If you installed through HACS: HACS → **Denon AVR Plus** → three dots →
+   **Remove**. For a manual installation, delete
+   `<config>/custom_components/denonavr_plus`.
+3. Restart Home Assistant.
+
+Automations, scripts and dashboards that use the removed entities are not deleted;
+Home Assistant shows them as unavailable until you change or remove them.
+
 ## Network ports and protocols
 
 All traffic is on the local network and is initiated by Home Assistant (client)

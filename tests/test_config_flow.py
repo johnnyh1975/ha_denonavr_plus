@@ -151,6 +151,17 @@ async def test_ssdp_known_receiver_updates_host(hass: HomeAssistant) -> None:
     assert entry.data[CONF_HOST] == HOST
 
 
+async def test_ssdp_without_mac_matches_on_host(hass: HomeAssistant) -> None:
+    """A receiver that reports no MAC is recognised by its address instead."""
+    MockConfigEntry(domain=DOMAIN, data={CONF_HOST: HOST}).add_to_hass(hass)
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity(mac=None)):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_SSDP}, data=_ssdp()
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
 async def test_reconfigure_changes_host(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, unique_id=MAC, data={CONF_HOST: "192.0.2.99"})
     entry.add_to_hass(hass)

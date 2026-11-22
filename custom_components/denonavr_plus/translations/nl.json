@@ -7,6 +7,9 @@
         "description": "Voer het IP-adres van je Denon-receiver in. De naam en mogelijkheden worden automatisch van het apparaat gelezen.",
         "data": {
           "host": "IP-adres"
+        },
+        "data_description": {
+          "host": "Het IP-adres van de receiver, bijvoorbeeld 192.0.2.10. Je vindt het in de netwerkinformatie van de receiver of in je router. Een vast adres (DHCP-reservering) houdt de verbinding stabiel."
         }
       },
       "ssdp_confirm": {
@@ -18,6 +21,9 @@
         "description": "Werk het IP-adres van je Denon-receiver bij.",
         "data": {
           "host": "IP-adres"
+        },
+        "data_description": {
+          "host": "Het IP-adres van de receiver, bijvoorbeeld 192.0.2.10. Je vindt het in de netwerkinformatie van de receiver of in je router. Een vast adres (DHCP-reservering) houdt de verbinding stabiel."
         }
       }
     },
