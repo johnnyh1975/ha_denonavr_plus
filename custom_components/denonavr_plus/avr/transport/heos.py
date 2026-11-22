@@ -10,7 +10,9 @@ It is strictly auxiliary: any failure here leaves core telnet control untouched,
 so every error is swallowed and simply results in no now-playing data. The
 connection registers for HEOS change events and re-queries on the ones that
 matter (now-playing changed, transport state changed), ignoring the
-once-a-second progress events.
+once-a-second progress events. Only the receiver's own player counts: the HEOS
+system lists every HEOS device in the home, so the player is matched on the
+receiver's address and events of other players are ignored.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ import asyncio
 import json
 import logging
 from collections.abc import Callable
+from typing import Any
 from urllib.parse import parse_qs
 
 from ..const import (
@@ -197,12 +200,17 @@ class HeosClient:
         attrs = _parse_message(heos.get("message", ""))
 
         if command == "player/get_players":
-            players = message.get("payload") or []
-            if players:
-                self._pid = players[0].get("pid")
+            player = self._own_player(message.get("payload") or [])
+            if player is not None:
+                self._pid = player.get("pid")
                 # Bootstrap the current media and transport state.
                 self._request_now_playing()
                 self._request_play_state()
+            return
+
+        # Events name the player they are about; the HEOS system holds every
+        # HEOS device in the home, so ignore events for the other players.
+        if command.startswith("event/player_") and not self._is_own(attrs):
             return
 
         if command == "player/get_now_playing_media":
@@ -223,6 +231,32 @@ class HeosClient:
 
         # event/player_now_playing_progress and everything else: ignore.
 
+    def _own_player(self, players: list[dict[str, Any]]) -> dict[str, Any] | None:
+        """Pick the receiver's own player from the HEOS system's player list.
+
+        The list holds every HEOS device in the home, so the first entry can be
+        a speaker. Match on the address the receiver was set up with; the
+        players carry it in an ``ip`` field. Without a match, a lone player is
+        the receiver; with several and no match the first is kept (as before),
+        which the debug log records.
+        """
+
+        if not players:
+            return None
+        for player in players:
+            if player.get("ip") == self._host:
+                return player
+        if len(players) > 1:
+            _LOGGER.debug(
+                "No HEOS player has the address %s; using %s",
+                self._host,
+                players[0].get("name"),
+            )
+        return players[0]
+
+    def _is_own(self, attrs: dict[str, str]) -> bool:
+        return self._pid is not None and attrs.get("pid") == str(self._pid)
+
     def _request_now_playing(self) -> None:
         if self._pid is not None:
             self._queue.put_nowait(
@@ -234,6 +268,10 @@ class HeosClient:
             self._queue.put_nowait(f"heos://player/get_play_state?pid={self._pid}")
 
     def _apply_now_playing(self, payload: dict) -> None:
+        # HEOS keeps answering with the last track after a stop; showing it
+        # would leave a stale title in Home Assistant.
+        if self._snapshot.get("state") == "stop":
+            return
         image = (payload.get("image_url") or "").strip() or None
         self._update(
             media_type=payload.get("type"),
@@ -244,8 +282,20 @@ class HeosClient:
         )
 
     def _apply_state(self, state: str | None) -> None:
-        if state:
+        if state == "stop":
+            self._update(
+                state=state,
+                media_type=None,
+                title=None,
+                artist=None,
+                album=None,
+                image_url=None,
+            )
+        elif state:
             self._update(state=state)
+            # Playback resumed after a stop: the track was cleared, read it again.
+            if state == "play" and self._snapshot.get("title") is None:
+                self._request_now_playing()
 
     def _update(self, **fields) -> None:
         """Merge fields into the snapshot and broadcast if anything changed."""

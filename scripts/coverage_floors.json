@@ -12,7 +12,7 @@
     "avr/parser.py": 0.5212,
     "avr/profile.py": 0.8299,
     "avr/transport/goform.py": 0.2783,
-    "avr/transport/heos.py": 0.2666,
+    "avr/transport/heos.py": 0.539,
     "avr/transport/tcp_client.py": 0.1962,
     "avr/transport/telnet.py": 0.2401,
     "avr/transport/upnp.py": 0.5404,

@@ -114,7 +114,10 @@ follows now playing and play state, with play, pause, stop, next and
 previous as transport.
 
 Two findings from comparing the code (`avr/transport/heos.py`) with the
-specification:
+specification. Both are fixed (roadmap items 44 and 45): the player is
+matched on the receiver's address, a lone player is taken as is, and events
+for other players are ignored. The test with a second HEOS device in the
+home is still open.
 
 1. **The player is chosen as the first entry of `get_players`.** That list
    holds every HEOS device in the home. With HEOS speakers next to the
@@ -164,8 +167,8 @@ Music Assistant HEOS provider.
 |---|---|---|
 | Heart beat | `system/heart_beat` after 10 s without traffic | none |
 | Reconnect | automatic, unlimited, events registered again | automatic, events registered again |
-| Player identity | by `serial`, then `pid`, then name; IP address kept per player | first entry of `get_players` |
-| Event routing | by `pid` in the event | not filtered |
+| Player identity | by `serial`, then `pid`, then name; IP address kept per player | by `ip`; a lone player as is; otherwise the first entry |
+| Event routing | by `pid` in the event | by `pid`; other players' events ignored |
 | Progress events | official integration turns `all_progress_events` off | ignored |
 | Success test | `result == "success"` only (the community note about `ok` is not covered) | — |
 | Preferred host | wired, firmware 3.34.0 or newer, valid IP; fails over to another host | the receiver itself |

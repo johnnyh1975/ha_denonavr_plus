@@ -94,8 +94,8 @@ that were new when the analysis was written now have their own numbers
 | `CV?` ends without `CVEND` and reports unused channels as `50` on the AVR-X2000 | The parser does not wait for `CVEND` today (keep it so); unused channels must not create enabled entities | 16 |
 | No `MNZST ?` on the AVR-X2000 | All Zone Stereo state must come from `MS` | 16, 32 |
 | Tuner presets `A1`–`G8` vs `01`–`56` | Wrong preset recalled | 37 |
-| HEOS player chosen as the first `get_players` entry | Wrong now playing with HEOS speakers in the home | 44 (bug) |
-| HEOS `player_state_changed` applied without `pid` check | Speakers change the receiver's play state | 45 (bug) |
+| HEOS player chosen as the first `get_players` entry | Wrong now playing with HEOS speakers in the home | 44 (fixed) |
+| HEOS `player_state_changed` applied without `pid` check | Speakers change the receiver's play state | 45 (fixed) |
 | HEOS `play_stream?url=` documented since CLI 1.9 | Basis for `play_media` and announcements | 14, 21 (To test) |
 | HEOS `check_update` documented since CLI 1.10 | Basis for the `update` entity | 31 (To test) |
 | HEOS `player_now_playing_progress` ignored | Position and duration missing | 23 |
@@ -105,7 +105,7 @@ that were new when the analysis was written now have their own numbers
 | No HEOS heart beat | Idle HEOS connection may drop unnoticed (community: drops after 60 s or more; pyheos beats after 10 s idle) | 47 |
 | SSDP matches only AiosDevice + `Denon` | No discovery for Marantz, `DENON`-labelled or pre-2016 units | 16, 17 |
 | Official entity unique ids `{model}-{serial}-{zone}` | Key for taking over entity ids | 18 |
-| Now playing kept while HEOS reports `stop` | Stale title in the media player | 45 |
+| Now playing kept while HEOS reports `stop` | Stale title in the media player | 45 (fixed) |
 | Quick Select numbers beyond the advertised count | A Marantz became unstable after an out-of-range recall | 13, 30 |
 | Live sound mode list and video signal via `/ajax/control` and `/ajax/info` | Better sound mode handling, video sensors | 30, 39 (To test on 10443) |
 | Telnet `SYSDVIN`, `SYSDVOUT`, `SSINFAISFOR` | Signal sensors without HTTP | 39 (To test) |
