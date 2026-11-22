@@ -111,8 +111,7 @@ rules:
   diagnostics:
     status: done
     comment: >
-      MAC address redacted. The serial number is still included and will be
-      redacted (AGENTS.md, rule 6).
+      MAC address and serial number redacted, host address not included.
   discovery:
     status: done
     comment: SSDP for Denon AIOS devices; Marantz discovery is planned.

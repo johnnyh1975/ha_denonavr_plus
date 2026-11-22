@@ -1,8 +1,9 @@
 """Diagnostics support for the Denon AVR Plus integration.
 
 Dumps the discovery model and the current state so issues can be debugged
-without direct access to the receiver. No credentials are involved; the MAC
-address is redacted as a courtesy.
+without direct access to the receiver. No credentials are involved. The MAC
+address and the serial number are redacted, and the host address is never
+included (AGENTS.md rule 6).
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import DenonAvrConfigEntry
 
-TO_REDACT = {"mac_address"}
+TO_REDACT = {"mac_address", "serial_number"}
 
 
 async def async_get_config_entry_diagnostics(

@@ -6,7 +6,7 @@
   ],
   "floors": {
     "__init__.py": 0.7807,
-    "avr/device.py": 0.5968,
+    "avr/device.py": 0.6064,
     "avr/graphic_eq.py": 0.4385,
     "avr/models.py": 0.9383,
     "avr/parser.py": 0.5212,
