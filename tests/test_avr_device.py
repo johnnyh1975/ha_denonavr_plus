@@ -131,6 +131,7 @@ X2000_ANSWERS = {
     "PSDYNVOL ?": ["PSDYNVOL MED"],
     "PSBAS ?": ["PSBAS 50"],
     "PVBR ?": ["PVBR 00"],
+    "PW?": ["PWON"],
 }
 
 
@@ -140,7 +141,7 @@ X2000_PROBES: list[dict[str, Any]] = []
 async def _x2000_answering(
     host: str, queries: list[str], on_line: Any, is_complete: Any, **kwargs: Any
 ) -> None:
-    X2000_PROBES.append(kwargs)
+    X2000_PROBES.append({**kwargs, "queries": queries})
     for query in queries:
         for line in X2000_ANSWERS.get(query, []):
             on_line(line)
@@ -254,3 +255,37 @@ async def test_the_setup_probe_ends_at_the_first_pause(
     queries, is_complete = next(call for call in calls if "STBY?" in call[0])
     # Nothing has answered, yet the probe may end as soon as the line is quiet.
     assert is_complete() is True
+
+
+async def test_a_later_start_does_not_ask_again(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """The setup answers are kept: an AVR-X2000 takes 10-15 s to give them."""
+    from homeassistant.const import CONF_PORT
+
+    from .conftest import deviceinfo
+
+    X2000_PROBES.clear()
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _x2000_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVR-X2000-Deviceinfo.xml")),
+        ),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.11", CONF_PORT: 80},
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        asked = [probe for probe in X2000_PROBES if "PSMULTEQ: ?" in probe["queries"]]
+        assert len(asked) == 1
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+    asked = [probe for probe in X2000_PROBES if "PSMULTEQ: ?" in probe["queries"]]
+    assert len(asked) == 1
+    assert "multeq" in entry.runtime_data.device.discovery.answered

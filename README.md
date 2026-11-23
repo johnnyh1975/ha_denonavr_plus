@@ -456,6 +456,12 @@ answers go into the diagnostics file, with addresses replaced. A repair then
 links to a prefilled issue on GitHub; attach the diagnostics file there. Nothing
 is sent anywhere by itself.
 
+At setup the integration asks the receiver which of its model-dependent
+settings it has. The answers are kept: later starts do not ask again until the
+model or firmware changes, or a new release adds a setting. A capability check
+stands in for these questions too; after one, the next start uses its answers
+(reload the integration to get settings it found).
+
 Where the integration cannot be set up at all, run
 `python3 tools/probe_receiver.py <address>`: it asks the same questions and
 more (web pages, HEOS, the setup interface), changes nothing, and writes a

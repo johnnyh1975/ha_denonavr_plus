@@ -22,6 +22,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .avr import AvrState, DenonAvrDevice
+from .avr.models import KnownAnswers
 from .capabilities import CapabilityResults
 from .const import (
     CONF_PORT,
@@ -109,8 +110,18 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
 
         await self.capabilities.async_load()
         snapshot = await self._snapshot.async_load()
+        # What the receiver answered before: the capability check asks one
+        # query at a time, so it comes first; otherwise the last probe.
+        known = [
+            item
+            for item in (
+                KnownAnswers.from_check(self.capabilities.result),
+                KnownAnswers.from_dict((snapshot or {}).get("known_answers")),
+            )
+            if item is not None
+        ]
         try:
-            await self.device.async_discover()
+            await self.device.async_discover(known)
         except ConnectionError:
             # A receiver off without network standby does not answer. With the
             # last discovery the media players can still be set up (shown off,

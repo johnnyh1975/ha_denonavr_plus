@@ -320,3 +320,52 @@ async def test_a_control_answered_once_stays(
     await hass.async_block_till_done()
     assert "auto_standby" in loaded_entry.runtime_data.device.discovery.answered
     assert hass_storage[key]["data"]["answered"] == ["auto_standby"]
+
+
+async def test_the_capability_check_stands_in_for_the_setup_probe(
+    hass: HomeAssistant, receiver_network: Any, hass_storage: dict[str, Any]
+) -> None:
+    """It asked every query one at a time; a start need not ask again."""
+    import json
+    from pathlib import Path
+
+    from homeassistant.const import CONF_PORT
+
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION
+
+    from .conftest import deviceinfo
+
+    recording = json.loads(
+        (Path(__file__).parent / "fixtures" / "capability_check" / "AVR-X2000.json").read_text()
+    )
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: "192.0.2.11", CONF_PORT: 80},
+        minor_version=CONFIG_MINOR_VERSION,
+    )
+    hass_storage[f"{DOMAIN}.{entry.entry_id}.capabilities"] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": f"{DOMAIN}.{entry.entry_id}.capabilities",
+        "data": recording,
+    }
+    probes: list[list[str]] = []
+
+    async def probe(host: str, queries: list[str], *args: Any, **kwargs: Any) -> None:
+        probes.append(queries)
+
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", probe),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVR-X2000-Deviceinfo.xml")),
+        ),
+    ):
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    assert not any("PSMULTEQ: ?" in queries for queries in probes)
+    answered = entry.runtime_data.device.discovery.answered
+    assert {"multeq", "dynamic_eq", "dynamic_volume", "cinema_eq"} <= answered
+    assert "auto_standby" not in answered  # STBY? got no reply

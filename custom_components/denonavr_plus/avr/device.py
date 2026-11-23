@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, fields
 from typing import Any
 
@@ -27,12 +27,13 @@ from .models import (
     AvrState,
     DeviceInfo,
     Discovery,
+    KnownAnswers,
     NowPlaying,
     SourceDescriptor,
     ZoneDescriptor,
 )
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
-from .profile import ProtocolProfile, load_profile
+from .profile import ControlSpec, ProtocolProfile, load_profile
 from . import capability_check, graphic_eq, video_config
 from .const import (
     CHECK_REPLY_FIRST,
@@ -56,6 +57,10 @@ from .transport import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+#: Asked first by the setup probe: answers kept from a receiver in standby
+#: may be incomplete, so only those of a receiver that is on are kept.
+POWER_QUERY = "PW?"
 
 # After a command sent over HTTP (telnet down) nothing is pushed back, so the
 # zone status is read again once the receiver has had a moment to apply it.
@@ -83,6 +88,8 @@ class DenonAvrDevice:
         # The goform port; None until it is known (detected at the first
         # Deviceinfo read, or given from the stored config entry).
         self._http_port = http_port
+        # The setup answers of this receiver, kept to skip asking at the next start.
+        self.known_answers: KnownAnswers | None = None
         self._profile: ProtocolProfile = load_profile()
         self._discovery = Discovery()
         self._state = AvrState()
@@ -282,7 +289,7 @@ class DenonAvrDevice:
             raise ConnectionError(f"No Deviceinfo response from {self._host}")
         return text
 
-    async def async_discover(self) -> Discovery:
+    async def async_discover(self, known_answers: Sequence[KnownAnswers] = ()) -> Discovery:
         """Fetch the Deviceinfo document and populate the discovery model.
 
         Raises ConnectionError when the receiver cannot be reached, so the
@@ -344,7 +351,19 @@ class DenonAvrDevice:
         # dedicated telnet session, so entities are built correctly regardless of
         # the persistent connection's later timing.
         await self._async_probe_introspection()
-        await self._async_probe_answered()
+        specs = self._answer_gated_controls()
+        queries = {spec.query for spec in specs if spec.query}
+        known = next(
+            (item for item in known_answers if item.covers(self._discovery.device, queries)),
+            None,
+        )
+        if known is not None:
+            # Asked before (the capability check or an earlier start): no need
+            # to ask again; an older receiver takes 10-15 s for it.
+            self._discovery.answered = {spec.id for spec in specs if spec.query in known.answered}
+            self.known_answers = known
+        else:
+            await self._async_probe_answered(specs)
         return self._discovery
 
     def discovery_snapshot(self) -> dict[str, Any]:
@@ -360,6 +379,7 @@ class DenonAvrDevice:
             "zones": [asdict(zone) for zone in discovery.zones],
             "sources": [asdict(source) for source in discovery.sources],
             "answered": sorted(discovery.answered),
+            "known_answers": self.known_answers.as_dict() if self.known_answers else None,
         }
 
     def restore_discovery(self, snapshot: dict[str, Any]) -> None:
@@ -422,17 +442,10 @@ class DenonAvrDevice:
             ),
         )
 
-    async def _async_probe_answered(self) -> None:
-        """Ask the queries of the "answered" controls; keep those that answer.
+    def _answer_gated_controls(self) -> list[ControlSpec]:
+        """The controls that exist on this receiver only if it answers their query."""
 
-        These controls (auto standby, triggers, IMAX, Auro-3D, Dirac …) have
-        no Deviceinfo name to gate them, so the receiver's answer decides.
-        So does it for a feature control whose name the receiver does not
-        list: older receivers (AVR-X2000) name few features in Deviceinfo but
-        answer MultEQ, Dynamic EQ, tone and the like over telnet.
-        """
-
-        specs = self._profile.controls_by_scope("answered") + [
+        return self._profile.controls_by_scope("answered") + [
             spec
             for spec in self._profile.feature_controls()
             if spec.scope == "feature"
@@ -442,9 +455,23 @@ class DenonAvrDevice:
             # this encoding fits.
             and spec.kind != "centered"
         ]
+
+    async def _async_probe_answered(self, specs: list[ControlSpec]) -> None:
+        """Ask the queries of the "answered" controls; keep those that answer.
+
+        These controls (auto standby, triggers, IMAX, Auro-3D, Dirac …) have
+        no Deviceinfo name to gate them, so the receiver's answer decides.
+        So does it for a feature control whose name the receiver does not
+        list: older receivers (AVR-X2000) name few features in Deviceinfo but
+        answer MultEQ, Dynamic EQ, tone and the like over telnet.
+        """
+
         queries = list(dict.fromkeys(spec.query for spec in specs if spec.query))
         if not queries:
             return
+        # The power state tells whether the answers can be kept: in standby
+        # some receivers do not answer every query.
+        queries.insert(0, POWER_QUERY)
         # All queries are sent before reading; the receiver answers within
         # 200 ms. So the first pause of 0.4 s without a line ends it: a model
         # without these controls stays silent, and waiting for answers that
@@ -462,6 +489,15 @@ class DenonAvrDevice:
             reply_wait=REPLY_WAIT_OLDER if self._http_port == 80 else 0.0,
         )
         self._discovery.answered = {spec.id for spec in specs if spec.id in self._state.values}
+        if self._state.system_power:
+            asked = frozenset(query for query in queries if query != POWER_QUERY)
+            device = self._discovery.device
+            self.known_answers = KnownAnswers(
+                device.model_name,
+                device.firmware_version,
+                asked,
+                frozenset(spec.query for spec in specs if spec.id in self._discovery.answered and spec.query),
+            )
 
     def _feed_quietly(self, line: str) -> None:
         """Feed a line to the state without notifying (setup is not done yet)."""

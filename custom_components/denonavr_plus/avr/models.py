@@ -79,6 +79,70 @@ class ZoneDescriptor:
     is_main: bool = False
 
 
+@dataclass(frozen=True)
+class KnownAnswers:
+    """Which setup queries a receiver answered, from an earlier probe or check.
+
+    With it a start can skip asking them again: the answers of a model with a
+    firmware do not change. `asked` are the queries that were put to it, so a
+    query added in a later release is still asked.
+    """
+
+    model: str | None
+    firmware: str | None
+    asked: frozenset[str]
+    answered: frozenset[str]
+
+    def covers(self, device: DeviceInfo, queries: set[str]) -> bool:
+        """Whether these answers are of this receiver and cover these queries."""
+
+        return (
+            self.model == device.model_name
+            and self.firmware == device.firmware_version
+            and queries <= self.asked
+        )
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "model": self.model,
+            "firmware": self.firmware,
+            "asked": sorted(self.asked),
+            "answered": sorted(self.answered),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object] | None) -> KnownAnswers | None:
+        """Read what as_dict wrote; None for anything else."""
+
+        if not isinstance(data, dict):
+            return None
+        asked, answered = data.get("asked"), data.get("answered")
+        if not isinstance(asked, list) or not isinstance(answered, list):
+            return None
+        model, firmware = data.get("model"), data.get("firmware")
+        return cls(
+            model if isinstance(model, str) else None,
+            firmware if isinstance(firmware, str) else None,
+            frozenset(str(query) for query in asked),
+            frozenset(str(query) for query in answered),
+        )
+
+    @classmethod
+    def from_check(cls, result: dict[str, object] | None) -> KnownAnswers | None:
+        """The answers of a capability check (capability_check.py result)."""
+
+        if not isinstance(result, dict) or not isinstance(result.get("queries"), dict):
+            return None
+        queries: dict[str, dict[str, object]] = result["queries"]  # type: ignore[assignment]
+        model, firmware = result.get("model"), result.get("firmware")
+        return cls(
+            model if isinstance(model, str) else None,
+            firmware if isinstance(firmware, str) else None,
+            frozenset(queries),
+            frozenset(query for query, answer in queries.items() if answer.get("result") == "answered"),
+        )
+
+
 @dataclass
 class Discovery:
     """The receiver's self description, assembled from device published data."""
