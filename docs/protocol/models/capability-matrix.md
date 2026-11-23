@@ -3,7 +3,9 @@
 The central comparison of the two reference receivers. Labels as defined in
 the [overview](../README.md#verification-status). "Tested on AVR-X3600H"
 means the integration confirmed it on that model of the same generation;
-it remains To test on the AVR-X2600H. "Tested (3.139.175)" is the capability
+it remains To test on the AVR-X2600H. "Tested" in the AVR-X2000 column is the
+capability check on the user's AVR-X2000
+([model page](AVR-X2000.md#capability-check)). "Tested (3.139.175)" is the capability
 check on an AVR-X2600H with that firmware
 ([model page](AVR-X2600H.md#capability-check-firmware-3139175)).
 
@@ -62,7 +64,7 @@ check on an AVR-X2600H with that firmware
 |---|---|---|
 | Power, main zone, volume, mute, source | Documented | Tested (3.139.175) |
 | Zone 2 power, volume, mute, source | Documented | Documented |
-| Zone 2 level trim, sleep, Quick Select | Documented | Tested (3.139.175) |
+| Zone 2 level trim, sleep, Quick Select | Tested | Tested (3.139.175) |
 | Zone 2 auto standby | Absent (not in its document) | Tested (3.139.175) |
 | Zone 2 tone, HPF | Absent (not in its document) | No reply (3.139.175) |
 | Independent Zone 2 source | To test | To test |
@@ -70,10 +72,10 @@ check on an AVR-X2600H with that firmware
 | All Zone Stereo read | From `MS` event only (Documented) | `MNZST ?` Tested on AVR-X3600H; no reply on AVR-X2600H (3.139.175) |
 | Sound mode set | Documented, fixed list | Documented; list from receiver (Tested on AVR-X3600H) |
 | Quick Select | 4 in the device description, 5 in the protocol (To test) | Documented |
-| Audyssey MultEQ mode, Dynamic EQ, ref. level, Dynamic Volume | Documented | Documented |
+| Audyssey MultEQ mode, Dynamic EQ, ref. level, Dynamic Volume | Tested | Tested (3.139.175) |
 | Audyssey LFC | Absent | No reply (3.139.175; 2015 doc: top model only) |
 | Tone, loudness | Documented | Documented |
-| Channel levels | Documented, 11 channels | Tested (3.139.175): 18 channels and `SW` |
+| Channel levels | Tested: `CV?` 11 channels, no `SSLEV` | Tested (3.139.175): 18 channels and `SW` |
 | Subwoofer level `PSSWL` | Absent (not in its document) | Documented |
 | Speaker distances, crossovers, sizes | Menu only | `SS…` and setup config API (Tested on AVR-X3600H) |
 | Graphic EQ | Absent | Setup config API (Tested on AVR-X3600H) |

@@ -124,11 +124,13 @@ async def _probe_answering(
             on_line(line)
 
 
+#: As an AVR-X2000 answered (tests/fixtures/capability_check/AVR-X2000.json).
 X2000_ANSWERS = {
     "PSMULTEQ: ?": ["PSMULTEQ:OFF"],
     "PSDYNEQ ?": ["PSDYNEQ ON"],
     "PSDYNVOL ?": ["PSDYNVOL MED"],
     "PSBAS ?": ["PSBAS 50"],
+    "PVBR ?": ["PVBR 00"],
 }
 
 
@@ -174,6 +176,8 @@ async def test_features_an_older_receiver_does_not_name_appear_when_they_answer(
     assert {"multeq", "dynamic_eq", "dynamic_volume", "bass"} <= discovery.answered
     # A feature it neither names nor answers stays away.
     assert "cinema_eq" not in discovery.answered
+    # Its picture levels use another scale (brightness 00-12, not 000-100).
+    assert "brightness" not in discovery.answered
     unique_ids = {
         item.unique_id.split("_", 1)[1]
         for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)

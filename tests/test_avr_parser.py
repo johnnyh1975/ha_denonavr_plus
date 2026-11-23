@@ -244,6 +244,23 @@ def test_replies_recorded_on_an_avr_x2600h(
     assert zone2.source == "NET"
 
 
+def test_replies_recorded_on_an_avr_x2000() -> None:
+    """Every answer of an AVR-X2000 to the capability check."""
+    parser = TelnetParser(load_profile(), _parse("AVR-X2000-Deviceinfo.xml"))
+    state = AvrState()
+    for answer in _recording("AVR-X2000.json")["queries"].values():
+        for line in answer["lines"]:
+            parser.feed(line, state)
+    assert state.values["multeq"] == "OFF"
+    assert state.values["dynamic_eq"] is True
+    assert state.values["dynamic_volume"] == "MED"
+    assert state.values["sound_mode"] == "MCH STEREO"
+    zone2 = state.zone("zone2")
+    assert (zone2.power, zone2.source, zone2.volume_raw) == (False, "NET", 30.0)
+    # CV? lists eleven channels and no CVEND.
+    assert len(state.channel_trims) == 11
+
+
 @pytest.mark.assumed(
     "every format here comes from the denonavr library (const.py and its event "
     "callbacks), none from a recording; replies from a receiver with these "

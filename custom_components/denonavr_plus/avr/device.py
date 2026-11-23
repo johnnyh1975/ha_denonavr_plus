@@ -429,7 +429,12 @@ class DenonAvrDevice:
         specs = self._profile.controls_by_scope("answered") + [
             spec
             for spec in self._profile.feature_controls()
-            if spec.scope == "feature" and not self._discovery.supports(spec.feature or "")
+            if spec.scope == "feature"
+            and not self._discovery.supports(spec.feature or "")
+            # Picture levels: older receivers use another scale (AVR-X2000:
+            # contrast 44-56, brightness 00-12), so an answer does not mean
+            # this encoding fits.
+            and spec.kind != "centered"
         ]
         queries = list(dict.fromkeys(spec.query for spec in specs if spec.query))
         if not queries:
