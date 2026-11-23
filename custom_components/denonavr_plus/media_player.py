@@ -28,7 +28,7 @@ from homeassistant.components.media_player.browse_media import (
     async_process_play_media_url,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
@@ -48,6 +48,16 @@ _LOGGER = logging.getLogger(__name__)
 # Media ids of the browser's own items: a quick select preset or a source.
 _QUICK_SELECT = "quick_select/"
 _SOURCE = "source/"
+_TUNER_PRESET = "tuner_preset/"
+_TRANSPORT = (
+    MediaPlayerEntityFeature.PLAY
+    | MediaPlayerEntityFeature.PAUSE
+    | MediaPlayerEntityFeature.STOP
+    | MediaPlayerEntityFeature.NEXT_TRACK
+    | MediaPlayerEntityFeature.PREVIOUS_TRACK
+)
+_PLAY_MODES = MediaPlayerEntityFeature.REPEAT_SET | MediaPlayerEntityFeature.SHUFFLE_SET
+_SKIP = MediaPlayerEntityFeature.NEXT_TRACK | MediaPlayerEntityFeature.PREVIOUS_TRACK
 
 # HEOS play modes and Home Assistant's repeat modes.
 _REPEAT_FROM_HEOS = {"off": RepeatMode.OFF, "on_all": RepeatMode.ALL, "on_one": RepeatMode.ONE}
@@ -150,20 +160,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 | MediaPlayerEntityFeature.BROWSE_MEDIA
                 | MediaPlayerEntityFeature.PLAY_MEDIA
             )
-            if coordinator.device.transport_available:
-                features |= (
-                    MediaPlayerEntityFeature.PLAY
-                    | MediaPlayerEntityFeature.PAUSE
-                    | MediaPlayerEntityFeature.STOP
-                    | MediaPlayerEntityFeature.NEXT_TRACK
-                    | MediaPlayerEntityFeature.PREVIOUS_TRACK
-                )
-                # Repeat and shuffle are HEOS play modes.
-                if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
-                    features |= (
-                        MediaPlayerEntityFeature.REPEAT_SET
-                        | MediaPlayerEntityFeature.SHUFFLE_SET
-                    )
+            features |= self._media_features(coordinator)
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -194,7 +191,25 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         if not self._reachable:
             return MediaPlayerEntityFeature.TURN_ON | MediaPlayerEntityFeature.TURN_OFF
-        return self._attr_supported_features
+        features = self._attr_supported_features
+        if not self._zone.is_main and self._now_playing is not None:
+            # A zone playing the network player or the main zone's source.
+            features |= self._media_features(self.coordinator)
+        if self._device.is_tuner(self._source_code):
+            # Skip steps through the tuner presets.
+            features |= _SKIP
+        return features
+
+    @staticmethod
+    def _media_features(coordinator: DenonAvrCoordinator) -> MediaPlayerEntityFeature:
+        """Transport, and the HEOS play modes, where they reach the network player."""
+
+        device = coordinator.device
+        if not device.transport_available:
+            return MediaPlayerEntityFeature(0)
+        if device.heos_enabled and not device.telnet_media:
+            return _TRANSPORT | _PLAY_MODES
+        return _TRANSPORT
 
     @property
     def available(self) -> bool:
@@ -217,11 +232,28 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def _now_playing(self) -> NowPlaying | None:
-        """HEOS now-playing, only meaningful for the main zone."""
+        """The network player's now playing, where this zone hears it.
 
-        if not self._zone.is_main:
+        The main zone always; another zone while it plays a network source or
+        the same source as the main zone (Z2SOURCE included).
+        """
+
+        if self._zone.is_main:
+            return self.coordinator.data.now_playing
+        if not self._zone_state.power:
             return None
-        return self.coordinator.data.now_playing
+        source = self._source_code
+        main = self.coordinator.data.zone("main")
+        network = source in self._device.profile.netaudio.get("sources", [])
+        if network or (source is not None and main.power and source == main.source):
+            return self.coordinator.data.now_playing
+        return None
+
+    @property
+    def _source_code(self) -> str | None:
+        """The source this zone plays (the main zone's when it follows it)."""
+
+        return self._device.zone_source(self._zone.id)
 
     @property
     def state(self) -> MediaPlayerState | None:
@@ -336,9 +368,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def _tuner_title(self) -> str | None:
         """Station name, else the frequency, while the main zone plays the tuner."""
 
-        if not self._zone.is_main or self._zone_state.source not in self._device.profile.netaudio.get(
-            "tuner_sources", []
-        ):
+        if not self._device.is_tuner(self._source_code):
             return None
         values = self.coordinator.data.values
         if values.get("tuner_station"):
@@ -362,19 +392,41 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         now = self._now_playing
         if now and now.active and now.image_url:
             return now.image_url
-        return self._device.media_art_url() if self._zone.is_main else None
+        return self._device.media_art_url() if now is not None else None
 
     @property
     def media_title(self) -> str | None:
+        """The track, the station, or else the input that plays."""
+
         now = self._now_playing
         if now and now.active:
             return now.title
-        return self._tuner_title
+        if tuner := self._tuner_title:
+            return tuner
+        source = self._source_code
+        if not self._zone_state.power or not source:
+            return None
+        return choices.source_display(self._device.discovery, self._entry_options, source)
 
     @property
     def media_artist(self) -> str | None:
+        """The artist, or else the main zone's sound mode under the input."""
+
         now = self._now_playing
-        return now.artist if now and now.active else None
+        if now and now.active:
+            return now.artist
+        if not self._zone_state.power:
+            return None
+        return self.sound_mode
+
+    @property
+    def media_channel(self) -> str | None:
+        """The recalled tuner preset while the tuner plays."""
+
+        if not self._device.is_tuner(self._source_code):
+            return None
+        preset = self.coordinator.data.values.get("tuner_preset")
+        return str(preset) if preset else None
 
     @property
     def media_album_name(self) -> str | None:
@@ -525,10 +577,16 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_media_next_track(self) -> None:
+        if self._device.is_tuner(self._source_code):
+            await self._device.async_tuner_preset_step(up=True)
+            return
         await self._device.async_media_next()
 
     @receiver_action
     async def async_media_previous_track(self) -> None:
+        if self._device.is_tuner(self._source_code):
+            await self._device.async_tuner_preset_step(up=False)
+            return
         await self._device.async_media_previous()
 
     # Media browser and play_media (main zone) -----------------------------
@@ -551,10 +609,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             return self._folder("quick_select", names["quick_select"], self._quick_select_items())
         if media_content_id == "sources":
             return self._folder("sources", names["sources"], self._source_items())
+        if media_content_id == "tuner_presets":
+            return self._folder("tuner_presets", names["tuner_presets"], self._tuner_preset_items())
         children: list[BrowseMedia] = []
         if self._device.discovery.quick_select_names:
             children.append(self._folder("quick_select", names["quick_select"], None))
         children.append(self._folder("sources", names["sources"], None))
+        if self._has_tuner_presets:
+            children.append(self._folder("tuner_presets", names["tuner_presets"], None))
         if self._device.can_play_url:
             try:
                 children.append(
@@ -587,7 +649,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         prefix = f"component.{DOMAIN}.selector.browse_folder.options."
         return {
             key: translations.get(prefix + key, fallback)
-            for key, fallback in (("quick_select", "Quick Select"), ("sources", "Sources"))
+            for key, fallback in (
+                ("quick_select", "Quick Select"),
+                ("sources", "Sources"),
+                ("tuner_presets", "Tuner presets"),
+            )
         }
 
     @staticmethod
@@ -631,6 +697,31 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             for code in choices.source_codes(discovery, options, self._zone.id)
         ]
 
+    @property
+    def _has_tuner_presets(self) -> bool:
+        """A tuner among this zone's sources, and a known preset numbering."""
+
+        discovery = self._device.discovery
+        return bool(self._device.tuner_preset_codes) and any(
+            self._device.is_tuner(code)
+            for code in choices.source_codes(discovery, self._entry_options, self._zone.id)
+        )
+
+    def _tuner_preset_items(self) -> list[BrowseMedia]:
+        if not self._has_tuner_presets:
+            return []
+        return [
+            BrowseMedia(
+                media_class=MediaClass.CHANNEL,
+                media_content_id=f"{_TUNER_PRESET}{code}",
+                media_content_type=MediaType.CHANNEL,
+                title=code,
+                can_play=True,
+                can_expand=False,
+            )
+            for code in self._device.tuner_preset_codes
+        ]
+
     @receiver_action
     async def async_play_media(
         self, media_type: MediaType | str, media_id: str, **kwargs: Any
@@ -642,6 +733,19 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             return
         if media_id.startswith(_SOURCE):
             await self._device.async_select_source(self._zone.id, media_id[len(_SOURCE):])
+            return
+        if media_id.startswith(_TUNER_PRESET):
+            code = media_id[len(_TUNER_PRESET):]
+            if not self._has_tuner_presets or code not in self._device.tuner_preset_codes:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="unknown_tuner_preset",
+                    translation_placeholders={
+                        "preset": code,
+                        "model": self._device.discovery.device.model_name or "receiver",
+                    },
+                )
+            await self._device.async_tuner_preset(self._zone.id, code)
             return
         if not self._device.can_play_url:
             raise HomeAssistantError(

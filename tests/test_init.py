@@ -99,6 +99,12 @@ class FakeHeos:
     async def async_set_shuffle(self, shuffle: bool) -> None:
         self.calls.append(("shuffle", shuffle))
 
+    async def async_play(self) -> None:
+        self.calls.append(("play", None))
+
+    async def async_pause(self) -> None:
+        self.calls.append(("pause", None))
+
     async def async_play_url(self, url: str) -> bool:
         self.calls.append(("url", url))
         return True

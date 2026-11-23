@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, patch
@@ -448,7 +450,7 @@ async def test_an_older_receiver_plays_over_telnet(
     telnet.push("SITUNER")
     telnet.sent.clear()
     await device.async_poll_media()
-    assert telnet.sent == ["TFAN?", "TFANNAME?"]
+    assert telnet.sent == ["TFAN?", "TFANNAME?", "TPAN?"]
     # Off the network source, what played is cleared.
     assert device.state.now_playing.state is None
 
@@ -500,3 +502,59 @@ async def test_an_older_receiver_refuses_a_url(
             blocking=True,
         )
     assert err.value.translation_key == "play_url_unsupported"
+
+
+@pytest.mark.assumed(
+    "the AVR-X2000/E400 document names the tuner presets A1-G8; the AVR-X2000 "
+    "answered TPANOFF, so its own form is unconfirmed"
+)
+async def test_zone_2_on_the_tuner_and_the_older_preset_names(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """The tuner is asked while zone 2 plays it; an AVR-X2000 names its presets A1-G8."""
+    entry = await _x2000_entry(hass)
+    device = entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = True
+    telnet.push("PWON", "ZMON", "SICD", "Z2ON", "Z2SOURCE")
+    assert device.zone_source("zone2") == "CD"
+    telnet.push("Z2TUNER")
+    telnet.sent.clear()
+    await device.async_poll_media()
+    assert telnet.sent == ["TFAN?", "TFANNAME?", "TPAN?"]
+
+    codes = device.tuner_preset_codes
+    assert (codes[0], codes[7], codes[8], codes[-1], len(codes)) == ("A1", "A8", "B1", "G8", 56)
+    telnet.sent.clear()
+    await device.async_tuner_preset("zone2", "B3")
+    assert telnet.sent == ["TPANB3"]
+    with pytest.raises(ValueError):
+        await device.async_tuner_preset("zone2", "01")
+
+
+async def test_a_preset_switches_to_the_tuner_first(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Preset commands work only on the tuner: switch, wait for it, then recall."""
+    entry = await _x2000_entry(hass)
+    device = entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = True
+    telnet.push("PWON", "ZMON", "SICD")
+    telnet.sent.clear()
+
+    async def answer() -> None:
+        await asyncio.sleep(0.05)
+        telnet.push("SITUNER")
+
+    task = asyncio.create_task(answer())
+    await device.async_tuner_preset("main", "A2")
+    await task
+    assert telnet.sent == ["SITUNER", "TPANA2"]
+
+    # A receiver that does not switch in time still gets the recall.
+    telnet.push("SICD")
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.avr.device.TUNER_SWITCH_WAIT", 0.05):
+        await device.async_tuner_preset("main", "A3")
+    assert telnet.sent == ["SITUNER", "TPANA3"]

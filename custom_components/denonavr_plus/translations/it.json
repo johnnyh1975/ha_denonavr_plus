@@ -950,6 +950,9 @@
     },
     "play_url_unsupported": {
       "message": "Il {model} non riproduce indirizzi web: non ha HEOS. Scegli invece una sorgente o un Quick Select."
+    },
+    "unknown_tuner_preset": {
+      "message": "{preset} non è una preselezione del sintonizzatore del {model}."
     }
   },
   "issues": {
@@ -993,7 +996,8 @@
     "browse_folder": {
       "options": {
         "quick_select": "Quick Select",
-        "sources": "Sorgenti"
+        "sources": "Sorgenti",
+        "tuner_presets": "Preselezioni del sintonizzatore"
       }
     }
   },

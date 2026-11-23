@@ -62,7 +62,9 @@
     "transport": {"play": "NS9A", "pause": "NS9B", "stop": "NS9C", "next": "NS9D", "previous": "NS9E"},
     "art_path": "/NetAudio/art.asp-jpg",
     "tuner_sources": ["TUNER"],
-    "tuner_queries": ["TFAN?", "TFANNAME?"]
+    "tuner_queries": ["TFAN?", "TFANNAME?", "TPAN?"],
+    "tuner_presets": {"doc": "TPAN? gives the recalled preset (TPAN01, TPANOFF when none); TPAN<code> recalls one, TPANUP and TPANDOWN step through them, only while the source is the tuner. 56 presets, numbered 01-56 in the 2015 X-series document and confirmed by an AVR-X2600H (TPAN01).", "prefix": "TPAN", "up": "TPANUP", "down": "TPANDOWN", "format": "number", "count": 56},
+    "older": {"tuner_presets": {"doc": "The AVR-X2000/E400 (v03) and AVR-1912/2112CI documents name the 56 presets A1-G8 (eight per letter).", "prefix": "TPAN", "up": "TPANUP", "down": "TPANDOWN", "format": "letter", "count": 56}}
   },
   "grammar": {
     "line_terminator": "\r",

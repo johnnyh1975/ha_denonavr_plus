@@ -214,12 +214,16 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   position, repeat and shuffle (via HEOS). Receivers without HEOS (AVR-X2000
   and older) show title, artist, album and cover from their on-screen list and
   take play, pause, stop and skip over telnet. The tuner shows its station or
-  frequency. Otherwise the player carries a source‑aware **input icon** (TV,
-  disc, tuner, Bluetooth, USB, cast, …).
-- **Media browser and `play_media`** on the main zone: quick selects and
-  sources to pick, and on receivers with HEOS any URL and Home Assistant's own
-  media, text to speech included (HEOS `play_stream`, not yet tried on a
-  receiver). Receivers without HEOS take quick selects and sources only.
+  frequency and the recalled preset; skip steps through the presets. On any
+  other input the player shows the input's name, with the sound mode below it,
+  and a source‑aware **input icon** (TV, disc, tuner, Bluetooth, USB, cast, …).
+  Zone 2 on the main zone's source (or on a network source) shows what plays
+  there and takes play, pause and skip too.
+- **Media browser and `play_media`** on the main zone: quick selects,
+  sources and tuner presets (by number: the receiver gives no preset names) to
+  pick, and on receivers with HEOS any URL and Home Assistant's own media, text
+  to speech included (HEOS `play_stream`, not yet tried on a receiver).
+  Receivers without HEOS take quick selects, sources and presets only.
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,

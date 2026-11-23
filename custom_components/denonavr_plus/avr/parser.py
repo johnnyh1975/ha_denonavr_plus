@@ -408,6 +408,12 @@ class TelnetParser:
         if line.startswith("TFAN") and line[4:].strip().isdigit():
             state.values["tuner_frequency"] = int(line[4:].strip())
             return True
+        if line.startswith("TPAN"):
+            preset = line[4:].strip()
+            if not preset.startswith("MEM"):
+                # TPANMEM01 reports a preset being stored, not the one recalled.
+                state.values["tuner_preset"] = None if preset in ("", "OFF") else preset
+            return True
         if line.startswith("SSFUN"):
             return self._set_source_name(line[5:])
         if line.startswith("SSSOD"):

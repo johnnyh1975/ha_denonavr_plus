@@ -471,3 +471,137 @@ async def test_quick_selects_and_home_assistant_media_play(
             blocking=True,
         )
     assert ("url", "http://192.0.2.1:8123/api/tts_proxy/x.mp3") in FakeHeos.instances[-1].calls
+
+
+def _player(hass: HomeAssistant, entity: str) -> Any:
+    return next(
+        item
+        for item in hass.data["entity_components"]["media_player"].entities
+        if item.entity_id == entity
+    )
+
+
+async def test_an_input_shows_its_name_and_the_sound_mode(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Nothing plays on the network: the card names the input instead of staying empty."""
+    await _push(hass, "PWON", "ZMON", "SIDVD", "MSDOLBY ATMOS")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    state = hass.states.get(main)
+    assert state is not None
+    assert state.attributes["media_title"] == state.attributes["source"]
+    assert state.attributes["media_artist"] == state.attributes["sound_mode"]
+    assert state.attributes["media_artist"]
+
+    await _push(hass, "ZMOFF")
+    state = hass.states.get(main)
+    assert state is not None and "media_title" not in state.attributes
+
+
+async def test_zone_2_shows_what_the_main_zone_plays(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Zone 2 on SOURCE hears the main zone's network player, and can pause it."""
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+
+    from .test_init import FakeHeos
+
+    await _push(hass, "PWON", "ZMON", "SINET", "Z2ON", "Z2CD")
+    FakeHeos.instances[-1].on_update(
+        {
+            "state": "play",
+            "media_type": "song",
+            "title": "Track",
+            "artist": "Band",
+            "album": None,
+            "image_url": "http://example.com/cover.jpg",
+            "position": None,
+            "duration": None,
+            "position_at": None,
+            "repeat": None,
+            "shuffle": None,
+        }
+    )
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    state = hass.states.get(zone2)
+    assert state is not None
+    # On its own input it shows that input, not the main zone's track.
+    assert state.attributes["media_title"] == state.attributes["source"]
+    assert not MediaPlayerEntityFeature(state.attributes["supported_features"]) & (
+        MediaPlayerEntityFeature.PAUSE
+    )
+
+    await _push(hass, "Z2SOURCE")
+    state = hass.states.get(zone2)
+    assert state is not None
+    assert state.attributes["media_title"] == "Track"
+    assert state.attributes["entity_picture"]
+    features = MediaPlayerEntityFeature(state.attributes["supported_features"])
+    assert features & MediaPlayerEntityFeature.PAUSE
+    assert features & MediaPlayerEntityFeature.REPEAT_SET
+    await hass.services.async_call("media_player", "media_pause", {"entity_id": zone2}, blocking=True)
+    assert ("pause", None) in FakeHeos.instances[-1].calls
+
+
+async def test_skip_steps_through_the_tuner_presets(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+
+    await _push(hass, "PWON", "ZMON", "SITUNER", "TPAN07", "Z2ON", "Z2SOURCE")
+    telnet = FakeTelnet.instances[-1]
+    for zone in ("media_player_main", "media_player_zone2"):
+        player = entity_id(hass, loaded_entry, zone)
+        state = hass.states.get(player)
+        assert state is not None
+        assert state.attributes["media_channel"] == "07"
+        assert MediaPlayerEntityFeature(state.attributes["supported_features"]) & (
+            MediaPlayerEntityFeature.NEXT_TRACK
+        )
+        telnet.sent.clear()
+        await hass.services.async_call(
+            "media_player", "media_next_track", {"entity_id": player}, blocking=True
+        )
+        await hass.services.async_call(
+            "media_player", "media_previous_track", {"entity_id": player}, blocking=True
+        )
+        assert telnet.sent == ["TPANUP", "TPANDOWN"]
+
+
+async def test_the_browser_recalls_a_tuner_preset(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import BrowseError
+    from homeassistant.exceptions import ServiceValidationError
+
+    await _push(hass, "PWON", "ZMON", "SITUNER")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    entity = _player(hass, main)
+    with patch(
+        "custom_components.denonavr_plus.media_player.media_source.async_browse_media",
+        AsyncMock(side_effect=BrowseError),
+    ):
+        root = await entity.async_browse_media()
+    assert "tuner_presets" in [child.media_content_id for child in root.children or []]
+    folder = await entity.async_browse_media(None, "tuner_presets")
+    codes = [child.title for child in folder.children or []]
+    assert (codes[0], codes[-1], len(codes)) == ("01", "56", 56)
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {"entity_id": main, "media_content_type": "channel", "media_content_id": "tuner_preset/05"},
+        blocking=True,
+    )
+    assert telnet.sent == ["TPAN05"]
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "channel", "media_content_id": "tuner_preset/99"},
+            blocking=True,
+        )

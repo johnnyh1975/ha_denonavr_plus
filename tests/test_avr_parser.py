@@ -305,6 +305,18 @@ def test_tuner_frequency_and_station(parser_and_state: tuple[TelnetParser, AvrSt
     assert state.values["tuner_station"] == "Bayern 3"
 
 
+def test_the_recalled_tuner_preset(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    """TPAN01 (an AVR-X2600H) and TPANOFF (an AVR-X2000), from their capability checks."""
+    parser, state = parser_and_state
+    parser.feed("TPAN01", state)
+    assert state.values["tuner_preset"] == "01"
+    # Storing a preset is no recall.
+    parser.feed("TPANMEM05", state)
+    assert state.values["tuner_preset"] == "01"
+    parser.feed("TPANOFF", state)
+    assert state.values["tuner_preset"] is None
+
+
 @pytest.mark.assumed(
     "every format here comes from the denonavr library (const.py and its event "
     "callbacks), none from a recording; replies from a receiver with these "

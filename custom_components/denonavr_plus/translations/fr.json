@@ -950,6 +950,9 @@
     },
     "play_url_unsupported": {
       "message": "Le {model} ne lit pas d'adresses web : il n'a pas HEOS. Choisissez plutôt une source ou un Quick Select."
+    },
+    "unknown_tuner_preset": {
+      "message": "{preset} n'est pas une présélection du tuner du {model}."
     }
   },
   "issues": {
@@ -993,7 +996,8 @@
     "browse_folder": {
       "options": {
         "quick_select": "Quick Select",
-        "sources": "Sources"
+        "sources": "Sources",
+        "tuner_presets": "Présélections du tuner"
       }
     }
   },

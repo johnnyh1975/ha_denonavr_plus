@@ -229,9 +229,9 @@ class ProtocolProfile:
 
 
 def profile_variant(profile: ProtocolProfile, variant: str) -> ProtocolProfile:
-    """The profile with each control's `variant` entries (e.g. "older") applied.
+    """The profile with its `variant` entries (e.g. "older") applied.
 
-    A copy: the cached profile stays as it is for other receivers.
+    Those of each control and of the network audio grammar. A copy: the cached profile stays as it is for other receivers.
     """
 
     raw = copy.deepcopy(profile._raw)  # noqa: SLF001 - the profile's own data
@@ -240,6 +240,10 @@ def profile_variant(profile: ProtocolProfile, variant: str) -> ProtocolProfile:
         if isinstance(override, dict):
             override.pop("doc", None)
             control.update(override)
+    netaudio = raw.get("netaudio", {})
+    override = netaudio.pop(variant, None)
+    if isinstance(override, dict):
+        netaudio.update(override)
     result = ProtocolProfile(raw)
     result.variant = variant
     return result

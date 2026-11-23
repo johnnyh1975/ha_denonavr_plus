@@ -67,6 +67,10 @@ CHANNEL_TRIMS_QUERY = "CV?"
 OLDER = "older"
 #: How often the now playing list and the tuner are asked while they play.
 MEDIA_POLL_INTERVAL = 5.0
+#: A zone's source code meaning "the main zone's source" (Z2SOURCE).
+FOLLOW_MAIN = "SOURCE"
+#: How long a preset recall waits for the receiver to switch to the tuner.
+TUNER_SWITCH_WAIT = 3.0
 
 # After a command sent over HTTP (telnet down) nothing is pushed back, so the
 # zone status is read again once the receiver has had a moment to apply it.
@@ -606,24 +610,82 @@ class DenonAvrDevice:
                 _LOGGER.debug("Asking %s for now playing failed: %s", self._host, err)
 
     async def async_poll_media(self) -> None:
-        """One round: NSE for a network source, TFAN?/TFANNAME? for the tuner."""
+        """One round: NSE for a network source, the tuner queries for the tuner.
+
+        For every zone that is on: zone 2 can play the tuner or the network
+        while the main zone plays something else.
+        """
 
         if not self._telnet.connected:
             return
-        main = self._state.zone("main")
         grammar = self._profile.netaudio
-        if not main.power or not grammar:
+        if not grammar:
             return
-        network = main.source in grammar.get("sources", [])
+        playing = {
+            self.zone_source(zone_id)
+            for zone_id, zone in self._state.zones.items()
+            if zone.power
+        }
+        network = bool(playing & set(grammar.get("sources", [])))
         if self.telnet_media and not network and self._state.now_playing.state is not None:
             # Off the network source: nothing plays there any more.
             self._state.now_playing = NowPlaying()
             self._schedule_update()
-        if main.source in grammar.get("tuner_sources", []):
+        if playing & set(grammar.get("tuner_sources", [])):
             for query in grammar.get("tuner_queries", []):
                 await self._telnet.async_send(query)
-        elif self.telnet_media and network:
+        if self.telnet_media and network:
             await self._telnet.async_send(grammar["query"])
+
+    def zone_source(self, zone_id: str) -> str | None:
+        """The source a zone plays: the main zone's when it follows it (SOURCE)."""
+
+        source = self._state.zone(zone_id).source
+        if zone_id != "main" and source == FOLLOW_MAIN:
+            return self._state.zone("main").source
+        return source
+
+    def is_tuner(self, source: str | None) -> bool:
+        return source is not None and source in self._profile.netaudio.get("tuner_sources", [])
+
+    @property
+    def tuner_preset_codes(self) -> list[str]:
+        """The tuner's preset codes: 01-56, or A1-G8 on older receivers."""
+
+        presets = self._profile.netaudio.get("tuner_presets", {})
+        count = int(presets.get("count", 0))
+        if presets.get("format") == "letter":
+            return [f"{chr(ord('A') + index // 8)}{index % 8 + 1}" for index in range(count)]
+        return [f"{index + 1:02d}" for index in range(count)]
+
+    async def async_tuner_preset_step(self, up: bool) -> None:
+        """The next or the previous tuner preset."""
+
+        presets = self._profile.netaudio.get("tuner_presets", {})
+        command = presets.get("up" if up else "down")
+        if command:
+            await self._send(command)
+
+    async def async_tuner_preset(self, zone_id: str, code: str) -> None:
+        """Recall a tuner preset, switching the zone to the tuner first.
+
+        The receiver takes preset commands only while the tuner is the source.
+        """
+
+        grammar = self._profile.netaudio
+        presets = grammar.get("tuner_presets", {})
+        tuners = grammar.get("tuner_sources", [])
+        if not (presets and tuners) or code not in self.tuner_preset_codes:
+            raise ValueError(f"no tuner preset {code!r}")
+        if not self.is_tuner(self.zone_source(zone_id)):
+            await self.async_select_source(zone_id, tuners[0])
+            try:
+                async with asyncio.timeout(TUNER_SWITCH_WAIT):
+                    while not self.is_tuner(self.zone_source(zone_id)):
+                        await asyncio.sleep(0.1)
+            except TimeoutError:
+                _LOGGER.debug("%s did not switch to the tuner in time", self._host)
+        await self._send(f"{presets['prefix']}{code}")
 
     async def async_await_ready(self, timeout: float = 8.0) -> None:
         """Wait, best effort, until the initial resync has populated state.

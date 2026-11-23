@@ -5,7 +5,7 @@
     "Measured on Home Assistant 2026.10 (phahc 0.13.375), half a point of margin."
   ],
   "floors": {
-    "avr/device.py": 0.847,
+    "avr/device.py": 0.859,
     "avr/graphic_eq.py": 0.761,
     "avr/parser.py": 0.915,
     "avr/profile.py": 0.906,
@@ -15,7 +15,7 @@
     "avr/transport/telnet.py": 0.891,
     "avr/transport/upnp.py": 0.583,
     "avr/video_config.py": 0.495,
-    "media_player.py": 0.899,
+    "media_player.py": 0.934,
     "select.py": 0.712,
     "switch.py": 0.8283
   }

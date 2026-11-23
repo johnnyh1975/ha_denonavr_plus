@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 
+import pytest
+
 from custom_components.denonavr_plus.avr.profile import load_profile
 
 from .conftest import all_deviceinfo_files
@@ -108,3 +110,18 @@ def test_the_older_variant_replaces_a_controls_own_entries() -> None:
     assert older.control("brightness").get("older") is None
     # The cached profile stays as it is for other receivers.
     assert profile.control("brightness").get("width") == 3
+
+
+@pytest.mark.assumed(
+    "the AVR-X2000/E400 document names the tuner presets A1-G8; the AVR-X2000 "
+    "answered TPANOFF, so its own form is unconfirmed: a TPAN reply while a "
+    "preset plays would settle it"
+)
+def test_the_older_variant_replaces_the_network_audio_entries() -> None:
+    from custom_components.denonavr_plus.avr.profile import profile_variant
+
+    profile = load_profile()
+    older = profile_variant(profile, "older")
+    assert older.netaudio["tuner_presets"]["format"] == "letter"
+    assert "older" not in older.netaudio
+    assert profile.netaudio["tuner_presets"]["format"] == "number"
