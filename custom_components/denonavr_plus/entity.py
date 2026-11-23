@@ -20,7 +20,7 @@ from homeassistant.helpers.device_registry import (
 from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .avr.errors import SetupWriteError
+from .avr.errors import CommandNotSent, SetupWriteError
 from .const import DOMAIN
 from .coordinator import DenonAvrCoordinator
 
@@ -37,25 +37,32 @@ SUB_DEVICE_NAMES = {
 }
 
 
-def setup_write[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _FuncT) -> _FuncT:
-    """Report a setting the receiver rejected as an error in Home Assistant.
+def receiver_action[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _FuncT) -> _FuncT:
+    """Report an action the receiver did not take as an error in Home Assistant.
 
-    For actions that write through the setup API (graphic EQ, video and speaker
-    setup). Without this a rejected write only shows as the old value coming
-    back, with no hint why.
+    For every action of an entity. Two cases: a setting written through the
+    setup API (graphic EQ, video and speaker setup) that the receiver
+    rejected, and a command that reached the receiver neither over telnet nor
+    over HTTP. Without this, the first only shows as the old value coming
+    back and the second goes nowhere, with no hint why.
     """
 
     @wraps(func)
     async def wrapper(self: DenonAvrEntity, *args: Any, **kwargs: Any) -> Any:
+        model = self._device.discovery.device.model_name or "Denon AVR"
         try:
             return await func(self, *args, **kwargs)
         except SetupWriteError as err:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="setup_write_failed",
-                translation_placeholders={
-                    "model": self._device.discovery.device.model_name or "Denon AVR"
-                },
+                translation_placeholders={"model": model},
+            ) from err
+        except CommandNotSent as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="receiver_unreachable",
+                translation_placeholders={"model": model},
             ) from err
 
     return cast(_FuncT, wrapper)
@@ -108,7 +115,6 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
             model=device_info.model_name,
             name=device_info.model_name or "Denon AVR",
             sw_version=device_info.firmware_version,
-            hw_version=device_info.hardware_type,
             serial_number=device_info.serial_number,
             # The receiver's own web control page, useful as a device link.
             configuration_url=f"https://{self._device.host}:10443/",

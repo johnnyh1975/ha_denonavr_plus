@@ -507,6 +507,9 @@
     },
     "command_unreachable": {
       "message": "Não foi possível contactar o {model} para enviar {command}. Verifique se está na rede e se o modo de espera de rede está ativado."
+    },
+    "receiver_unreachable": {
+      "message": "Não foi possível contactar o {model}, por isso a definição não foi enviada. Verifique se está na rede e se o modo de espera de rede está ativado."
     }
   },
   "issues": {

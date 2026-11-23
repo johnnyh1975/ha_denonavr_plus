@@ -507,6 +507,9 @@
     },
     "command_unreachable": {
       "message": "The {model} could not be reached to send {command}. Check that it is on the network and that network standby is on."
+    },
+    "receiver_unreachable": {
+      "message": "The {model} could not be reached, so the setting was not sent. Check that it is on the network and that network standby is on."
     }
   },
   "issues": {

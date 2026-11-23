@@ -507,6 +507,9 @@
     },
     "command_unreachable": {
       "message": "De {model} was niet bereikbaar om {command} te versturen. Controleer of hij op het netwerk is en of netwerkstand-by aan staat."
+    },
+    "receiver_unreachable": {
+      "message": "De {model} was niet bereikbaar, dus de instelling is niet verstuurd. Controleer of hij op het netwerk is en of netwerkstand-by aan staat."
     }
   },
   "issues": {

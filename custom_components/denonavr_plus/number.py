@@ -25,7 +25,7 @@ from .avr import graphic_eq
 from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, receiver_action
 from .helpers import control_enabled_by_default, control_sub_device
 
 # The control kinds that map to a number entity.
@@ -35,6 +35,9 @@ _NUMBER_KINDS = {"level", "signed_int", "minutes", "integer", "centered"}
 # constants (the profile stays HA-independent; this HA layer does the mapping).
 _UNIT_TOKENS = {"ms": UnitOfTime.MILLISECONDS, "m": UnitOfLength.METERS}
 
+
+# The graphic EQ bands and distances write the setup interface one at a time.
+PARALLEL_UPDATES = 1
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -99,12 +102,15 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
 
         if spec.kind == "minutes":
             self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
+            self._attr_device_class = NumberDeviceClass.DURATION
         elif spec.kind == "integer":
             # A plain integer control uses whatever unit the profile gives (or
             # none), for example milliseconds for the audio delay, surfaced as the
             # canonical HA unit constant where known.
             unit = spec.get("unit")
             self._attr_native_unit_of_measurement = _UNIT_TOKENS.get(unit, unit)
+            if unit == "ms":
+                self._attr_device_class = NumberDeviceClass.DURATION
         elif spec.kind == "centered":
             # Picture controls are a unitless offset (e.g. contrast -50..+50).
             self._attr_native_unit_of_measurement = None
@@ -124,6 +130,7 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
         value = self.coordinator.data.values.get(self._spec.id)
         return float(value) if value is not None else None
 
+    @receiver_action
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.device.async_set_control(self._spec.id, value)
 
@@ -158,6 +165,7 @@ class DenonAvrChannelTrim(DenonAvrEntity, NumberEntity):
     def native_value(self) -> float | None:
         return self.coordinator.data.channel_trims.get(self._code)
 
+    @receiver_action
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.device.async_set_channel_trim(self._code, value)
 
@@ -191,6 +199,7 @@ class DenonAvrChannelDistance(DenonAvrEntity, NumberEntity):
     def native_value(self) -> float | None:
         return self.coordinator.data.channel_distances.get(self._code)
 
+    @receiver_action
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.device.async_set_channel_distance(self._code, value)
 
@@ -214,7 +223,7 @@ class DenonAvrEqBand(DenonAvrEntity, NumberEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_native_unit_of_measurement = "dB"
+    _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
     _attr_mode = NumberMode.SLIDER
     _attr_entity_registry_enabled_default = False
 
@@ -234,6 +243,7 @@ class DenonAvrEqBand(DenonAvrEntity, NumberEntity):
         # Show the staged edit if any, else the value read from the receiver.
         return self.coordinator.device.graphic_eq.band_value(self._tag)
 
+    @receiver_action
     async def async_set_native_value(self, value: float) -> None:
         # Stage the edit; press Apply (button) to write the whole curve.
         await self.coordinator.device.graphic_eq.set_band(self._tag, value)
@@ -280,6 +290,7 @@ class DenonAvrVolume(DenonAvrEntity, NumberEntity):
             return None
         return round(raw - self._device.volume_reference, 1)
 
+    @receiver_action
     async def async_set_native_value(self, value: float) -> None:
         raw = _volume.clamp_raw(
             self._device, self._zone.id, value + self._device.volume_reference, self._entry_options

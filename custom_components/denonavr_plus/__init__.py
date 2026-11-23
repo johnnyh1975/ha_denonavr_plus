@@ -176,7 +176,9 @@ def _register_main_device(
         model=device.model_name,
         name=device.model_name or "Denon AVR",
         sw_version=device.firmware_version,
-        hw_version=device.hardware_type,
+        # hardware_type is the protocol family (avr-x-2016), not the hardware;
+        # it is in the diagnostics. None clears what earlier versions stored.
+        hw_version=None,
         serial_number=device.serial_number,
         configuration_url=f"https://{coordinator.device.host}:10443/",
     )

@@ -15,9 +15,12 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, setup_write
+from .entity import DenonAvrEntity, receiver_action
 from .helpers import control_enabled_by_default, control_sub_device
 
+
+# Some switches write the setup interface, which takes one write at a time.
+PARALLEL_UPDATES = 1
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -71,9 +74,11 @@ class DenonAvrSwitch(DenonAvrEntity, SwitchEntity):
         # reported a value for (e.g. auto lip sync with no active video source).
         return bool(self.coordinator.data.values.get(self._spec.id))
 
+    @receiver_action
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.coordinator.device.async_set_control(self._spec.id, True)
 
+    @receiver_action
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.device.async_set_control(self._spec.id, False)
 
@@ -108,10 +113,10 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
     def is_on(self) -> bool:
         return self._video.value(self._id) == self._on
 
-    @setup_write
+    @receiver_action
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._video.async_set(self._id, self._on)
 
-    @setup_write
+    @receiver_action
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._video.async_set(self._id, self._off)

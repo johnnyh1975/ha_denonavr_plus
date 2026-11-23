@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .avr import graphic_eq
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, setup_write
+from .entity import DenonAvrEntity, receiver_action
 from .helpers import (
     control_enabled_by_default,
     control_sub_device,
@@ -23,6 +23,9 @@ from .helpers import (
     group_name,
 )
 
+
+# Several selects write the setup interface, which takes one write at a time.
+PARALLEL_UPDATES = 1
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -127,6 +130,7 @@ class DenonAvrSelect(DenonAvrEntity, SelectEntity):
         # so Home Assistant does not log an "invalid current option" warning.
         return self._value_to_label.get(str(value))
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         value = self._label_to_value.get(option)
         if value is not None:
@@ -160,6 +164,7 @@ class DenonAvrSoundModeGroupSelect(DenonAvrEntity, SelectEntity):
         code = self.coordinator.data.values.get("sound_mode_genre")
         return self._genres.get(code) if code else None
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         # Selecting a group switches the receiver to that genre; the receiver
         # then reports the resolved mode, which updates the sound mode select.
@@ -199,6 +204,7 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
         current = self.coordinator.data.values.get("sound_mode_display")
         return current if current in self.options else None
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.device.async_select_sound_mode(option)
 
@@ -255,6 +261,7 @@ class DenonAvrCrossover(DenonAvrEntity, SelectEntity):
         # never logs an "invalid current option" warning.
         return self._format(hertz) if hertz in self._values else None
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         hertz = int(option.split()[0])
         await self.coordinator.device.async_set_crossover(self._group, hertz)
@@ -289,6 +296,7 @@ class DenonAvrCrossoverSpeakerSelection(DenonAvrEntity, SelectEntity):
             self.coordinator.data.values.get("crossover_speaker_selection")
         )
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         for token, label in self._labels.items():
             if label == option:
@@ -322,6 +330,7 @@ class DenonAvrCrossoverAll(DenonAvrEntity, SelectEntity):
         hertz = self.coordinator.data.values.get("crossover_all")
         return f"{hertz} {self._unit}" if hertz in self._values else None
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.device.async_set_crossover("ALL", int(option.split()[0]))
 
@@ -363,6 +372,7 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
         # Absent/count tokens map to no option, so no "invalid option" warning.
         return self._token_to_label.get(token)
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         token = self._label_to_token.get(option)
         if token:
@@ -394,6 +404,7 @@ class DenonAvrSubwooferCount(DenonAvrEntity, SelectEntity):
     def current_option(self) -> str | None:
         return self._labels.get(self.coordinator.data.speaker_sizes.get("SWF"))
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         token = self._label_to_token.get(option)
         if token:
@@ -427,6 +438,7 @@ class DenonAvrQuickSelect(DenonAvrEntity, SelectEntity):
             return None
         return self._names.get(int(number))
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         for number, name in self._names.items():
             if name == option:
@@ -455,7 +467,7 @@ class DenonAvrEqSpeakerSelection(DenonAvrEntity, SelectEntity):
         code = self.coordinator.device.graphic_eq.state.speaker_selection
         return self._by_code.get(code) if code else None
 
-    @setup_write
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         code = self._by_label.get(option)
         if code:
@@ -500,6 +512,7 @@ class DenonAvrEqChannel(DenonAvrEntity, SelectEntity):
         # switch): show the first channel rather than an unknown state.
         return options[0][1] if options else None
 
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         for index, label in self._options():
             if label == option:
@@ -547,7 +560,7 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
     def current_option(self) -> str | None:
         return self._ctrl.options(self._id).get(self._ctrl.value(self._id))
 
-    @setup_write
+    @receiver_action
     async def async_select_option(self, option: str) -> None:
         for wire, label in self._ctrl.options(self._id).items():
             if label == option:

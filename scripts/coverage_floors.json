@@ -6,7 +6,7 @@
   ],
   "floors": {
     "__init__.py": 0.866,
-    "avr/device.py": 0.8031,
+    "avr/device.py": 0.8095,
     "avr/graphic_eq.py": 0.749,
     "avr/parser.py": 0.578,
     "avr/profile.py": 0.8494,
@@ -18,7 +18,7 @@
     "avr/video_config.py": 0.495,
     "helpers.py": 0.6408,
     "media_player.py": 0.8577,
-    "select.py": 0.6073,
-    "switch.py": 0.82
+    "select.py": 0.6243,
+    "switch.py": 0.8283
   }
 }

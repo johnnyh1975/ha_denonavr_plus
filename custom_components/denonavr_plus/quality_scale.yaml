@@ -71,12 +71,12 @@ rules:
 
   # ── Silver ────────────────────────────────────────────────────────────────
   action-exceptions:
-    status: todo
+    status: done
     comment: >
-      Writes over the setup API (graphic EQ, video and speaker setup) raise a
-      translated error when the receiver rejects them. send_command raises a
-      translated error when it cannot send. Telnet commands of the other
-      entities sent while the connection is down do not raise yet.
+      Every entity action is wrapped (entity.receiver_action): a setup API
+      write the receiver rejects and a command that reaches the receiver
+      neither over telnet nor over HTTP raise a translated error.
+      send_command raises its own translated errors.
   config-entry-unloading:
     status: done
   docs-supported-functions:
@@ -98,8 +98,11 @@ rules:
       with the likely cause; the return of the connection is logged once.
       Shorter drops stay quiet.
   parallel-updates:
-    status: todo
-    comment: PARALLEL_UPDATES is not declared on the platforms.
+    status: done
+    comment: >
+      0 for the read-only platforms and the media player (telnet commands
+      queue in the client); 1 for switch, number, select and button, which
+      may write the setup interface.
   reauthentication-flow:
     status: exempt
     comment: The receiver has no authentication.
@@ -143,16 +146,19 @@ rules:
   entity-category:
     status: done
   entity-device-class:
-    status: todo
-    comment: Not reviewed for every platform yet.
+    status: done
+    comment: >
+      Connectivity, receiver, distance, sound pressure (volume) and duration
+      (sleep timer, audio delay). Levels in dB relative to a reference (tone,
+      trims, graphic EQ) and the text sensors have no fitting class.
   entity-disabled-by-default:
     status: done
     comment: >-
       Only everyday controls start enabled (helpers._EVERYDAY_CONTROLS); setup
       values, the graphic EQ and fast-changing signal sensors start disabled.
   exception-translations:
-    status: todo
-    comment: The setup API write error is translated; telnet errors follow.
+    status: done
+    comment: Every raised error has a translation key, in all eight languages.
   icon-translations:
     status: done
     comment: >-

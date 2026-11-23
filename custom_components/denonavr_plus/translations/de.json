@@ -507,6 +507,9 @@
     },
     "command_unreachable": {
       "message": "Der {model} war nicht erreichbar, um {command} zu senden. Prüfe, ob er im Netzwerk ist und Network Standby eingeschaltet ist."
+    },
+    "receiver_unreachable": {
+      "message": "Der {model} war nicht erreichbar, die Einstellung wurde nicht gesendet. Prüfe, ob er im Netzwerk ist und Network Standby eingeschaltet ist."
     }
   },
   "issues": {

@@ -7,9 +7,11 @@ from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
@@ -199,3 +201,22 @@ async def test_a_renamed_sound_mode_is_sent_under_the_receiver_name(
         {"entity_id": main, "sound_mode": "Two channels"}, blocking=True,
     )
     assert "MSSTEREO" in telnet.sent
+
+
+async def test_a_command_that_does_not_reach_the_receiver_is_reported(
+    hass: HomeAssistant,
+    loaded_entry: MockConfigEntry,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Over HTTP the receiver refused: the user learns it, nothing is lost silently."""
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    with (
+        patch.object(GoformClient, "async_get_status", side_effect=_status),
+        patch.object(GoformClient, "async_send_command", AsyncMock(return_value=False)),
+    ):
+        await _drop_telnet_and_poll(hass, freezer)
+        with pytest.raises(HomeAssistantError) as err:
+            await hass.services.async_call(
+                "media_player", "volume_up", {"entity_id": main}, blocking=True
+            )
+    assert err.value.translation_key == "receiver_unreachable"

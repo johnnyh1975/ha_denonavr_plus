@@ -23,10 +23,11 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import choices
 from . import volume as _volume
+from .avr.errors import CommandNotSent
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .device_trigger import turn_on_trigger
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, receiver_action
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,6 +79,9 @@ _SOURCE_ICON_KEYWORDS = (
     ("spotify", "mdi:spotify"),
 )
 
+
+# Commands queue in the telnet client, which orders and paces them.
+PARALLEL_UPDATES = 0
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -304,6 +308,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     # Commands -------------------------------------------------------------
 
+    @receiver_action
     async def async_turn_on(self) -> None:
         if not self._reachable and self._turn_on_action:
             _LOGGER.debug("%s is unreachable; running the turn-on automation", self.entity_id)
@@ -333,15 +338,22 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         raw = _volume.clamp_raw(
             self._device, self._zone.id, self._device.volume_reference + db, self._entry_options
         )
-        await self._device.async_set_volume_raw(self._zone.id, raw)
+        try:
+            await self._device.async_set_volume_raw(self._zone.id, raw)
+        except CommandNotSent:
+            # A background task: the receiver went away again; nothing to report to.
+            _LOGGER.debug("Zone %s turn-on volume not sent; receiver unreachable", self._zone.id)
 
+    @receiver_action
     async def async_turn_off(self) -> None:
         await self._device.async_set_power(self._zone.id, False)
 
+    @receiver_action
     async def async_set_volume_level(self, volume: float) -> None:
         raw = _volume.raw_from_level(self._device, self._zone.id, volume, self._entry_options)
         await self._device.async_set_volume_raw(self._zone.id, raw)
 
+    @receiver_action
     async def async_volume_up(self) -> None:
         current = self._zone_state.volume_raw
         ceiling = _volume.ceiling_raw(self._device, self._zone.id, self._entry_options)
@@ -353,6 +365,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         else:
             await self._step_zone_volume(up=True)
 
+    @receiver_action
     async def async_volume_down(self) -> None:
         if self._zone.is_main:
             await self._device.async_volume_step(self._zone.id, up=False)
@@ -371,29 +384,37 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         )
         await self._device.async_set_volume_raw(self._zone.id, raw)
 
+    @receiver_action
     async def async_mute_volume(self, mute: bool) -> None:
         await self._device.async_set_mute(self._zone.id, mute)
 
+    @receiver_action
     async def async_select_source(self, source: str) -> None:
         code = choices.source_code_for(self._device.discovery, self._entry_options, source)
         await self._device.async_select_source(self._zone.id, code or source)
 
+    @receiver_action
     async def async_select_sound_mode(self, sound_mode: str) -> None:
         await self._device.async_select_sound_mode(
             choices.sound_mode_for(self._entry_options, sound_mode)
         )
 
+    @receiver_action
     async def async_media_play(self) -> None:
         await self._device.async_media_play()
 
+    @receiver_action
     async def async_media_pause(self) -> None:
         await self._device.async_media_pause()
 
+    @receiver_action
     async def async_media_stop(self) -> None:
         await self._device.async_media_stop()
 
+    @receiver_action
     async def async_media_next_track(self) -> None:
         await self._device.async_media_next()
 
+    @receiver_action
     async def async_media_previous_track(self) -> None:
         await self._device.async_media_previous()

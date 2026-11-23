@@ -14,8 +14,11 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, setup_write
+from .entity import DenonAvrEntity, receiver_action
 
+
+# The graphic EQ buttons write the setup interface one at a time.
+PARALLEL_UPDATES = 1
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -47,7 +50,7 @@ class DenonAvrEqApply(DenonAvrEntity, ButtonEntity):
         super().__init__(coordinator, "button_eq_apply", sub_device="eq")
         self._attr_translation_key = "eq_apply"
 
-    @setup_write
+    @receiver_action
     async def async_press(self) -> None:
         await self.coordinator.device.graphic_eq.apply()
 
@@ -62,7 +65,7 @@ class DenonAvrEqCurveCopy(DenonAvrEntity, ButtonEntity):
         super().__init__(coordinator, "button_eq_curve_copy", sub_device="eq")
         self._attr_translation_key = "eq_copy_curve"
 
-    @setup_write
+    @receiver_action
     async def async_press(self) -> None:
         await self.coordinator.device.graphic_eq.curve_copy()
 
@@ -77,6 +80,6 @@ class DenonAvrEqSetDefaults(DenonAvrEntity, ButtonEntity):
         super().__init__(coordinator, "button_eq_set_defaults", sub_device="eq")
         self._attr_translation_key = "eq_default"
 
-    @setup_write
+    @receiver_action
     async def async_press(self) -> None:
         await self.coordinator.device.graphic_eq.set_defaults()

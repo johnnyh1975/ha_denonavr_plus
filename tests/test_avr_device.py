@@ -42,3 +42,21 @@ async def test_a_raw_command_to_an_unreachable_receiver_raises(
             await loaded_entry.runtime_data.device.async_send_command("PSDYNEQ ON")
     assert err.value.reason == "unreachable"
     send.assert_not_awaited()
+
+
+async def test_an_own_query_is_dropped_quietly_without_telnet(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, freezer: FrozenDateTimeFactory
+) -> None:
+    """Queries are the integration's own; only a command asked for raises."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = False
+    assert telnet._on_availability is not None
+    telnet._on_availability(False)
+    device = loaded_entry.runtime_data.device
+    with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=None)):
+        freezer.tick(timedelta(seconds=11))
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+        await device._send("MV?")
+        with pytest.raises(CommandNotSent):
+            await device._send("MVUP")

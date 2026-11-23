@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
 from pathlib import Path
@@ -112,3 +113,11 @@ async def test_entities_match_the_snapshot(
         f"added: {added}\nremoved: {removed}\n"
         f"changed: {[(k, expected[k], current[k]) for k in changed]}"
     )
+
+
+def test_every_platform_declares_parallel_updates() -> None:
+    from custom_components.denonavr_plus.const import PLATFORMS
+
+    for platform in PLATFORMS:
+        module = importlib.import_module(f"custom_components.denonavr_plus.{platform.value}")
+        assert isinstance(getattr(module, "PARALLEL_UPDATES", None), int), platform

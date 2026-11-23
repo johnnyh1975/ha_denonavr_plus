@@ -24,6 +24,9 @@ from .entity import DenonAvrEntity
 _ENABLED_READONLY = frozenset({"decoder"})
 
 
+# Read only; the coordinator pushes every update.
+PARALLEL_UPDATES = 0
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: DenonAvrConfigEntry,

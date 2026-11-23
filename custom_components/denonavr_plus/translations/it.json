@@ -507,6 +507,9 @@
     },
     "command_unreachable": {
       "message": "Non è stato possibile raggiungere il {model} per inviare {command}. Controlla che sia in rete e che lo standby di rete sia attivo."
+    },
+    "receiver_unreachable": {
+      "message": "Non è stato possibile raggiungere il {model}, quindi l'impostazione non è stata inviata. Controlla che sia in rete e che lo standby di rete sia attivo."
     }
   },
   "issues": {

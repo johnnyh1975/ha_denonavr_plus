@@ -507,6 +507,9 @@
     },
     "command_unreachable": {
       "message": "Le {model} n'a pas pu être joint pour envoyer {command}. Vérifiez qu'il est sur le réseau et que la veille réseau est activée."
+    },
+    "receiver_unreachable": {
+      "message": "Le {model} n'a pas pu être joint, le réglage n'a donc pas été envoyé. Vérifiez qu'il est sur le réseau et que la veille réseau est activée."
     }
   },
   "issues": {

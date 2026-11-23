@@ -70,3 +70,9 @@ async def test_the_volume_number_shows_and_sets_db(
         "number", "set_value", {"entity_id": number, "value": -20.0}, blocking=True
     )
     assert telnet.sent == ["MV60"]
+
+
+async def test_times_are_durations(hass: HomeAssistant, loaded_entry: MockConfigEntry) -> None:
+    for key in ("number_sleep_timer", "number_audio_delay"):
+        entry = registry_entry(hass, loaded_entry, key)
+        assert entry.original_device_class == "duration", key

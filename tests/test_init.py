@@ -18,7 +18,7 @@ import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT, STATE_ON, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.avr import DenonAvrDevice
@@ -263,3 +263,12 @@ async def test_a_zone_switched_off_loses_its_entities(
     hass.config_entries.async_update_entry(loaded_entry, options={"zones": ["zone2"]})
     await hass.async_block_till_done()
     assert len(zone2_entities()) == 3
+
+
+async def test_the_device_shows_no_protocol_family_as_hardware(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """hardware_type is the protocol family (avr-x-2016), not the hardware."""
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), loaded_entry.entry_id)
+    assert devices
+    assert all(device.hw_version is None for device in devices)

@@ -697,16 +697,17 @@ class DenonAvrDevice:
         """Send over telnet, or over HTTP while the telnet link is down.
 
         Over HTTP only commands go out; a query's answer would arrive nowhere.
+        A command that reaches the receiver neither way raises CommandNotSent.
         """
 
         if self._telnet.connected or is_query(command):
             await self._telnet.async_send(command)
             return
-        if not self._http_reachable:
-            _LOGGER.debug("Receiver unreachable, not sending %s", command)
-            return
-        if await self._goform.async_send_command(command):
-            self._create_task(self._refresh_after_http_command())
+        if not self._http_reachable or not await self._goform.async_send_command(command):
+            # A query is only dropped (it is the integration's own); a command
+            # was asked for, so the caller learns that it did not go out.
+            raise CommandNotSent("unreachable")
+        self._create_task(self._refresh_after_http_command())
 
     # Network media transport, routed to the HEOS channel. No-ops when HEOS is
     # not connected or no network source is playing.
