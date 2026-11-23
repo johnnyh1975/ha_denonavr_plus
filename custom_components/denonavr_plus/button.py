@@ -41,6 +41,7 @@ class DenonAvrEqApply(DenonAvrEntity, ButtonEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
     _attr_icon = "mdi:content-save"
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
@@ -56,6 +57,7 @@ class DenonAvrEqCurveCopy(DenonAvrEntity, ButtonEntity):
     """Copy the reference curve into the manual graphic EQ as a starting point."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
     _attr_icon = "mdi:content-copy"
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
@@ -71,6 +73,7 @@ class DenonAvrEqSetDefaults(DenonAvrEntity, ButtonEntity):
     """Reset the manual graphic EQ to its defaults (a flat curve)."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
     _attr_icon = "mdi:restore"
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:

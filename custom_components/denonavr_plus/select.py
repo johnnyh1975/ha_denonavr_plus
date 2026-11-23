@@ -16,7 +16,12 @@ from .avr import graphic_eq
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, setup_write
-from .helpers import control_sub_device, enum_options, group_name
+from .helpers import (
+    control_enabled_by_default,
+    control_sub_device,
+    enum_options,
+    group_name,
+)
 
 
 async def async_setup_entry(
@@ -45,14 +50,11 @@ async def async_setup_entry(
     if discovery.quick_select_names:
         entities.append(DenonAvrQuickSelect(coordinator))
     # One crossover select per speaker group the receiver reports a crossover
-    # for (SSCFR). Groups whose speakers are configured are enabled; the rest are
-    # registered but disabled by default, mirroring the channel trims/distances.
-    configured = discovery.configured_channels
+    # for (SSCFR). Like all speaker setup, these start disabled.
     profile = coordinator.device.profile
     for group in sorted(coordinator.data.crossovers):
         channels = profile.group_channels(group)
-        enabled = (not configured) or any(c in configured for c in channels)
-        entities.append(DenonAvrCrossover(coordinator, group, channels, enabled))
+        entities.append(DenonAvrCrossover(coordinator, group, channels))
     # Crossover speaker-selection (All / Individual) and the single All crossover
     # it gates, when the receiver reports any crossovers.
     if coordinator.data.crossovers:
@@ -63,8 +65,7 @@ async def async_setup_entry(
     size_groups = profile.speakers.get("groups", {})
     for group in sorted(g for g in coordinator.data.speaker_sizes if g in size_groups):
         channels = profile.group_channels(group)
-        enabled = (not configured) or any(c in configured for c in channels)
-        entities.append(DenonAvrSpeakerSize(coordinator, group, channels, enabled))
+        entities.append(DenonAvrSpeakerSize(coordinator, group, channels))
     # Number of subwoofers, when the receiver reports a subwoofer config (SWF).
     if "SWF" in coordinator.data.speaker_sizes:
         entities.append(DenonAvrSubwooferCount(coordinator))
@@ -110,6 +111,7 @@ class DenonAvrSelect(DenonAvrEntity, SelectEntity):
         )
         self._spec = spec
         self._attr_translation_key = spec.id
+        self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
         options, self._label_to_value, self._value_to_label = enum_options(
             coordinator.device.discovery, spec
         )
@@ -210,19 +212,18 @@ class DenonAvrCrossover(DenonAvrEntity, SelectEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
         coordinator: DenonAvrCoordinator,
         group: str,
         channels: list[str],
-        enabled: bool,
     ) -> None:
         super().__init__(
             coordinator, f"select_crossover_{group}", sub_device="speakers"
         )
         self._group = group
-        self._attr_entity_registry_enabled_default = enabled
         crossover = coordinator.device.profile.crossover
         self._unit = crossover.get("unit", "Hz")
         # The crossover grid is a fixed Denon protocol constant (same across the
@@ -267,6 +268,7 @@ class DenonAvrCrossoverSpeakerSelection(DenonAvrEntity, SelectEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(
@@ -297,6 +299,7 @@ class DenonAvrCrossoverAll(DenonAvrEntity, SelectEntity):
     """The single 'All' crossover frequency, used in All speaker-selection mode."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "select_crossover_all", sub_device="speakers")
@@ -332,19 +335,18 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
         coordinator: DenonAvrCoordinator,
         group: str,
         channels: list[str],
-        enabled: bool,
     ) -> None:
         super().__init__(
             coordinator, f"select_speaker_size_{group}", sub_device="speakers"
         )
         self._group = group
-        self._attr_entity_registry_enabled_default = enabled
         sizes = coordinator.device.profile.speakers.get("sizes", {}).get("options", {})
         self._token_to_label = dict(sizes)
         self._label_to_token = {label: token for token, label in sizes.items()}
@@ -374,6 +376,7 @@ class DenonAvrSubwooferCount(DenonAvrEntity, SelectEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "select_subwoofer_count", sub_device="speakers")
@@ -399,10 +402,9 @@ class DenonAvrQuickSelect(DenonAvrEntity, SelectEntity):
     """Recall the receiver's main zone quick select presets.
 
     The preset names are discovered from the receiver (SSQSNZMA); the currently
-    recalled preset is reported by MSQUICK (0 means none/modified).
+    recalled preset is reported by MSQUICK (0 means none/modified). A playback
+    control like the sound mode, so it carries no entity category.
     """
-
-    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "select_quick_select")
@@ -434,6 +436,7 @@ class DenonAvrEqSpeakerSelection(DenonAvrEntity, SelectEntity):
     """Graphic-EQ speaker selection: one curve for all, the L/R pair, or each."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "select_eq_speaker_selection", sub_device="eq")
@@ -467,6 +470,7 @@ class DenonAvrEqChannel(DenonAvrEntity, SelectEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "select_eq_channel", sub_device="eq")
@@ -510,6 +514,7 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,

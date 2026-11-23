@@ -164,12 +164,30 @@ the sub‑device its setting belongs to.
   curve, and **Default** resets the channel to flat. See the equalizer card
   recipe below.
 - **Sensors** (diagnostic): sample rate, decoder, audio format, input signal,
-  mode info, sound mode, and volume (dB).
+  mode info and sound mode; and the volume in dB.
 - **Binary sensor**: telnet connectivity.
 
-Per channel trims and distances, and per group crossovers and sizes, for
-speakers the receiver has **not** configured are registered but disabled by
-default; enable them from the entity settings if you need them.
+### Enabled and disabled entities
+
+A receiver offers well over a hundred settings, so only what you change while
+listening starts enabled:
+
+- the media players, the sound mode selects and quick select
+- tone (bass, treble, tone control), Dynamic EQ, Dynamic Volume, Dynamic
+  Compression, MultEQ, Cinema EQ, dialogue level and Dialog Control
+- subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
+- the trims of the speakers the receiver has configured
+- the decoder and volume sensors, and the connectivity sensor
+
+Everything else starts disabled: speaker setup (distances, crossovers, sizes,
+amp assign), video and HDMI setup, picture adjustment, the graphic EQ, volume
+limits and scale, the sound mode parameters, and the power and mute switches,
+which repeat the media player. The sample rate, input signal, audio format and
+mode info sensors also start disabled, because they change with every track and
+fill the history. Enable any of them on the device page under its entities, or
+in the entity's settings. Home Assistant keeps your choice from then on.
+
+The volume sensor has no state class, so it keeps no long‑term statistics.
 
 Speaker crossover frequencies are a discrete, non-uniform set, so they are
 exposed as a select rather than a stepped number. The current crossover per group
@@ -190,29 +208,30 @@ type: vertical-stack
 cards:
   - type: entities
     entities:
-      - switch.avr_x3600h_graphic_eq
-      - select.avr_x3600h_speaker_selection
-      - select.avr_x3600h_eq_channel
-      - button.avr_x3600h_apply
-      - button.avr_x3600h_copy_curve
-      - button.avr_x3600h_default
+      - switch.avr_x3600h_graphic_eq_enabled
+      - select.avr_x3600h_graphic_eq_speaker_selection
+      - select.avr_x3600h_graphic_eq_channel
+      - button.avr_x3600h_graphic_eq_apply
+      - button.avr_x3600h_graphic_eq_copy_curve
+      - button.avr_x3600h_graphic_eq_default
   - type: custom:mixer-card
     faders:
-      - entity_id: number.avr_x3600h_eq_63_hz
-      - entity_id: number.avr_x3600h_eq_125_hz
-      - entity_id: number.avr_x3600h_eq_250_hz
-      - entity_id: number.avr_x3600h_eq_500_hz
-      - entity_id: number.avr_x3600h_eq_1_khz
-      - entity_id: number.avr_x3600h_eq_2_khz
-      - entity_id: number.avr_x3600h_eq_4_khz
-      - entity_id: number.avr_x3600h_eq_8_khz
-      - entity_id: number.avr_x3600h_eq_16_khz
+      - entity_id: number.avr_x3600h_graphic_eq_63_hz
+      - entity_id: number.avr_x3600h_graphic_eq_125_hz
+      - entity_id: number.avr_x3600h_graphic_eq_250_hz
+      - entity_id: number.avr_x3600h_graphic_eq_500_hz
+      - entity_id: number.avr_x3600h_graphic_eq_1_khz
+      - entity_id: number.avr_x3600h_graphic_eq_2_khz
+      - entity_id: number.avr_x3600h_graphic_eq_4_khz
+      - entity_id: number.avr_x3600h_graphic_eq_8_khz
+      - entity_id: number.avr_x3600h_graphic_eq_16_khz
 ```
 
 Pick a channel, adjust the nine faders, then press **Apply** to write that
 channel's curve. Editing requires MultEQ **off** and the graphic EQ **enabled**
-(both are entities above). Entity ids follow your device name — adjust the prefix
-to match yours.
+(both are entities above). The graphic EQ entities start disabled; enable them
+on the **Graphic EQ** device first. Entity ids follow your device name — adjust
+the prefix to match yours.
 
 ## Notes and limitations
 

@@ -7,7 +7,10 @@ from typing import Any
 import pytest
 
 from custom_components.denonavr_plus.avr.errors import SetupWriteError
-from custom_components.denonavr_plus.avr.graphic_eq import GraphicEqController
+from custom_components.denonavr_plus.avr.graphic_eq import (
+    GraphicEqController,
+    channel_options,
+)
 from custom_components.denonavr_plus.avr.profile import load_profile
 
 
@@ -69,3 +72,25 @@ async def test_rejected_speaker_selection_raises() -> None:
     code = next(iter(eq.grammar["speaker_selection"]))
     with pytest.raises(SetupWriteError):
         await eq.set_speaker_selection(code)
+
+
+def test_all_mode_offers_one_shared_curve() -> None:
+    grammar: dict[str, Any] = load_profile().grammar["graphic_eq"]
+    assert channel_options(grammar, "1", "") == [(0, "All")]
+
+
+def test_a_mode_without_enabled_channels_still_offers_the_first() -> None:
+    grammar: dict[str, Any] = load_profile().grammar["graphic_eq"]
+    labels = grammar["channels_each"]
+    # No channel flagged as selectable: the select keeps one valid option.
+    assert channel_options(grammar, "2", "") == [(0, labels[0])]
+
+
+async def test_switching_the_channel_drops_the_staged_edits() -> None:
+    eq = _controller(FakeWebConfig(accept=True))
+    await eq.set_band("63 Hz", 2.5)
+
+    await eq.set_channel(1)
+
+    assert eq.channel == 1
+    assert not eq.has_pending

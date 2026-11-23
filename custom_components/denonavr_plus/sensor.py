@@ -7,10 +7,7 @@ the per channel calibration levels. Which sensors exist depends on the device.
 
 from __future__ import annotations
 
-from homeassistant.components.sensor import (
-    SensorEntity,
-    SensorStateClass,
-)
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import UnitOfSoundPressure
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
@@ -18,6 +15,12 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity
+
+# The audio information fields that start enabled. The decoder ('Dolby Atmos',
+# 'PCM') is what automations react to; the raw signal code, sample rate,
+# channel layout and mode text change with every track or programme and would
+# fill the history, so they start disabled.
+_ENABLED_READONLY = frozenset({"decoder"})
 
 
 async def async_setup_entry(
@@ -55,6 +58,7 @@ class DenonAvrReadonlySensor(DenonAvrEntity, SensorEntity):
         super().__init__(coordinator, f"sensor_{control_id}")
         self._control_id = control_id
         self._attr_translation_key = control_id
+        self._attr_entity_registry_enabled_default = control_id in _ENABLED_READONLY
 
     @property
     def native_value(self) -> str | None:
@@ -62,9 +66,13 @@ class DenonAvrReadonlySensor(DenonAvrEntity, SensorEntity):
 
 
 class DenonAvrSoundModeSensor(DenonAvrEntity, SensorEntity):
-    """A diagnostic sensor exposing the current sound mode."""
+    """A diagnostic sensor exposing the current sound mode.
+
+    Starts disabled: the media player and the sound mode select show the same.
+    """
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "sensor_sound_mode")
@@ -77,10 +85,13 @@ class DenonAvrSoundModeSensor(DenonAvrEntity, SensorEntity):
 
 
 class DenonAvrVolumeSensor(DenonAvrEntity, SensorEntity):
-    """Read only master volume in dB (relative to the receiver's 0 dB reference)."""
+    """Read only master volume in dB (relative to the receiver's 0 dB reference).
+
+    No state class: a volume level has no use as a long-term statistic, and the
+    statistics would be kept for good.
+    """
 
     _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
-    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "sensor_volume_db")

@@ -147,7 +147,9 @@ rules:
     comment: Not reviewed for every platform yet.
   entity-disabled-by-default:
     status: done
-    comment: Channel entities of unconfigured speakers start disabled.
+    comment: >-
+      Only everyday controls start enabled (helpers._EVERYDAY_CONTROLS); setup
+      values, the graphic EQ and fast-changing signal sensors start disabled.
   exception-translations:
     status: todo
     comment: The setup API write error is translated; telnet errors follow.

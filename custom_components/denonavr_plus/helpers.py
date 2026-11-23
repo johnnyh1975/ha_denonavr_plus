@@ -37,6 +37,37 @@ _GROUP_SUB_DEVICE: dict[str, str] = {
 # settings card.
 _MAIN_DEVICE_CONTROLS = {"all_zone_stereo"}
 
+# Profile controls that start enabled: what one changes while listening (tone,
+# dialogue, loudness, sleep timer, display). Every other control is a set-once
+# setup value or duplicates the media player (power, mute, speaker and video
+# setup, volume limits, sound mode parameters) and starts disabled, ready to be
+# enabled on the device page. Registered entities keep the user's choice.
+_EVERYDAY_CONTROLS = frozenset(
+    {
+        "all_zone_stereo",
+        "bass",
+        "cinema_eq",
+        "dialog_control",
+        "dialog_level",
+        "dimmer",
+        "dynamic_compression",
+        "dynamic_eq",
+        "dynamic_volume",
+        "multeq",
+        "sleep_timer",
+        "subwoofer_level",
+        "subwoofer_switch",
+        "tone_control",
+        "treble",
+    }
+)
+
+
+def control_enabled_by_default(spec: ControlSpec) -> bool:
+    """Return whether an entity for this profile control starts enabled."""
+
+    return spec.id in _EVERYDAY_CONTROLS
+
 
 def control_sub_device(spec: ControlSpec) -> str | None:
     """Return the sub-device card an entity for this control belongs on.

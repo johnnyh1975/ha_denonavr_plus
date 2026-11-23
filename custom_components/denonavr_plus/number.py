@@ -23,7 +23,7 @@ from .avr import graphic_eq
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity
-from .helpers import control_sub_device
+from .helpers import control_enabled_by_default, control_sub_device
 
 # The control kinds that map to a number entity.
 _NUMBER_KINDS = {"level", "signed_int", "minutes", "integer", "centered"}
@@ -62,7 +62,7 @@ async def async_setup_entry(
     for code in codes:
         enabled = (not configured) or code in configured
         entities.append(DenonAvrChannelTrim(coordinator, code, enabled))
-        entities.append(DenonAvrChannelDistance(coordinator, code, enabled))
+        entities.append(DenonAvrChannelDistance(coordinator, code))
 
     # One number per manual graphic-EQ band, on the EQ sub-device, when the
     # receiver has a graphic EQ this profile can drive. The bands reflect the
@@ -87,6 +87,7 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
         )
         self._spec = spec
         self._attr_translation_key = spec.id
+        self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
 
         if spec.kind == "minutes":
             self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
@@ -158,15 +159,14 @@ class DenonAvrChannelDistance(DenonAvrEntity, NumberEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_mode = NumberMode.BOX
     _attr_device_class = NumberDeviceClass.DISTANCE
+    # Speaker distances are measured once at installation.
+    _attr_entity_registry_enabled_default = False
 
-    def __init__(
-        self, coordinator: DenonAvrCoordinator, code: str, enabled: bool
-    ) -> None:
+    def __init__(self, coordinator: DenonAvrCoordinator, code: str) -> None:
         super().__init__(
             coordinator, f"number_channel_distance_{code}", sub_device="speakers"
         )
         self._code = code
-        self._attr_entity_registry_enabled_default = enabled
         discovery = coordinator.device.discovery
         self._attr_name = f"{discovery.channel_name(code)} Distance"
         dist = coordinator.device.profile.distance
@@ -206,6 +206,7 @@ class DenonAvrEqBand(DenonAvrEntity, NumberEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_unit_of_measurement = "dB"
     _attr_mode = NumberMode.SLIDER
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator, label: str) -> None:
         grammar = coordinator.device.graphic_eq.grammar

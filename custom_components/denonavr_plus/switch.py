@@ -16,7 +16,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, setup_write
-from .helpers import control_sub_device
+from .helpers import control_enabled_by_default, control_sub_device
 
 
 async def async_setup_entry(
@@ -59,6 +59,7 @@ class DenonAvrSwitch(DenonAvrEntity, SwitchEntity):
         super().__init__(coordinator, f"switch_{spec.id}", sub_device=sub_device)
         self._spec = spec
         self._attr_translation_key = spec.id
+        self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
         # Optional profile-provided icon (e.g. a speaker/mute icon for main mute).
         icon = spec.get("icon")
         if icon:
@@ -90,6 +91,7 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
     """
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator, control: dict) -> None:
         super().__init__(coordinator, f"switch_{control['id']}", sub_device="video")
