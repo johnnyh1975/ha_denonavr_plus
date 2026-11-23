@@ -15,7 +15,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
@@ -338,6 +338,15 @@ async def test_ssdp_without_mac_matches_on_host(hass: HomeAssistant) -> None:
         )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
+
+
+async def test_reconfigure_requires_an_address(hass: HomeAssistant) -> None:
+    """The empty-address search of the setup dialog does not apply here."""
+    entry = MockConfigEntry(domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, unique_id=MAC, data={CONF_HOST: HOST})
+    entry.add_to_hass(hass)
+    result = await entry.start_reconfigure_flow(hass)
+    with pytest.raises(InvalidData):
+        await hass.config_entries.flow.async_configure(result["flow_id"], {})
 
 
 async def test_reconfigure_changes_host(hass: HomeAssistant) -> None:

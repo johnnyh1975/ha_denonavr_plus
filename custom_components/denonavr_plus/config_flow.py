@@ -60,6 +60,8 @@ from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME
 _LOGGER = logging.getLogger(__name__)
 
 STEP_USER_SCHEMA = vol.Schema({vol.Optional(CONF_HOST): str})
+# Reconfiguring needs an address; there is no search there.
+STEP_RECONFIGURE_SCHEMA = vol.Schema({vol.Required(CONF_HOST): str})
 
 #: Manufacturer strings of Denon and Marantz units in their UPnP description.
 SSDP_MANUFACTURERS = frozenset({"Denon", "DENON", "DENON PROFESSIONAL", "Marantz"})
@@ -283,7 +285,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(
-                STEP_USER_SCHEMA, {CONF_HOST: entry.data[CONF_HOST]}
+                STEP_RECONFIGURE_SCHEMA, {CONF_HOST: entry.data[CONF_HOST]}
             ),
             errors=errors,
         )
