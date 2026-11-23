@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
+from collections.abc import AsyncIterator
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiohttp import ClientError
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -30,11 +31,15 @@ MODEL = "AVR-X2600H"
 
 
 @pytest.fixture(autouse=True)
-def no_setup(request: pytest.FixtureRequest) -> Iterator[None]:
+async def no_setup(
+    request: pytest.FixtureRequest, hass: HomeAssistant
+) -> AsyncIterator[None]:
     """The flow is tested on its own; never set the entry up for real.
 
     Except for the options tests that need a loaded receiver (its sources and
-    sound modes come from it).
+    sound modes come from it). A flow that creates or reconfigures an entry
+    schedules its setup or reload; it is awaited here, while setup is still
+    patched, or it would run during teardown against no receiver at all.
     """
     if "loaded_entry" in request.fixturenames:
         yield
@@ -43,6 +48,7 @@ def no_setup(request: pytest.FixtureRequest) -> Iterator[None]:
         "custom_components.denonavr_plus.async_setup_entry", return_value=True
     ):
         yield
+        await hass.async_block_till_done()
 
 
 def _identity(mac: str | None = MAC, model: str | None = MODEL) -> AsyncMock:
@@ -383,3 +389,8 @@ async def test_zones_can_be_switched_off(
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"zones": []})
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert loaded_entry.options["zones"] == []
+    # A change of zones reloads the entry; let it finish inside the test, or
+    # it runs during teardown without the fake receiver.
+    await hass.async_block_till_done()
+    assert loaded_entry.state is ConfigEntryState.LOADED
+    assert loaded_entry.runtime_data.shown_zones == frozenset({"main"})
