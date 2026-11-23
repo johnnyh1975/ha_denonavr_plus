@@ -14,7 +14,7 @@
     "avr/transport/goform.py": 0.6026,
     "avr/transport/heos.py": 0.539,
     "avr/transport/tcp_client.py": 0.1962,
-    "avr/transport/telnet.py": 0.2401,
+    "avr/transport/telnet.py": 0.795,
     "avr/transport/upnp.py": 0.5404,
     "avr/transport/webconfig.py": 0.4788,
     "avr/video_config.py": 0.495,

@@ -54,6 +54,7 @@ class FakeTelnet:
         self._on_availability = on_availability
         self.connected = False
         self.sent: list[str] = []
+        self.response_time: float | None = 0.042
         FakeTelnet.instances.append(self)
 
     async def async_start(self) -> None:

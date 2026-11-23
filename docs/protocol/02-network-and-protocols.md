@@ -61,15 +61,20 @@ nothing.
 
 | Rule | AVR-X2000 document (2013) | X-W document (2015) | This integration |
 |---|---|---|---|
-| Gap between commands | not stated | at least 50 ms | 100 ms |
-| Response to a query | within 200 ms | within 200 ms | waits per command |
+| Gap between commands | not stated | at least 50 ms | waits for the reply, at least 80 ms |
+| Response to a query | within 200 ms | within 200 ms | waits 0.2–1 s, four times the measured response time |
 | Event after a state change | not stated | within 5 s | push, plus poll on 8080 |
-| After `PWON` | wait 1 s | wait 1 s | queue; no fixed wait |
+| After `PWON` | wait 1 s | wait 1 s | waits 1 s |
 | Commands while events are sent | accepted | accepted | — |
 
 Community measurements on a Marantz Cinema 70s suggest 80–100 ms between
 commands and 3–5 s for a full boot after `PWON`. The receiver drops
 commands sent faster; the drop is silent.
+
+The integration sends a command that changes something before queries still
+waiting in the queue, so a user's action does not wait for a resync. When the
+link drops, whatever is still queued is discarded. The measured response time
+is in the diagnostics (`telnet_response_ms`).
 
 Keeping the session alive: the `denonavr` library sends `PW?` after 30 s
 without any line from the receiver and reconnects after 60 s; this

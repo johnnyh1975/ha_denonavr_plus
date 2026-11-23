@@ -47,8 +47,10 @@ the list.
   reconciliation poll. A few settings that have no telnet command (graphic‑EQ
   bands, HDMI/OSD/format setup, amp assign) are read and written over the setup
   config API (HTTPS 10443); everything else is telnet.
-- **Stability** Auto reconnect with backoff, keepalive probe, command queue
-  with inter command spacing, teardown on unload.
+- **Stability** Auto reconnect with backoff, keepalive probe, teardown on
+  unload. A command queue that sends your commands before pending queries,
+  waits for each reply (paced by the receiver's measured response time) and
+  is cleared when the link drops, so stale commands are never sent later.
 
 ## Installation
 

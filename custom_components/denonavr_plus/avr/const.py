@@ -11,11 +11,19 @@ from __future__ import annotations
 
 from typing import Final
 
-# Telnet needs a small gap between commands or it will silently drop them, so
-# outgoing commands are serialised through a queue with COMMAND_SPACING seconds
-# between each one. 0.1 s is a safe compromise between reliability and how
-# quickly the full resync completes.
-COMMAND_SPACING: Final = 0.10
+# Telnet pacing (docs/protocol/02-network-and-protocols.md, "Timing"). After
+# each command the client waits for the receiver's reply, so the gap follows
+# the receiver's own response time. The 2015 protocol document asks for at
+# least 50 ms between commands; owners of a Marantz Cinema 70s report drops
+# below 80 ms, so the floor is 80 ms.
+COMMAND_SPACING: Final = 0.08
+# Both protocol documents promise a reply to a query within 200 ms. The wait
+# for a reply adapts to the measured response time within these bounds; a
+# command that changes nothing gets no reply at all, so the wait must stay short.
+REPLY_TIMEOUT_MIN: Final = 0.2
+REPLY_TIMEOUT_MAX: Final = 1.0
+# Both protocol documents ask to wait 1 s after PWON before the next command.
+POWER_ON_SETTLE: Final = 1.0
 CONNECT_TIMEOUT: Final = 5.0
 HTTP_TIMEOUT: Final = 8.0
 

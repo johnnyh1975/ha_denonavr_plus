@@ -6,8 +6,13 @@ commands. Robustness features:
 
 * A single background manager task keeps the connection up and reconnects with
   exponential backoff after any failure.
-* Outgoing commands go through a queue and are written with a small fixed gap,
+* Outgoing commands go through a queue. Commands that change something go
+  before waiting queries, so a user's action is not stuck behind the full
+  resync. After each command the client waits for the receiver's reply (or a
+  short timeout that follows the measured response time), with a minimum gap,
   because the receiver drops commands that arrive too quickly.
+* Whatever is still queued when the link drops is discarded, and nothing is
+  queued while it is down: stale commands are never sent after a reconnect.
 * A keepalive probe is sent when the link is idle so a silently dropped socket
   is detected quickly.
 * On every (re)connection a callback is invoked so the owner can resynchronise
@@ -22,14 +27,18 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import deque
 from collections.abc import Awaitable, Callable
 
 from ..const import (
     COMMAND_SPACING,
     CONNECT_TIMEOUT,
     KEEPALIVE_INTERVAL,
+    POWER_ON_SETTLE,
     RECONNECT_BACKOFF_MAX,
     RECONNECT_BACKOFF_MIN,
+    REPLY_TIMEOUT_MAX,
+    REPLY_TIMEOUT_MIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,6 +49,21 @@ DEFAULT_PORT = 23
 _TERMINATOR = b"\r"
 # A harmless query used to keep the link alive and to detect a dead socket.
 _KEEPALIVE_COMMAND = "PW?"
+# Every message starts with a two-letter command, and replies and events have
+# the same form as the command (docs/protocol/02, "Framing").
+_FAMILY_LENGTH = 2
+# The power-on command after which the receiver needs time (docs/protocol/02).
+_POWER_ON_COMMAND = "PWON"
+# Reply wait = this many times the average response time, within the bounds.
+_REPLY_TIMEOUT_FACTOR = 4.0
+# Weight of a new sample in the running average of the response time.
+_RESPONSE_SMOOTHING = 0.2
+
+
+def is_query(command: str) -> bool:
+    """Return True for a query ('PW?', 'PSBAS ?'), False for a command."""
+
+    return command.rstrip().endswith("?")
 
 
 async def async_probe(
@@ -115,7 +139,14 @@ class TelnetClient:
 
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
-        self._queue: asyncio.Queue[str] = asyncio.Queue()
+        # Commands that change something are sent before waiting queries.
+        self._commands: deque[str] = deque()
+        self._queries: deque[str] = deque()
+        self._queued = asyncio.Event()
+        # The command family whose reply the writer is waiting for.
+        self._awaiting: str | None = None
+        self._replied = asyncio.Event()
+        self._response_time: float | None = None
         self._manager_task: asyncio.Task | None = None
         self._connected = False
         self._stopped = False
@@ -126,6 +157,18 @@ class TelnetClient:
         """Return True when the telnet link is currently up."""
 
         return self._connected
+
+    @property
+    def queued(self) -> int:
+        """Return the number of commands and queries waiting to be sent."""
+
+        return len(self._commands) + len(self._queries)
+
+    @property
+    def response_time(self) -> float | None:
+        """Return the average time the receiver takes to reply, in seconds."""
+
+        return self._response_time
 
     async def async_start(self) -> None:
         """Start the background connection manager."""
@@ -148,9 +191,33 @@ class TelnetClient:
         await self._close_socket()
 
     async def async_send(self, command: str) -> None:
-        """Queue a command for delivery to the receiver."""
+        """Queue a command for delivery to the receiver.
 
-        await self._queue.put(command)
+        While the link is down the command is dropped: it would be stale by the
+        time the link is back, and the resync after reconnecting reads the
+        state fresh anyway.
+        """
+
+        if not self._connected:
+            _LOGGER.debug("Telnet to %s is down, not sending %s", self._host, command)
+            return
+        if is_query(command):
+            self._queries.append(command)
+        else:
+            self._commands.append(command)
+        self._queued.set()
+
+    def _clear_queue(self) -> None:
+        """Drop everything still queued, for example after the link dropped."""
+
+        if self.queued:
+            _LOGGER.debug(
+                "Dropping %s queued telnet commands for %s", self.queued, self._host
+            )
+        self._commands.clear()
+        self._queries.clear()
+        self._queued.clear()
+        self._awaiting = None
 
     # Connection lifecycle -------------------------------------------------
 
@@ -169,6 +236,7 @@ class TelnetClient:
                 _LOGGER.debug("Telnet connection to %s failed: %s", self._host, err)
             finally:
                 await self._set_connected(False)
+                self._clear_queue()
                 await self._close_socket()
 
             if self._stopped:
@@ -207,16 +275,22 @@ class TelnetClient:
             await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _close_socket(self) -> None:
-        """Close the writer and drop the streams."""
+        """Close the writer and drop the streams.
 
-        if self._writer is not None:
-            try:
-                self._writer.close()
-                await self._writer.wait_closed()
-            except OSError:
-                pass
+        The streams are dropped before waiting: if the wait is cancelled (the
+        integration unloads while a dropped link is being closed), a second
+        call must not wait on the same cancelled close again.
+        """
+
+        writer = self._writer
         self._reader = None
         self._writer = None
+        if writer is not None:
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except OSError:
+                pass
 
     async def _set_connected(self, connected: bool) -> None:
         """Update and broadcast the connection state."""
@@ -251,20 +325,66 @@ class TelnetClient:
         """Decode and forward a received line."""
 
         line = raw.decode("utf-8", errors="replace").strip("\r\n")
-        if line:
-            self._on_line(line)
+        if not line:
+            return
+        if self._awaiting is not None and line.startswith(self._awaiting):
+            self._replied.set()
+        self._on_line(line)
 
     async def _write_loop(self) -> None:
-        """Write queued commands with a small gap between them."""
+        """Write queued commands, each after the reply to the one before."""
 
         assert self._writer is not None
+        loop = asyncio.get_running_loop()
         while True:
-            command = await self._queue.get()
-            data = command.encode("utf-8") + _TERMINATOR
-            self._writer.write(data)
+            command = await self._next_command()
+            self._awaiting = command[:_FAMILY_LENGTH]
+            self._replied.clear()
+            self._writer.write(command.encode("utf-8") + _TERMINATOR)
             await self._writer.drain()
-            self._last_activity = asyncio.get_running_loop().time()
-            await asyncio.sleep(COMMAND_SPACING)
+            sent = loop.time()
+            self._last_activity = sent
+            await self._await_reply(sent)
+            self._awaiting = None
+            gap = POWER_ON_SETTLE if command == _POWER_ON_COMMAND else COMMAND_SPACING
+            remaining = sent + gap - loop.time()
+            if remaining > 0:
+                await asyncio.sleep(remaining)
+
+    async def _next_command(self) -> str:
+        """Return the next command to send: changes first, then queries."""
+
+        while not self.queued:
+            self._queued.clear()
+            await self._queued.wait()
+        if self._commands:
+            return self._commands.popleft()
+        return self._queries.popleft()
+
+    def _reply_timeout(self) -> float:
+        """How long to wait for a reply, from the measured response time."""
+
+        if self._response_time is None:
+            return REPLY_TIMEOUT_MAX
+        timeout = self._response_time * _REPLY_TIMEOUT_FACTOR
+        return min(REPLY_TIMEOUT_MAX, max(REPLY_TIMEOUT_MIN, timeout))
+
+    async def _await_reply(self, sent: float) -> None:
+        """Wait for the reply to the command just sent, or for the timeout.
+
+        A command that sets the current value gets no reply, and neither does a
+        query the model does not know; both just cost the timeout.
+        """
+
+        try:
+            await asyncio.wait_for(self._replied.wait(), self._reply_timeout())
+        except TimeoutError:
+            return
+        sample = asyncio.get_running_loop().time() - sent
+        if self._response_time is None:
+            self._response_time = sample
+        else:
+            self._response_time += _RESPONSE_SMOOTHING * (sample - self._response_time)
 
     async def _keepalive_loop(self) -> None:
         """Send a light probe when the link has been idle for too long."""
@@ -273,4 +393,4 @@ class TelnetClient:
             await asyncio.sleep(KEEPALIVE_INTERVAL / 2)
             idle = asyncio.get_running_loop().time() - self._last_activity
             if idle >= KEEPALIVE_INTERVAL:
-                await self._queue.put(_KEEPALIVE_COMMAND)
+                await self.async_send(_KEEPALIVE_COMMAND)

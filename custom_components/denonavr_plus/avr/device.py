@@ -157,6 +157,12 @@ class DenonAvrDevice:
         return self._http_reachable
 
     @property
+    def telnet_response_time(self) -> float | None:
+        """The receiver's average telnet response time in seconds, once measured."""
+
+        return self._telnet.response_time
+
+    @property
     def profile(self) -> ProtocolProfile:
         return self._profile
 

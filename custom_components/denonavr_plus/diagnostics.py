@@ -31,6 +31,12 @@ async def async_get_config_entry_diagnostics(
 
     return {
         "available": device.available,
+        "http_port": device.http_port,
+        "telnet_response_ms": (
+            None
+            if device.telnet_response_time is None
+            else round(device.telnet_response_time * 1000)
+        ),
         "device": async_redact_data(asdict(discovery.device), TO_REDACT),
         "features": sorted(discovery.features),
         "zones": [asdict(zone) for zone in discovery.zones],

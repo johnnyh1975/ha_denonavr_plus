@@ -39,6 +39,7 @@ async def test_diagnostics_redact_the_mac(
     assert result["device"]["model_name"] == "AVC-X3700H"
     assert result["device"]["mac_address"] == "**REDACTED**"
     assert result["available"] is True
+    assert result["telnet_response_ms"] == 42
     assert [zone["id"] for zone in result["zones"]] == ["main", "zone2"]
     assert result["state"]["zones"]["main"]["volume_raw"] == 40.0
 
