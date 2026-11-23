@@ -74,6 +74,15 @@ modules start at 95 %.
 10. **Leave versions to the maintainer.** No version bump in
     `manifest.json`, no new release-notes file; describe the change in the
     pull request and it is written up at release.
+11. **A change to what users have installed comes with a migration.**
+    Entry data, options, unique ids and device identifiers are versioned
+    (`CONFIG_VERSION`, `CONFIG_MINOR_VERSION` in `const.py`). Change one of
+    them only together with a step in `migrations.py` and its test in
+    `tests/test_migrations.py`. Entity ids, start states and categories of
+    a recorded receiver are pinned in
+    `tests/fixtures/entity_ids/AVC-X3700H.json`; update it on purpose
+    (`UPDATE_ENTITY_SNAPSHOT=1 pytest tests/test_entity.py`) and say in the
+    pull request what changed for users.
 
 ## Pull requests
 

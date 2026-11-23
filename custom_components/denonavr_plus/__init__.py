@@ -17,6 +17,7 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
+from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
 
 _LOGGER = logging.getLogger(__name__)
 

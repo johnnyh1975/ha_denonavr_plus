@@ -1,0 +1,105 @@
+"""Tests for migrations.py: config entries are brought to the current version."""
+
+from __future__ import annotations
+
+from typing import Any
+from unittest.mock import patch
+
+import pytest
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import CONF_HOST
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.denonavr_plus import migrations
+from custom_components.denonavr_plus.config_flow import DenonAvrConfigFlow
+from custom_components.denonavr_plus.const import (
+    CONFIG_MINOR_VERSION,
+    CONFIG_VERSION,
+    DOMAIN,
+)
+
+from .test_init import HOST, receiver_network  # noqa: F401 -- fixture
+
+__all__ = ["receiver_network"]
+
+
+async def _set_up(hass: HomeAssistant, version: int, minor: int, **options: Any) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: HOST},
+        options=options,
+        version=version,
+        minor_version=minor,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry
+
+
+def test_the_flow_creates_the_current_version() -> None:
+    assert (DenonAvrConfigFlow.VERSION, DenonAvrConfigFlow.MINOR_VERSION) == (
+        CONFIG_VERSION,
+        CONFIG_MINOR_VERSION,
+    )
+
+
+def test_every_step_leads_to_the_current_version() -> None:
+    # Following the steps from any registered version must end at the current
+    # one; a gap would strand entries of that version.
+    current = (CONFIG_VERSION, CONFIG_MINOR_VERSION)
+    for start in migrations.STEPS:
+        assert start < current, start
+
+
+async def test_a_current_entry_loads_unchanged(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    entry = await _set_up(hass, CONFIG_VERSION, CONFIG_MINOR_VERSION)
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (CONFIG_VERSION, CONFIG_MINOR_VERSION)
+
+
+async def test_an_older_entry_runs_its_step(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    async def _add_option(hass: HomeAssistant, entry: Any) -> tuple[int, int]:
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, "new_option": True}
+        )
+        return (CONFIG_VERSION, CONFIG_MINOR_VERSION + 1)
+
+    newer = CONFIG_MINOR_VERSION + 1
+    with (
+        patch.object(migrations, "CONFIG_MINOR_VERSION", newer),
+        patch.object(DenonAvrConfigFlow, "MINOR_VERSION", newer),
+        patch.dict(migrations.STEPS, {(CONFIG_VERSION, CONFIG_MINOR_VERSION): _add_option}),
+    ):
+        entry = await _set_up(hass, CONFIG_VERSION, CONFIG_MINOR_VERSION)
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (CONFIG_VERSION, newer)
+    assert entry.options["new_option"] is True
+
+
+async def test_an_entry_without_a_step_is_not_loaded(
+    hass: HomeAssistant, receiver_network: Any, caplog: pytest.LogCaptureFixture
+) -> None:
+    entry = await _set_up(hass, CONFIG_VERSION, CONFIG_MINOR_VERSION - 1)
+    assert entry.state is ConfigEntryState.MIGRATION_ERROR
+    assert "Cannot migrate" in caplog.text
+
+
+async def test_an_entry_from_a_newer_minor_version_still_loads(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    # After a downgrade within the same major version.
+    entry = await _set_up(hass, CONFIG_VERSION, CONFIG_MINOR_VERSION + 3)
+    assert entry.state is ConfigEntryState.LOADED
+
+
+async def test_an_entry_from_a_newer_major_version_is_refused(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    entry = await _set_up(hass, CONFIG_VERSION + 1, 1)
+    assert entry.state is ConfigEntryState.MIGRATION_ERROR

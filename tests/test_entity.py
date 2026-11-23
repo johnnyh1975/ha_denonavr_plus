@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+import os
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -72,3 +75,39 @@ async def test_names_are_translated_but_ids_are_not(
     trim_state = hass.states.get(trim)
     assert volume_state is not None and "Lautstärke" in volume_state.attributes["friendly_name"]
     assert trim_state is not None and trim_state.attributes["friendly_name"].endswith("Center Pegel")
+
+
+SNAPSHOT = Path(__file__).parent / "fixtures" / "entity_ids" / "AVC-X3700H.json"
+
+
+async def test_entities_match_the_snapshot(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Every entity of the recorded AVC-X3700H: id, start state, category.
+
+    A change here changes users' installations. If it is intended, update the
+    snapshot (UPDATE_ENTITY_SNAPSHOT=1 pytest tests/test_entity.py) and, for a
+    released change of unique ids or entity ids, add a step in migrations.py.
+    """
+    await _entity_ids(hass, "en")
+    registry = er.async_get(hass)
+    current = {
+        item.unique_id.split("_", 1)[1]: {
+            "entity_id": item.entity_id,
+            "enabled": item.disabled_by is None,
+            "category": item.entity_category.value if item.entity_category else None,
+        }
+        for item in registry.entities.values()
+        if item.platform == DOMAIN
+    }
+    if os.environ.get("UPDATE_ENTITY_SNAPSHOT"):
+        SNAPSHOT.parent.mkdir(exist_ok=True)
+        SNAPSHOT.write_text(json.dumps(dict(sorted(current.items())), indent=2) + "\n")
+    expected = json.loads(SNAPSHOT.read_text())
+    added = sorted(set(current) - set(expected))
+    removed = sorted(set(expected) - set(current))
+    changed = sorted(k for k in set(current) & set(expected) if current[k] != expected[k])
+    assert not (added or removed or changed), (
+        f"added: {added}\nremoved: {removed}\n"
+        f"changed: {[(k, expected[k], current[k]) for k in changed]}"
+    )

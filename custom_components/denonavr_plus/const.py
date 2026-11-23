@@ -17,6 +17,12 @@ from homeassistant.const import (
 
 DOMAIN = "denonavr_plus"
 
+# The config entry schema version (not the release version). Raise it, and
+# add a step in migrations.py, whenever entry data, options, unique ids or
+# device identifiers change.
+CONFIG_VERSION = 1
+CONFIG_MINOR_VERSION = 1
+
 # CONF_HOST (the receiver address) and CONF_PORT (the goform port, 8080 or 80)
 # are imported above and re-exported here so the rest of the integration keeps a single import
 # site; everything else about the device is discovered at runtime.

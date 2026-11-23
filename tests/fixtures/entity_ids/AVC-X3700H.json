@@ -1,0 +1,602 @@
+{
+  "binary_sensor_connectivity": {
+    "entity_id": "binary_sensor.avc_x3700h_connectivity",
+    "enabled": true,
+    "category": "diagnostic"
+  },
+  "button_eq_apply": {
+    "entity_id": "button.avc_x3700h_graphic_eq_apply",
+    "enabled": false,
+    "category": "config"
+  },
+  "button_eq_curve_copy": {
+    "entity_id": "button.avc_x3700h_graphic_eq_copy_curve",
+    "enabled": false,
+    "category": "config"
+  },
+  "button_eq_set_defaults": {
+    "entity_id": "button.avc_x3700h_graphic_eq_default",
+    "enabled": false,
+    "category": "config"
+  },
+  "media_player_main": {
+    "entity_id": "media_player.avc_x3700h",
+    "enabled": true,
+    "category": null
+  },
+  "media_player_zone2": {
+    "entity_id": "media_player.avc_x3700h_zone_2",
+    "enabled": true,
+    "category": null
+  },
+  "number_audio_delay": {
+    "entity_id": "number.avc_x3700h_audio_audio_delay",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_bass": {
+    "entity_id": "number.avc_x3700h_audio_bass",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_distance_BDL": {
+    "entity_id": "number.avc_x3700h_speakers_back_dolby_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_BDR": {
+    "entity_id": "number.avc_x3700h_speakers_back_dolby_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_C": {
+    "entity_id": "number.avc_x3700h_speakers_center_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_FDL": {
+    "entity_id": "number.avc_x3700h_speakers_front_dolby_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_FDR": {
+    "entity_id": "number.avc_x3700h_speakers_front_dolby_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_FHL": {
+    "entity_id": "number.avc_x3700h_speakers_front_height_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_FHR": {
+    "entity_id": "number.avc_x3700h_speakers_front_height_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_FL": {
+    "entity_id": "number.avc_x3700h_speakers_front_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_FR": {
+    "entity_id": "number.avc_x3700h_speakers_front_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_RHL": {
+    "entity_id": "number.avc_x3700h_speakers_rear_height_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_RHR": {
+    "entity_id": "number.avc_x3700h_speakers_rear_height_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SB": {
+    "entity_id": "number.avc_x3700h_speakers_surround_back_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SBL": {
+    "entity_id": "number.avc_x3700h_speakers_surround_back_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SBR": {
+    "entity_id": "number.avc_x3700h_speakers_surround_back_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SDL": {
+    "entity_id": "number.avc_x3700h_speakers_surround_dolby_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SDR": {
+    "entity_id": "number.avc_x3700h_speakers_surround_dolby_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SL": {
+    "entity_id": "number.avc_x3700h_speakers_surround_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SR": {
+    "entity_id": "number.avc_x3700h_speakers_surround_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_SW": {
+    "entity_id": "number.avc_x3700h_speakers_subwoofer_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_TFL": {
+    "entity_id": "number.avc_x3700h_speakers_top_front_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_TFR": {
+    "entity_id": "number.avc_x3700h_speakers_top_front_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_TML": {
+    "entity_id": "number.avc_x3700h_speakers_top_middle_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_TMR": {
+    "entity_id": "number.avc_x3700h_speakers_top_middle_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_TRL": {
+    "entity_id": "number.avc_x3700h_speakers_top_rear_l_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_distance_TRR": {
+    "entity_id": "number.avc_x3700h_speakers_top_rear_r_distance",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_channel_trim_BDL": {
+    "entity_id": "number.avc_x3700h_speakers_back_dolby_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_BDR": {
+    "entity_id": "number.avc_x3700h_speakers_back_dolby_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_C": {
+    "entity_id": "number.avc_x3700h_speakers_center_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_FDL": {
+    "entity_id": "number.avc_x3700h_speakers_front_dolby_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_FDR": {
+    "entity_id": "number.avc_x3700h_speakers_front_dolby_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_FHL": {
+    "entity_id": "number.avc_x3700h_speakers_front_height_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_FHR": {
+    "entity_id": "number.avc_x3700h_speakers_front_height_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_FL": {
+    "entity_id": "number.avc_x3700h_speakers_front_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_FR": {
+    "entity_id": "number.avc_x3700h_speakers_front_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_RHL": {
+    "entity_id": "number.avc_x3700h_speakers_rear_height_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_RHR": {
+    "entity_id": "number.avc_x3700h_speakers_rear_height_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SB": {
+    "entity_id": "number.avc_x3700h_speakers_surround_back_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SBL": {
+    "entity_id": "number.avc_x3700h_speakers_surround_back_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SBR": {
+    "entity_id": "number.avc_x3700h_speakers_surround_back_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SDL": {
+    "entity_id": "number.avc_x3700h_speakers_surround_dolby_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SDR": {
+    "entity_id": "number.avc_x3700h_speakers_surround_dolby_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SL": {
+    "entity_id": "number.avc_x3700h_speakers_surround_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SR": {
+    "entity_id": "number.avc_x3700h_speakers_surround_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_SW": {
+    "entity_id": "number.avc_x3700h_speakers_subwoofer_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_TFL": {
+    "entity_id": "number.avc_x3700h_speakers_top_front_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_TFR": {
+    "entity_id": "number.avc_x3700h_speakers_top_front_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_TML": {
+    "entity_id": "number.avc_x3700h_speakers_top_middle_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_TMR": {
+    "entity_id": "number.avc_x3700h_speakers_top_middle_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_TRL": {
+    "entity_id": "number.avc_x3700h_speakers_top_rear_l_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_channel_trim_TRR": {
+    "entity_id": "number.avc_x3700h_speakers_top_rear_r_trim",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_containment_amount": {
+    "entity_id": "number.avc_x3700h_audio_containment_amount",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_dialog_control": {
+    "entity_id": "number.avc_x3700h_audio_dialog_control",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_dialog_level": {
+    "entity_id": "number.avc_x3700h_audio_dialog_level",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_effect_level": {
+    "entity_id": "number.avc_x3700h_audio_effect_level",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq125Hz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_125_hz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq16kHz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_16_khz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq1kHz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_1_khz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq250Hz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_250_hz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq2kHz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_2_khz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq4kHz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_4_khz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq500Hz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_500_hz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq63Hz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_63_hz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_eq_Eq8kHz": {
+    "entity_id": "number.avc_x3700h_graphic_eq_8_khz",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_lfe": {
+    "entity_id": "number.avc_x3700h_audio_lfe",
+    "enabled": false,
+    "category": "config"
+  },
+  "number_sleep_timer": {
+    "entity_id": "number.avc_x3700h_sleep_timer",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_subwoofer_level": {
+    "entity_id": "number.avc_x3700h_audio_subwoofer_level",
+    "enabled": true,
+    "category": "config"
+  },
+  "number_treble": {
+    "entity_id": "number.avc_x3700h_audio_treble",
+    "enabled": true,
+    "category": "config"
+  },
+  "select_aspect_ratio": {
+    "entity_id": "select.avc_x3700h_video_aspect_ratio",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_dimmer": {
+    "entity_id": "select.avc_x3700h_dimmer",
+    "enabled": true,
+    "category": "config"
+  },
+  "select_dynamic_compression": {
+    "entity_id": "select.avc_x3700h_audio_dynamic_compression",
+    "enabled": true,
+    "category": "config"
+  },
+  "select_dynamic_volume": {
+    "entity_id": "select.avc_x3700h_audio_dynamic_volume",
+    "enabled": true,
+    "category": "config"
+  },
+  "select_eco_mode": {
+    "entity_id": "select.avc_x3700h_eco_mode",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_eq_channel": {
+    "entity_id": "select.avc_x3700h_graphic_eq_channel",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_eq_speaker_selection": {
+    "entity_id": "select.avc_x3700h_graphic_eq_speaker_selection",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_front_speaker": {
+    "entity_id": "select.avc_x3700h_speakers_front_speaker",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_hdmi_audio_out": {
+    "entity_id": "select.avc_x3700h_video_hdmi_audio_out",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_hdmi_video_output": {
+    "entity_id": "select.avc_x3700h_video_hdmi_video_output",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_input_mode": {
+    "entity_id": "select.avc_x3700h_input_mode",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_lpf_for_lfe": {
+    "entity_id": "select.avc_x3700h_speakers_lpf_for_lfe",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_multeq": {
+    "entity_id": "select.avc_x3700h_audio_multeq",
+    "enabled": true,
+    "category": "config"
+  },
+  "select_muting_level": {
+    "entity_id": "select.avc_x3700h_muting_level",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_picture_mode": {
+    "entity_id": "select.avc_x3700h_picture_picture_mode",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_reference_level_offset": {
+    "entity_id": "select.avc_x3700h_audio_reference_level_offset",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_restorer": {
+    "entity_id": "select.avc_x3700h_audio_restorer",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_room_size": {
+    "entity_id": "select.avc_x3700h_audio_room_size",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_sound_mode": {
+    "entity_id": "select.avc_x3700h_sound_mode",
+    "enabled": true,
+    "category": null
+  },
+  "select_sound_mode_group": {
+    "entity_id": "select.avc_x3700h_sound_mode_group",
+    "enabled": true,
+    "category": null
+  },
+  "select_subwoofer_mode": {
+    "entity_id": "select.avc_x3700h_speakers_subwoofer_mode",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_video_mode": {
+    "entity_id": "select.avc_x3700h_video_video_mode",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_volume_limit": {
+    "entity_id": "select.avc_x3700h_volume_limit",
+    "enabled": false,
+    "category": "config"
+  },
+  "select_volume_scale": {
+    "entity_id": "select.avc_x3700h_volume_scale",
+    "enabled": false,
+    "category": "config"
+  },
+  "sensor_audio_format": {
+    "entity_id": "sensor.avc_x3700h_audio_format",
+    "enabled": false,
+    "category": "diagnostic"
+  },
+  "sensor_decoder": {
+    "entity_id": "sensor.avc_x3700h_decoder",
+    "enabled": true,
+    "category": "diagnostic"
+  },
+  "sensor_input_signal": {
+    "entity_id": "sensor.avc_x3700h_input_signal",
+    "enabled": false,
+    "category": "diagnostic"
+  },
+  "sensor_mode_info": {
+    "entity_id": "sensor.avc_x3700h_mode_info",
+    "enabled": false,
+    "category": "diagnostic"
+  },
+  "sensor_sample_rate": {
+    "entity_id": "sensor.avc_x3700h_sample_rate",
+    "enabled": false,
+    "category": "diagnostic"
+  },
+  "sensor_sound_mode": {
+    "entity_id": "sensor.avc_x3700h_sound_mode",
+    "enabled": false,
+    "category": "diagnostic"
+  },
+  "sensor_volume_db": {
+    "entity_id": "sensor.avc_x3700h_volume",
+    "enabled": true,
+    "category": null
+  },
+  "switch_all_zone_stereo": {
+    "entity_id": "switch.avc_x3700h_all_zone_stereo",
+    "enabled": true,
+    "category": "config"
+  },
+  "switch_auto_lip_sync": {
+    "entity_id": "switch.avc_x3700h_video_auto_lip_sync",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_center_spread": {
+    "entity_id": "switch.avc_x3700h_audio_center_spread",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_cinema_eq": {
+    "entity_id": "switch.avc_x3700h_audio_cinema_eq",
+    "enabled": true,
+    "category": "config"
+  },
+  "switch_dts_neural_x": {
+    "entity_id": "switch.avc_x3700h_audio_dts_neural_x",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_dynamic_eq": {
+    "entity_id": "switch.avc_x3700h_audio_dynamic_eq",
+    "enabled": true,
+    "category": "config"
+  },
+  "switch_graphic_eq": {
+    "entity_id": "switch.avc_x3700h_graphic_eq_enabled",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_loudness_management": {
+    "entity_id": "switch.avc_x3700h_audio_loudness_management",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_low_frequency_containment": {
+    "entity_id": "switch.avc_x3700h_audio_low_frequency_containment",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_main_mute": {
+    "entity_id": "switch.avc_x3700h_main_mute",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_main_power": {
+    "entity_id": "switch.avc_x3700h_main_power",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_speaker_virtualizer": {
+    "entity_id": "switch.avc_x3700h_audio_speaker_virtualizer",
+    "enabled": false,
+    "category": "config"
+  },
+  "switch_subwoofer_switch": {
+    "entity_id": "switch.avc_x3700h_speakers_subwoofer_switch",
+    "enabled": true,
+    "category": "config"
+  },
+  "switch_tone_control": {
+    "entity_id": "switch.avc_x3700h_audio_tone_control",
+    "enabled": true,
+    "category": "config"
+  }
+}

@@ -26,6 +26,8 @@ from .avr.profile import load_profile
 from .const import (
     CONF_HOST,
     CONF_PORT,
+    CONFIG_MINOR_VERSION,
+    CONFIG_VERSION,
     DOMAIN,
 )
 
@@ -37,7 +39,8 @@ STEP_USER_SCHEMA = vol.Schema({vol.Required(CONF_HOST): str})
 class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Denon AVR."""
 
-    VERSION = 1
+    VERSION = CONFIG_VERSION
+    MINOR_VERSION = CONFIG_MINOR_VERSION
 
     def __init__(self) -> None:
         self._host: str | None = None
