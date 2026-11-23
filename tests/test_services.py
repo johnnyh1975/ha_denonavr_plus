@@ -157,3 +157,44 @@ async def test_a_refused_http_command_is_reported(
     ):
         await _send(hass, loaded_entry, "PSDYNEQ ON")
     assert err.value.translation_key == "command_unreachable"
+
+
+@pytest.mark.assumed(
+    "TPANMEM<nn> stores a preset per the X-series documents; not yet tried on a receiver"
+)
+async def test_the_station_that_plays_is_stored_as_a_preset(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+
+    player = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    # Off the tuner the receiver would ignore it: say so instead.
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "store_tuner_preset", {"entity_id": player, "preset": 5}, blocking=True
+        )
+    telnet.push("SITUNER")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    telnet.sent.clear()
+    await hass.services.async_call(
+        DOMAIN, "store_tuner_preset", {"entity_id": player, "preset": 5}, blocking=True
+    )
+    assert telnet.sent == ["TPANMEM05"]
+
+    # A receiver without a tuner says so.
+    from unittest.mock import PropertyMock
+
+    device = loaded_entry.runtime_data.device
+    with (
+        patch.object(type(device), "has_tuner", new_callable=PropertyMock, return_value=False),
+        pytest.raises(ServiceValidationError),
+    ):
+        await hass.services.async_call(
+            DOMAIN, "store_tuner_preset", {"entity_id": player, "preset": 5}, blocking=True
+        )
+

@@ -747,6 +747,9 @@
           "quick_select_4": "Quick Select 4",
           "quick_select_5": "Quick Select 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Presintonía del sintonizador"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Nivel frontal derecho"
+      },
+      "tuner_frequency": {
+        "name": "Frecuencia del sintonizador"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} no es una zona del {model}: una zona solo puede unirse a la zona principal de su propio receptor."
+    },
+    "no_tuner": {
+      "message": "El {model} no tiene sintonizador con presintonías."
+    },
+    "tuner_not_playing": {
+      "message": "El {model} solo guarda una presintonía mientras una zona encendida reproduce el sintonizador."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Comando",
           "description": "Como en los documentos del protocolo, por ejemplo PSDYNEQ ON o MV?. Texto ASCII imprimible, como máximo {max_length} caracteres."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Guardar presintonía del sintonizador",
+      "description": "Guarda la emisora que reproduce el sintonizador como presintonía del receptor. El sintonizador debe ser la fuente de una zona encendida.",
+      "fields": {
+        "preset": {
+          "name": "Presintonía",
+          "description": "De 1 a 56 (en receptores antiguos de A1 a G8, contados igual)."
         }
       }
     }

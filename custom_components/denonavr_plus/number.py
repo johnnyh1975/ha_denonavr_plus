@@ -14,7 +14,7 @@ from homeassistant.components.number import (
     NumberEntity,
     NumberMode,
 )
-from homeassistant.const import UnitOfLength, UnitOfSoundPressure, UnitOfTime
+from homeassistant.const import UnitOfFrequency, UnitOfLength, UnitOfSoundPressure, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -55,6 +55,9 @@ async def async_setup_entry(
     for zone in discovery.zones:
         if choices.zone_enabled(dict(entry.options), zone.id):
             entities.append(DenonAvrVolume(coordinator, zone))
+
+    if device.has_tuner:
+        entities.append(DenonAvrTunerFrequency(coordinator))
 
     for spec in device.profile.controls.values():
         if spec.kind not in _NUMBER_KINDS:
@@ -298,3 +301,50 @@ class DenonAvrVolume(DenonAvrEntity, NumberEntity):
             self._device, self._zone.id, value + self._device.volume_reference, self._entry_options
         )
         await self._device.async_set_volume_raw(self._zone.id, raw)
+
+
+#: FM band, in MHz: the widest of the regions (Europe 87.5-108, North America
+#: 87.5-107.9); the receiver keeps to its own.
+_FM_MIN, _FM_MAX, _FM_STEP = 87.5, 108.0, 0.05
+#: TFAN values below this are FM (MHz x 100), above it AM (kHz x 100).
+_AM_FROM = 50000
+
+
+class DenonAvrTunerFrequency(DenonAvrEntity, NumberEntity):
+    """The FM frequency in MHz, to read and to tune directly.
+
+    Available while a zone plays the tuner on FM.
+    """
+
+    _attr_device_class = NumberDeviceClass.FREQUENCY
+    _attr_mode = NumberMode.BOX
+    _attr_native_unit_of_measurement = UnitOfFrequency.MEGAHERTZ
+    _attr_native_min_value = _FM_MIN
+    _attr_native_max_value = _FM_MAX
+    _attr_native_step = _FM_STEP
+
+    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
+        super().__init__(coordinator, "number_tuner_frequency")
+        self._attr_translation_key = "tuner_frequency"
+
+    @property
+    def _frequency(self) -> int | None:
+        value = self.coordinator.data.values.get("tuner_frequency")
+        return value if isinstance(value, int) and 0 < value < _AM_FROM else None
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and self.coordinator.device.tuner_zone is not None
+            and self._frequency is not None
+        )
+
+    @property
+    def native_value(self) -> float | None:
+        frequency = self._frequency
+        return None if frequency is None else frequency / 100
+
+    @receiver_action
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.device.async_tune(round(value * 100))

@@ -57,6 +57,8 @@ async def async_setup_entry(
     # Quick select presets, if the receiver reported any names.
     if discovery.quick_select_names:
         entities.append(DenonAvrQuickSelect(coordinator))
+    if coordinator.device.has_tuner:
+        entities.append(DenonAvrTunerPreset(coordinator))
     # One crossover select per speaker group the receiver reports a crossover
     # for (SSCFR). Like all speaker setup, these start disabled.
     profile = coordinator.device.profile
@@ -453,6 +455,36 @@ class DenonAvrQuickSelect(DenonAvrEntity, SelectEntity):
             if name == option:
                 await self.coordinator.device.async_select_quick_select(number)
                 return
+
+
+class DenonAvrTunerPreset(DenonAvrEntity, SelectEntity):
+    """The tuner preset: 01-56, or A1-G8 on older receivers.
+
+    Available while a zone plays the tuner: the receiver takes preset
+    commands only then. The receiver reports no preset names.
+    """
+
+    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
+        super().__init__(coordinator, "select_tuner_preset")
+        self._attr_translation_key = "tuner_preset"
+
+    @property
+    def available(self) -> bool:
+        return super().available and self.coordinator.device.tuner_zone is not None
+
+    @property
+    def options(self) -> list[str]:
+        return self.coordinator.device.tuner_preset_codes
+
+    @property
+    def current_option(self) -> str | None:
+        preset = self.coordinator.data.values.get("tuner_preset")
+        return str(preset) if preset in self.options else None
+
+    @receiver_action
+    async def async_select_option(self, option: str) -> None:
+        device = self.coordinator.device
+        await device.async_tuner_preset(device.tuner_zone or "main", option)
 
 
 class DenonAvrEqSpeakerSelection(DenonAvrEntity, SelectEntity):

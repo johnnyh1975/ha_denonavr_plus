@@ -530,6 +530,11 @@ async def test_zone_2_on_the_tuner_and_the_older_preset_names(
     assert telnet.sent == ["TPANB3"]
     with pytest.raises(ValueError):
         await device.async_tuner_preset("zone2", "01")
+    telnet.sent.clear()
+    await device.async_store_tuner_preset("B1")
+    assert telnet.sent == ["TPANMEMB1"]
+    with pytest.raises(ValueError):
+        await device.async_store_tuner_preset("01")
 
 
 async def test_a_preset_switches_to_the_tuner_first(

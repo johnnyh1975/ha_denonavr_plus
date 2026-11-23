@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -76,3 +78,39 @@ async def test_times_are_durations(hass: HomeAssistant, loaded_entry: MockConfig
     for key in ("number_sleep_timer", "number_audio_delay"):
         entry = registry_entry(hass, loaded_entry, key)
         assert entry.original_device_class == "duration", key
+
+
+@pytest.mark.assumed(
+    "TFAN followed by six digits tunes directly per the X-series documents; "
+    "not yet tried on a receiver"
+)
+async def test_the_tuner_frequency_reads_and_tunes(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+
+    from homeassistant.const import STATE_UNAVAILABLE
+
+    number = entity_id(hass, loaded_entry, "number_tuner_frequency")
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SITUNER", "TFAN009290")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    state = hass.states.get(number)
+    assert state is not None and float(state.state) == 92.9
+    assert state.attributes["unit_of_measurement"] == "MHz"
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": number, "value": 104.4}, blocking=True
+    )
+    assert telnet.sent == ["TFAN010440"]
+
+    # AM is no MHz value, and off the tuner there is nothing to tune.
+    telnet.push("TFAN105000")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert hass.states.get(number).state == STATE_UNAVAILABLE
+    telnet.push("TFAN009290", "SICD")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert hass.states.get(number).state == STATE_UNAVAILABLE

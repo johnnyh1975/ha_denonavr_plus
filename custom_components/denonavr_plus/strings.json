@@ -747,6 +747,9 @@
           "quick_select_4": "Quick Select 4",
           "quick_select_5": "Quick Select 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Tuner preset"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Front Right Level"
+      },
+      "tuner_frequency": {
+        "name": "Tuner frequency"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} is not a zone of the {model}: a zone can only join the main zone of its own receiver."
+    },
+    "no_tuner": {
+      "message": "The {model} has no tuner with presets."
+    },
+    "tuner_not_playing": {
+      "message": "The {model} stores a tuner preset only while a zone that is on plays the tuner."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Command",
           "description": "As in the protocol documents, for example PSDYNEQ ON or MV?. Printable ASCII, at most {max_length} characters."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Store tuner preset",
+      "description": "Stores the station the tuner plays as a preset of the receiver. The tuner must be the source of a zone that is on.",
+      "fields": {
+        "preset": {
+          "name": "Preset",
+          "description": "1 to 56 (on older receivers A1 to G8, counted the same way)."
         }
       }
     }

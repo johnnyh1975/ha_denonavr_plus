@@ -747,6 +747,9 @@
           "quick_select_4": "Quick Select 4",
           "quick_select_5": "Quick Select 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Tuner-Preset"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Pegel Front rechts"
+      },
+      "tuner_frequency": {
+        "name": "Tuner-Frequenz"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} ist keine Zone des {model}: Eine Zone kann nur der Hauptzone ihres eigenen Receivers beitreten."
+    },
+    "no_tuner": {
+      "message": "Der {model} hat keinen Tuner mit Presets."
+    },
+    "tuner_not_playing": {
+      "message": "Der {model} speichert ein Tuner-Preset nur, während eine eingeschaltete Zone den Tuner spielt."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Befehl",
           "description": "Wie in den Protokoll-Dokumenten, zum Beispiel PSDYNEQ ON oder MV?. Druckbare ASCII-Zeichen, höchstens {max_length} Zeichen."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Tuner-Preset speichern",
+      "description": "Speichert den Sender, den der Tuner spielt, als Preset des Receivers. Der Tuner muss die Quelle einer eingeschalteten Zone sein.",
+      "fields": {
+        "preset": {
+          "name": "Preset",
+          "description": "1 bis 56 (bei älteren Receivern A1 bis G8, gleich gezählt)."
         }
       }
     }

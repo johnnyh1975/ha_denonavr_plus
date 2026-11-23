@@ -747,6 +747,9 @@
           "quick_select_4": "Quick Select 4",
           "quick_select_5": "Quick Select 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Preselezione del sintonizzatore"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Livello frontale destro"
+      },
+      "tuner_frequency": {
+        "name": "Frequenza del sintonizzatore"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} non è una zona del {model}: una zona può unirsi solo alla zona principale del proprio sintoamplificatore."
+    },
+    "no_tuner": {
+      "message": "Il {model} non ha un sintonizzatore con preselezioni."
+    },
+    "tuner_not_playing": {
+      "message": "Il {model} salva una preselezione solo mentre una zona accesa riproduce il sintonizzatore."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Comando",
           "description": "Come nei documenti del protocollo, per esempio PSDYNEQ ON o MV?. Testo ASCII stampabile, al massimo {max_length} caratteri."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Salva preselezione del sintonizzatore",
+      "description": "Salva la stazione riprodotta dal sintonizzatore come preselezione del sintoamplificatore. Il sintonizzatore deve essere la sorgente di una zona accesa.",
+      "fields": {
+        "preset": {
+          "name": "Preselezione",
+          "description": "Da 1 a 56 (sui modelli più vecchi da A1 a G8, contate allo stesso modo)."
         }
       }
     }

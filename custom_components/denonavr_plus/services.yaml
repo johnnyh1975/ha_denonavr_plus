@@ -9,3 +9,17 @@ send_command:
       example: "PSDYNEQ ON"
       selector:
         text:
+store_tuner_preset:
+  target:
+    entity:
+      integration: denonavr_plus
+      domain: media_player
+  fields:
+    preset:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 56
+          mode: box

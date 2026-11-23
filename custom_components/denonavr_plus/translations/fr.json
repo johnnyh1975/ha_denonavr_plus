@@ -747,6 +747,9 @@
           "quick_select_4": "Quick Select 4",
           "quick_select_5": "Quick Select 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Présélection du tuner"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Niveau avant droit"
+      },
+      "tuner_frequency": {
+        "name": "Fréquence du tuner"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} n'est pas une zone du {model} : une zone ne peut rejoindre que la zone principale de son propre ampli-tuner."
+    },
+    "no_tuner": {
+      "message": "Le {model} n'a pas de tuner avec présélections."
+    },
+    "tuner_not_playing": {
+      "message": "Le {model} n'enregistre une présélection que pendant qu'une zone allumée joue le tuner."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Commande",
           "description": "Comme dans les documents du protocole, par exemple PSDYNEQ ON ou MV?. Texte ASCII imprimable, au plus {max_length} caractères."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Enregistrer une présélection du tuner",
+      "description": "Enregistre la station que joue le tuner comme présélection de l'ampli-tuner. Le tuner doit être la source d'une zone allumée.",
+      "fields": {
+        "preset": {
+          "name": "Présélection",
+          "description": "De 1 à 56 (sur les anciens modèles de A1 à G8, comptées de la même façon)."
         }
       }
     }

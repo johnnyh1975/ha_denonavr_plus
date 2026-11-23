@@ -658,6 +658,39 @@ class DenonAvrDevice:
             return [f"{chr(ord('A') + index // 8)}{index % 8 + 1}" for index in range(count)]
         return [f"{index + 1:02d}" for index in range(count)]
 
+    @property
+    def has_tuner(self) -> bool:
+        """A tuner among the receiver's sources, with a known preset numbering."""
+
+        return bool(self.tuner_preset_codes) and any(
+            self.is_tuner(source.code) for source in self._discovery.sources
+        )
+
+    @property
+    def tuner_zone(self) -> str | None:
+        """A zone that is on and plays the tuner, or None.
+
+        Tuner commands work only while the tuner is the source of a zone.
+        """
+
+        for zone_id, zone in self._state.zones.items():
+            if zone.power and self.is_tuner(self.zone_source(zone_id)):
+                return zone_id
+        return None
+
+    async def async_tune(self, frequency: int) -> None:
+        """Tune to a frequency in the protocol's unit (FM: MHz x 100)."""
+
+        await self._send(f"TFAN{frequency:06d}")
+
+    async def async_store_tuner_preset(self, code: str) -> None:
+        """Store the station that plays as tuner preset `code`."""
+
+        presets = self._profile.netaudio.get("tuner_presets", {})
+        if code not in self.tuner_preset_codes:
+            raise ValueError(f"no tuner preset {code!r}")
+        await self._send(f"{presets['prefix']}MEM{code}")
+
     async def async_tuner_preset_step(self, up: bool) -> None:
         """The next or the previous tuner preset."""
 

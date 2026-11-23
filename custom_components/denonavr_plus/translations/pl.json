@@ -747,6 +747,9 @@
           "quick_select_4": "Quick Select 4",
           "quick_select_5": "Quick Select 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Stacja zapisana w tunerze"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Poziom przedni prawy"
+      },
+      "tuner_frequency": {
+        "name": "Częstotliwość tunera"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} nie jest strefą {model}: strefa może dołączyć tylko do strefy głównej własnego amplitunera."
+    },
+    "no_tuner": {
+      "message": "{model} nie ma tunera z zapisanymi stacjami."
+    },
+    "tuner_not_playing": {
+      "message": "{model} zapisuje stację tylko wtedy, gdy włączona strefa odtwarza tuner."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Polecenie",
           "description": "Jak w dokumentach protokołu, na przykład PSDYNEQ ON lub MV?. Drukowalny tekst ASCII, najwyżej {max_length} znaków."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Zapisz stację tunera",
+      "description": "Zapisuje stację odtwarzaną przez tuner jako zapisaną stację amplitunera. Tuner musi być źródłem włączonej strefy.",
+      "fields": {
+        "preset": {
+          "name": "Numer",
+          "description": "Od 1 do 56 (w starszych amplitunerach od A1 do G8, liczone tak samo)."
         }
       }
     }

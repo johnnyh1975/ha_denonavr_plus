@@ -86,6 +86,9 @@
       },
       "zone2_channel_level_fr": {
         "default": "mdi:speaker"
+      },
+      "tuner_frequency": {
+        "default": "mdi:radio-tower"
       }
     },
     "remote": {
@@ -273,6 +276,9 @@
       },
       "zone2_quick_select": {
         "default": "mdi:numeric"
+      },
+      "tuner_preset": {
+        "default": "mdi:radio"
       }
     },
     "sensor": {
@@ -391,6 +397,9 @@
   "services": {
     "send_command": {
       "service": "mdi:console-line"
+    },
+    "store_tuner_preset": {
+      "service": "mdi:radio"
     }
   }
 }

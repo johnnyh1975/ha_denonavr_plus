@@ -747,6 +747,9 @@
           "quick_select_4": "Snelkeuze 4",
           "quick_select_5": "Snelkeuze 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Tunervoorkeuze"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Niveau rechts voor"
+      },
+      "tuner_frequency": {
+        "name": "Tunerfrequentie"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} is geen zone van de {model}: een zone kan alleen de hoofdzone van de eigen receiver volgen."
+    },
+    "no_tuner": {
+      "message": "De {model} heeft geen tuner met voorkeuzes."
+    },
+    "tuner_not_playing": {
+      "message": "De {model} slaat een tunervoorkeuze alleen op terwijl een zone die aan staat de tuner speelt."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Opdracht",
           "description": "Zoals in de protocoldocumenten, bijvoorbeeld PSDYNEQ ON of MV?. Afdrukbare ASCII-tekst, hoogstens {max_length} tekens."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Tunervoorkeuze opslaan",
+      "description": "Slaat de zender die de tuner speelt op als voorkeuze van de receiver. De tuner moet de bron zijn van een zone die aan staat.",
+      "fields": {
+        "preset": {
+          "name": "Voorkeuze",
+          "description": "1 tot 56 (op oudere receivers A1 tot G8, op dezelfde manier geteld)."
         }
       }
     }

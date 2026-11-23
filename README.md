@@ -281,6 +281,10 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
 - **Buttons**: save a quick select preset (one per preset the receiver reports),
   reset all channel levels, restart the network module. They start disabled.
 - **Remote**: the on-screen menu keys (see Actions).
+- **Tuner**: the preset (a select, 01–56 or A1–G8) and the FM frequency in
+  MHz (a number, to tune directly). Both are available while a zone that is on
+  plays the tuner; the receiver takes tuner commands only then. Recalling and
+  tuning have not been tried on a receiver yet.
 
 ### Enabled and disabled entities
 
@@ -288,6 +292,7 @@ A receiver offers well over a hundred settings, so only what you change while
 listening starts enabled:
 
 - the media players, the sound mode selects and quick select
+- the tuner preset and frequency
 - tone (bass, treble, tone control), Dynamic EQ, Dynamic Volume, Dynamic
   Compression, MultEQ, Cinema EQ, dialogue level and Dialog Control
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
@@ -378,6 +383,25 @@ media players do; a query cannot, because its answer only comes back over
 telnet, so the action reports an error. It also reports one when the receiver
 cannot be reached. This replaces `denonavr.get_command` of the official
 integration.
+
+### Store tuner preset (`denonavr_plus.store_tuner_preset`)
+
+Stores the station the tuner plays as one of the receiver's 56 presets. The
+tuner must be the source of a zone that is on; otherwise the action reports
+that instead of sending a command the receiver would ignore. On older
+receivers the presets are named A1 to G8; preset 9 is B1 there.
+
+| Field | Required | Description |
+|---|---|---|
+| `preset` | yes | 1 to 56. |
+
+```yaml
+action: denonavr_plus.store_tuner_preset
+target:
+  entity_id: media_player.avr_x2600h
+data:
+  preset: 5
+```
 
 ### Remote (`remote.send_command`)
 

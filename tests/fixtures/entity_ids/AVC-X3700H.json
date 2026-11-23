@@ -384,6 +384,11 @@
     "enabled": true,
     "category": "config"
   },
+  "number_tuner_frequency": {
+    "entity_id": "number.avc_x3700h_tuner_frequency",
+    "enabled": true,
+    "category": null
+  },
   "number_volume_main": {
     "entity_id": "number.avc_x3700h_volume",
     "enabled": true,
@@ -503,6 +508,11 @@
     "entity_id": "select.avc_x3700h_speakers_subwoofer_mode",
     "enabled": false,
     "category": "config"
+  },
+  "select_tuner_preset": {
+    "entity_id": "select.avc_x3700h_tuner_preset",
+    "enabled": true,
+    "category": null
   },
   "select_video_mode": {
     "entity_id": "select.avc_x3700h_video_video_mode",

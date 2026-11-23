@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+
+import pytest
 import json
 from pathlib import Path
 
@@ -110,3 +112,27 @@ def test_every_fixed_option_has_a_name_in_every_language() -> None:
             state = names[key].get("state", {})
             missing = [option for option in options if option not in state]
             assert not missing, (path.name, key, missing)
+
+
+@pytest.mark.assumed(
+    "TPAN<nn> recalls a preset per the 2015 X-series document; an AVR-X2600H "
+    "reports TPAN01, recalling through this select has not been tried"
+)
+async def test_the_tuner_preset_is_offered_while_the_tuner_plays(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.const import STATE_UNAVAILABLE
+
+    select = entity_id(hass, loaded_entry, "select_tuner_preset")
+    await _push(hass, "PWON", "ZMON", "SICD")
+    assert hass.states.get(select).state == STATE_UNAVAILABLE
+    await _push(hass, "SITUNER", "TPAN07")
+    state = hass.states.get(select)
+    assert state is not None and state.state == "07"
+    assert len(state.attributes["options"]) == 56
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": select, "option": "12"}, blocking=True
+    )
+    assert telnet.sent == ["TPAN12"]

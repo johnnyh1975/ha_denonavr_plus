@@ -747,6 +747,9 @@
           "quick_select_4": "Quick Select 4",
           "quick_select_5": "Quick Select 5"
         }
+      },
+      "tuner_preset": {
+        "name": "Predefinição do sintonizador"
       }
     },
     "switch": {
@@ -898,6 +901,9 @@
       },
       "zone2_channel_level_fr": {
         "name": "Nível frontal direito"
+      },
+      "tuner_frequency": {
+        "name": "Frequência do sintonizador"
       }
     },
     "button": {
@@ -959,6 +965,12 @@
     },
     "join_other_device": {
       "message": "{entity} não é uma zona do {model}: uma zona só pode juntar-se à zona principal do seu próprio recetor."
+    },
+    "no_tuner": {
+      "message": "O {model} não tem sintonizador com predefinições."
+    },
+    "tuner_not_playing": {
+      "message": "O {model} só guarda uma predefinição enquanto uma zona ligada reproduz o sintonizador."
     }
   },
   "issues": {
@@ -1015,6 +1027,16 @@
         "command": {
           "name": "Comando",
           "description": "Como nos documentos do protocolo, por exemplo PSDYNEQ ON ou MV?. Texto ASCII imprimível, no máximo {max_length} caracteres."
+        }
+      }
+    },
+    "store_tuner_preset": {
+      "name": "Guardar predefinição do sintonizador",
+      "description": "Guarda a estação que o sintonizador reproduz como predefinição do recetor. O sintonizador tem de ser a fonte de uma zona ligada.",
+      "fields": {
+        "preset": {
+          "name": "Predefinição",
+          "description": "De 1 a 56 (em recetores mais antigos de A1 a G8, contadas da mesma forma)."
         }
       }
     }
