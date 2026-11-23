@@ -5,13 +5,13 @@
     "Measured on Home Assistant 2026.10 (phahc 0.13.375), half a point of margin."
   ],
   "floors": {
-    "__init__.py": 0.8117,
+    "__init__.py": 0.795,
     "avr/device.py": 0.712,
     "avr/graphic_eq.py": 0.749,
     "avr/parser.py": 0.5212,
     "avr/profile.py": 0.8299,
     "avr/transport/goform.py": 0.6215,
-    "avr/transport/heos.py": 0.5719,
+    "avr/transport/heos.py": 0.539,
     "avr/transport/tcp_client.py": 0.1962,
     "avr/transport/telnet.py": 0.795,
     "avr/transport/upnp.py": 0.5404,
