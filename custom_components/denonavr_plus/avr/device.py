@@ -1056,6 +1056,18 @@ class DenonAvrDevice:
             self._schedule_update()
         return True
 
+    @property
+    def can_play_url(self) -> bool:
+        """Whether a URL can be played: over HEOS, not on receivers without it."""
+
+        return self._heos_enabled and not self.telnet_media
+
+    async def async_play_url(self, url: str) -> None:
+        """Play a stream URL over HEOS. Raises CommandNotSent if it cannot go out."""
+
+        if not self.can_play_url or not await self._heos.async_play_url(url):
+            raise CommandNotSent("unreachable")
+
     async def async_media_repeat(self, repeat: str) -> None:
         """Repeat off, all or one (HEOS off / on_all / on_one)."""
 

@@ -479,3 +479,24 @@ async def test_an_older_receiver_names_its_maker_and_serial(
     assert (device.manufacturer, device.serial_number) == ("Denon", "0000000000000")
     # Its model number is no network module version.
     assert device.network_module_version is None
+
+
+async def test_an_older_receiver_refuses_a_url(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """No HEOS on an AVR-X2000: a URL cannot play, and the user learns why."""
+    from homeassistant.exceptions import HomeAssistantError
+    from homeassistant.helpers import entity_registry as er
+
+    entry = await _x2000_entry(hass)
+    main = er.async_get(hass).async_get_entity_id(
+        "media_player", DOMAIN, f"{item_id(entry)}_media_player_main"
+    )
+    with pytest.raises(HomeAssistantError) as err:
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "music", "media_content_id": "http://example.com/a.mp3"},
+            blocking=True,
+        )
+    assert err.value.translation_key == "play_url_unsupported"

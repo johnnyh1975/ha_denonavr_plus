@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "No se puede contactar con el receptor en {host} ({error}). La configuración se reintenta."
+    },
+    "play_url_unsupported": {
+      "message": "El {model} no reproduce direcciones web: no tiene HEOS. Elige una fuente o un Quick Select."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Zona 2",
         "zone3": "Zona 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Quick Select",
+        "sources": "Fuentes"
       }
     }
   },

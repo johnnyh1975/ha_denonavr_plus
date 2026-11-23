@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "Der Receiver unter {host} ist nicht erreichbar ({error}). Die Einrichtung wird wiederholt."
+    },
+    "play_url_unsupported": {
+      "message": "Der {model} spielt keine Webadressen ab: Er hat kein HEOS. Wähle stattdessen eine Quelle oder ein Quick Select."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Quick Select",
+        "sources": "Quellen"
       }
     }
   },

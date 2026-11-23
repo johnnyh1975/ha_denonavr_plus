@@ -1,6 +1,9 @@
 {
   "domain": "denonavr_plus",
   "name": "Denon AVR Plus",
+  "after_dependencies": [
+    "media_source"
+  ],
   "codeowners": [
     "@johnnyh1975"
   ],

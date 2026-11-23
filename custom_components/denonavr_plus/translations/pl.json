@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "Nie można połączyć się z amplitunerem pod adresem {host} ({error}). Konfiguracja zostanie ponowiona."
+    },
+    "play_url_unsupported": {
+      "message": "{model} nie odtwarza adresów internetowych: nie ma HEOS. Wybierz źródło lub Quick Select."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Strefa 2",
         "zone3": "Strefa 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Quick Select",
+        "sources": "Źródła"
       }
     }
   },

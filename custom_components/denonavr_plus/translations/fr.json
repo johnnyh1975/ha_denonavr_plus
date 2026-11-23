@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "Impossible de joindre l'ampli-tuner à {host} ({error}). La configuration est réessayée."
+    },
+    "play_url_unsupported": {
+      "message": "Le {model} ne lit pas d'adresses web : il n'a pas HEOS. Choisissez plutôt une source ou un Quick Select."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Quick Select",
+        "sources": "Sources"
       }
     }
   },

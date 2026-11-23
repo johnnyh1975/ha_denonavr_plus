@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "De receiver op {host} is niet bereikbaar ({error}). Het instellen wordt opnieuw geprobeerd."
+    },
+    "play_url_unsupported": {
+      "message": "De {model} speelt geen webadressen af: hij heeft geen HEOS. Kies in plaats daarvan een bron of een snelkeuze."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Snelkeuze",
+        "sources": "Bronnen"
       }
     }
   },

@@ -216,6 +216,10 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   take play, pause, stop and skip over telnet. The tuner shows its station or
   frequency. Otherwise the player carries a source‑aware **input icon** (TV,
   disc, tuner, Bluetooth, USB, cast, …).
+- **Media browser and `play_media`** on the main zone: quick selects and
+  sources to pick, and on receivers with HEOS any URL and Home Assistant's own
+  media, text to speech included (HEOS `play_stream`, not yet tried on a
+  receiver). Receivers without HEOS take quick selects and sources only.
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,

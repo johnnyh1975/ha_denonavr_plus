@@ -159,6 +159,21 @@ def test_pause_freezes_the_position_and_stop_clears_it() -> None:
     assert updates[-1]["position"] is None and updates[-1]["duration"] is None
 
 
+@pytest.mark.assumed(
+    "browse/play_stream is in the HEOS CLI specification 1.14; whether an "
+    "AVR-X2600H plays any URL with it has not been tried"
+)
+async def test_a_url_is_played_with_its_reserved_characters_encoded() -> None:
+    client, _ = _client()
+    assert not await client.async_play_url("http://example.com/a.mp3")
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    _sent(client)
+    assert await client.async_play_url("http://example.com/tts?a=1&b=50%")
+    assert _sent(client) == [
+        "heos://browse/play_stream?pid=202&url=http://example.com/tts?a%3D1%26b%3D50%25"
+    ]
+
+
 class _HeosServer:
     """A HEOS stand-in on localhost that records commands and connections."""
 

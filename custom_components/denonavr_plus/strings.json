@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "Cannot reach the receiver at {host} ({error}). Setup is retried."
+    },
+    "play_url_unsupported": {
+      "message": "The {model} plays no web addresses: it has no HEOS. Pick a source or a quick select instead."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Quick Select",
+        "sources": "Sources"
       }
     }
   },

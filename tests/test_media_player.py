@@ -344,3 +344,130 @@ async def test_the_tuner_shows_its_station_or_frequency(
     assert state.attributes["media_title"] == "FM 92.90 MHz"
     await _push(hass, "TFANNAMEBayern 3")
     assert hass.states.get(main).attributes["media_title"] == "Bayern 3"
+
+
+async def test_the_browser_offers_sources_and_home_assistant_media(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import BrowseMedia
+    from homeassistant.setup import async_setup_component
+
+    from custom_components.denonavr_plus.media_player import DenonAvrMediaPlayer
+
+    assert await async_setup_component(hass, "media_source", {})
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    entity = next(
+        item
+        for item in hass.data["entity_components"]["media_player"].entities
+        if item.entity_id == main
+    )
+    assert isinstance(entity, DenonAvrMediaPlayer)
+    media = BrowseMedia(
+        media_class="directory",
+        media_content_id="media-source://",
+        media_content_type="",
+        title="Media",
+        can_play=False,
+        can_expand=True,
+    )
+    with patch(
+        "custom_components.denonavr_plus.media_player.media_source.async_browse_media",
+        AsyncMock(return_value=media),
+    ):
+        root = await entity.async_browse_media()
+    ids = [child.media_content_id for child in root.children or []]
+    assert "sources" in ids
+    assert any(content_id.startswith("media-source://") for content_id in ids)
+    sources = await entity.async_browse_media(None, "sources")
+    assert isinstance(sources, BrowseMedia)
+    assert any(child.media_content_id == "source/CD" for child in sources.children or [])
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {"entity_id": main, "media_content_type": "channel", "media_content_id": "source/CD"},
+        blocking=True,
+    )
+    assert "SICD" in telnet.sent
+
+
+async def test_a_url_goes_to_heos(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from .test_init import FakeHeos
+
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {
+            "entity_id": main,
+            "media_content_type": "music",
+            "media_content_id": "http://example.com/stream.mp3",
+        },
+        blocking=True,
+    )
+    assert ("url", "http://example.com/stream.mp3") in FakeHeos.instances[-1].calls
+
+
+async def test_quick_selects_and_home_assistant_media_play(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from types import SimpleNamespace
+
+    from homeassistant.components.media_player import BrowseMedia
+
+    from .test_init import FakeHeos
+
+    device = loaded_entry.runtime_data.device
+    device.discovery.quick_select_names = {1: "Kino", 2: "Radio"}
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    entity = next(
+        item
+        for item in hass.data["entity_components"]["media_player"].entities
+        if item.entity_id == main
+    )
+    folder = await entity.async_browse_media(None, "quick_select")
+    assert [child.title for child in folder.children or []] == ["Kino", "Radio"]
+    stub = BrowseMedia(
+        media_class="directory",
+        media_content_id="media-source://media_source",
+        media_content_type="",
+        title="Media",
+        can_play=False,
+        can_expand=True,
+    )
+    with patch(
+        "custom_components.denonavr_plus.media_player.media_source.async_browse_media",
+        AsyncMock(return_value=stub),
+    ):
+        assert (await entity.async_browse_media(None, "media-source://media_source")) is stub
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {"entity_id": main, "media_content_type": "music", "media_content_id": "quick_select/2"},
+        blocking=True,
+    )
+    assert "MSQUICK2" in telnet.sent
+
+    # Home Assistant's media (a TTS message, say) resolves to a URL for HEOS.
+    with patch(
+        "custom_components.denonavr_plus.media_player.media_source.async_resolve_media",
+        AsyncMock(return_value=SimpleNamespace(url="http://192.0.2.1:8123/api/tts_proxy/x.mp3")),
+    ):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "media-source://tts/x",
+            },
+            blocking=True,
+        )
+    assert ("url", "http://192.0.2.1:8123/api/tts_proxy/x.mp3") in FakeHeos.instances[-1].calls

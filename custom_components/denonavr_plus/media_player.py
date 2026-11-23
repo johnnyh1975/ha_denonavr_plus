@@ -10,8 +10,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime
+from typing import Any
 
+from homeassistant.components import media_source
 from homeassistant.components.media_player import (
+    BrowseError,
+    BrowseMedia,
+    MediaClass,
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
     MediaPlayerEntityFeature,
@@ -19,7 +24,12 @@ from homeassistant.components.media_player import (
     MediaType,
     RepeatMode,
 )
+from homeassistant.components.media_player.browse_media import (
+    async_process_play_media_url,
+)
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -27,12 +37,17 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import choices
 from . import volume as _volume
 from .avr.errors import CommandNotSent
+from .const import DOMAIN
 from .avr.models import NowPlaying, ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .device_trigger import turn_on_trigger
 from .entity import DenonAvrEntity, receiver_action, zone_device
 
 _LOGGER = logging.getLogger(__name__)
+
+# Media ids of the browser's own items: a quick select preset or a source.
+_QUICK_SELECT = "quick_select/"
+_SOURCE = "source/"
 
 # HEOS play modes and Home Assistant's repeat modes.
 _REPEAT_FROM_HEOS = {"off": RepeatMode.OFF, "on_all": RepeatMode.ALL, "on_one": RepeatMode.ONE}
@@ -130,7 +145,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         # transport controls (HEOS drives the whole receiver, i.e. the main
         # zone); without HEOS (a connection option) there is no transport.
         if zone.is_main:
-            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
+            features |= (
+                MediaPlayerEntityFeature.SELECT_SOUND_MODE
+                | MediaPlayerEntityFeature.BROWSE_MEDIA
+                | MediaPlayerEntityFeature.PLAY_MEDIA
+            )
             if coordinator.device.transport_available:
                 features |= (
                     MediaPlayerEntityFeature.PLAY
@@ -511,6 +530,129 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @receiver_action
     async def async_media_previous_track(self) -> None:
         await self._device.async_media_previous()
+
+    # Media browser and play_media (main zone) -----------------------------
+
+    async def async_browse_media(
+        self,
+        media_content_type: MediaType | str | None = None,
+        media_content_id: str | None = None,
+    ) -> BrowseMedia:
+        """Quick selects, sources and, where URLs can play, Home Assistant's media."""
+
+        if media_content_id and media_source.is_media_source_id(media_content_id):
+            return await media_source.async_browse_media(
+                self.hass,
+                media_content_id,
+                content_filter=lambda item: item.media_content_type.startswith("audio/"),
+            )
+        names = await self._folder_names()
+        if media_content_id == "quick_select":
+            return self._folder("quick_select", names["quick_select"], self._quick_select_items())
+        if media_content_id == "sources":
+            return self._folder("sources", names["sources"], self._source_items())
+        children: list[BrowseMedia] = []
+        if self._device.discovery.quick_select_names:
+            children.append(self._folder("quick_select", names["quick_select"], None))
+        children.append(self._folder("sources", names["sources"], None))
+        if self._device.can_play_url:
+            try:
+                children.append(
+                    await media_source.async_browse_media(
+                        self.hass,
+                        None,
+                        content_filter=lambda item: item.media_content_type.startswith("audio/"),
+                    )
+                )
+            except BrowseError:
+                # No media folder: the receiver's own items still show.
+                pass
+        return BrowseMedia(
+            media_class=MediaClass.DIRECTORY,
+            media_content_id="",
+            media_content_type="",
+            title=self._device.discovery.device.model_name or "Denon AVR",
+            can_play=False,
+            can_expand=True,
+            children=children,
+            children_media_class=MediaClass.DIRECTORY,
+        )
+
+    async def _folder_names(self) -> dict[str, str]:
+        """The browser's folder names, in the user's language."""
+
+        translations = await async_get_translations(
+            self.hass, self.hass.config.language, "selector", [DOMAIN]
+        )
+        prefix = f"component.{DOMAIN}.selector.browse_folder.options."
+        return {
+            key: translations.get(prefix + key, fallback)
+            for key, fallback in (("quick_select", "Quick Select"), ("sources", "Sources"))
+        }
+
+    @staticmethod
+    def _folder(content_id: str, title: str, children: list[BrowseMedia] | None) -> BrowseMedia:
+        return BrowseMedia(
+            media_class=MediaClass.DIRECTORY,
+            media_content_id=content_id,
+            media_content_type="",
+            title=title,
+            can_play=False,
+            can_expand=True,
+            children=children,
+            children_media_class=MediaClass.MUSIC if children is not None else None,
+        )
+
+    def _quick_select_items(self) -> list[BrowseMedia]:
+        return [
+            BrowseMedia(
+                media_class=MediaClass.MUSIC,
+                media_content_id=f"{_QUICK_SELECT}{number}",
+                media_content_type=MediaType.MUSIC,
+                title=name,
+                can_play=True,
+                can_expand=False,
+            )
+            for number, name in sorted(self._device.discovery.quick_select_names.items())
+        ]
+
+    def _source_items(self) -> list[BrowseMedia]:
+        discovery = self._device.discovery
+        options = self._entry_options
+        return [
+            BrowseMedia(
+                media_class=MediaClass.CHANNEL,
+                media_content_id=f"{_SOURCE}{code}",
+                media_content_type=MediaType.CHANNEL,
+                title=choices.source_display(discovery, options, code),
+                can_play=True,
+                can_expand=False,
+            )
+            for code in choices.source_codes(discovery, options, self._zone.id)
+        ]
+
+    @receiver_action
+    async def async_play_media(
+        self, media_type: MediaType | str, media_id: str, **kwargs: Any
+    ) -> None:
+        """A quick select, a source, or a URL (also from Home Assistant's media, TTS)."""
+
+        if media_id.startswith(_QUICK_SELECT):
+            await self._device.async_select_quick_select(int(media_id[len(_QUICK_SELECT):]))
+            return
+        if media_id.startswith(_SOURCE):
+            await self._device.async_select_source(self._zone.id, media_id[len(_SOURCE):])
+            return
+        if not self._device.can_play_url:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="play_url_unsupported",
+                translation_placeholders={"model": self._device.discovery.device.model_name or "receiver"},
+            )
+        if media_source.is_media_source_id(media_id):
+            item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
+            media_id = item.url
+        await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
 
     @receiver_action
     async def async_set_repeat(self, repeat: RepeatMode) -> None:

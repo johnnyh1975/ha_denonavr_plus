@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "Não é possível contactar o recetor em {host} ({error}). A configuração é repetida."
+    },
+    "play_url_unsupported": {
+      "message": "O {model} não reproduz endereços web: não tem HEOS. Escolha uma fonte ou um Quick Select."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Zona 2",
         "zone3": "Zona 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Quick Select",
+        "sources": "Fontes"
       }
     }
   },

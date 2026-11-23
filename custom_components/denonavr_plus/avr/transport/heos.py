@@ -126,6 +126,19 @@ class HeosClient:
     async def async_previous(self) -> None:
         await self._send_player("play_previous", "")
 
+    async def async_play_url(self, url: str) -> bool:
+        """Play a stream URL on the receiver (HEOS browse/play_stream).
+
+        False while the receiver's player is not known yet.
+        """
+
+        if self._pid is None:
+            return False
+        await self._queue.put(
+            f"heos://browse/play_stream?pid={self._pid}&url={_quote(url)}"
+        )
+        return True
+
     async def async_set_repeat(self, repeat: str) -> None:
         """Repeat off, all or one (off, on_all, on_one)."""
 
@@ -437,6 +450,12 @@ class HeosClient:
                 changed = True
         if changed:
             self._on_update(dict(self._snapshot))
+
+
+def _quote(value: str) -> str:
+    """Encode the three characters HEOS reserves in attribute values (CLI spec 1.14)."""
+
+    return value.replace("%", "%25").replace("&", "%26").replace("=", "%3D")
 
 
 def _parse_message(message: str) -> dict[str, str]:

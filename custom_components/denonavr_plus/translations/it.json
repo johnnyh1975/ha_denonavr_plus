@@ -947,6 +947,9 @@
     },
     "cannot_reach": {
       "message": "Impossibile raggiungere il sintoamplificatore a {host} ({error}). La configurazione viene ritentata."
+    },
+    "play_url_unsupported": {
+      "message": "Il {model} non riproduce indirizzi web: non ha HEOS. Scegli invece una sorgente o un Quick Select."
     }
   },
   "issues": {
@@ -985,6 +988,12 @@
       "options": {
         "zone2": "Zona 2",
         "zone3": "Zona 3"
+      }
+    },
+    "browse_folder": {
+      "options": {
+        "quick_select": "Quick Select",
+        "sources": "Sorgenti"
       }
     }
   },
