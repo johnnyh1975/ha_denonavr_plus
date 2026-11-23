@@ -1,10 +1,15 @@
-"""Tests for avr/transport/heos.py: which HEOS player is the receiver."""
+"""Tests for avr/transport/heos.py: the receiver's player and the heartbeat."""
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any
+from unittest.mock import patch
 
+import pytest
+
+from custom_components.denonavr_plus.avr.transport import heos
 from custom_components.denonavr_plus.avr.transport.heos import HeosClient
 
 HOST = "192.0.2.10"
@@ -89,3 +94,69 @@ def test_playing_again_after_stop_reads_the_track_again() -> None:
 
     _feed(client, "event/player_state_changed", "pid=202&state=play")
     assert _sent(client) == ["heos://player/get_now_playing_media?pid=202"]
+
+
+class _HeosServer:
+    """A HEOS stand-in on localhost that records commands and connections."""
+
+    def __init__(self, *, answer_heartbeat: bool) -> None:
+        self.answer_heartbeat = answer_heartbeat
+        self.connections = 0
+        self.received: list[str] = []
+        self.server: asyncio.Server | None = None
+
+    async def start(self) -> int:
+        self.server = await asyncio.start_server(self._serve, "127.0.0.1", 0)
+        return int(self.server.sockets[0].getsockname()[1])
+
+    async def stop(self) -> None:
+        assert self.server is not None
+        self.server.close()
+        await self.server.wait_closed()
+
+    async def _serve(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        self.connections += 1
+        try:
+            while line := await reader.readline():
+                command = line.decode().strip()
+                self.received.append(command)
+                if command == "heos://system/heart_beat" and not self.answer_heartbeat:
+                    continue
+                name = command.removeprefix("heos://").split("?")[0]
+                reply = {"heos": {"command": name, "result": "success", "message": ""}}
+                writer.write(json.dumps(reply).encode() + b"\r\n")
+                await writer.drain()
+        except ConnectionError:
+            pass
+        finally:
+            writer.close()
+
+
+async def _run_client(server: _HeosServer, seconds: float) -> None:
+    port = await server.start()
+    client = HeosClient("127.0.0.1", on_update=lambda _: None, port=port)
+    with (
+        patch.object(heos, "HEARTBEAT_INTERVAL", 0.05),
+        patch.object(heos, "HEARTBEAT_TIMEOUT", 0.05),
+        patch.object(heos, "RECONNECT_BACKOFF_MIN", 0.01),
+    ):
+        await client.async_start()
+        await asyncio.sleep(seconds)
+        await client.async_stop()
+    await server.stop()
+
+
+@pytest.mark.usefixtures("socket_enabled")
+async def test_an_idle_link_sends_a_heartbeat_and_stays() -> None:
+    server = _HeosServer(answer_heartbeat=True)
+    await _run_client(server, 0.4)
+    assert "heos://system/heart_beat" in server.received
+    assert server.connections == 1
+
+
+@pytest.mark.usefixtures("socket_enabled")
+async def test_an_unanswered_heartbeat_opens_the_link_again() -> None:
+    server = _HeosServer(answer_heartbeat=False)
+    await _run_client(server, 0.4)
+    assert "heos://system/heart_beat" in server.received
+    assert server.connections >= 2

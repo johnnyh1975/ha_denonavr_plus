@@ -137,10 +137,11 @@ home is still open.
 
 Smaller points: events are registered before the state is read (the
 specification suggests the reverse); `player_now_playing_progress` is
-ignored, which roadmap item 23 (position and duration) will need; and there
-is no `system/heart_beat`, so an idle connection relies on the TCP stack to
-notice a drop (see the practical notes). Events are registered again on
-every reconnect, as they must be.
+ignored, which roadmap item 23 (position and duration) will need. After 10 s
+without any message the integration sends `system/heart_beat`, as pyheos
+does (roadmap item 47); without a message within 5 s it opens the
+connection again, so a link that died without closing is noticed. Events
+are registered again on every reconnect, as they must be.
 
 ## Practical notes from other implementations
 
@@ -165,7 +166,7 @@ Music Assistant HEOS provider.
 
 | Point | pyheos / official integration | This integration |
 |---|---|---|
-| Heart beat | `system/heart_beat` after 10 s without traffic | none |
+| Heart beat | `system/heart_beat` after 10 s without traffic | `system/heart_beat` after 10 s without a message; reconnect without a message 5 s later |
 | Reconnect | automatic, unlimited, events registered again | automatic, events registered again |
 | Player identity | by `serial`, then `pid`, then name; IP address kept per player | by `ip`; a lone player as is; otherwise the first entry |
 | Event routing | by `pid` in the event | by `pid`; other players' events ignored |

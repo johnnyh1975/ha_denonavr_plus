@@ -36,6 +36,13 @@ DEFAULT_PORT = 1255
 _TERMINATOR = b"\r\n"
 # HEOS tolerates back-to-back commands, but a tiny gap keeps ordering sane.
 _COMMAND_SPACING = 0.05
+# A HEOS socket can die without a FIN (receiver in deep standby, a NAT or
+# Wi-Fi timeout), and with no events nothing would notice. After this long
+# without any message, ask with heart_beat; no message within the timeout
+# means the link is dead and it is opened again. pyheos also beats after 10 s.
+HEARTBEAT_INTERVAL = 10.0
+HEARTBEAT_TIMEOUT = 5.0
+_HEARTBEAT = "heos://system/heart_beat"
 
 
 class HeosClient:
@@ -57,6 +64,8 @@ class HeosClient:
         self._manager_task: asyncio.Task | None = None
         self._stopped = False
         self._pid: int | None = None
+        # Loop time of the last message received, for the heartbeat.
+        self._last_received = 0.0
         # Current snapshot; only re-broadcast when something actually changes.
         self._snapshot: dict = {
             "state": None,
@@ -143,9 +152,12 @@ class HeosClient:
         await self._queue.put("heos://player/get_players")
 
     async def _run_session(self) -> None:
-        reader_task = asyncio.ensure_future(self._read_loop())
-        writer_task = asyncio.ensure_future(self._write_loop())
-        tasks = [reader_task, writer_task]
+        self._last_received = asyncio.get_running_loop().time()
+        tasks = [
+            asyncio.ensure_future(self._read_loop()),
+            asyncio.ensure_future(self._write_loop()),
+            asyncio.ensure_future(self._heartbeat_loop()),
+        ]
         try:
             done, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             for task in done:
@@ -174,6 +186,7 @@ class HeosClient:
                 raw = await self._reader.readuntil(_TERMINATOR)
             except (asyncio.IncompleteReadError, asyncio.LimitOverrunError) as err:
                 raise ConnectionError("HEOS stream closed") from err
+            self._last_received = asyncio.get_running_loop().time()
             line = raw.decode("utf-8", errors="replace").strip()
             if line:
                 self._handle_message(line)
@@ -185,6 +198,20 @@ class HeosClient:
             self._writer.write(command.encode("utf-8") + _TERMINATOR)
             await self._writer.drain()
             await asyncio.sleep(_COMMAND_SPACING)
+
+    async def _heartbeat_loop(self) -> None:
+        """End the session when an idle link no longer answers a heart_beat."""
+
+        loop = asyncio.get_running_loop()
+        while True:
+            await asyncio.sleep(HEARTBEAT_INTERVAL)
+            if loop.time() - self._last_received < HEARTBEAT_INTERVAL:
+                continue
+            asked = loop.time()
+            await self._queue.put(_HEARTBEAT)
+            await asyncio.sleep(HEARTBEAT_TIMEOUT)
+            if self._last_received < asked:
+                raise ConnectionError("HEOS heart_beat unanswered")
 
     # Message handling -----------------------------------------------------
 
