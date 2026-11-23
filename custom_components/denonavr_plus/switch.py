@@ -60,10 +60,6 @@ class DenonAvrSwitch(DenonAvrEntity, SwitchEntity):
         self._spec = spec
         self._attr_translation_key = spec.id
         self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
-        # Optional profile-provided icon (e.g. a speaker/mute icon for main mute).
-        icon = spec.get("icon")
-        if icon:
-            self._attr_icon = icon
 
     @property
     def is_on(self) -> bool:

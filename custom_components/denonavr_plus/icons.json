@@ -1,0 +1,299 @@
+{
+  "entity": {
+    "button": {
+      "eq_apply": {
+        "default": "mdi:content-save"
+      },
+      "eq_copy_curve": {
+        "default": "mdi:content-copy"
+      },
+      "eq_default": {
+        "default": "mdi:restore"
+      }
+    },
+    "number": {
+      "audio_delay": {
+        "default": "mdi:timer-outline"
+      },
+      "bass": {
+        "default": "mdi:music-clef-bass"
+      },
+      "brightness": {
+        "default": "mdi:brightness-6"
+      },
+      "channel_distance": {
+        "default": "mdi:ruler"
+      },
+      "channel_trim": {
+        "default": "mdi:tune-vertical"
+      },
+      "containment_amount": {
+        "default": "mdi:waveform"
+      },
+      "contrast": {
+        "default": "mdi:contrast-box"
+      },
+      "dialog_control": {
+        "default": "mdi:account-voice"
+      },
+      "dialog_level": {
+        "default": "mdi:account-voice"
+      },
+      "effect_level": {
+        "default": "mdi:surround-sound"
+      },
+      "enhancer": {
+        "default": "mdi:auto-fix"
+      },
+      "lfe": {
+        "default": "mdi:speaker"
+      },
+      "saturation": {
+        "default": "mdi:palette"
+      },
+      "sleep_timer": {
+        "default": "mdi:sleep"
+      },
+      "subwoofer_level": {
+        "default": "mdi:speaker"
+      },
+      "treble": {
+        "default": "mdi:music-clef-treble"
+      },
+      "volume": {
+        "default": "mdi:volume-high"
+      },
+      "zone_volume": {
+        "default": "mdi:volume-high"
+      }
+    },
+    "select": {
+      "all_crossover": {
+        "default": "mdi:sine-wave"
+      },
+      "amp_assign": {
+        "default": "mdi:amplifier"
+      },
+      "aspect_ratio": {
+        "default": "mdi:aspect-ratio"
+      },
+      "crossover_speaker_selection": {
+        "default": "mdi:speaker"
+      },
+      "dimmer": {
+        "default": "mdi:brightness-6"
+      },
+      "dynamic_compression": {
+        "default": "mdi:arrow-collapse-vertical"
+      },
+      "dynamic_volume": {
+        "default": "mdi:volume-equal"
+      },
+      "eco_mode": {
+        "default": "mdi:leaf"
+      },
+      "eq_channel": {
+        "default": "mdi:speaker"
+      },
+      "eq_speaker_selection": {
+        "default": "mdi:speaker"
+      },
+      "floor_layout": {
+        "default": "mdi:floor-plan"
+      },
+      "front_speaker": {
+        "default": "mdi:speaker"
+      },
+      "hdmi_audio_out": {
+        "default": "mdi:video-input-hdmi"
+      },
+      "hdmi_power_off_control": {
+        "default": "mdi:power-plug-off"
+      },
+      "hdmi_signal_format": {
+        "default": "mdi:video-input-hdmi"
+      },
+      "hdmi_video_output": {
+        "default": "mdi:video-input-hdmi"
+      },
+      "height_speaker": {
+        "default": "mdi:speaker"
+      },
+      "input_mode": {
+        "default": "mdi:import"
+      },
+      "lpf_for_lfe": {
+        "default": "mdi:filter"
+      },
+      "multeq": {
+        "default": "mdi:equalizer"
+      },
+      "muting_level": {
+        "default": "mdi:volume-low"
+      },
+      "noise_reduction": {
+        "default": "mdi:blur"
+      },
+      "osd_now_playing": {
+        "default": "mdi:information-outline"
+      },
+      "osd_volume": {
+        "default": "mdi:volume-high"
+      },
+      "pass_through_source": {
+        "default": "mdi:swap-horizontal"
+      },
+      "picture_mode": {
+        "default": "mdi:image"
+      },
+      "quick_select": {
+        "default": "mdi:numeric"
+      },
+      "rc_select": {
+        "default": "mdi:remote"
+      },
+      "reference_level_offset": {
+        "default": "mdi:tune"
+      },
+      "resolution_hdmi": {
+        "default": "mdi:monitor-screenshot"
+      },
+      "restorer": {
+        "default": "mdi:auto-fix"
+      },
+      "room_size": {
+        "default": "mdi:floor-plan"
+      },
+      "sound_mode": {
+        "default": "mdi:surround-sound"
+      },
+      "sound_mode_group": {
+        "default": "mdi:surround-sound"
+      },
+      "speaker_crossover": {
+        "default": "mdi:sine-wave"
+      },
+      "speaker_size": {
+        "default": "mdi:speaker"
+      },
+      "subwoofer_count": {
+        "default": "mdi:speaker"
+      },
+      "subwoofer_mode": {
+        "default": "mdi:speaker"
+      },
+      "tv_format": {
+        "default": "mdi:television"
+      },
+      "video_mode": {
+        "default": "mdi:video"
+      },
+      "volume_limit": {
+        "default": "mdi:volume-high"
+      },
+      "volume_scale": {
+        "default": "mdi:counter"
+      }
+    },
+    "sensor": {
+      "audio_format": {
+        "default": "mdi:music-box"
+      },
+      "decoder": {
+        "default": "mdi:surround-sound"
+      },
+      "input_signal": {
+        "default": "mdi:import"
+      },
+      "mode_info": {
+        "default": "mdi:information-outline"
+      },
+      "sample_rate": {
+        "default": "mdi:sine-wave"
+      },
+      "sound_mode": {
+        "default": "mdi:surround-sound"
+      },
+      "source": {
+        "default": "mdi:import"
+      },
+      "zone_source": {
+        "default": "mdi:import"
+      }
+    },
+    "switch": {
+      "all_zone_stereo": {
+        "default": "mdi:speaker-multiple"
+      },
+      "arc": {
+        "default": "mdi:video-input-hdmi"
+      },
+      "auto_lip_sync": {
+        "default": "mdi:sync"
+      },
+      "center_spread": {
+        "default": "mdi:arrow-expand-horizontal"
+      },
+      "cinema_eq": {
+        "default": "mdi:movie-open"
+      },
+      "dts_neural_x": {
+        "default": "mdi:surround-sound"
+      },
+      "dynamic_eq": {
+        "default": "mdi:equalizer"
+      },
+      "graphic_eq": {
+        "default": "mdi:equalizer-outline"
+      },
+      "hdmi_control": {
+        "default": "mdi:video-input-hdmi"
+      },
+      "hdmi_pass_through": {
+        "default": "mdi:swap-horizontal"
+      },
+      "hdmi_power_saving": {
+        "default": "mdi:leaf"
+      },
+      "headphone_eq": {
+        "default": "mdi:headphones"
+      },
+      "loudness_management": {
+        "default": "mdi:volume-equal"
+      },
+      "low_frequency_containment": {
+        "default": "mdi:waveform"
+      },
+      "main_mute": {
+        "default": "mdi:volume-high",
+        "state": {
+          "on": "mdi:volume-off"
+        }
+      },
+      "main_power": {
+        "default": "mdi:power-off",
+        "state": {
+          "on": "mdi:power"
+        }
+      },
+      "osd_info": {
+        "default": "mdi:information-outline"
+      },
+      "smart_menu": {
+        "default": "mdi:menu"
+      },
+      "speaker_virtualizer": {
+        "default": "mdi:surround-sound"
+      },
+      "subwoofer_switch": {
+        "default": "mdi:speaker"
+      },
+      "tone_control": {
+        "default": "mdi:tune-vertical"
+      },
+      "tv_audio_switching": {
+        "default": "mdi:television"
+      }
+    }
+  }
+}

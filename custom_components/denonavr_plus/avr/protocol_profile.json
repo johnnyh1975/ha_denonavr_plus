@@ -354,7 +354,6 @@
       "prefix": "ZM",
       "on": "ON",
       "off": "OFF",
-      "icon": "mdi:power",
       "doc": "Main zone power. Also on the media player; exposed as a switch too. State comes from the ZM event (mirrored into values)."
     },
     "main_volume": {
@@ -378,7 +377,6 @@
       "prefix": "MU",
       "on": "ON",
       "off": "OFF",
-      "icon": "mdi:volume-mute",
       "doc": "Main zone mute. Also on the media player; exposed as a switch too with a speaker/mute icon. State comes from the MU event (mirrored into values)."
     },
     "main_source": {
@@ -648,7 +646,6 @@
       "on": "ON",
       "off": "OFF",
       "name": "All Zone Stereo",
-      "icon": "mdi:speaker-multiple",
       "doc": "All Zone Stereo: play the main zone audio in stereo across every zone. Set via 'MNZST ON|OFF' (verified live). Core-scoped (no Deviceinfo FuncName), parsed explicitly. Its own 'MNZST ?' query returns nothing, so the on/off state is derived from the sound mode (MS reports 'ALL ZONE STEREO' when active, verified live) - this gives a known state (single toggle, not two buttons) from the resync MS? onwards; the MNZST echo/push updates it immediately on change."
     },
     "subwoofer_mode": {

@@ -42,7 +42,6 @@ class DenonAvrEqApply(DenonAvrEntity, ButtonEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_entity_registry_enabled_default = False
-    _attr_icon = "mdi:content-save"
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "button_eq_apply", sub_device="eq")
@@ -58,7 +57,6 @@ class DenonAvrEqCurveCopy(DenonAvrEntity, ButtonEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_entity_registry_enabled_default = False
-    _attr_icon = "mdi:content-copy"
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "button_eq_curve_copy", sub_device="eq")
@@ -74,7 +72,6 @@ class DenonAvrEqSetDefaults(DenonAvrEntity, ButtonEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_entity_registry_enabled_default = False
-    _attr_icon = "mdi:restore"
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "button_eq_set_defaults", sub_device="eq")

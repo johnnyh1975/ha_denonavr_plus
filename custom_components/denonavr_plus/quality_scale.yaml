@@ -154,8 +154,10 @@ rules:
     status: todo
     comment: The setup API write error is translated; telnet errors follow.
   icon-translations:
-    status: todo
-    comment: Icons are still set in code.
+    status: done
+    comment: >-
+      Every entity names its icon in icons.json, mute and power with state
+      icons; scripts/check_icons.py keeps it that way.
   reconfiguration-flow:
     status: done
   repair-issues:
