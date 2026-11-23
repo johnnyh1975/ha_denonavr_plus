@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Opzioni",
+        "menu_options": {
+          "volume": "Volume",
+          "zones": "Zone",
+          "sources": "Sorgenti",
+          "sound_modes": "Modalità audio"
+        }
+      },
+      "volume": {
         "title": "Volume",
         "description": "Impostazioni per i lettori multimediali e i numeri del volume di questo sintoamplificatore.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Zone",
+        "description": "Quali zone aggiuntive hanno entità in Home Assistant. Il sintoamplificatore non viene modificato.",
+        "data": {
+          "zones": "Zone mostrate"
+        },
+        "data_description": {
+          "zones": "Una zona non selezionata non ha lettore multimediale, volume né sensore della sorgente; le sue entità vengono rimosse."
+        }
+      },
+      "sources": {
+        "title": "Sorgenti",
+        "description": "Quali sorgenti offre il lettore multimediale di ogni zona. I nomi e le sorgenti nascoste del sintoamplificatore sono già considerati.",
+        "sections": {
+          "main": {
+            "name": "Zona principale",
+            "data": {
+              "sources": "Sorgenti mostrate"
+            },
+            "data_description": {
+              "sources": "Seleziona tutto per mostrare anche le sorgenti aggiunte in seguito sul sintoamplificatore."
+            }
+          },
+          "zone2": {
+            "name": "Zona 2",
+            "data": {
+              "sources": "Sorgenti mostrate"
+            },
+            "data_description": {
+              "sources": "Seleziona tutto per mostrare anche le sorgenti aggiunte in seguito sul sintoamplificatore."
+            }
+          },
+          "zone3": {
+            "name": "Zona 3",
+            "data": {
+              "sources": "Sorgenti mostrate"
+            },
+            "data_description": {
+              "sources": "Seleziona tutto per mostrare anche le sorgenti aggiunte in seguito sul sintoamplificatore."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Nomi delle sorgenti",
+        "description": "Nomi delle sorgenti in Home Assistant. Vuoto usa il nome del sintoamplificatore. Il sintoamplificatore non viene modificato."
+      },
+      "sound_modes": {
+        "title": "Modalità audio",
+        "description": "Quali modalità audio offre il lettore multimediale della zona principale. Il sintoamplificatore offre solo le modalità adatte al segnale attuale.",
+        "data": {
+          "sound_modes": "Modalità audio mostrate"
+        },
+        "data_description": {
+          "sound_modes": "Seleziona tutto per mostrare anche le modalità offerte in seguito."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Nomi delle modalità audio",
+        "description": "Nomi delle modalità audio in Home Assistant. Vuoto usa il nome del sintoamplificatore."
       }
     },
     "error": {
-      "turn_on_above_max": "Il volume all'accensione supera il volume massimo."
+      "turn_on_above_max": "Il volume all'accensione supera il volume massimo.",
+      "duplicate_name": "Due voci avrebbero lo stesso nome."
+    },
+    "abort": {
+      "not_connected": "Il sintoamplificatore non è connesso. Sorgenti e modalità audio vengono lette dal dispositivo; riprova quando è acceso.",
+      "no_additional_zones": "Questo sintoamplificatore non ha zone aggiuntive.",
+      "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Info modalità"
+      },
+      "source": {
+        "name": "Sorgente"
+      },
+      "zone_source": {
+        "name": "Sorgente zona {index}"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "Il {model} non accetta una connessione di controllo",
       "description": "Il {model} risponde in rete, ma da alcuni minuti non accetta una connessione telnet sulla porta 23. Fino ad allora i lettori multimediali funzionano solo tramite l'interfaccia web: accensione, volume, silenziamento e sorgente, con un ritardo fino a 10 secondi. Tutte le altre impostazioni non sono disponibili.\n\nIl sintoamplificatore consente una sola connessione telnet alla volta. Cause comuni:\n\n- Un'altra integrazione o un altro programma occupa questa connessione, ad esempio l'integrazione ufficiale Denon AVR o un altro sistema di domotica. Rimuovila o disattivala per questo sintoamplificatore.\n- Una regola del firewall o della VLAN blocca la porta 23 tra Home Assistant e il sintoamplificatore, mentre le porte web sono aperte.\n\nIl messaggio scompare da solo non appena la connessione funziona di nuovo."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Zona 2",
+        "zone3": "Zona 3"
+      }
     }
   }
 }

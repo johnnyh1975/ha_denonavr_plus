@@ -27,7 +27,7 @@ from custom_components.denonavr_plus.avr.transport import (
     UpnpClient,
     WebConfigClient,
 )
-from custom_components.denonavr_plus.const import DOMAIN
+from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
 from .conftest import deviceinfo
 
@@ -120,7 +120,10 @@ def receiver_network() -> Any:
 async def loaded_entry(
     hass: HomeAssistant, receiver_network: Any
 ) -> AsyncIterator[MockConfigEntry]:
-    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: HOST})
+    # Created at the current version; tests/test_migrations.py covers older ones.
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION
+    )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -236,3 +239,27 @@ async def test_setup_remembers_the_goform_port(
 ) -> None:
     """An entry created without a port learns it at its first setup."""
     assert loaded_entry.data[CONF_PORT] == 8080
+
+
+async def test_a_zone_switched_off_loses_its_entities(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    registry = er.async_get(hass)
+
+    def zone2_entities() -> list[str]:
+        return [
+            item.unique_id
+            for item in er.async_entries_for_config_entry(registry, loaded_entry.entry_id)
+            if item.unique_id.endswith("_zone2")
+        ]
+
+    assert len(zone2_entities()) == 3  # media player, volume, source sensor
+    # Switching zone 2 off reloads the entry and removes its entities.
+    hass.config_entries.async_update_entry(loaded_entry, options={"zones": []})
+    await hass.async_block_till_done()
+    assert loaded_entry.state is ConfigEntryState.LOADED
+    assert zone2_entities() == []
+    # Switching it on again brings them back.
+    hass.config_entries.async_update_entry(loaded_entry, options={"zones": ["zone2"]})
+    await hass.async_block_till_done()
+    assert len(zone2_entities()) == 3

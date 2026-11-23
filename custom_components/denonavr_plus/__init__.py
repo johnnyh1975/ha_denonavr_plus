@@ -14,6 +14,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
+from . import choices
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -60,16 +61,59 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     # (Audio/Video/Speakers/…) can link to it by id via `via_device_id`; the old
     # `via_device` identifier tuple is deprecated (removed in HA 2027.8.0).
     _register_main_device(hass, entry, coordinator)
+    coordinator.shown_zones = _shown_zones(entry, coordinator)
+    _remove_hidden_zones(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _apply_channel_defaults(hass, entry, coordinator)
-    # Entities read the volume options when they need them; an options change
-    # only has to redraw them (the volume number's range follows the limit).
     entry.async_on_unload(entry.add_update_listener(_async_entry_updated))
     return True
 
 
+def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:
+    options = dict(entry.options)
+    return frozenset(
+        zone.id
+        for zone in coordinator.device.discovery.zones
+        if choices.zone_enabled(options, zone.id)
+    )
+
+
+def _remove_hidden_zones(
+    hass: HomeAssistant, entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator
+) -> None:
+    """Remove the entities of zones the options leave out.
+
+    Otherwise they would stay in the registry as "no longer provided".
+    """
+
+    hidden = {
+        zone.id for zone in coordinator.device.discovery.zones
+    } - coordinator.shown_zones
+    if not hidden:
+        return
+    registry = er.async_get(hass)
+    suffixes = tuple(
+        f"_{kind}_{zone}"
+        for zone in hidden
+        for kind in ("media_player", "number_volume", "sensor_source")
+    )
+    for item in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if item.unique_id.endswith(suffixes):
+            registry.async_remove(item.entity_id)
+
+
 async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
-    entry.runtime_data.async_update_listeners()
+    """Options changed: reload for other zones, otherwise redraw the entities.
+
+    The entities read the source, sound mode and volume options when they
+    need them, so only a change of zones needs entities created or removed.
+    """
+
+    coordinator = entry.runtime_data
+    if _shown_zones(entry, coordinator) != coordinator.shown_zones:
+        hass.config_entries.async_schedule_reload(entry.entry_id)
+        return
+    coordinator.async_update_listeners()
 
 
 def _register_main_device(

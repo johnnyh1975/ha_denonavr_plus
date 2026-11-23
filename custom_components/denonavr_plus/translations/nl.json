@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Opties",
+        "menu_options": {
+          "volume": "Volume",
+          "zones": "Zones",
+          "sources": "Bronnen",
+          "sound_modes": "Geluidsmodi"
+        }
+      },
+      "volume": {
         "title": "Volume",
         "description": "Instellingen voor de mediaspelers en de volumegetallen van deze receiver.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Zones",
+        "description": "Welke extra zones entiteiten in Home Assistant krijgen. De receiver wordt niet gewijzigd.",
+        "data": {
+          "zones": "Getoonde zones"
+        },
+        "data_description": {
+          "zones": "Een niet gekozen zone heeft geen mediaspeler, volume of bronsensor; de entiteiten ervan worden verwijderd."
+        }
+      },
+      "sources": {
+        "title": "Bronnen",
+        "description": "Welke bronnen de mediaspeler van elke zone aanbiedt. De namen en verborgen bronnen van de receiver zijn al verwerkt.",
+        "sections": {
+          "main": {
+            "name": "Hoofdzone",
+            "data": {
+              "sources": "Getoonde bronnen"
+            },
+            "data_description": {
+              "sources": "Kies alles om ook bronnen te tonen die later op de receiver worden toegevoegd."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "data": {
+              "sources": "Getoonde bronnen"
+            },
+            "data_description": {
+              "sources": "Kies alles om ook bronnen te tonen die later op de receiver worden toegevoegd."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "data": {
+              "sources": "Getoonde bronnen"
+            },
+            "data_description": {
+              "sources": "Kies alles om ook bronnen te tonen die later op de receiver worden toegevoegd."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Namen van de bronnen",
+        "description": "Namen voor de bronnen in Home Assistant. Leeg gebruikt de naam van de receiver. De receiver wordt niet gewijzigd."
+      },
+      "sound_modes": {
+        "title": "Geluidsmodi",
+        "description": "Welke geluidsmodi de mediaspeler van de hoofdzone aanbiedt. De receiver biedt alleen de modi die bij het huidige signaal passen.",
+        "data": {
+          "sound_modes": "Getoonde geluidsmodi"
+        },
+        "data_description": {
+          "sound_modes": "Kies alles om ook modi te tonen die de receiver later aanbiedt."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Namen van de geluidsmodi",
+        "description": "Namen voor de geluidsmodi in Home Assistant. Leeg gebruikt de naam van de receiver."
       }
     },
     "error": {
-      "turn_on_above_max": "Het volume bij inschakelen ligt boven het maximale volume."
+      "turn_on_above_max": "Het volume bij inschakelen ligt boven het maximale volume.",
+      "duplicate_name": "Twee items zouden dezelfde naam krijgen."
+    },
+    "abort": {
+      "not_connected": "De receiver is niet verbonden. De bronnen en geluidsmodi worden van de receiver gelezen; probeer het opnieuw als hij aan staat.",
+      "no_additional_zones": "Deze receiver heeft geen extra zone.",
+      "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Modusinformatie"
+      },
+      "source": {
+        "name": "Bron"
+      },
+      "zone_source": {
+        "name": "Zone {index} bron"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "{model} accepteert geen besturingsverbinding",
       "description": "De {model} reageert op het netwerk, maar heeft al enkele minuten geen telnet-verbinding op poort 23 geaccepteerd. Tot die tijd werken de mediaspelers alleen via de webinterface: aan/uit, volume, dempen en bron, met tot 10 seconden vertraging. Alle andere instellingen zijn niet beschikbaar.\n\nDe receiver staat maar één telnet-verbinding tegelijk toe. Veelvoorkomende oorzaken:\n\n- Een andere integratie of een ander programma gebruikt die verbinding, bijvoorbeeld de officiële Denon AVR-integratie of een ander domoticasysteem. Verwijder of schakel die uit voor deze receiver.\n- Een firewall- of VLAN-regel blokkeert poort 23 tussen Home Assistant en de receiver, terwijl de webpoorten open zijn.\n\nDeze melding verdwijnt vanzelf zodra de verbinding weer werkt."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Zone 2",
+        "zone3": "Zone 3"
+      }
     }
   }
 }

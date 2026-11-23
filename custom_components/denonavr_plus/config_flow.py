@@ -28,6 +28,11 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+    TextSelector,
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
@@ -40,6 +45,14 @@ from .const import (
     CONFIG_MINOR_VERSION,
     CONFIG_VERSION,
     DOMAIN,
+)
+from . import choices
+from .choices import (
+    OPT_SOUND_MODE_NAMES,
+    OPT_SOUND_MODES,
+    OPT_SOURCE_NAMES,
+    OPT_SOURCES,
+    OPT_ZONES,
 )
 from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME
 
@@ -210,9 +223,37 @@ def _zones(hass: Any, entry: ConfigEntry) -> list[str]:
 
 
 class DenonAvrOptionsFlow(OptionsFlow):
-    """Volume options: the official scale, and per zone a limit and a turn-on volume."""
+    """Options: volume, zones, and which sources and sound modes appear, and how."""
+
+    def __init__(self) -> None:
+        self._pending: dict[str, Any] = {}
+        self._mode_names_for: list[str] = []
+
+    # Helpers -------------------------------------------------------------
+
+    def _discovery(self) -> Any | None:
+        """The receiver's discovery, when the entry is loaded."""
+
+        coordinator = getattr(self.config_entry, "runtime_data", None)
+        device = getattr(coordinator, "device", None)
+        return getattr(device, "discovery", None)
+
+    def _save(self, values: dict[str, Any]) -> ConfigFlowResult:
+        # Merge: the options also hold markers and settings of other steps.
+        return self.async_create_entry(data={**self.config_entry.options, **values})
+
+    # Menu ------------------------------------------------------------------
 
     async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        return self.async_show_menu(
+            step_id="init", menu_options=["volume", "zones", "sources", "sound_modes"]
+        )
+
+    # Volume ----------------------------------------------------------------
+
+    async def async_step_volume(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         zones = _zones(self.hass, self.config_entry)
@@ -226,8 +267,7 @@ class DenonAvrOptionsFlow(OptionsFlow):
                 if limit is not None and turn_on is not None and turn_on > limit:
                     errors["base"] = "turn_on_above_max"
             if not errors:
-                # Merge: the options also hold markers this dialog does not show.
-                return self.async_create_entry(data={**options, **user_input})
+                return self._save(user_input)
             options = {**options, **user_input}
 
         fields: dict[Any, Any] = {
@@ -252,6 +292,182 @@ class DenonAvrOptionsFlow(OptionsFlow):
                 vol.Schema(zone_fields), {"collapsed": zone != "main"}
             )
         return self.async_show_form(
-            step_id="init", data_schema=vol.Schema(fields), errors=errors
+            step_id="volume", data_schema=vol.Schema(fields), errors=errors
         )
 
+    # Zones -----------------------------------------------------------------
+
+    async def async_step_zones(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        discovery = self._discovery()
+        known = (
+            [zone.id for zone in discovery.zones]
+            if discovery is not None
+            else _zones(self.hass, self.config_entry)
+        )
+        stored = self.config_entry.options.get(OPT_ZONES)
+        known += [zone for zone in stored or [] if zone not in known]
+        additional = [zone for zone in _ZONE_ORDER if zone in known and zone != "main"]
+        if not additional:
+            return self.async_abort(reason="no_additional_zones")
+        if user_input is not None:
+            return self._save({OPT_ZONES: list(user_input[OPT_ZONES])})
+        current = stored if stored is not None else additional
+        return self.async_show_form(
+            step_id="zones",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(OPT_ZONES, default=list(current)): SelectSelector(
+                        SelectSelectorConfig(
+                            options=additional,
+                            multiple=True,
+                            mode=SelectSelectorMode.LIST,
+                            translation_key="zone",
+                        )
+                    )
+                }
+            ),
+        )
+
+    # Sources -----------------------------------------------------------------
+
+    async def async_step_sources(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        discovery = self._discovery()
+        if discovery is None:
+            return self.async_abort(reason="not_connected")
+        options = dict(self.config_entry.options)
+        zones = [zone.id for zone in discovery.zones if choices.zone_enabled(options, zone.id)]
+        visible = [
+            SelectOptionDict(value=source.code, label=source.name)
+            for source in discovery.visible_sources()
+        ]
+        if user_input is not None:
+            every = {option["value"] for option in visible}
+            selection_in: dict[str, list[str]] = {}
+            for zone in zones:
+                chosen = list(user_input.get(zone, {}).get(OPT_SOURCES, []))
+                # All of them means all, also sources the receiver adds later.
+                selection_in[zone] = [] if set(chosen) >= every else chosen
+            self._pending = {OPT_SOURCES: selection_in}
+            return await self.async_step_source_names()
+        stored = options.get(OPT_SOURCES)
+        selection: dict[str, Any] = stored if isinstance(stored, dict) else {}
+        fields: dict[Any, Any] = {}
+        for zone in zones:
+            chosen = selection.get(zone) or [option["value"] for option in visible]
+            fields[vol.Required(zone)] = section(
+                vol.Schema(
+                    {
+                        vol.Optional(OPT_SOURCES, default=list(chosen)): SelectSelector(
+                            SelectSelectorConfig(options=visible, multiple=True)
+                        )
+                    }
+                ),
+                {"collapsed": zone != "main"},
+            )
+        return self.async_show_form(step_id="sources", data_schema=vol.Schema(fields))
+
+    async def async_step_source_names(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        discovery = self._discovery()
+        if discovery is None:
+            return self.async_abort(reason="not_connected")
+        selection = self._pending.get(OPT_SOURCES, {})
+        codes = [
+            source.code
+            for source in discovery.visible_sources()
+            if any(source.code in (chosen or []) for chosen in selection.values())
+            or not any(selection.values())
+        ]
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            names = {
+                code: str(user_input[code]).strip()
+                for code in codes
+                if str(user_input.get(code) or "").strip()
+                and str(user_input[code]).strip() != discovery.source_name(code)
+            }
+            shown = [names.get(code) or discovery.source_name(code) or code for code in codes]
+            if len(shown) != len(set(shown)):
+                errors["base"] = "duplicate_name"
+            else:
+                return self._save({**self._pending, OPT_SOURCE_NAMES: names})
+        current = dict(self.config_entry.options.get(OPT_SOURCE_NAMES) or {})
+        fields = {
+            vol.Optional(
+                code,
+                description={
+                    "suggested_value": current.get(code) or discovery.source_name(code) or code
+                },
+            ): TextSelector()
+            for code in codes
+        }
+        return self.async_show_form(
+            step_id="source_names", data_schema=vol.Schema(fields), errors=errors
+        )
+
+    # Sound modes -------------------------------------------------------------
+
+    def _known_sound_modes(self, discovery: Any) -> list[str]:
+        modes = list(discovery.all_sound_modes)
+        modes += [mode for mode in discovery.current_sound_modes if mode not in modes]
+        return modes
+
+    async def async_step_sound_modes(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        discovery = self._discovery()
+        if discovery is None:
+            return self.async_abort(reason="not_connected")
+        modes = self._known_sound_modes(discovery)
+        if not modes:
+            return self.async_abort(reason="no_sound_modes")
+        if user_input is not None:
+            chosen_in = list(user_input[OPT_SOUND_MODES])
+            # The names step lists the chosen modes; "all" is stored as empty.
+            self._pending = {OPT_SOUND_MODES: [] if set(chosen_in) >= set(modes) else chosen_in}
+            self._mode_names_for = chosen_in
+            return await self.async_step_sound_mode_names()
+        chosen = self.config_entry.options.get(OPT_SOUND_MODES) or modes
+        return self.async_show_form(
+            step_id="sound_modes",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(OPT_SOUND_MODES, default=list(chosen)): SelectSelector(
+                        SelectSelectorConfig(options=modes, multiple=True)
+                    )
+                }
+            ),
+        )
+
+    async def async_step_sound_mode_names(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        modes = list(self._mode_names_for)
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            names = {
+                mode: str(user_input[mode]).strip()
+                for mode in modes
+                if str(user_input.get(mode) or "").strip()
+                and str(user_input[mode]).strip() != mode
+            }
+            shown = [names.get(mode) or mode for mode in modes]
+            if len(shown) != len(set(shown)):
+                errors["base"] = "duplicate_name"
+            else:
+                return self._save({**self._pending, OPT_SOUND_MODE_NAMES: names})
+        current = dict(self.config_entry.options.get(OPT_SOUND_MODE_NAMES) or {})
+        fields = {
+            vol.Optional(
+                mode, description={"suggested_value": current.get(mode) or mode}
+            ): TextSelector()
+            for mode in modes
+        }
+        return self.async_show_form(
+            step_id="sound_mode_names", data_schema=vol.Schema(fields), errors=errors
+        )

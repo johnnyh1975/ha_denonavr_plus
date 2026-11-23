@@ -19,6 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from . import choices
 from . import volume as _volume
 from .avr import graphic_eq
 from .avr.models import ZoneDescriptor
@@ -49,7 +50,8 @@ async def async_setup_entry(
 
     # The volume of each zone in dB, settable (the media player shows 0..1).
     for zone in discovery.zones:
-        entities.append(DenonAvrVolume(coordinator, zone))
+        if choices.zone_enabled(dict(entry.options), zone.id):
+            entities.append(DenonAvrVolume(coordinator, zone))
 
     for spec in device.profile.controls.values():
         if spec.kind not in _NUMBER_KINDS:

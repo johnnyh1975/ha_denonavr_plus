@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Options",
+        "menu_options": {
+          "volume": "Volume",
+          "zones": "Zones",
+          "sources": "Sources",
+          "sound_modes": "Sound modes"
+        }
+      },
+      "volume": {
         "title": "Volume",
         "description": "Settings for the media players and the volume numbers of this receiver.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Zones",
+        "description": "Which additional zones get entities in Home Assistant. The receiver is not changed.",
+        "data": {
+          "zones": "Zones shown"
+        },
+        "data_description": {
+          "zones": "A zone that is not selected has no media player, volume or source sensor; its entities are removed."
+        }
+      },
+      "sources": {
+        "title": "Sources",
+        "description": "Which sources each zone's media player offers. The receiver's own names and hidden sources are already taken into account.",
+        "sections": {
+          "main": {
+            "name": "Main zone",
+            "data": {
+              "sources": "Sources shown"
+            },
+            "data_description": {
+              "sources": "Select all to also show sources added on the receiver later."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "data": {
+              "sources": "Sources shown"
+            },
+            "data_description": {
+              "sources": "Select all to also show sources added on the receiver later."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "data": {
+              "sources": "Sources shown"
+            },
+            "data_description": {
+              "sources": "Select all to also show sources added on the receiver later."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Source names",
+        "description": "Names for the sources in Home Assistant. Empty uses the receiver's name. The receiver is not changed."
+      },
+      "sound_modes": {
+        "title": "Sound modes",
+        "description": "Which sound modes the main zone's media player offers. The receiver only offers the modes that fit the current signal.",
+        "data": {
+          "sound_modes": "Sound modes shown"
+        },
+        "data_description": {
+          "sound_modes": "Select all to also show modes the receiver offers later."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Sound mode names",
+        "description": "Names for the sound modes in Home Assistant. Empty uses the receiver's name."
       }
     },
     "error": {
-      "turn_on_above_max": "The turn-on volume is above the maximum volume."
+      "turn_on_above_max": "The turn-on volume is above the maximum volume.",
+      "duplicate_name": "Two entries would get the same name."
+    },
+    "abort": {
+      "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
+      "no_additional_zones": "This receiver has no additional zone.",
+      "no_sound_modes": "The receiver has not reported any sound modes yet."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Mode Info"
+      },
+      "source": {
+        "name": "Source"
+      },
+      "zone_source": {
+        "name": "Zone {index} Source"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "{model} does not accept a control connection",
       "description": "The {model} answers on the network, but has not accepted a telnet connection on port 23 for several minutes. Until it does, the media players work over the web interface only: power, volume, mute and source, with up to 10 seconds delay. All other settings are unavailable.\n\nThe receiver allows only one telnet connection at a time. Common causes:\n\n- Another integration or program holds that connection, for example the official Denon AVR integration or another home automation system. Remove or disable it for this receiver.\n- A firewall or VLAN rule blocks port 23 between Home Assistant and the receiver, while the web ports are open.\n\nThe message disappears by itself as soon as the connection works again."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Zone 2",
+        "zone3": "Zone 3"
+      }
     }
   }
 }

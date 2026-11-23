@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Options",
+        "menu_options": {
+          "volume": "Volume",
+          "zones": "Zones",
+          "sources": "Sources",
+          "sound_modes": "Modes son"
+        }
+      },
+      "volume": {
         "title": "Volume",
         "description": "Réglages des lecteurs multimédias et des nombres de volume de cet ampli-tuner.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Zones",
+        "description": "Quelles zones supplémentaires ont des entités dans Home Assistant. L'ampli-tuner n'est pas modifié.",
+        "data": {
+          "zones": "Zones affichées"
+        },
+        "data_description": {
+          "zones": "Une zone non sélectionnée n'a ni lecteur multimédia, ni volume, ni capteur de source ; ses entités sont supprimées."
+        }
+      },
+      "sources": {
+        "title": "Sources",
+        "description": "Quelles sources le lecteur multimédia de chaque zone propose. Les noms et les sources masquées de l'ampli-tuner sont déjà pris en compte.",
+        "sections": {
+          "main": {
+            "name": "Zone principale",
+            "data": {
+              "sources": "Sources affichées"
+            },
+            "data_description": {
+              "sources": "Sélectionnez tout pour afficher aussi les sources ajoutées plus tard sur l'ampli-tuner."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "data": {
+              "sources": "Sources affichées"
+            },
+            "data_description": {
+              "sources": "Sélectionnez tout pour afficher aussi les sources ajoutées plus tard sur l'ampli-tuner."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "data": {
+              "sources": "Sources affichées"
+            },
+            "data_description": {
+              "sources": "Sélectionnez tout pour afficher aussi les sources ajoutées plus tard sur l'ampli-tuner."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Noms des sources",
+        "description": "Noms des sources dans Home Assistant. Vide utilise le nom de l'ampli-tuner. L'ampli-tuner n'est pas modifié."
+      },
+      "sound_modes": {
+        "title": "Modes son",
+        "description": "Quels modes son le lecteur multimédia de la zone principale propose. L'ampli-tuner ne propose que les modes adaptés au signal actuel.",
+        "data": {
+          "sound_modes": "Modes son affichés"
+        },
+        "data_description": {
+          "sound_modes": "Sélectionnez tout pour afficher aussi les modes proposés plus tard."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Noms des modes son",
+        "description": "Noms des modes son dans Home Assistant. Vide utilise le nom de l'ampli-tuner."
       }
     },
     "error": {
-      "turn_on_above_max": "Le volume à l'allumage dépasse le volume maximal."
+      "turn_on_above_max": "Le volume à l'allumage dépasse le volume maximal.",
+      "duplicate_name": "Deux entrées auraient le même nom."
+    },
+    "abort": {
+      "not_connected": "L'ampli-tuner n'est pas connecté. Ses sources et modes son sont lus depuis l'appareil ; réessayez lorsqu'il est allumé.",
+      "no_additional_zones": "Cet ampli-tuner n'a pas de zone supplémentaire.",
+      "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Infos du mode"
+      },
+      "source": {
+        "name": "Source"
+      },
+      "zone_source": {
+        "name": "Source zone {index}"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "Le {model} n'accepte pas de connexion de commande",
       "description": "Le {model} répond sur le réseau, mais n'accepte plus de connexion telnet sur le port 23 depuis plusieurs minutes. En attendant, les lecteurs multimédias fonctionnent uniquement via l'interface web : alimentation, volume, sourdine et source, avec jusqu'à 10 secondes de retard. Tous les autres réglages sont indisponibles.\n\nL'ampli-tuner n'accepte qu'une seule connexion telnet à la fois. Causes fréquentes :\n\n- Une autre intégration ou un autre programme occupe cette connexion, par exemple l'intégration officielle Denon AVR ou un autre système domotique. Supprimez-la ou désactivez-la pour cet ampli-tuner.\n- Une règle de pare-feu ou de VLAN bloque le port 23 entre Home Assistant et l'ampli-tuner, alors que les ports web sont ouverts.\n\nLe message disparaît de lui-même dès que la connexion fonctionne à nouveau."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Zone 2",
+        "zone3": "Zone 3"
+      }
     }
   }
 }

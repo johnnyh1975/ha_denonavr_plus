@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Opcje",
+        "menu_options": {
+          "volume": "Głośność",
+          "zones": "Strefy",
+          "sources": "Źródła",
+          "sound_modes": "Tryby dźwięku"
+        }
+      },
+      "volume": {
         "title": "Głośność",
         "description": "Ustawienia odtwarzaczy multimedialnych i wartości głośności tego amplitunera.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Strefy",
+        "description": "Które dodatkowe strefy mają encje w Home Assistant. Amplituner nie jest zmieniany.",
+        "data": {
+          "zones": "Wyświetlane strefy"
+        },
+        "data_description": {
+          "zones": "Strefa, która nie jest wybrana, nie ma odtwarzacza, głośności ani czujnika źródła; jej encje są usuwane."
+        }
+      },
+      "sources": {
+        "title": "Źródła",
+        "description": "Które źródła oferuje odtwarzacz każdej strefy. Nazwy i ukryte źródła amplitunera są już uwzględnione.",
+        "sections": {
+          "main": {
+            "name": "Strefa główna",
+            "data": {
+              "sources": "Wyświetlane źródła"
+            },
+            "data_description": {
+              "sources": "Wybierz wszystkie, aby pokazywać także źródła dodane później w amplitunerze."
+            }
+          },
+          "zone2": {
+            "name": "Strefa 2",
+            "data": {
+              "sources": "Wyświetlane źródła"
+            },
+            "data_description": {
+              "sources": "Wybierz wszystkie, aby pokazywać także źródła dodane później w amplitunerze."
+            }
+          },
+          "zone3": {
+            "name": "Strefa 3",
+            "data": {
+              "sources": "Wyświetlane źródła"
+            },
+            "data_description": {
+              "sources": "Wybierz wszystkie, aby pokazywać także źródła dodane później w amplitunerze."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Nazwy źródeł",
+        "description": "Nazwy źródeł w Home Assistant. Puste pole oznacza nazwę z amplitunera. Amplituner nie jest zmieniany."
+      },
+      "sound_modes": {
+        "title": "Tryby dźwięku",
+        "description": "Które tryby dźwięku oferuje odtwarzacz strefy głównej. Amplituner oferuje tylko tryby pasujące do bieżącego sygnału.",
+        "data": {
+          "sound_modes": "Wyświetlane tryby dźwięku"
+        },
+        "data_description": {
+          "sound_modes": "Wybierz wszystkie, aby pokazywać także tryby oferowane później."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Nazwy trybów dźwięku",
+        "description": "Nazwy trybów dźwięku w Home Assistant. Puste pole oznacza nazwę z amplitunera."
       }
     },
     "error": {
-      "turn_on_above_max": "Głośność po włączeniu jest wyższa niż maksymalna głośność."
+      "turn_on_above_max": "Głośność po włączeniu jest wyższa niż maksymalna głośność.",
+      "duplicate_name": "Dwa wpisy miałyby tę samą nazwę."
+    },
+    "abort": {
+      "not_connected": "Amplituner nie jest połączony. Jego źródła i tryby dźwięku są odczytywane z urządzenia; spróbuj ponownie, gdy będzie włączony.",
+      "no_additional_zones": "Ten amplituner nie ma dodatkowych stref.",
+      "no_sound_modes": "Amplituner nie zgłosił jeszcze żadnych trybów dźwięku."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Informacje o trybie"
+      },
+      "source": {
+        "name": "Źródło"
+      },
+      "zone_source": {
+        "name": "Strefa {index} źródło"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "{model} nie przyjmuje połączenia sterującego",
       "description": "{model} odpowiada w sieci, ale od kilku minut nie przyjmuje połączenia telnet na porcie 23. Do tego czasu odtwarzacze multimedialne działają tylko przez interfejs WWW: zasilanie, głośność, wyciszenie i źródło, z opóźnieniem do 10 sekund. Wszystkie inne ustawienia są niedostępne.\n\nAmplituner pozwala tylko na jedno połączenie telnet naraz. Częste przyczyny:\n\n- Inna integracja lub inny program zajmuje to połączenie, na przykład oficjalna integracja Denon AVR lub inny system automatyki domowej. Usuń ją lub wyłącz dla tego amplitunera.\n- Reguła zapory sieciowej lub VLAN blokuje port 23 między Home Assistant a amplitunerem, podczas gdy porty WWW są otwarte.\n\nKomunikat zniknie sam, gdy połączenie znów zacznie działać."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Strefa 2",
+        "zone3": "Strefa 3"
+      }
     }
   }
 }

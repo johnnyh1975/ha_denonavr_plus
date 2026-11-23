@@ -152,3 +152,50 @@ async def test_turn_on_applies_the_turn_on_volume(
         await asyncio.sleep(0.3)
         await hass.async_block_till_done()
     assert "MV45" in telnet.sent
+
+
+async def test_sources_follow_the_selection_and_names(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus import choices
+
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            choices.OPT_SOURCES: {"main": ["DVD", "TUNER"]},
+            choices.OPT_SOURCE_NAMES: {"DVD": "Player"},
+        },
+    )
+    await _push(hass, "SIDVD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    state = hass.states.get(main)
+    assert state is not None
+    assert state.attributes["source_list"] == ["Player", "TUNER"]
+    assert state.attributes["source"] == "Player"
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player", "select_source", {"entity_id": main, "source": "Player"}, blocking=True
+    )
+    assert "SIDVD" in telnet.sent
+
+
+async def test_a_renamed_sound_mode_is_sent_under_the_receiver_name(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus import choices
+
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={choices.OPT_SOUND_MODE_NAMES: {"Stereo": "Two channels"}}
+    )
+    await _push(hass, "OPSMLALL MUS011Stereo", "OPSMLALL END")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    state = hass.states.get(main)
+    assert state is not None and "Two channels" in state.attributes["sound_mode_list"]
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player", "select_sound_mode",
+        {"entity_id": main, "sound_mode": "Two channels"}, blocking=True,
+    )
+    assert "MSSTEREO" in telnet.sent

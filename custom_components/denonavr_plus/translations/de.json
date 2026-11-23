@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Optionen",
+        "menu_options": {
+          "volume": "Lautstärke",
+          "zones": "Zonen",
+          "sources": "Quellen",
+          "sound_modes": "Klangmodi"
+        }
+      },
+      "volume": {
         "title": "Lautstärke",
         "description": "Einstellungen für die Media Player und die Lautstärke-Zahlen dieses Receivers.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Zonen",
+        "description": "Welche weiteren Zonen in Home Assistant Entitäten bekommen. Am Receiver ändert sich nichts.",
+        "data": {
+          "zones": "Angezeigte Zonen"
+        },
+        "data_description": {
+          "zones": "Eine nicht gewählte Zone hat keinen Media Player, keine Lautstärke und keinen Quellen-Sensor; ihre Entitäten werden entfernt."
+        }
+      },
+      "sources": {
+        "title": "Quellen",
+        "description": "Welche Quellen der Media Player jeder Zone anbietet. Die Namen und ausgeblendeten Quellen des Receivers sind schon berücksichtigt.",
+        "sections": {
+          "main": {
+            "name": "Hauptzone",
+            "data": {
+              "sources": "Angezeigte Quellen"
+            },
+            "data_description": {
+              "sources": "Alle wählen, damit auch Quellen erscheinen, die später am Receiver dazukommen."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "data": {
+              "sources": "Angezeigte Quellen"
+            },
+            "data_description": {
+              "sources": "Alle wählen, damit auch Quellen erscheinen, die später am Receiver dazukommen."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "data": {
+              "sources": "Angezeigte Quellen"
+            },
+            "data_description": {
+              "sources": "Alle wählen, damit auch Quellen erscheinen, die später am Receiver dazukommen."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Namen der Quellen",
+        "description": "Namen für die Quellen in Home Assistant. Leer bedeutet: der Name vom Receiver. Am Receiver ändert sich nichts."
+      },
+      "sound_modes": {
+        "title": "Klangmodi",
+        "description": "Welche Klangmodi der Media Player der Hauptzone anbietet. Der Receiver bietet nur die Modi an, die zum aktuellen Signal passen.",
+        "data": {
+          "sound_modes": "Angezeigte Klangmodi"
+        },
+        "data_description": {
+          "sound_modes": "Alle wählen, damit auch Modi erscheinen, die der Receiver später anbietet."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Namen der Klangmodi",
+        "description": "Namen für die Klangmodi in Home Assistant. Leer bedeutet: der Name vom Receiver."
       }
     },
     "error": {
-      "turn_on_above_max": "Die Einschaltlautstärke liegt über der maximalen Lautstärke."
+      "turn_on_above_max": "Die Einschaltlautstärke liegt über der maximalen Lautstärke.",
+      "duplicate_name": "Zwei Einträge hätten denselben Namen."
+    },
+    "abort": {
+      "not_connected": "Der Receiver ist nicht verbunden. Seine Quellen und Klangmodi werden von ihm gelesen; versuche es erneut, wenn er eingeschaltet ist.",
+      "no_additional_zones": "Dieser Receiver hat keine weitere Zone.",
+      "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Modus-Info"
+      },
+      "source": {
+        "name": "Quelle"
+      },
+      "zone_source": {
+        "name": "Zone {index} Quelle"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "{model} nimmt keine Steuerverbindung an",
       "description": "Der {model} antwortet im Netzwerk, nimmt aber seit einigen Minuten keine Telnet-Verbindung auf Port 23 an. Bis dahin funktionieren die Media Player nur über die Weboberfläche: Ein/Aus, Lautstärke, Stummschaltung und Quelle, mit bis zu 10 Sekunden Verzögerung. Alle anderen Einstellungen sind nicht verfügbar.\n\nDer Receiver erlaubt nur eine Telnet-Verbindung gleichzeitig. Häufige Ursachen:\n\n- Eine andere Integration oder ein anderes Programm belegt diese Verbindung, zum Beispiel die offizielle Denon-AVR-Integration oder ein anderes Hausautomationssystem. Entferne oder deaktiviere sie für diesen Receiver.\n- Eine Firewall- oder VLAN-Regel sperrt Port 23 zwischen Home Assistant und dem Receiver, während die Web-Ports offen sind.\n\nDie Meldung verschwindet von selbst, sobald die Verbindung wieder funktioniert."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Zone 2",
+        "zone3": "Zone 3"
+      }
     }
   }
 }

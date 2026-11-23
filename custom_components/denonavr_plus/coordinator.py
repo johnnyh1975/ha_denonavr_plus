@@ -51,6 +51,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # Registry id of the main receiver device, set once at setup so the
         # sub-devices can link to it via `via_device_id` (HA 2026.8+).
         self.main_device_id: str | None = None
+        # The zones that got entities at setup (main always; see choices.py).
+        self.shown_zones: frozenset[str] = frozenset()
         # Connection diagnosis: when the telnet link went down, and whether the
         # long outage has already been reported (log once, repair while it lasts).
         self._link_down_since: datetime | None = None

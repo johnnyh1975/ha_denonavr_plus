@@ -5,11 +5,11 @@
     "Measured on Home Assistant 2026.10 (phahc 0.13.375), half a point of margin."
   ],
   "floors": {
-    "__init__.py": 0.8045,
-    "avr/device.py": 0.712,
+    "__init__.py": 0.8487,
+    "avr/device.py": 0.7769,
     "avr/graphic_eq.py": 0.749,
-    "avr/parser.py": 0.5343,
-    "avr/profile.py": 0.8299,
+    "avr/parser.py": 0.578,
+    "avr/profile.py": 0.8494,
     "avr/transport/goform.py": 0.6215,
     "avr/transport/heos.py": 0.539,
     "avr/transport/tcp_client.py": 0.1962,
@@ -18,7 +18,7 @@
     "avr/transport/webconfig.py": 0.4788,
     "avr/video_config.py": 0.495,
     "helpers.py": 0.6408,
-    "media_player.py": 0.8311,
+    "media_player.py": 0.8445,
     "select.py": 0.6073,
     "switch.py": 0.795
   }

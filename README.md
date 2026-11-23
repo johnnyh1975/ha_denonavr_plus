@@ -85,10 +85,13 @@ automatically; no other input is required.
 To change the address later, open the integration's menu (three dots) and choose
 **Reconfigure**. The new address must belong to the same receiver.
 
-### Volume options
+### Options
 
-**Configure** on the integration entry opens the volume options. They work
-even when the receiver is off.
+**Configure** on the integration entry opens a menu: volume, zones, sources
+and sound modes. Nothing in it changes the receiver; it changes what Home
+Assistant shows and does.
+
+**Volume** (works even when the receiver is off):
 
 - **Volume scale of the official integration**: off, the media player's 0 to
   100 % spans the receiver's whole range up to its maximum. On, 100 % is
@@ -101,6 +104,23 @@ even when the receiver is off.
     setting.
   - **Turn-on volume**: set when Home Assistant switches the zone on, once the
     zone reports that it is on.
+
+**Zones**: which additional zones (zone 2, zone 3) get entities. A zone that
+is switched off loses its media player, volume and source sensor; switching it
+on again brings them back.
+
+**Sources** (needs the receiver connected, it reads its sources): per zone,
+which sources the media player offers, then a name for each in Home
+Assistant. The names and hidden inputs set on the receiver are already taken
+over; this narrows down and renames on top. Selecting all keeps sources the
+receiver gains later. Renamed sources can still be selected by their receiver
+name, so older automations keep working.
+
+**Sound modes** (needs the receiver connected): which sound modes the main
+zone's media player offers, and their names. The receiver only offers the
+modes that fit the current signal. The current source and sound mode are
+always shown, also when they are not selected. The sound mode selects keep
+the receiver's full list.
 
 ## Removal
 
@@ -196,7 +216,8 @@ the sub‑device its setting belongs to.
   curve, and **Default** resets the channel to flat. See the equalizer card
   recipe below.
 - **Sensors** (diagnostic): sample rate, decoder, audio format, input signal,
-  mode info and sound mode.
+  mode info and sound mode; and per zone the selected **source**, under the
+  name Home Assistant shows.
 - **Binary sensor**: telnet connectivity.
 
 ### Enabled and disabled entities
@@ -217,7 +238,8 @@ amp assign), video and HDMI setup, picture adjustment, the graphic EQ, volume
 limits and scale, the sound mode parameters, and the power and mute switches,
 which repeat the media player. The sample rate, input signal, audio format and
 mode info sensors also start disabled, because they change with every track and
-fill the history. Enable any of them on the device page under its entities, or
+fill the history, and so do the sound mode and source sensors, which repeat the
+media player. Enable any of them on the device page under its entities, or
 in the entity's settings. Home Assistant keeps your choice from then on.
 
 Speaker crossover frequencies are a discrete, non-uniform set, so they are

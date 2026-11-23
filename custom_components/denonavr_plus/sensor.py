@@ -12,6 +12,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from . import choices
+from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity
 
@@ -40,6 +42,13 @@ async def async_setup_entry(
 
     # The current sound mode as a diagnostic sensor (also on the media player).
     entities.append(DenonAvrSoundModeSensor(coordinator))
+
+    # The selected source of each zone, under the name Home Assistant shows.
+    entities.extend(
+        DenonAvrSourceSensor(coordinator, zone)
+        for zone in device.discovery.zones
+        if choices.zone_enabled(dict(entry.options), zone.id)
+    )
 
     async_add_entities(entities)
 
@@ -77,3 +86,29 @@ class DenonAvrSoundModeSensor(DenonAvrEntity, SensorEntity):
     def native_value(self) -> str | None:
         value = self.coordinator.data.values.get("sound_mode")
         return str(value) if value is not None else None
+
+
+class DenonAvrSourceSensor(DenonAvrEntity, SensorEntity):
+    """The selected source of a zone, as a sensor for history and automations.
+
+    Starts disabled: the media player shows the same as its source.
+    """
+
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
+        super().__init__(coordinator, f"sensor_source_{zone.id}")
+        self._zone = zone
+        if zone.is_main:
+            self._attr_translation_key = "source"
+        else:
+            self._attr_translation_key = "zone_source"
+            self._attr_translation_placeholders = {"index": str(zone.index)}
+
+    @property
+    def native_value(self) -> str | None:
+        code = self.coordinator.data.zone(self._zone.id).source
+        if code is None:
+            return None
+        return choices.source_display(self._device.discovery, self._entry_options, code)
+

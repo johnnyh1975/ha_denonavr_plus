@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Opciones",
+        "menu_options": {
+          "volume": "Volumen",
+          "zones": "Zonas",
+          "sources": "Fuentes",
+          "sound_modes": "Modos de sonido"
+        }
+      },
+      "volume": {
         "title": "Volumen",
         "description": "Ajustes de los reproductores multimedia y de los números de volumen de este receptor.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Zonas",
+        "description": "Qué zonas adicionales tienen entidades en Home Assistant. El receptor no se modifica.",
+        "data": {
+          "zones": "Zonas mostradas"
+        },
+        "data_description": {
+          "zones": "Una zona no seleccionada no tiene reproductor multimedia, volumen ni sensor de fuente; sus entidades se eliminan."
+        }
+      },
+      "sources": {
+        "title": "Fuentes",
+        "description": "Qué fuentes ofrece el reproductor multimedia de cada zona. Los nombres y las fuentes ocultas del receptor ya se tienen en cuenta.",
+        "sections": {
+          "main": {
+            "name": "Zona principal",
+            "data": {
+              "sources": "Fuentes mostradas"
+            },
+            "data_description": {
+              "sources": "Selecciona todas para mostrar también las fuentes que se añadan después en el receptor."
+            }
+          },
+          "zone2": {
+            "name": "Zona 2",
+            "data": {
+              "sources": "Fuentes mostradas"
+            },
+            "data_description": {
+              "sources": "Selecciona todas para mostrar también las fuentes que se añadan después en el receptor."
+            }
+          },
+          "zone3": {
+            "name": "Zona 3",
+            "data": {
+              "sources": "Fuentes mostradas"
+            },
+            "data_description": {
+              "sources": "Selecciona todas para mostrar también las fuentes que se añadan después en el receptor."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Nombres de las fuentes",
+        "description": "Nombres de las fuentes en Home Assistant. Vacío usa el nombre del receptor. El receptor no se modifica."
+      },
+      "sound_modes": {
+        "title": "Modos de sonido",
+        "description": "Qué modos de sonido ofrece el reproductor multimedia de la zona principal. El receptor solo ofrece los modos adecuados a la señal actual.",
+        "data": {
+          "sound_modes": "Modos de sonido mostrados"
+        },
+        "data_description": {
+          "sound_modes": "Selecciona todos para mostrar también los modos que se ofrezcan después."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Nombres de los modos de sonido",
+        "description": "Nombres de los modos de sonido en Home Assistant. Vacío usa el nombre del receptor."
       }
     },
     "error": {
-      "turn_on_above_max": "El volumen al encender supera el volumen máximo."
+      "turn_on_above_max": "El volumen al encender supera el volumen máximo.",
+      "duplicate_name": "Dos entradas tendrían el mismo nombre."
+    },
+    "abort": {
+      "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
+      "no_additional_zones": "Este receptor no tiene zonas adicionales.",
+      "no_sound_modes": "El receptor aún no ha informado de ningún modo de sonido."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Información del modo"
+      },
+      "source": {
+        "name": "Fuente"
+      },
+      "zone_source": {
+        "name": "Fuente zona {index}"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "El {model} no acepta una conexión de control",
       "description": "El {model} responde en la red, pero desde hace varios minutos no acepta una conexión telnet en el puerto 23. Mientras tanto, los reproductores multimedia solo funcionan a través de la interfaz web: encendido, volumen, silencio y fuente, con hasta 10 segundos de retraso. Todos los demás ajustes no están disponibles.\n\nEl receptor solo permite una conexión telnet a la vez. Causas habituales:\n\n- Otra integración u otro programa ocupa esa conexión, por ejemplo la integración oficial Denon AVR u otro sistema de domótica. Elimínala o desactívala para este receptor.\n- Una regla del cortafuegos o de la VLAN bloquea el puerto 23 entre Home Assistant y el receptor, mientras que los puertos web están abiertos.\n\nEl mensaje desaparece por sí solo en cuanto la conexión vuelve a funcionar."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Zona 2",
+        "zone3": "Zona 3"
+      }
     }
   }
 }

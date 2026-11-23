@@ -39,6 +39,15 @@
   "options": {
     "step": {
       "init": {
+        "title": "Opções",
+        "menu_options": {
+          "volume": "Volume",
+          "zones": "Zonas",
+          "sources": "Fontes",
+          "sound_modes": "Modos de som"
+        }
+      },
+      "volume": {
         "title": "Volume",
         "description": "Definições dos leitores multimédia e dos números de volume deste recetor.",
         "data": {
@@ -85,10 +94,77 @@
             }
           }
         }
+      },
+      "zones": {
+        "title": "Zonas",
+        "description": "Que zonas adicionais têm entidades no Home Assistant. O recetor não é alterado.",
+        "data": {
+          "zones": "Zonas mostradas"
+        },
+        "data_description": {
+          "zones": "Uma zona não selecionada não tem leitor multimédia, volume nem sensor de fonte; as suas entidades são removidas."
+        }
+      },
+      "sources": {
+        "title": "Fontes",
+        "description": "Que fontes oferece o leitor multimédia de cada zona. Os nomes e as fontes ocultas do recetor já são tidos em conta.",
+        "sections": {
+          "main": {
+            "name": "Zona principal",
+            "data": {
+              "sources": "Fontes mostradas"
+            },
+            "data_description": {
+              "sources": "Selecione todas para mostrar também as fontes adicionadas mais tarde no recetor."
+            }
+          },
+          "zone2": {
+            "name": "Zona 2",
+            "data": {
+              "sources": "Fontes mostradas"
+            },
+            "data_description": {
+              "sources": "Selecione todas para mostrar também as fontes adicionadas mais tarde no recetor."
+            }
+          },
+          "zone3": {
+            "name": "Zona 3",
+            "data": {
+              "sources": "Fontes mostradas"
+            },
+            "data_description": {
+              "sources": "Selecione todas para mostrar também as fontes adicionadas mais tarde no recetor."
+            }
+          }
+        }
+      },
+      "source_names": {
+        "title": "Nomes das fontes",
+        "description": "Nomes das fontes no Home Assistant. Vazio usa o nome do recetor. O recetor não é alterado."
+      },
+      "sound_modes": {
+        "title": "Modos de som",
+        "description": "Que modos de som oferece o leitor multimédia da zona principal. O recetor só oferece os modos adequados ao sinal atual.",
+        "data": {
+          "sound_modes": "Modos de som mostrados"
+        },
+        "data_description": {
+          "sound_modes": "Selecione todos para mostrar também os modos oferecidos mais tarde."
+        }
+      },
+      "sound_mode_names": {
+        "title": "Nomes dos modos de som",
+        "description": "Nomes dos modos de som no Home Assistant. Vazio usa o nome do recetor."
       }
     },
     "error": {
-      "turn_on_above_max": "O volume ao ligar está acima do volume máximo."
+      "turn_on_above_max": "O volume ao ligar está acima do volume máximo.",
+      "duplicate_name": "Duas entradas ficariam com o mesmo nome."
+    },
+    "abort": {
+      "not_connected": "O recetor não está ligado à rede. As fontes e os modos de som são lidos do aparelho; tente novamente quando estiver ligado.",
+      "no_additional_zones": "Este recetor não tem zonas adicionais.",
+      "no_sound_modes": "O recetor ainda não indicou nenhum modo de som."
     }
   },
   "entity": {
@@ -120,6 +196,12 @@
       },
       "mode_info": {
         "name": "Informação do modo"
+      },
+      "source": {
+        "name": "Fonte"
+      },
+      "zone_source": {
+        "name": "Fonte zona {index}"
       }
     },
     "select": {
@@ -395,6 +477,14 @@
     "telnet_unavailable": {
       "title": "O {model} não aceita uma ligação de controlo",
       "description": "O {model} responde na rede, mas há vários minutos que não aceita uma ligação telnet na porta 23. Até lá, os leitores multimédia só funcionam através da interface web: ligar/desligar, volume, silêncio e fonte, com até 10 segundos de atraso. Todas as outras definições estão indisponíveis.\n\nO recetor só permite uma ligação telnet de cada vez. Causas comuns:\n\n- Outra integração ou outro programa ocupa essa ligação, por exemplo a integração oficial Denon AVR ou outro sistema de domótica. Remova-a ou desative-a para este recetor.\n- Uma regra de firewall ou de VLAN bloqueia a porta 23 entre o Home Assistant e o recetor, enquanto as portas web estão abertas.\n\nA mensagem desaparece por si própria assim que a ligação voltar a funcionar."
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": {
+        "zone2": "Zona 2",
+        "zone3": "Zona 3"
+      }
     }
   }
 }

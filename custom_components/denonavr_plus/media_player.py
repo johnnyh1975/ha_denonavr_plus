@@ -20,6 +20,7 @@ from homeassistant.components.media_player import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from . import choices
 from . import volume as _volume
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -87,6 +88,7 @@ async def async_setup_entry(
     entities = [
         DenonAvrMediaPlayer(coordinator, zone)
         for zone in coordinator.device.discovery.zones
+        if choices.zone_enabled(dict(entry.options), zone.id)
     ]
     async_add_entities(entities)
 
@@ -189,7 +191,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         code = self._zone_state.source
         if code is None:
             return None
-        return self._device.discovery.source_name(code) or code
+        return choices.source_display(self._device.discovery, self._entry_options, code)
 
     @property
     def icon(self) -> str | None:
@@ -208,7 +210,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         key = code.strip().upper()
         if key in _SOURCE_ICONS:
             return _SOURCE_ICONS[key]
-        name = (self._device.discovery.source_name(code) or code).lower()
+        name = choices.source_display(self._device.discovery, self._entry_options, code).lower()
         for keyword, icon in _SOURCE_ICON_KEYWORDS:
             if keyword in name or keyword in key.lower():
                 return icon
@@ -216,7 +218,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def source_list(self) -> list[str]:
-        return [source.name for source in self._device.discovery.visible_sources()]
+        return choices.source_list(self._device.discovery, self._entry_options, self._zone.id)
 
     @property
     def sound_mode(self) -> str | None:
@@ -225,7 +227,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         # Prefer the receiver's display name for the active mode; fall back to
         # the raw wire token when the display name is not known yet.
         values = self.coordinator.data.values
-        return values.get("sound_mode_display") or values.get("sound_mode")
+        mode = values.get("sound_mode_display") or values.get("sound_mode")
+        return choices.sound_mode_display(self._entry_options, str(mode)) if mode else None
 
     @property
     def sound_mode_list(self) -> list[str] | None:
@@ -240,10 +243,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         for mode in discovery.current_sound_modes:
             if mode not in modes:
                 modes.append(mode)
-        current = self.sound_mode
-        if current and current not in modes:
-            modes.append(current)
-        return modes or None
+        values = self.coordinator.data.values
+        current = values.get("sound_mode_display") or values.get("sound_mode")
+        shown = choices.sound_mode_list(
+            self._entry_options, modes, str(current) if current else None
+        )
+        return shown or None
 
     # Now-playing media (network sources, via HEOS) ------------------------
 
@@ -343,10 +348,13 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         await self._device.async_set_mute(self._zone.id, mute)
 
     async def async_select_source(self, source: str) -> None:
-        await self._device.async_select_source(self._zone.id, source)
+        code = choices.source_code_for(self._device.discovery, self._entry_options, source)
+        await self._device.async_select_source(self._zone.id, code or source)
 
     async def async_select_sound_mode(self, sound_mode: str) -> None:
-        await self._device.async_select_sound_mode(sound_mode)
+        await self._device.async_select_sound_mode(
+            choices.sound_mode_for(self._entry_options, sound_mode)
+        )
 
     async def async_media_play(self) -> None:
         await self._device.async_media_play()
