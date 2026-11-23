@@ -43,6 +43,7 @@ from .const import (
     REPLY_WAIT_OLDER,
 )
 from .errors import CommandNotSent
+from .transport.upnp import OLDER_DESCRIPTION_PATH, OLDER_PORT
 from .transport.webconfig import HTTP_PORT as HTTP_SETUP_PORT
 from .transport import (
     DEFAULT_PORT,
@@ -424,10 +425,19 @@ class DenonAvrDevice:
         """
 
         xml_text = await self._upnp.async_get_description()
+        wanted: set[str] | None = None
+        if not xml_text and self._http_port == 80:
+            xml_text = await UpnpClient(
+                self._session, self._host, port=OLDER_PORT, path=OLDER_DESCRIPTION_PATH
+            ).async_get_description()
+            # Only the identity: its model number is no network module version.
+            wanted = {"manufacturer", "serial_number"}
         if not xml_text:
             return
         device = self._discovery.device
         for attr, value in parse_upnp_description(xml_text).items():
+            if wanted is not None and attr not in wanted:
+                continue
             if getattr(device, attr, None) is None:
                 setattr(device, attr, value)
 

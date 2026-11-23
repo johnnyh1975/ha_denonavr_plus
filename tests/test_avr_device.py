@@ -451,3 +451,31 @@ async def test_an_older_receiver_plays_over_telnet(
     assert telnet.sent == ["TFAN?", "TFANNAME?"]
     # Off the network source, what played is cleared.
     assert device.state.now_playing.state is None
+
+
+_X2000_DESCRIPTION = """<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0"><device>
+<manufacturer>Denon</manufacturer><modelName>*AVR-X2000</modelName>
+<modelNumber>X2000</modelNumber><serialNumber>0000000000000</serialNumber>
+</device></root>"""
+
+
+@pytest.mark.assumed(
+    "description.xml on port 8080 for receivers of the AVR-X2000 generation comes "
+    "from the denonavr library (const.DESCRIPTION_TYPES); the layout here is the "
+    "UPnP standard, not a recording"
+)
+async def test_an_older_receiver_names_its_maker_and_serial(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    from custom_components.denonavr_plus.avr.transport import UpnpClient
+
+    async def description(self: UpnpClient) -> str | None:
+        return _X2000_DESCRIPTION if ":8080/description.xml" in self._url else None
+
+    with patch.object(UpnpClient, "async_get_description", description):
+        entry = await _x2000_entry(hass)
+    device = entry.runtime_data.device.discovery.device
+    assert (device.manufacturer, device.serial_number) == ("Denon", "0000000000000")
+    # Its model number is no network module version.
+    assert device.network_module_version is None

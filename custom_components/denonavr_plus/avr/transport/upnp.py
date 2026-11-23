@@ -18,14 +18,24 @@ _LOGGER = logging.getLogger(__name__)
 
 _PORT = 60006
 _DESCRIPTION_PATH = "/upnp/desc/aios_device/aios_device.xml"
+# Receivers before the AIOS module (AVR-X2000, goform on port 80) describe
+# themselves here instead (denonavr library, const.DESCRIPTION_TYPES).
+OLDER_PORT = 8080
+OLDER_DESCRIPTION_PATH = "/description.xml"
 
 
 class UpnpClient:
     """Minimal async client for the UPnP/AIOS device description (port 60006)."""
 
-    def __init__(self, session: aiohttp.ClientSession, host: str) -> None:
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        host: str,
+        port: int = _PORT,
+        path: str = _DESCRIPTION_PATH,
+    ) -> None:
         self._session = session
-        self._url = f"http://{host}:{_PORT}{_DESCRIPTION_PATH}"
+        self._url = f"http://{host}:{port}{path}"
 
     async def async_get_description(self) -> str | None:
         """Fetch the UPnP device description XML, or None on failure."""
