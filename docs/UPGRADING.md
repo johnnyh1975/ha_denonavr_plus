@@ -20,3 +20,14 @@ Until then:
 3. If you want to keep entity IDs, history and dashboards, rename the new
    entities to the old entity IDs (Settings → Entities → the entity → ⚙ →
    Entity ID).
+
+What looks different afterwards:
+
+- **Many entities start disabled.** Only the everyday controls are enabled
+  (see "Enabled and disabled entities" in the README). Speaker, video and
+  picture setup, the graphic EQ, volume limits and the fast-changing signal
+  sensors are there but off. If an automation or dashboard used one of
+  them, enable it on the device page before renaming it.
+- **Entity IDs are English** in every language, for example
+  `number.avr_x3600h_speakers_center_trim` also on a German installation,
+  where the other integrations may have created German ones.
