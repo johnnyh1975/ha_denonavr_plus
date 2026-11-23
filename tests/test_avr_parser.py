@@ -240,6 +240,11 @@ def test_replies_recorded_on_an_avr_x2600h(
     assert state.values["quick_select"] == 0
     zone2 = state.zone("zone2")
     assert (zone2.power, zone2.volume_raw, zone2.muted) == (False, 32.0, False)
+    # Zone 2 settings: decoded as controls, never taken for a source.
+    assert state.values["zone2_sleep_timer"] == 0
+    assert state.values["zone2_auto_standby"] == "OFF"
+    assert state.values["zone2_channel_level_fl"] == 0.0
+    assert state.values["zone2_channel_level_fr"] == 0.0
     # Z2NET, not Z2QUICK0 that comes later.
     assert zone2.source == "NET"
 
@@ -257,6 +262,10 @@ def test_replies_recorded_on_an_avr_x2000() -> None:
     assert state.values["sound_mode"] == "MCH STEREO"
     zone2 = state.zone("zone2")
     assert (zone2.power, zone2.source, zone2.volume_raw) == (False, "NET", 30.0)
+    assert state.values["zone2_sleep_timer"] == 0
+    assert state.values["zone2_channel_level_fl"] == 0.0
+    # It does not answer Z2STBY?.
+    assert "zone2_auto_standby" not in state.values
     # CV? lists eleven channels and no CVEND.
     assert len(state.channel_trims) == 11
 
@@ -279,7 +288,14 @@ def test_every_model_dependent_control_has_a_reply_test() -> None:
     profile = load_profile()
     answered = {spec.id for spec in profile.controls_by_scope("answered")}
     # Confirmed by the AVR-X2600H recording (test_replies_recorded_on_an_avr_x2600h).
-    recorded = {"auto_standby", "bluetooth_transmitter"}
+    recorded = {
+        "auto_standby",
+        "bluetooth_transmitter",
+        "zone2_sleep_timer",
+        "zone2_auto_standby",
+        "zone2_channel_level_fl",
+        "zone2_channel_level_fr",
+    }
     assert answered == {control_id for _, control_id, _ in ANSWERED_REPLIES} | recorded
 
 

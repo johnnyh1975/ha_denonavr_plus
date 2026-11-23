@@ -394,7 +394,9 @@ class TelnetParser:
         if line.startswith("CV"):
             return self._set_channel(line[2:], state.channel_trims)
         if len(line) >= 2 and line[0] == "Z" and line[1].isdigit():
-            return self._set_zone(int(line[1]), line[2:], state)
+            if self._set_zone(int(line[1]), line[2:], state):
+                return True
+            # A zone setting (Z2SLP, Z2CVFL ...): decoded by the matchers below.
         if line.startswith("SSFUN"):
             return self._set_source_name(line[5:])
         if line.startswith("SSSOD"):

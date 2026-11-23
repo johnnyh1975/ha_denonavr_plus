@@ -557,11 +557,11 @@
       "scope": "feature",
       "feature": "AutoLipSync",
       "kind": "onoff",
-      "query": "SSHOSALS ?",
+      "query": "SSHOS ?",
       "prefix": "SSHOSALS ",
       "on": "ON",
       "off": "OFF",
-      "doc": "Auto lip sync (automatic A/V delay), token SSHOSALS. Candidate: silent unless a video source is active; gated on the advertised AutoLipSync capability."
+      "doc": "Auto lip sync (automatic A/V delay), token SSHOSALS. Read from the HDMI setup list (SSHOS ?): an AVR-X2000 reports SSHOSALS ON there and answers no SSHOSALS ? (capability check); the AVR-X2600H answers neither with this token. Gated on the advertised AutoLipSync capability or an answer."
     },
     "dynamic_volume": {
       "group": "audyssey",
@@ -726,6 +726,54 @@
       "labels": ["80 Hz", "90 Hz", "100 Hz", "110 Hz", "120 Hz", "150 Hz", "180 Hz", "200 Hz", "250 Hz"],
       "name": "LPF for LFE",
       "doc": "Low-pass filter for the LFE channel (Denon SSLFL, 3-digit Hz, query 'SSLFL ?' WITH space). Verified live read/write (080<->090, reversible). The frequency set is the standard LFE LPF range, confirmed by the /ajax speakers type=17 SelectableValue list (80..250 Hz)."
+    },
+    "zone2_sleep_timer": {
+      "group": "zone",
+      "subdevice": "zone2",
+      "scope": "answered",
+      "kind": "minutes",
+      "query": "Z2SLP?",
+      "prefix": "Z2SLP",
+      "off": "OFF",
+      "min": 0,
+      "max": 120,
+      "step": 10,
+      "doc": "Zone 2 sleep timer in minutes (Z2SLP, 001-120, OFF). AVR-X2000/E400 protocol v03 and the 2015 X-series document; answered by an AVR-X2000 and an AVR-X2600H (capability checks)."
+    },
+    "zone2_auto_standby": {
+      "group": "zone",
+      "subdevice": "zone2",
+      "scope": "answered",
+      "kind": "enum",
+      "query": "Z2STBY?",
+      "prefix": "Z2STBY",
+      "values": ["OFF", "2H", "4H", "8H"],
+      "labels": ["Off", "2 h", "4 h", "8 h"],
+      "doc": "Zone 2 auto standby (Z2STBY 2H/4H/8H/OFF), from the 2015 X-series document. Answered by an AVR-X2600H; the AVR-X2000 does not answer it."
+    },
+    "zone2_channel_level_fl": {
+      "group": "zone",
+      "subdevice": "zone2",
+      "scope": "answered",
+      "kind": "level",
+      "query": "Z2CV?",
+      "prefix": "Z2CVFL ",
+      "min": -12,
+      "max": 12,
+      "step": 0.5,
+      "doc": "Zone 2 front left level (Z2CVFL, 38-62, 50 == 0 dB). AVR-X2000/E400 protocol v03 and the 2015 X-series document; answered by an AVR-X2000 and an AVR-X2600H."
+    },
+    "zone2_channel_level_fr": {
+      "group": "zone",
+      "subdevice": "zone2",
+      "scope": "answered",
+      "kind": "level",
+      "query": "Z2CV?",
+      "prefix": "Z2CVFR ",
+      "min": -12,
+      "max": 12,
+      "step": 0.5,
+      "doc": "Zone 2 front right level (Z2CVFR), as the front left."
     },
     "sleep_timer": {
       "group": "system",

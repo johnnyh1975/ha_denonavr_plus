@@ -65,7 +65,7 @@ check on an AVR-X2600H with that firmware
 | Power, main zone, volume, mute, source | Documented | Tested (3.139.175) |
 | Zone 2 power, volume, mute, source | Documented | Documented |
 | Zone 2 level trim, sleep, Quick Select | Tested | Tested (3.139.175) |
-| Zone 2 auto standby | Absent (not in its document) | Tested (3.139.175) |
+| Zone 2 auto standby | Absent (not in its document; no answer) | Tested (3.139.175) |
 | Zone 2 tone, HPF | Absent (not in its document) | No reply (3.139.175) |
 | Independent Zone 2 source | To test | To test |
 | All Zone Stereo set | Documented (`MNZST ON/OFF`) | Documented; Tested on AVR-X3600H |

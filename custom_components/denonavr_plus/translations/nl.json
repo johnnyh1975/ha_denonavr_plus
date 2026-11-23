@@ -420,8 +420,8 @@
       "aspect_ratio": {
         "name": "Beeldverhouding",
         "state": {
-          "full": "Volledig",
-          "normal": "Normaal"
+          "full": "16:9",
+          "normal": "4:3"
         }
       },
       "hdmi_audio_out": {
@@ -728,6 +728,15 @@
           "surround_back_front_height": "Surround achter + voor hoogte",
           "surround_back_front_wide": "Surround achter + voor breed"
         }
+      },
+      "zone2_auto_standby": {
+        "name": "Automatische stand-by",
+        "state": {
+          "off": "Uit",
+          "2_h": "2 uur",
+          "4_h": "4 uur",
+          "8_h": "8 uur"
+        }
       }
     },
     "switch": {
@@ -870,6 +879,15 @@
       },
       "tactile_transducer_level": {
         "name": "Niveau tactiele transducer"
+      },
+      "zone2_sleep_timer": {
+        "name": "Slaaptimer"
+      },
+      "zone2_channel_level_fl": {
+        "name": "Niveau links voor"
+      },
+      "zone2_channel_level_fr": {
+        "name": "Niveau rechts voor"
       }
     },
     "button": {

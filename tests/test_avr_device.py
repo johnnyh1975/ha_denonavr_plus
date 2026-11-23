@@ -132,6 +132,13 @@ X2000_ANSWERS = {
     "PSBAS ?": ["PSBAS 50"],
     "PVBR ?": ["PVBR 00"],
     "PW?": ["PWON"],
+    "SSFUN ?": ["SSFUNDVD DVD", "SSFUNCD CD"],
+    "SSSOD ?": ["SSSODDVD USE", "SSSODCD USE", "SSSODIRADIO USE"],
+    "SSHOS ?": ["SSHOSCON ON", "SSHOSALS ON", "SSHOSIPM AUT"],
+    "Z2SLP?": ["Z2SLPOFF"],
+    "Z2CV?": ["Z2CVFL 50", "Z2CVFR 50"],
+    "CV?": ["CVFL 51", "CVFR 50", "CVC 50", "CVSW 38", "CVSBL 50"],
+    "SSSPC ?": ["SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSWF YES", "SSSPCSBK NON"],
 }
 
 
@@ -185,12 +192,34 @@ async def test_features_an_older_receiver_does_not_name_appear_when_they_answer(
     assert "cinema_eq" not in discovery.answered
     # Its picture levels use another scale (brightness 00-12, not 000-100).
     assert "brightness" not in discovery.answered
+    # Auto lip sync comes in its HDMI setup list; SSHOSALS ? gets no answer.
+    assert "auto_lip_sync" in discovery.answered
+    # It plays from the network as SINET but lists only the network services.
+    assert "NET" in {source.code for source in discovery.sources}
     unique_ids = {
         item.unique_id.split("_", 1)[1]
         for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
     }
     assert {"select_multeq", "switch_dynamic_eq", "select_dynamic_volume"} <= unique_ids
     assert "switch_cinema_eq" not in unique_ids
+    # Zone 2 settings, on the zone 2 device; no auto standby, it did not answer.
+    registry = er.async_get(hass)
+    zone2 = {
+        item.unique_id.split("_", 1)[1]: item
+        for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if item.unique_id.endswith(("zone2_sleep_timer", "zone2_channel_level_fl"))
+    }
+    assert set(zone2) == {"number_zone2_sleep_timer", "number_zone2_channel_level_fl"}
+    media_player = registry.async_get(
+        registry.async_get_entity_id("media_player", DOMAIN, f"{item_id(entry)}_media_player_zone2")
+    )
+    assert {item.device_id for item in zone2.values()} == {media_player.device_id}
+    assert "select_zone2_auto_standby" not in unique_ids
+    # No SSLEV on this model: the channel levels come from CV?, the
+    # configured ones enabled; no distances.
+    trims = {key: key for key in unique_ids if key.startswith("number_channel_trim_")}
+    assert {"number_channel_trim_FL", "number_channel_trim_SW", "number_channel_trim_SBL"} <= set(trims)
+    assert not any(key.startswith("number_channel_distance_") for key in unique_ids)
 
 
 @pytest.mark.assumed(
@@ -268,6 +297,11 @@ async def test_the_setup_probe_ends_at_the_first_pause(
     queries, is_complete = next(call for call in calls if "STBY?" in call[0])
     # Nothing has answered, yet the probe may end as soon as the line is quiet.
     assert is_complete() is True
+
+
+def item_id(entry: MockConfigEntry) -> str:
+    """The identifier the entities of an entry start with."""
+    return entry.runtime_data.device.identifier
 
 
 async def test_a_later_start_does_not_ask_again(

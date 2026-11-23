@@ -26,7 +26,7 @@ from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, receiver_action, zone_device
-from .helpers import control_enabled_by_default, control_sub_device
+from .helpers import control_enabled_by_default, control_sub_device, control_zone_shown
 
 # The control kinds that map to a number entity.
 _NUMBER_KINDS = {"level", "signed_int", "minutes", "integer", "centered"}
@@ -61,19 +61,25 @@ async def async_setup_entry(
             continue
         if not discovery.has_control(spec.scope, spec.feature, spec.id):
             continue
+        if not control_zone_shown(spec, dict(entry.options)):
+            continue
         entities.append(DenonAvrNumber(coordinator, spec))
 
     # One trim per known channel. Channels that the receiver reports as
     # configured (from SSSPC) are enabled; the rest are registered but disabled
     # by default so they stay out of the way yet can be enabled from the UI.
     configured = discovery.configured_channels
-    codes = [c.code for c in discovery.channels] or sorted(
+    calibrated = [c.code for c in discovery.channels] or sorted(
         coordinator.data.channel_levels
     )
+    # Without the SSLEV list (AVR-X2000) the channels come from CV?, and
+    # there are no distances in a form this integration reads.
+    codes = calibrated or list(coordinator.data.channel_trims)
     for code in codes:
         enabled = (not configured) or code in configured
         entities.append(DenonAvrChannelTrim(coordinator, code, enabled))
-        entities.append(DenonAvrChannelDistance(coordinator, code))
+        if calibrated:
+            entities.append(DenonAvrChannelDistance(coordinator, code))
 
     # One number per manual graphic-EQ band, on the EQ sub-device, when the
     # receiver has a graphic EQ this profile can drive. The bands reflect the

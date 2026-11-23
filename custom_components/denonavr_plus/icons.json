@@ -77,6 +77,15 @@
       },
       "volume": {
         "default": "mdi:volume-high"
+      },
+      "zone2_sleep_timer": {
+        "default": "mdi:sleep"
+      },
+      "zone2_channel_level_fl": {
+        "default": "mdi:speaker"
+      },
+      "zone2_channel_level_fr": {
+        "default": "mdi:speaker"
       }
     },
     "remote": {
@@ -258,6 +267,9 @@
       },
       "volume_scale": {
         "default": "mdi:counter"
+      },
+      "zone2_auto_standby": {
+        "default": "mdi:timer-sand"
       }
     },
     "sensor": {

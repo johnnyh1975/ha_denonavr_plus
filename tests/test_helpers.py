@@ -118,3 +118,12 @@ def _discovery(*channels: tuple[str, str]) -> Discovery:
 )
 def test_speaker_group_names(channels: list[str], known: list[tuple[str, str]], name: str) -> None:
     assert helpers.group_name(_discovery(*known), channels) == name
+
+
+def test_zone_2_settings_go_with_zone_2() -> None:
+    spec = ControlSpec("zone2_sleep_timer", {"kind": "minutes", "subdevice": "zone2"})
+    assert helpers.control_zone_shown(spec, {})
+    assert helpers.control_zone_shown(spec, {"zones": ["zone2"]})
+    assert not helpers.control_zone_shown(spec, {"zones": []})
+    other = ControlSpec("bass", {"kind": "level", "subdevice": "audio"})
+    assert helpers.control_zone_shown(other, {"zones": []})

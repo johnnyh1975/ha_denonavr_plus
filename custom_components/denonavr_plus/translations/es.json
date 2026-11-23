@@ -420,8 +420,8 @@
       "aspect_ratio": {
         "name": "Relación de aspecto",
         "state": {
-          "full": "Completo",
-          "normal": "Normal"
+          "full": "16:9",
+          "normal": "4:3"
         }
       },
       "hdmi_audio_out": {
@@ -728,6 +728,15 @@
           "surround_back_front_height": "Surround trasero + altura frontal",
           "surround_back_front_wide": "Surround trasero + frontal ancho"
         }
+      },
+      "zone2_auto_standby": {
+        "name": "Espera automática",
+        "state": {
+          "off": "Desactivado",
+          "2_h": "2 h",
+          "4_h": "4 h",
+          "8_h": "8 h"
+        }
       }
     },
     "switch": {
@@ -870,6 +879,15 @@
       },
       "tactile_transducer_level": {
         "name": "Nivel del transductor táctil"
+      },
+      "zone2_sleep_timer": {
+        "name": "Temporizador de apagado"
+      },
+      "zone2_channel_level_fl": {
+        "name": "Nivel frontal izquierdo"
+      },
+      "zone2_channel_level_fr": {
+        "name": "Nivel frontal derecho"
       }
     },
     "button": {

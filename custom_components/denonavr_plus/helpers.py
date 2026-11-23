@@ -8,7 +8,9 @@ what the receiver published; a humanised id is only a last resort.
 from __future__ import annotations
 
 import re
+from typing import Any
 
+from . import choices
 from .avr.models import Discovery
 from .avr.profile import ControlSpec
 
@@ -69,6 +71,15 @@ def control_enabled_by_default(spec: ControlSpec) -> bool:
     """Return whether an entity for this profile control starts enabled."""
 
     return spec.id in _EVERYDAY_CONTROLS
+
+
+def control_zone_shown(spec: ControlSpec, options: dict[str, Any]) -> bool:
+    """Whether a control's zone is shown: zone 2 settings go with zone 2."""
+
+    sub_device = spec.get("subdevice")
+    if sub_device in ("zone2", "zone3"):
+        return choices.zone_enabled(options, str(sub_device))
+    return True
 
 
 def control_sub_device(spec: ControlSpec) -> str | None:

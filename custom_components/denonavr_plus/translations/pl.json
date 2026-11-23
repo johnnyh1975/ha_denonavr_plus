@@ -420,8 +420,8 @@
       "aspect_ratio": {
         "name": "Proporcje obrazu",
         "state": {
-          "full": "Pełny",
-          "normal": "Normalny"
+          "full": "16:9",
+          "normal": "4:3"
         }
       },
       "hdmi_audio_out": {
@@ -728,6 +728,15 @@
           "surround_back_front_height": "Surround tylny + przód wysokość",
           "surround_back_front_wide": "Surround tylny + przód szeroki"
         }
+      },
+      "zone2_auto_standby": {
+        "name": "Automatyczne czuwanie",
+        "state": {
+          "off": "Wyłączone",
+          "2_h": "2 godz.",
+          "4_h": "4 godz.",
+          "8_h": "8 godz."
+        }
       }
     },
     "switch": {
@@ -870,6 +879,15 @@
       },
       "tactile_transducer_level": {
         "name": "Poziom przetwornika dotykowego"
+      },
+      "zone2_sleep_timer": {
+        "name": "Wyłącznik czasowy"
+      },
+      "zone2_channel_level_fl": {
+        "name": "Poziom przedni lewy"
+      },
+      "zone2_channel_level_fr": {
+        "name": "Poziom przedni prawy"
       }
     },
     "button": {

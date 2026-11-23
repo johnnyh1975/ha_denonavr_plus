@@ -61,6 +61,7 @@ _LOGGER = logging.getLogger(__name__)
 #: Asked first by the setup probe: answers kept from a receiver in standby
 #: may be incomplete, so only those of a receiver that is on are kept.
 POWER_QUERY = "PW?"
+CHANNEL_TRIMS_QUERY = "CV?"
 
 # After a command sent over HTTP (telnet down) nothing is pushed back, so the
 # zone status is read again once the receiver has had a moment to apply it.
@@ -351,6 +352,7 @@ class DenonAvrDevice:
         # dedicated telnet session, so entities are built correctly regardless of
         # the persistent connection's later timing.
         await self._async_probe_introspection()
+        self._add_network_source()
         specs = self._answer_gated_controls()
         queries = {spec.query for spec in specs if spec.query}
         known = next(
@@ -433,6 +435,9 @@ class DenonAvrDevice:
             for spec in self._profile.introspection.values()
             if spec.get("query")
         ]
+        # The channel trims, for receivers without the SSLEV list (AVR-X2000):
+        # their channels are known only from these.
+        queries.append(CHANNEL_TRIMS_QUERY)
         await async_probe(
             self._host,
             queries,
@@ -441,6 +446,24 @@ class DenonAvrDevice:
                 self._discovery.configured_channels and self._discovery.sources
             ),
         )
+
+    def _add_network_source(self) -> None:
+        """Offer the network source (SINET) where the source lists leave it out.
+
+        An AVR-X2000 lists its network services (Favorites, Internet Radio …)
+        in SSSOD but not NET itself, although it reports SINET when playing
+        from the network and names NETWORK in Deviceinfo.
+        """
+
+        discovery = self._discovery
+        # Only next to a list the receiver gave: without one, the Deviceinfo
+        # list stands in later (async_await_ready).
+        if (
+            discovery.sources
+            and discovery.supports("NETWORK")
+            and not any(source.code == "NET" for source in discovery.sources)
+        ):
+            discovery.sources.append(SourceDescriptor(code="NET", name="NETWORK"))
 
     def _answer_gated_controls(self) -> list[ControlSpec]:
         """The controls that exist on this receiver only if it answers their query."""

@@ -21,6 +21,7 @@ from .entity import DenonAvrEntity, receiver_action
 from .helpers import (
     control_enabled_by_default,
     control_sub_device,
+    control_zone_shown,
     enum_options,
     option_key,
     group_name,
@@ -44,6 +45,7 @@ async def async_setup_entry(
         for spec in coordinator.device.profile.controls.values()
         if spec.kind == "enum"
         and discovery.has_control(spec.scope, spec.feature, spec.id)
+        and control_zone_shown(spec, dict(entry.options))
     ]
     # Two coupled sound mode selects: one picks the genre group (Movie/Music/
     # Game/Pure), the other lists the modes within the selected group. Both are
