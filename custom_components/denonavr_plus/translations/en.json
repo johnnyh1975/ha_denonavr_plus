@@ -37,6 +37,11 @@
     }
   },
   "entity": {
+    "media_player": {
+      "zone": {
+        "name": "Zone {index}"
+      }
+    },
     "binary_sensor": {
       "connectivity": {
         "name": "Connectivity"
@@ -185,6 +190,12 @@
       },
       "eq_channel": {
         "name": "Channel"
+      },
+      "speaker_crossover": {
+        "name": "{group} Crossover"
+      },
+      "speaker_size": {
+        "name": "{group} Speaker Size"
       }
     },
     "switch": {
@@ -297,6 +308,12 @@
       },
       "enhancer": {
         "name": "Enhancer"
+      },
+      "channel_trim": {
+        "name": "{channel} Trim"
+      },
+      "channel_distance": {
+        "name": "{channel} Distance"
       }
     },
     "button": {

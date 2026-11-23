@@ -1,0 +1,342 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Denon AVR Plus",
+        "description": "Introduza o endereço IP do seu recetor Denon. O nome e as funções são lidos automaticamente do dispositivo.",
+        "data": {
+          "host": "Endereço IP"
+        },
+        "data_description": {
+          "host": "O endereço IP do recetor, por exemplo 192.0.2.10. Encontra-o nas informações de rede do recetor ou no seu router. Um endereço fixo (reserva DHCP) mantém a ligação estável."
+        }
+      },
+      "ssdp_confirm": {
+        "title": "Denon AVR Plus",
+        "description": "Pretende adicionar o recetor encontrado {name}?"
+      },
+      "reconfigure": {
+        "title": "Denon AVR Plus",
+        "description": "Atualize o endereço IP do seu recetor Denon.",
+        "data": {
+          "host": "Endereço IP"
+        },
+        "data_description": {
+          "host": "O endereço IP do recetor, por exemplo 192.0.2.10. Encontra-o nas informações de rede do recetor ou no seu router. Um endereço fixo (reserva DHCP) mantém a ligação estável."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Não foi possível contactar o recetor. Verifique o endereço IP e se o recetor está ligado e na rede."
+    },
+    "abort": {
+      "already_configured": "Este recetor já está configurado.",
+      "wrong_device": "Esse endereço pertence a um recetor diferente do configurado.",
+      "reconfigure_successful": "O endereço IP foi atualizado."
+    }
+  },
+  "entity": {
+    "media_player": {
+      "zone": {
+        "name": "Zona {index}"
+      }
+    },
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Conectividade"
+      }
+    },
+    "sensor": {
+      "sound_mode": {
+        "name": "Modo de som"
+      },
+      "volume": {
+        "name": "Volume"
+      },
+      "input_signal": {
+        "name": "Sinal de entrada"
+      },
+      "sample_rate": {
+        "name": "Frequência de amostragem"
+      },
+      "audio_format": {
+        "name": "Formato de áudio"
+      },
+      "decoder": {
+        "name": "Descodificador"
+      },
+      "mode_info": {
+        "name": "Informação do modo"
+      }
+    },
+    "select": {
+      "sound_mode_group": {
+        "name": "Grupo de modos de som"
+      },
+      "sound_mode": {
+        "name": "Modo de som"
+      },
+      "quick_select": {
+        "name": "Quick Select"
+      },
+      "dynamic_compression": {
+        "name": "Compressão dinâmica"
+      },
+      "room_size": {
+        "name": "Tamanho da sala"
+      },
+      "dynamic_volume": {
+        "name": "Dynamic Volume"
+      },
+      "reference_level_offset": {
+        "name": "Desvio do nível de referência"
+      },
+      "multeq": {
+        "name": "MultEQ"
+      },
+      "restorer": {
+        "name": "Restorer"
+      },
+      "volume_scale": {
+        "name": "Escala de volume"
+      },
+      "volume_limit": {
+        "name": "Limite de volume"
+      },
+      "muting_level": {
+        "name": "Nível de silêncio"
+      },
+      "subwoofer_mode": {
+        "name": "Modo do subwoofer"
+      },
+      "front_speaker": {
+        "name": "Altifalantes frontais"
+      },
+      "lpf_for_lfe": {
+        "name": "LPF para LFE"
+      },
+      "eco_mode": {
+        "name": "Modo Eco"
+      },
+      "dimmer": {
+        "name": "Brilho do visor"
+      },
+      "video_mode": {
+        "name": "Modo de vídeo"
+      },
+      "picture_mode": {
+        "name": "Modo de imagem"
+      },
+      "noise_reduction": {
+        "name": "Redução de ruído"
+      },
+      "hdmi_video_output": {
+        "name": "Saída de vídeo HDMI"
+      },
+      "aspect_ratio": {
+        "name": "Proporção de imagem"
+      },
+      "hdmi_audio_out": {
+        "name": "Saída de áudio HDMI"
+      },
+      "resolution_hdmi": {
+        "name": "Resolução HDMI"
+      },
+      "input_mode": {
+        "name": "Modo de entrada"
+      },
+      "hdmi_power_off_control": {
+        "name": "Controlo de desligar HDMI"
+      },
+      "pass_through_source": {
+        "name": "Fonte pass-through"
+      },
+      "rc_select": {
+        "name": "Seleção do comando"
+      },
+      "osd_volume": {
+        "name": "Volume no ecrã"
+      },
+      "osd_now_playing": {
+        "name": "Indicação de reprodução"
+      },
+      "hdmi_signal_format": {
+        "name": "Formato de sinal 4K"
+      },
+      "tv_format": {
+        "name": "Formato de TV"
+      },
+      "amp_assign": {
+        "name": "Atribuição de amplificadores"
+      },
+      "floor_layout": {
+        "name": "Disposição dos altifalantes"
+      },
+      "height_speaker": {
+        "name": "Altifalantes de altura"
+      },
+      "crossover_speaker_selection": {
+        "name": "Seleção de altifalantes para o crossover"
+      },
+      "all_crossover": {
+        "name": "Crossover para todos"
+      },
+      "subwoofer_count": {
+        "name": "Subwoofers"
+      },
+      "eq_speaker_selection": {
+        "name": "Seleção de altifalantes"
+      },
+      "eq_channel": {
+        "name": "Canal"
+      },
+      "speaker_crossover": {
+        "name": "Crossover {group}"
+      },
+      "speaker_size": {
+        "name": "Tamanho dos altifalantes {group}"
+      }
+    },
+    "switch": {
+      "main_power": {
+        "name": "Alimentação da zona principal"
+      },
+      "main_mute": {
+        "name": "Silêncio da zona principal"
+      },
+      "tone_control": {
+        "name": "Controlo de tom"
+      },
+      "dynamic_eq": {
+        "name": "Dynamic EQ"
+      },
+      "graphic_eq": {
+        "name": "Ativado"
+      },
+      "headphone_eq": {
+        "name": "EQ de auscultadores"
+      },
+      "auto_lip_sync": {
+        "name": "Auto Lip Sync"
+      },
+      "loudness_management": {
+        "name": "Loudness Management"
+      },
+      "cinema_eq": {
+        "name": "Cinema EQ"
+      },
+      "subwoofer_switch": {
+        "name": "Subwoofer ativado"
+      },
+      "all_zone_stereo": {
+        "name": "All Zone Stereo"
+      },
+      "speaker_virtualizer": {
+        "name": "Speaker Virtualizer"
+      },
+      "center_spread": {
+        "name": "Center Spread"
+      },
+      "dts_neural_x": {
+        "name": "DTS Neural:X"
+      },
+      "low_frequency_containment": {
+        "name": "Low Frequency Containment"
+      },
+      "hdmi_control": {
+        "name": "Controlo HDMI"
+      },
+      "arc": {
+        "name": "ARC"
+      },
+      "tv_audio_switching": {
+        "name": "Comutação de áudio da TV"
+      },
+      "hdmi_power_saving": {
+        "name": "Poupança de energia HDMI"
+      },
+      "smart_menu": {
+        "name": "Smart Menu"
+      },
+      "hdmi_pass_through": {
+        "name": "HDMI pass-through"
+      },
+      "osd_info": {
+        "name": "Informação no ecrã"
+      }
+    },
+    "number": {
+      "bass": {
+        "name": "Graves"
+      },
+      "treble": {
+        "name": "Agudos"
+      },
+      "lfe": {
+        "name": "LFE"
+      },
+      "dialog_level": {
+        "name": "Nível de diálogo"
+      },
+      "subwoofer_level": {
+        "name": "Nível do subwoofer"
+      },
+      "sleep_timer": {
+        "name": "Temporizador de desligar"
+      },
+      "effect_level": {
+        "name": "Nível de efeito"
+      },
+      "containment_amount": {
+        "name": "Intensidade LFC"
+      },
+      "audio_delay": {
+        "name": "Atraso de áudio"
+      },
+      "dialog_control": {
+        "name": "Controlo de diálogo"
+      },
+      "contrast": {
+        "name": "Contraste"
+      },
+      "brightness": {
+        "name": "Brilho"
+      },
+      "saturation": {
+        "name": "Saturação"
+      },
+      "enhancer": {
+        "name": "Melhoria de imagem"
+      },
+      "channel_trim": {
+        "name": "Nível {channel}"
+      },
+      "channel_distance": {
+        "name": "Distância {channel}"
+      }
+    },
+    "button": {
+      "eq_apply": {
+        "name": "Aplicar"
+      },
+      "eq_copy_curve": {
+        "name": "Copiar curva"
+      },
+      "eq_default": {
+        "name": "Predefinição"
+      }
+    }
+  },
+  "exceptions": {
+    "setup_write_failed": {
+      "message": "O {model} não aceitou a definição. Feche o menu de configuração na televisão, se estiver aberto, verifique se o bloqueio de configuração do recetor está desativado e tente novamente."
+    }
+  },
+  "issues": {
+    "telnet_unavailable": {
+      "title": "O {model} não aceita uma ligação de controlo",
+      "description": "O {model} responde na rede, mas há vários minutos que não aceita uma ligação telnet na porta 23. Até lá, os leitores multimédia só funcionam através da interface web: ligar/desligar, volume, silêncio e fonte, com até 10 segundos de atraso. Todas as outras definições estão indisponíveis.\n\nO recetor só permite uma ligação telnet de cada vez. Causas comuns:\n\n- Outra integração ou outro programa ocupa essa ligação, por exemplo a integração oficial Denon AVR ou outro sistema de domótica. Remova-a ou desative-a para este recetor.\n- Uma regra de firewall ou de VLAN bloqueia a porta 23 entre o Home Assistant e o recetor, enquanto as portas web estão abertas.\n\nA mensagem desaparece por si própria assim que a ligação voltar a funcionar."
+    }
+  }
+}

@@ -54,6 +54,14 @@ the list.
   unload. A command queue that sends your commands before pending queries,
   waits for each reply (paced by the receiver's measured response time) and
   is cleared when the link drops, so stale commands are never sent later.
+- **Eight languages, English entity ids.** Texts and entity names in English,
+  German, French, Italian, Spanish, Portuguese, Dutch and Polish. Entity ids
+  are always built from the English names (for example
+  `number.avr_x3600h_speakers_center_trim`), whatever language Home Assistant
+  runs in, so automations and examples work in every installation. The names
+  of the sub‑devices (Audio, Video, Picture, Speakers, Graphic EQ) stay
+  English because they are part of every entity id. Sources, sound modes
+  and option labels are shown as the receiver reports them.
 
 ## Installation
 

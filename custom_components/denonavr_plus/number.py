@@ -138,7 +138,8 @@ class DenonAvrChannelTrim(DenonAvrEntity, NumberEntity):
         # default; the user can still enable them from the UI.
         self._attr_entity_registry_enabled_default = enabled
         discovery = coordinator.device.discovery
-        self._attr_name = f"{discovery.channel_name(code)} Trim"
+        self._attr_translation_key = "channel_trim"
+        self._attr_translation_placeholders = {"channel": discovery.channel_name(code)}
         meta = discovery.numeric_meta.get(code)
         if meta:
             self._attr_native_min_value = meta["min"]
@@ -168,7 +169,8 @@ class DenonAvrChannelDistance(DenonAvrEntity, NumberEntity):
         )
         self._code = code
         discovery = coordinator.device.discovery
-        self._attr_name = f"{discovery.channel_name(code)} Distance"
+        self._attr_translation_key = "channel_distance"
+        self._attr_translation_placeholders = {"channel": discovery.channel_name(code)}
         dist = coordinator.device.profile.distance
         self._attr_native_min_value = dist.get("min", 0.0)
         self._attr_native_max_value = dist.get("max", 18.0)

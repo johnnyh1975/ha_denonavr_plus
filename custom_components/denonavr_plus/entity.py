@@ -17,6 +17,7 @@ from homeassistant.helpers.device_registry import (
     CONNECTION_NETWORK_MAC,
     DeviceInfo,
 )
+from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .avr.errors import SetupWriteError
@@ -112,6 +113,23 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
             # The receiver's own web control page, useful as a device link.
             configuration_url=f"https://{self._device.host}:10443/",
         )
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        """Build the entity id from the English name, whatever the language.
+
+        Home Assistant builds entity ids from the name in the user's language
+        for many languages, German among them (NATIVE_ENTITY_IDS). Ids here
+        are always English so they read the same in every installation and
+        can be documented and shared. The displayed name stays translated.
+        """
+
+        if not self.platform_data:
+            return super().suggested_object_id
+        name = self._name_internal(
+            None, self.platform_data.default_language_platform_translations
+        )
+        return None if name is UNDEFINED else name
 
     @property
     def available(self) -> bool:

@@ -37,6 +37,11 @@
     }
   },
   "entity": {
+    "media_player": {
+      "zone": {
+        "name": "Zone {index}"
+      }
+    },
     "binary_sensor": {
       "connectivity": {
         "name": "Verbinding"
@@ -185,6 +190,12 @@
       },
       "eq_channel": {
         "name": "Kanaal"
+      },
+      "speaker_crossover": {
+        "name": "Crossover {group}"
+      },
+      "speaker_size": {
+        "name": "Luidsprekergrootte {group}"
       }
     },
     "switch": {
@@ -297,6 +308,12 @@
       },
       "enhancer": {
         "name": "Beeldverbetering"
+      },
+      "channel_trim": {
+        "name": "Niveau {channel}"
+      },
+      "channel_distance": {
+        "name": "Afstand {channel}"
       }
     },
     "button": {

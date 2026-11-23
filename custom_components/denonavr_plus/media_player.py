@@ -88,8 +88,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         super().__init__(coordinator, f"media_player_{zone.id}")
         self._zone = zone
         # The main zone is the primary device entity (no own name); additional
-        # zones carry the discovered zone name.
-        self._attr_name = None if zone.is_main else zone.name
+        # zones are named "Zone <n>", translated.
+        if zone.is_main:
+            self._attr_name = None
+        else:
+            self._attr_translation_key = "zone"
+            self._attr_translation_placeholders = {"index": str(zone.index)}
 
         features = (
             MediaPlayerEntityFeature.TURN_ON

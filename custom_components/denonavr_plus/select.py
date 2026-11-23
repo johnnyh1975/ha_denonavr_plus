@@ -231,9 +231,10 @@ class DenonAvrCrossover(DenonAvrEntity, SelectEntity):
         # profile like every other enum's wire values - no runtime fetch needed.
         self._values = [int(v) for v in crossover.get("values", [])]
         self._attr_options = [self._format(v) for v in self._values]
-        self._attr_name = (
-            f"{group_name(coordinator.device.discovery, channels)} Crossover"
-        )
+        self._attr_translation_key = "speaker_crossover"
+        self._attr_translation_placeholders = {
+            "group": group_name(coordinator.device.discovery, channels)
+        }
 
     def _format(self, hertz: int) -> str:
         return f"{hertz} {self._unit}"
@@ -351,9 +352,10 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
         self._token_to_label = dict(sizes)
         self._label_to_token = {label: token for token, label in sizes.items()}
         self._attr_options = list(sizes.values())
-        self._attr_name = (
-            f"{group_name(coordinator.device.discovery, channels)} Speaker Size"
-        )
+        self._attr_translation_key = "speaker_size"
+        self._attr_translation_placeholders = {
+            "group": group_name(coordinator.device.discovery, channels)
+        }
 
     @property
     def current_option(self) -> str | None:

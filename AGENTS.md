@@ -57,9 +57,13 @@ modules start at 95 %.
    before it is committed. The CI checks every added line
    (`scripts/check_private_data.py`).
 6. **Diagnostics contain no address, MAC or serial number.**
-7. **Texts go in `strings.json` and every translation.** Keys are
-   `[a-z0-9-_]`, and do not start or end with `-` or `_`; Home Assistant
-   rejects anything else (`scripts/check_translations.py`).
+7. **Texts go in `strings.json` and every translation** (de, en, es, fr,
+   it, nl, pl, pt). Keys are `[a-z0-9-_]`, and do not start or end with
+   `-` or `_`; Home Assistant rejects anything else
+   (`scripts/check_translations.py`). Entity ids are built from the English
+   name in every language (`entity.py`, `suggested_object_id`), so name
+   entities through `translation_key`, with placeholders for parts that
+   come from the receiver, and keep device names English.
 8. **Protocol facts say where they come from.** A command token or value
    that has not been confirmed on a receiver is marked in its test with
    `@pytest.mark.assumed("what is unconfirmed, and what would settle it")`.
