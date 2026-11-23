@@ -471,6 +471,15 @@
   "exceptions": {
     "setup_write_failed": {
       "message": "Der {model} hat die Einstellung nicht übernommen. Schließe das Setup-Menü am Fernseher, falls es offen ist, prüfe, ob die Setup-Sperre des Receivers aus ist, und versuche es erneut."
+    },
+    "invalid_command": {
+      "message": "Der Befehl muss aus druckbaren ASCII-Zeichen bestehen, darf nicht leer sein und höchstens {max_length} Zeichen lang sein."
+    },
+    "command_query_needs_telnet": {
+      "message": "Der {model} kann {command} gerade nicht beantworten: Antworten kommen nur über die Telnet-Verbindung, und die ist getrennt. Versuche es erneut, wenn der Receiver verbunden ist."
+    },
+    "command_unreachable": {
+      "message": "Der {model} war nicht erreichbar, um {command} zu senden. Prüfe, ob er im Netzwerk ist und Network Standby eingeschaltet ist."
     }
   },
   "issues": {
@@ -484,6 +493,18 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Befehl senden",
+      "description": "Sendet einen Telnet-Befehl unverändert an den Receiver, für Einstellungen ohne Entität. Mit Antwort angefordert, gibt sie die Antworten des Receivers zurück.",
+      "fields": {
+        "command": {
+          "name": "Befehl",
+          "description": "Wie in den Protokoll-Dokumenten, zum Beispiel PSDYNEQ ON oder MV?. Druckbare ASCII-Zeichen, höchstens {max_length} Zeichen."
+        }
       }
     }
   }

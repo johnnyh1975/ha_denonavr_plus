@@ -39,3 +39,8 @@ What looks different afterwards:
 - **Entity IDs are English** in every language, for example
   `number.avr_x3600h_speakers_center_trim` also on a German installation,
   where the other integrations may have created German ones.
+- **Raw commands** go through `denonavr_plus.send_command` instead of
+  `denonavr.get_command`. The field is `command` in both; the old action
+  sent it over the web interface, the new one over telnet, so the command
+  takes effect at once and, asked for a response, returns the receiver's
+  replies.

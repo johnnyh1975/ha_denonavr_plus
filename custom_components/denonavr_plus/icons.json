@@ -295,5 +295,10 @@
         "default": "mdi:television"
       }
     }
+  },
+  "services": {
+    "send_command": {
+      "service": "mdi:console-line"
+    }
   }
 }

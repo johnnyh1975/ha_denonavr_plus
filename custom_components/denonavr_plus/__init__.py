@@ -11,14 +11,20 @@ import logging
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import (
+    config_validation as cv,
+    device_registry as dr,
+    entity_registry as er,
+)
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.typing import ConfigType
 
 from . import choices
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
+from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,6 +33,15 @@ _LOGGER = logging.getLogger(__name__)
 _CHANNELS_INITIALIZED = "channels_initialized"
 # Unique id fragment identifying per channel entities and how to read the code.
 _CHANNEL_MARKER = "_channel_trim_"
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the actions, once, so they exist even before an entry loads."""
+
+    async_setup_services(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> bool:

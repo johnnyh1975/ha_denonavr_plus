@@ -25,6 +25,8 @@ from .models import AvrState, Discovery, NowPlaying
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ProtocolProfile, load_profile
 from . import graphic_eq, video_config
+from .const import REPLY_COLLECT_FIRST, REPLY_COLLECT_QUIET
+from .errors import CommandNotSent
 from .transport import (
     DEFAULT_PORT,
     GoformClient,
@@ -108,6 +110,8 @@ class DenonAvrDevice:
         self._heos = HeosClient(host, on_update=self._handle_now_playing)
 
         self._update_callback: Callable[[], None] | None = None
+        # Listeners for raw command replies (async_send_command); see there.
+        self._reply_listeners: list[Callable[[str], None]] = []
         self._update_handle: asyncio.TimerHandle | None = None
         # Strong references to fire and forget tasks (delayed queries, OPSML
         # refreshes). Without these, asyncio only keeps a weak reference and the
@@ -415,6 +419,8 @@ class DenonAvrDevice:
     def _handle_line(self, line: str) -> None:
         """Feed a received telnet line to the parser and notify on change."""
 
+        for listener in tuple(self._reply_listeners):
+            listener(line)
         if self._parser.feed(line, self._state):
             self._schedule_update()
         # The receiver pushes OPSMLALL (all groups) when the sound mode context
@@ -561,6 +567,60 @@ class DenonAvrDevice:
             )
 
     # Control methods ------------------------------------------------------
+
+    async def async_send_command(
+        self, command: str, *, collect_replies: bool = False
+    ) -> list[str]:
+        """Send a raw command exactly as given (the send_command action).
+
+        Unlike the controls, which drop a command they cannot send, this
+        raises CommandNotSent: the caller asked for exactly this command.
+        While telnet is down a command goes over HTTP; a query cannot, as
+        its answer only comes back over telnet.
+
+        With collect_replies, the lines that start with the command's
+        two-letter prefix and arrive after it are returned: up to
+        REPLY_COLLECT_FIRST seconds for the first, then until none came for
+        REPLY_COLLECT_QUIET. A line pushed for another reason with the same
+        prefix (a change on the remote) can be among them. Over HTTP nothing
+        comes back, so the list is empty.
+        """
+
+        if not self._telnet.connected:
+            if is_query(command):
+                raise CommandNotSent("query_needs_telnet")
+            if not self._http_reachable or not await self._goform.async_send_command(command):
+                raise CommandNotSent("unreachable")
+            self._create_task(self._refresh_after_http_command())
+            return []
+        if not collect_replies:
+            await self._telnet.async_send(command)
+            return []
+
+        prefix = command[:2].upper()
+        replies: list[str] = []
+        arrived = asyncio.Event()
+
+        def listen(line: str) -> None:
+            if line.startswith(prefix):
+                replies.append(line)
+                arrived.set()
+
+        self._reply_listeners.append(listen)
+        try:
+            await self._telnet.async_send(command)
+            wait = REPLY_COLLECT_FIRST
+            while True:
+                try:
+                    async with asyncio.timeout(wait):
+                        await arrived.wait()
+                except TimeoutError:
+                    break
+                arrived.clear()
+                wait = REPLY_COLLECT_QUIET
+        finally:
+            self._reply_listeners.remove(listen)
+        return replies
 
     async def _send(self, command: str) -> None:
         """Send over telnet, or over HTTP while the telnet link is down.

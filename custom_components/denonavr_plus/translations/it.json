@@ -471,6 +471,15 @@
   "exceptions": {
     "setup_write_failed": {
       "message": "Il {model} non ha accettato l'impostazione. Chiudi il menu di configurazione sul televisore se è aperto, verifica che il blocco della configurazione del sintoamplificatore sia disattivato e riprova."
+    },
+    "invalid_command": {
+      "message": "Il comando deve essere testo ASCII stampabile, non vuoto e lungo al massimo {max_length} caratteri."
+    },
+    "command_query_needs_telnet": {
+      "message": "Il {model} non può rispondere a {command} in questo momento: le risposte arrivano solo tramite la connessione telnet, che è interrotta. Riprova quando il sintoamplificatore è connesso."
+    },
+    "command_unreachable": {
+      "message": "Non è stato possibile raggiungere il {model} per inviare {command}. Controlla che sia in rete e che lo standby di rete sia attivo."
     }
   },
   "issues": {
@@ -484,6 +493,18 @@
       "options": {
         "zone2": "Zona 2",
         "zone3": "Zona 3"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Invia comando",
+      "description": "Invia un comando telnet grezzo al sintoamplificatore, per le impostazioni senza entità. Se è richiesta una risposta, restituisce le risposte del sintoamplificatore.",
+      "fields": {
+        "command": {
+          "name": "Comando",
+          "description": "Come nei documenti del protocollo, per esempio PSDYNEQ ON o MV?. Testo ASCII stampabile, al massimo {max_length} caratteri."
+        }
       }
     }
   }

@@ -22,6 +22,14 @@ COMMAND_SPACING: Final = 0.08
 # command that changes nothing gets no reply at all, so the wait must stay short.
 REPLY_TIMEOUT_MIN: Final = 0.2
 REPLY_TIMEOUT_MAX: Final = 1.0
+# A raw command (the send_command action) that asks for its replies waits this
+# long for the first one; it may queue behind a resync. The replies of one
+# command come in a burst, so collecting ends once none arrived for QUIET.
+REPLY_COLLECT_FIRST: Final = 2.0
+REPLY_COLLECT_QUIET: Final = 0.3
+# The protocol documents allow at most 135 bytes per message, the closing
+# carriage return included.
+MAX_MESSAGE_LENGTH: Final = 135
 # Both protocol documents ask to wait 1 s after PWON before the next command.
 POWER_ON_SETTLE: Final = 1.0
 CONNECT_TIMEOUT: Final = 5.0

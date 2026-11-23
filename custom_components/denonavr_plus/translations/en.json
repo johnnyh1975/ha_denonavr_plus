@@ -471,6 +471,15 @@
   "exceptions": {
     "setup_write_failed": {
       "message": "The {model} did not accept the setting. Close the setup menu on the TV if it is open and check that the receiver's setup lock is off, then try again."
+    },
+    "invalid_command": {
+      "message": "The command must be printable ASCII text, not empty, and at most {max_length} characters long."
+    },
+    "command_query_needs_telnet": {
+      "message": "The {model} cannot answer {command} right now: answers only come over the telnet connection, which is down. Try again when the receiver is connected."
+    },
+    "command_unreachable": {
+      "message": "The {model} could not be reached to send {command}. Check that it is on the network and that network standby is on."
     }
   },
   "issues": {
@@ -484,6 +493,18 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Send command",
+      "description": "Sends a raw telnet command to the receiver, for settings without an entity. Asked for a response, returns the receiver's replies.",
+      "fields": {
+        "command": {
+          "name": "Command",
+          "description": "As in the protocol documents, for example PSDYNEQ ON or MV?. Printable ASCII, at most {max_length} characters."
+        }
       }
     }
   }

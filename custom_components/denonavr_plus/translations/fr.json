@@ -471,6 +471,15 @@
   "exceptions": {
     "setup_write_failed": {
       "message": "Le {model} n'a pas accepté le réglage. Fermez le menu de configuration sur le téléviseur s'il est ouvert, vérifiez que le verrouillage de la configuration de l'ampli-tuner est désactivé, puis réessayez."
+    },
+    "invalid_command": {
+      "message": "La commande doit être du texte ASCII imprimable, non vide, d'au plus {max_length} caractères."
+    },
+    "command_query_needs_telnet": {
+      "message": "Le {model} ne peut pas répondre à {command} pour le moment : les réponses n'arrivent que par la connexion telnet, qui est coupée. Réessayez quand l'ampli-tuner est connecté."
+    },
+    "command_unreachable": {
+      "message": "Le {model} n'a pas pu être joint pour envoyer {command}. Vérifiez qu'il est sur le réseau et que la veille réseau est activée."
     }
   },
   "issues": {
@@ -484,6 +493,18 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Envoyer une commande",
+      "description": "Envoie une commande telnet brute à l'ampli-tuner, pour les réglages sans entité. Si une réponse est demandée, renvoie les réponses de l'ampli-tuner.",
+      "fields": {
+        "command": {
+          "name": "Commande",
+          "description": "Comme dans les documents du protocole, par exemple PSDYNEQ ON ou MV?. Texte ASCII imprimable, au plus {max_length} caractères."
+        }
       }
     }
   }

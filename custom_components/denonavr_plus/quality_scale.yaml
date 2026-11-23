@@ -11,10 +11,8 @@
 rules:
   # ── Bronze ────────────────────────────────────────────────────────────────
   action-setup:
-    status: exempt
-    comment: >
-      No actions yet. The planned send_command action is registered in
-      async_setup when it arrives.
+    status: done
+    comment: send_command is registered in async_setup (services.py).
   appropriate-polling:
     status: done
     comment: >
@@ -40,8 +38,8 @@ rules:
     status: done
     comment: No external Python requirements; the client lives in avr/.
   docs-actions:
-    status: exempt
-    comment: No actions yet.
+    status: done
+    comment: README, section Actions.
   docs-configuration-parameters:
     status: exempt
     comment: No options flow yet.
@@ -75,8 +73,9 @@ rules:
     status: todo
     comment: >
       Writes over the setup API (graphic EQ, video and speaker setup) raise a
-      translated error when the receiver rejects them. Telnet commands sent
-      while the connection is down do not raise yet.
+      translated error when the receiver rejects them. send_command raises a
+      translated error when it cannot send. Telnet commands of the other
+      entities sent while the connection is down do not raise yet.
   config-entry-unloading:
     status: done
   docs-supported-functions:

@@ -1,0 +1,11 @@
+send_command:
+  target:
+    entity:
+      integration: denonavr_plus
+      domain: media_player
+  fields:
+    command:
+      required: true
+      example: "PSDYNEQ ON"
+      selector:
+        text:

@@ -471,6 +471,15 @@
   "exceptions": {
     "setup_write_failed": {
       "message": "El {model} no aceptó el ajuste. Cierra el menú de configuración en el televisor si está abierto, comprueba que el bloqueo de configuración del receptor esté desactivado e inténtalo de nuevo."
+    },
+    "invalid_command": {
+      "message": "El comando debe ser texto ASCII imprimible, no vacío y de como máximo {max_length} caracteres."
+    },
+    "command_query_needs_telnet": {
+      "message": "El {model} no puede responder a {command} ahora: las respuestas solo llegan por la conexión telnet, que está cortada. Inténtalo de nuevo cuando el receptor esté conectado."
+    },
+    "command_unreachable": {
+      "message": "No se pudo contactar con el {model} para enviar {command}. Comprueba que está en la red y que el modo de espera de red está activado."
     }
   },
   "issues": {
@@ -484,6 +493,18 @@
       "options": {
         "zone2": "Zona 2",
         "zone3": "Zona 3"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Enviar comando",
+      "description": "Envía un comando telnet sin procesar al receptor, para ajustes sin entidad. Si se solicita una respuesta, devuelve las respuestas del receptor.",
+      "fields": {
+        "command": {
+          "name": "Comando",
+          "description": "Como en los documentos del protocolo, por ejemplo PSDYNEQ ON o MV?. Texto ASCII imprimible, como máximo {max_length} caracteres."
+        }
       }
     }
   }

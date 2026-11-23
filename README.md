@@ -286,6 +286,37 @@ channel's curve. Editing requires MultEQ **off** and the graphic EQ **enabled**
 on the **Graphic EQ** device first. Entity ids follow your device name — adjust
 the prefix to match yours.
 
+## Actions
+
+### Send command (`denonavr_plus.send_command`)
+
+Sends a telnet command to the receiver exactly as given, for settings that
+have no entity. Target one media player of the receiver; any zone's player
+reaches the same receiver.
+
+| Field | Required | Description |
+|---|---|---|
+| `command` | yes | The command as in the protocol documents, for example `PSDYNEQ ON` or `MV?`. Printable ASCII, at most 134 characters. |
+
+```yaml
+action: denonavr_plus.send_command
+target:
+  entity_id: media_player.avr_x3600h
+data:
+  command: PSDYNEQ ON
+```
+
+Asked for a response (`response_variable` in a script), the action returns the
+lines that start with the command's first two letters and arrive within two
+seconds, for example `{"replies": ["MV50", "MVMAX 80"]}` for `MV?`. A change
+pushed at the same moment, say from the remote, can be among them.
+
+While telnet is down, a command goes over the web interface instead, as the
+media players do; a query cannot, because its answer only comes back over
+telnet, so the action reports an error. It also reports one when the receiver
+cannot be reached. This replaces `denonavr.get_command` of the official
+integration.
+
 ## Notes and limitations
 
 - Some parameters only apply to certain signals or sound modes (for example

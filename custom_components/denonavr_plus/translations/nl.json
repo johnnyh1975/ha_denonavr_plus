@@ -471,6 +471,15 @@
   "exceptions": {
     "setup_write_failed": {
       "message": "De {model} heeft de instelling niet geaccepteerd. Sluit het instellingenmenu op de tv als het open is en controleer of de instellingenvergrendeling van de receiver uit staat. Probeer het daarna opnieuw."
+    },
+    "invalid_command": {
+      "message": "De opdracht moet afdrukbare ASCII-tekst zijn, niet leeg en hoogstens {max_length} tekens lang."
+    },
+    "command_query_needs_telnet": {
+      "message": "De {model} kan {command} nu niet beantwoorden: antwoorden komen alleen via de telnet-verbinding, en die is verbroken. Probeer het opnieuw wanneer de receiver verbonden is."
+    },
+    "command_unreachable": {
+      "message": "De {model} was niet bereikbaar om {command} te versturen. Controleer of hij op het netwerk is en of netwerkstand-by aan staat."
     }
   },
   "issues": {
@@ -484,6 +493,18 @@
       "options": {
         "zone2": "Zone 2",
         "zone3": "Zone 3"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Opdracht versturen",
+      "description": "Stuurt een ruwe telnet-opdracht naar de receiver, voor instellingen zonder entiteit. Met een gevraagd antwoord geeft het de antwoorden van de receiver terug.",
+      "fields": {
+        "command": {
+          "name": "Opdracht",
+          "description": "Zoals in de protocoldocumenten, bijvoorbeeld PSDYNEQ ON of MV?. Afdrukbare ASCII-tekst, hoogstens {max_length} tekens."
+        }
       }
     }
   }
