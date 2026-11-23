@@ -53,6 +53,17 @@
     "MUSIC": "MUSIC",
     "GAME": "GAME"
   },
+  "netaudio": {
+    "doc": "Now playing and transport over telnet, for receivers without HEOS (AVR-X2000 and older). NSE asks for the on-screen list (NSE0-NSE8, UTF-8): line 0 starts with 'Now Playing' while a track plays, lines 1, 2 and 4 hold title, artist and album after one flag byte. NS9A-NS9E play, pause, stop, skip forward and back. The cover is served under art_path on the goform port. From the AVR-X2000/E400 (v03), AVR-1912/2112CI, AVR-1913/2113CI and 2015 X-series documents and the denonavr library (input.py). TFAN? and TFANNAME? give the tuner frequency (6 digits, below 050000 FM in MHz x 100, else AM in kHz x 100) and station name.",
+    "sources": ["NET", "FAVORITES", "IRADIO", "SERVER", "SPOTIFY", "LASTFM", "FLICKR", "PANDORA", "SIRIUSXM", "NAPSTER", "RHAPSODY", "USB/IPOD", "USB", "IPD", "NET/USB"],
+    "query": "NSE",
+    "now_playing": "Now Playing",
+    "lines": {"1": "title", "2": "artist", "4": "album"},
+    "transport": {"play": "NS9A", "pause": "NS9B", "stop": "NS9C", "next": "NS9D", "previous": "NS9E"},
+    "art_path": "/NetAudio/art.asp-jpg",
+    "tuner_sources": ["TUNER"],
+    "tuner_queries": ["TFAN?", "TFANNAME?"]
+  },
   "grammar": {
     "line_terminator": "\r",
     "list_terminator": "END",

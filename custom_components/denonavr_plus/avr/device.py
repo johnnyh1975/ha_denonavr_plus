@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, fields
+from dataclasses import asdict, fields, replace
 from typing import Any
 
 import aiohttp
@@ -64,6 +64,8 @@ POWER_QUERY = "PW?"
 CHANNEL_TRIMS_QUERY = "CV?"
 #: The profile variant of receivers on port 80 (AVR-X2000 and its time).
 OLDER = "older"
+#: How often the now playing list and the tuner are asked while they play.
+MEDIA_POLL_INTERVAL = 5.0
 
 # After a command sent over HTTP (telnet down) nothing is pushed back, so the
 # zone status is read again once the receiver has had a moment to apply it.
@@ -93,6 +95,7 @@ class DenonAvrDevice:
         self._http_port = http_port
         # The setup answers of this receiver, kept to skip asking at the next start.
         self.known_answers: KnownAnswers | None = None
+        self._media_task: asyncio.Future[None] | None = None
         self._profile: ProtocolProfile = load_profile()
         self._discovery = Discovery()
         self._state = AvrState()
@@ -550,13 +553,67 @@ class DenonAvrDevice:
 
         await self._send(f"MSQUICK{int(number)} MEMORY")
 
+    @property
+    def telnet_media(self) -> bool:
+        """Now playing and transport over telnet: receivers without HEOS (port 80)."""
+
+        return self._profile.variant == OLDER
+
+    @property
+    def transport_available(self) -> bool:
+        """Whether play, pause and skip can reach the network player."""
+
+        return self.telnet_media or self._heos_enabled
+
+    def media_art_url(self) -> str | None:
+        """The cover of what plays, on receivers without HEOS (changes with the track)."""
+
+        now = self._state.now_playing
+        path = self._profile.netaudio.get("art_path")
+        if not (self.telnet_media and path and now.active):
+            return None
+        stamp = abs(hash((now.title, now.artist, now.album)))
+        return f"http://{self._host}:{self._http_port or 80}{path}?{stamp}"
+
     async def async_start(self) -> None:
         """Start the telnet transport (which triggers the first resync)."""
 
         await self._telnet.async_start()
         # Best effort; the HEOS channel is auxiliary and self-heals on its own.
-        if self._heos_enabled:
+        # Receivers on port 80 have no HEOS; they report over telnet instead.
+        if self._heos_enabled and not self.telnet_media:
             await self._heos.async_start()
+        self._media_task = asyncio.ensure_future(self._media_loop())
+
+    async def _media_loop(self) -> None:
+        """Ask for now playing (no HEOS) and the tuner while they are the source."""
+
+        while True:
+            await asyncio.sleep(MEDIA_POLL_INTERVAL)
+            try:
+                await self.async_poll_media()
+            except Exception as err:  # noqa: BLE001 - a background task must not raise
+                _LOGGER.debug("Asking %s for now playing failed: %s", self._host, err)
+
+    async def async_poll_media(self) -> None:
+        """One round: NSE for a network source, TFAN?/TFANNAME? for the tuner."""
+
+        if not self._telnet.connected:
+            return
+        main = self._state.zone("main")
+        grammar = self._profile.netaudio
+        if not main.power or not grammar:
+            return
+        network = main.source in grammar.get("sources", [])
+        if self.telnet_media and not network and self._state.now_playing.state is not None:
+            # Off the network source: nothing plays there any more.
+            self._state.now_playing = NowPlaying()
+            self._schedule_update()
+        if main.source in grammar.get("tuner_sources", []):
+            for query in grammar.get("tuner_queries", []):
+                await self._telnet.async_send(query)
+        elif self.telnet_media and network:
+            await self._telnet.async_send(grammar["query"])
 
     async def async_await_ready(self, timeout: float = 8.0) -> None:
         """Wait, best effort, until the initial resync has populated state.
@@ -592,6 +649,13 @@ class DenonAvrDevice:
         for task in list(self._pending_tasks):
             task.cancel()
         self._pending_tasks.clear()
+        if self._media_task is not None:
+            self._media_task.cancel()
+            try:
+                await self._media_task
+            except asyncio.CancelledError:
+                pass
+            self._media_task = None
         await self._telnet.async_stop()
         await self._heos.async_stop()
 
@@ -939,22 +1003,48 @@ class DenonAvrDevice:
             raise CommandNotSent("unreachable")
         self._create_task(self._refresh_after_http_command())
 
-    # Network media transport, routed to the HEOS channel. No-ops when HEOS is
-    # not connected or no network source is playing.
+    # Network media transport: over HEOS, or over telnet (NS9A-NS9E) on
+    # receivers without HEOS. No-ops when nothing can take them.
     async def async_media_play(self) -> None:
+        if await self._telnet_transport("play", state="play"):
+            return
         await self._heos.async_play()
 
     async def async_media_pause(self) -> None:
+        if await self._telnet_transport("pause", state="pause"):
+            return
         await self._heos.async_pause()
 
     async def async_media_stop(self) -> None:
+        if await self._telnet_transport("stop", state="stop"):
+            return
         await self._heos.async_stop_playback()
 
     async def async_media_next(self) -> None:
+        if await self._telnet_transport("next"):
+            return
         await self._heos.async_next()
 
     async def async_media_previous(self) -> None:
+        if await self._telnet_transport("previous"):
+            return
         await self._heos.async_previous()
+
+    async def _telnet_transport(self, action: str, state: str | None = None) -> bool:
+        """Send a transport command over telnet where there is no HEOS.
+
+        The on-screen list cannot tell play from pause, so the state follows
+        the command.
+        """
+
+        command = self._profile.netaudio.get("transport", {}).get(action)
+        if not (self.telnet_media and command):
+            return False
+        await self._send(command)
+        if state is not None and self._state.now_playing.state is not None:
+            self._state.now_playing = replace(self._state.now_playing, state=state)
+            self._schedule_update()
+        return True
 
     async def async_media_repeat(self, repeat: str) -> None:
         """Repeat off, all or one (HEOS off / on_all / on_one)."""

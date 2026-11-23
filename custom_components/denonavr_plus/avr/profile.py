@@ -117,6 +117,8 @@ class ProtocolProfile:
             if name != "doc"
         }
         self.introspection: dict[str, dict[str, Any]] = raw.get("introspection", {})
+        # Now playing and transport over telnet for receivers without HEOS.
+        self.netaudio: dict[str, Any] = raw.get("netaudio", {})
         self.readonly: dict[str, dict[str, Any]] = raw.get("readonly", {})
         self.refresh: dict[str, Any] = raw.get("refresh", {})
         # Receiver-type classification (device hw_version), by CommApiVers /

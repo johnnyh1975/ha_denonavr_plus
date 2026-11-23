@@ -27,7 +27,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import choices
 from . import volume as _volume
 from .avr.errors import CommandNotSent
-from .avr.models import ZoneDescriptor
+from .avr.models import NowPlaying, ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .device_trigger import turn_on_trigger
 from .entity import DenonAvrEntity, receiver_action, zone_device
@@ -131,16 +131,20 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         # zone); without HEOS (a connection option) there is no transport.
         if zone.is_main:
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
-            if coordinator.device.heos_enabled:
+            if coordinator.device.transport_available:
                 features |= (
                     MediaPlayerEntityFeature.PLAY
                     | MediaPlayerEntityFeature.PAUSE
                     | MediaPlayerEntityFeature.STOP
                     | MediaPlayerEntityFeature.NEXT_TRACK
                     | MediaPlayerEntityFeature.PREVIOUS_TRACK
-                    | MediaPlayerEntityFeature.REPEAT_SET
-                    | MediaPlayerEntityFeature.SHUFFLE_SET
                 )
+                # Repeat and shuffle are HEOS play modes.
+                if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
+                    features |= (
+                        MediaPlayerEntityFeature.REPEAT_SET
+                        | MediaPlayerEntityFeature.SHUFFLE_SET
+                    )
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -193,7 +197,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         return self.coordinator.data.zone(self._zone.id)
 
     @property
-    def _now_playing(self):
+    def _now_playing(self) -> NowPlaying | None:
         """HEOS now-playing, only meaningful for the main zone."""
 
         if not self._zone.is_main:
@@ -310,21 +314,43 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     # Now-playing media (network sources, via HEOS) ------------------------
 
     @property
+    def _tuner_title(self) -> str | None:
+        """Station name, else the frequency, while the main zone plays the tuner."""
+
+        if not self._zone.is_main or self._zone_state.source not in self._device.profile.netaudio.get(
+            "tuner_sources", []
+        ):
+            return None
+        values = self.coordinator.data.values
+        if values.get("tuner_station"):
+            return str(values["tuner_station"])
+        frequency = values.get("tuner_frequency")
+        if not isinstance(frequency, int) or frequency <= 0:
+            return None
+        if frequency < 50000:
+            return f"FM {frequency / 100:.2f} MHz"
+        return f"AM {frequency // 100} kHz"
+
+    @property
     def media_content_type(self) -> str | None:
         now = self._now_playing
-        return MediaType.MUSIC if now and now.active else None
+        if now and now.active:
+            return MediaType.MUSIC
+        return MediaType.CHANNEL if self._tuner_title else None
 
     @property
     def media_image_url(self) -> str | None:
         now = self._now_playing
         if now and now.active and now.image_url:
             return now.image_url
-        return None
+        return self._device.media_art_url() if self._zone.is_main else None
 
     @property
     def media_title(self) -> str | None:
         now = self._now_playing
-        return now.title if now and now.active else None
+        if now and now.active:
+            return now.title
+        return self._tuner_title
 
     @property
     def media_artist(self) -> str | None:

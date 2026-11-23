@@ -332,3 +332,15 @@ async def test_position_repeat_and_shuffle_come_from_heos(
         "media_player", "shuffle_set", {"entity_id": main, "shuffle": False}, blocking=True
     )
     assert heos_client.calls == [("repeat", "on_all"), ("shuffle", False)]
+
+
+async def test_the_tuner_shows_its_station_or_frequency(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "SITUNER", "TFAN009290")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    state = hass.states.get(main)
+    assert state is not None
+    assert state.attributes["media_title"] == "FM 92.90 MHz"
+    await _push(hass, "TFANNAMEBayern 3")
+    assert hass.states.get(main).attributes["media_title"] == "Bayern 3"

@@ -210,9 +210,12 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
 
 - **Media player** per zone (main + zone 2 where present): power, volume, mute,
   source selection, and (main zone) sound mode. On the main zone, network sources
-  show **album art, track/artist/album and play/pause/next transport** (via HEOS);
-  otherwise the player carries a source‑aware **input icon** (TV, disc, tuner,
-  Bluetooth, USB, cast, …).
+  show **album art, track/artist/album and play/pause/next transport**, with
+  position, repeat and shuffle (via HEOS). Receivers without HEOS (AVR-X2000
+  and older) show title, artist, album and cover from their on-screen list and
+  take play, pause, stop and skip over telnet. The tuner shows its station or
+  frequency. Otherwise the player carries a source‑aware **input icon** (TV,
+  disc, tuner, Bluetooth, USB, cast, …).
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,

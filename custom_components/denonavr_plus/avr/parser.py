@@ -14,6 +14,8 @@ Two responsibilities live here:
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import logging
 import re
 import xml.etree.ElementTree as ET
@@ -23,6 +25,7 @@ from .models import (
     AvrState,
     ChannelDescriptor,
     Discovery,
+    NowPlaying,
     SourceDescriptor,
     ZoneDescriptor,
 )
@@ -397,6 +400,14 @@ class TelnetParser:
             if self._set_zone(int(line[1]), line[2:], state):
                 return True
             # A zone setting (Z2SLP, Z2CVFL ...): decoded by the matchers below.
+        if line.startswith("NSE") and len(line) > 3 and line[3].isdigit():
+            return self._set_netaudio(int(line[3]), line[4:], state)
+        if line.startswith("TFANNAME"):
+            state.values["tuner_station"] = line[8:].strip() or None
+            return True
+        if line.startswith("TFAN") and line[4:].strip().isdigit():
+            state.values["tuner_frequency"] = int(line[4:].strip())
+            return True
         if line.startswith("SSFUN"):
             return self._set_source_name(line[5:])
         if line.startswith("SSSOD"):
@@ -439,6 +450,35 @@ class TelnetParser:
                 return self._set_feature(spec, remainder, state)
 
         return False
+
+    def _set_netaudio(self, index: int, text: str, state: AvrState) -> bool:
+        """One line of the on-screen list (NSE0-NSE8), for receivers without HEOS.
+
+        Line 0 tells whether a track plays; lines 1-8 start with one flag byte.
+        Text after a NUL is to be disregarded (protocol document).
+        """
+
+        grammar = self._profile.netaudio
+        if not grammar:
+            return False
+        if index:
+            text = text[1:]
+        text = text.split("\x00", 1)[0].strip()
+        now = state.now_playing
+        if index == 0:
+            if text.startswith(grammar.get("now_playing", "Now Playing")):
+                if not now.active:
+                    state.now_playing = replace(now, state="play")
+                return True
+            state.now_playing = NowPlaying(repeat=now.repeat, shuffle=now.shuffle)
+            return True
+        field_name = grammar.get("lines", {}).get(str(index))
+        if field_name is None:
+            return False
+        updated = replace(now)
+        setattr(updated, str(field_name), text or None)
+        state.now_playing = updated
+        return True
 
     def _set_system_power(self, remainder: str, state: AvrState) -> bool:
         state.system_power = remainder.strip() == "ON"

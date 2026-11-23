@@ -391,3 +391,63 @@ async def test_an_older_receiver_gets_its_own_picture_scale(
         "number", "set_value", {"entity_id": brightness, "value": 7}, blocking=True
     )
     assert "PVBR 07" in telnet.sent
+
+
+async def _x2000_entry(hass: HomeAssistant) -> MockConfigEntry:
+    from homeassistant.const import CONF_PORT
+
+    from .conftest import deviceinfo
+
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _x2000_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVR-X2000-Deviceinfo.xml")),
+        ),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.11", CONF_PORT: 80},
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    return entry
+
+
+@pytest.mark.assumed(
+    "NS9A-NS9E and NSE are documented for the AVR-X2000 generation; not yet "
+    "tried on the user's AVR-X2000"
+)
+async def test_an_older_receiver_plays_over_telnet(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """No HEOS on an AVR-X2000: now playing is asked with NSE, transport is NS9x."""
+    entry = await _x2000_entry(hass)
+    device = entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = True
+    assert device.telnet_media and device.transport_available
+    telnet.push("PWON", "ZMON", "SINET")
+    telnet.sent.clear()
+    await device.async_poll_media()
+    assert telnet.sent == ["NSE"]
+
+    telnet.push("NSE0Now Playing Internet Radio", "NSE1\x01Song")
+    assert device.state.now_playing.title == "Song"
+    url = device.media_art_url()
+    assert url is not None and url.startswith("http://192.0.2.11:80/NetAudio/art.asp-jpg?")
+
+    await device.async_media_pause()
+    assert telnet.sent[-1] == "NS9B"
+    assert device.state.now_playing.state == "pause"
+
+    # The tuner: frequency and name are asked instead.
+    telnet.push("SITUNER")
+    telnet.sent.clear()
+    await device.async_poll_media()
+    assert telnet.sent == ["TFAN?", "TFANNAME?"]
+    # Off the network source, what played is cleared.
+    assert device.state.now_playing.state is None

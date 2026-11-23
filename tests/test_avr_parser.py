@@ -272,6 +272,40 @@ def test_replies_recorded_on_an_avr_x2000() -> None:
 
 
 @pytest.mark.assumed(
+    "the NSE line layout (flag byte, NUL end, lines 1/2/4) comes from the 2015 "
+    "X-series document and the denonavr library; an AVR-X2000 playing from the "
+    "network would confirm it"
+)
+def test_now_playing_from_the_on_screen_list(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
+    """Receivers without HEOS (AVR-X2000) report what plays in NSE0-NSE8."""
+    parser, state = parser_and_state
+    for line in (
+        "NSE0Now Playing Internet Radio",
+        "NSE1\x01Song title\x00junk",
+        "NSE2\x01Artist",
+        "NSE3\x01128kbps",
+        "NSE4\x01Album",
+    ):
+        parser.feed(line, state)
+    now = state.now_playing
+    assert (now.state, now.title, now.artist, now.album) == ("play", "Song title", "Artist", "Album")
+    # Line 0 without "Now Playing": a menu, nothing plays.
+    parser.feed("NSE0Internet Radio", state)
+    assert state.now_playing.state is None and state.now_playing.title is None
+
+
+def test_tuner_frequency_and_station(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    """TFAN009290 is FM 92.90 MHz (both receivers answer TFAN?)."""
+    parser, state = parser_and_state
+    parser.feed("TFAN009290", state)
+    parser.feed("TFANNAMEBayern 3", state)
+    assert state.values["tuner_frequency"] == 9290
+    assert state.values["tuner_station"] == "Bayern 3"
+
+
+@pytest.mark.assumed(
     "every format here comes from the denonavr library (const.py and its event "
     "callbacks), none from a recording; replies from a receiver with these "
     "features would settle it"
