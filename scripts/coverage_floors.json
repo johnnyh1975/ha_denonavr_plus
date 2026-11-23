@@ -5,7 +5,7 @@
     "Measured on Home Assistant 2026.10 (phahc 0.13.375), half a point of margin."
   ],
   "floors": {
-    "__init__.py": 0.795,
+    "__init__.py": 0.8045,
     "avr/device.py": 0.712,
     "avr/graphic_eq.py": 0.749,
     "avr/parser.py": 0.5343,
