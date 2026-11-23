@@ -1,4 +1,4 @@
-"""Setup-UI configuration transport (HTTPS port 10443).
+"""Setup-UI configuration transport (HTTPS port 10443, or HTTP 11080).
 
 The receiver's setup web interface reads and writes audio configuration through
 a small config API that is distinct from telnet and goform: a GET of
@@ -13,6 +13,10 @@ only; it does not know the meaning of any config id or XML tag (that lives with
 the caller). The endpoint uses a self-signed certificate, so verification is
 disabled. Every failure is swallowed and surfaced as ``None``/``False`` so a
 setup-UI problem can never affect the telnet control path.
+
+Newer firmware serves the same API on plain HTTP port 11080 with 10443
+closed. The client tries 10443 first and 11080 when 10443 does not accept a
+connection, and keeps the port that answered until it stops answering.
 """
 
 from __future__ import annotations
@@ -27,18 +31,29 @@ from ..const import HTTP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
-# The setup web interface listens on this HTTPS port with a self-signed cert.
+# The setup web interface listens on this HTTPS port with a self-signed cert;
+# newer firmware serves it on plain HTTP 11080 instead.
 DEFAULT_PORT = 10443
+HTTP_PORT = 11080
 
 
 class WebConfigClient:
     """Minimal async client for the setup-UI /ajax config API."""
 
-    def __init__(
-        self, session: aiohttp.ClientSession, host: str, port: int = DEFAULT_PORT
-    ) -> None:
+    def __init__(self, session: aiohttp.ClientSession, host: str) -> None:
         self._session = session
-        self._base = f"https://{host}:{port}"
+        self._candidates = {
+            DEFAULT_PORT: f"https://{host}:{DEFAULT_PORT}",
+            HTTP_PORT: f"http://{host}:{HTTP_PORT}",
+        }
+        # The port that answered last; None until one has, or after it stopped.
+        self._port: int | None = None
+
+    @property
+    def port(self) -> int | None:
+        """The port the setup interface answered on last, for the diagnostics."""
+
+        return self._port
 
     async def async_get(
         self, section: str, type_id: int, extra: dict[str, str] | None = None
@@ -76,15 +91,20 @@ class WebConfigClient:
         """
 
         query = "&".join(f"{key}={quote(str(value), safe='')}" for key, value in params.items())
-        url = f"{self._base}{path}?{query}"
-        try:
-            async with self._session.get(
-                url, ssl=False, timeout=aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
-            ) as response:
-                if response.status != 200:
-                    _LOGGER.debug("%s returned HTTP %s", path, response.status)
-                    return None
-                return await response.text()
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
-            _LOGGER.debug("GET %s failed: %s", path, err)
-            return None
+        ports = [self._port] if self._port is not None else list(self._candidates)
+        for port in ports:
+            url = f"{self._candidates[port]}{path}?{query}"
+            try:
+                async with self._session.get(
+                    url, ssl=False, timeout=aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
+                ) as response:
+                    self._port = port
+                    if response.status != 200:
+                        _LOGGER.debug("%s returned HTTP %s", path, response.status)
+                        return None
+                    return await response.text()
+            except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+                _LOGGER.debug("GET %s on port %s failed: %s", path, port, err)
+        # Nothing answered: try every port again next time.
+        self._port = None
+        return None

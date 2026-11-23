@@ -52,7 +52,7 @@ the list.
   polled every 10 seconds and commands go over HTTP; the other settings are
   unavailable until telnet is back. A few settings that have no telnet command (graphic‑EQ
   bands, HDMI/OSD/format setup, amp assign) are read and written over the setup
-  config API (HTTPS 10443); everything else is telnet.
+  config API (HTTPS 10443, or HTTP 11080 on newer firmware); everything else is telnet.
 - **Stability** Auto reconnect with backoff, keepalive probe, teardown on
   unload. A command queue that sends your commands before pending queries,
   waits for each reply (paced by the receiver's measured response time) and
@@ -159,6 +159,7 @@ ports. Nothing needs to be opened towards the internet.
 | **1256/tcp** | Length‑framed JSON | Not currently used (reserved for future use)                                                                                                                                          | Unused |
 | **1255/tcp** | HEOS CLI | Now‑playing media, album art and transport (play/pause/next) for network sources                                                                                                      | Optional (degrades gracefully) |
 | **10443/tcp** | HTTPS (setup config) | Graphic‑EQ per‑band values, the Video setup menu (HDMI setup/CEC, ARC, OSD, TV/4K format) and Amp Assign — settings with no telnet token, read/write (non‑disruptive; self‑signed cert) | Optional (graphic EQ + video + amp assign) |
+| **11080/tcp** | HTTP (setup config) | The same, on newer firmware that closes 10443; used only when 10443 does not accept a connection | Optional (as 10443) |
 
 Notes:
 

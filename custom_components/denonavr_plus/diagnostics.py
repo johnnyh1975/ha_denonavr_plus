@@ -32,6 +32,7 @@ async def async_get_config_entry_diagnostics(
     return {
         "available": device.available,
         "http_port": device.http_port,
+        "setup_port": device.setup_port,
         "telnet_response_ms": (
             None
             if device.telnet_response_time is None

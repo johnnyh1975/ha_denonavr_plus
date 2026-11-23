@@ -40,6 +40,8 @@ async def test_diagnostics_redact_the_mac(
     assert result["device"]["mac_address"] == "**REDACTED**"
     assert result["available"] is True
     assert result["telnet_response_ms"] == 42
+    # The setup interface was not read in this test.
+    assert result["setup_port"] is None
     assert [zone["id"] for zone in result["zones"]] == ["main", "zone2"]
     assert result["state"]["zones"]["main"]["volume_raw"] == 40.0
 

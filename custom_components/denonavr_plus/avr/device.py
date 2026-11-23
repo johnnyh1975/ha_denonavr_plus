@@ -74,7 +74,7 @@ class DenonAvrDevice:
         # one-shot read at discovery (amp assignment).
         self._goform = GoformClient(session, host, http_port or DEFAULT_PORT)
         self._upnp = UpnpClient(session, host)
-        # Setup-interface config API (HTTPS 10443), used for the manual graphic
+        # Setup-interface config API (HTTPS 10443 or HTTP 11080), used for the manual graphic
         # EQ per-band values, which are not on the telnet channel. The EQ
         # subsystem is encapsulated in its own controller (read/edit/apply),
         # keeping it off this device's transport-orchestration surface.
@@ -164,6 +164,12 @@ class DenonAvrDevice:
         """Whether the receiver answered the last HTTP reconciliation poll."""
 
         return self._http_reachable
+
+    @property
+    def setup_port(self) -> int | None:
+        """The port the setup interface answered on last (10443 or 11080)."""
+
+        return self._webconfig.port
 
     @property
     def telnet_response_time(self) -> float | None:

@@ -14,7 +14,7 @@ client in every case.
 | 1900/udp | SSDP discovery | Documented | Documented | yes, discovery |
 | 1255/tcp | HEOS CLI | Absent | Sourced (HEOS Built-in) | yes, now playing |
 | 10443/tcp | Setup config API, HTTPS | Absent | To test; Tested on AVR-X3600H | yes, graphic EQ, video setup, amp assign |
-| 11080/tcp | Setup config API, plain HTTP | Absent | Unverified (seen on 2022-era firmware) | no |
+| 11080/tcp | Setup config API, plain HTTP | Absent | Unverified (seen on 2022-era firmware) | yes, when 10443 does not accept a connection |
 | 1256/tcp | Calibration protocol, length-framed JSON | Absent | To test | no (transport built, not wired) |
 | RS-232C | Serial control, same grammar as telnet | North America model only | To test (not in the product sheet's terminal list) | no |
 
@@ -206,7 +206,10 @@ setup, amp assignment.
   AVR-X3600H.
 - Self-signed certificate on 10443.
 - Community reports from a 2022-era Marantz describe the same API on plain
-  HTTP port 11080 with 10443 closed. This integration does not try 11080.
+  HTTP port 11080 with 10443 closed. This integration tries 10443 first and
+  11080 when 10443 does not accept a connection; an HTTP error status counts
+  as an answer, so it stays on 10443 then. It keeps the port that answered
+  until it stops answering (diagnostics: `setup_port`).
 
 The same `/ajax` interface has two more sections that matter for live
 state (ha-denon-marantz-avr, on port 11080, models not named):
