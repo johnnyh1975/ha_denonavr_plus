@@ -113,27 +113,20 @@ It opens one connection, registers for events, reads `get_players` and then
 follows now playing and play state, with play, pause, stop, next and
 previous as transport.
 
-Two findings from comparing the code (`avr/transport/heos.py`) with the
-specification. Both are fixed (roadmap items 44 and 45): the player is
-matched on the receiver's address, a lone player is taken as is, and events
-for other players are ignored. The test with a second HEOS device in the
-home is still open.
+Which player is the receiver's: `get_players` lists every HEOS device in
+the home, so the integration matches the player on the receiver's address
+(`get_players` carries an `ip` field in practice; pyheos reads it, although
+the 2019 specification does not list it, and ha-denon-marantz-avr matches on
+it). A lone player is taken as is; with several and none at that address,
+the first. Events name their player (`pid`), and events of other players
+are ignored; when HEOS reports `stop`, the title is cleared.
 
-1. **The player is chosen as the first entry of `get_players`.** That list
-   holds every HEOS device in the home. With HEOS speakers next to the
-   receiver, the first entry can be a speaker. The receiver's own player
-   should be matched by IP address: `get_players` carries an `ip` field
-   in practice (pyheos reads it, although the 2019 specification does not
-   list it), and ha-denon-marantz-avr matches on it. Music Assistant warns
-   that several HEOS players can share one address, "the zones of an AVR";
-   if the AVR-X2600H reports more than one player for its address, the
-   main-zone player has to be chosen by name or by a test. `serial` is the
-   other key (pyheos re-identifies players by serial first, then `pid`, then
-   name, because a `pid` can change after a reset). To fix and test with a
-   second HEOS device.
-2. **`player_state_changed` events are applied without checking `pid`.** A
-   speaker starting or pausing would change the receiver's state in
-   Home Assistant. Same fix: ignore events for other players.
+Open, to test with a second HEOS device in the home: Music Assistant warns
+that several HEOS players can share one address, "the zones of an AVR". If
+the AVR-X2600H reports more than one player for its address, the main-zone
+player has to be chosen by name or by a test. `serial` is the other key
+(pyheos re-identifies players by serial first, then `pid`, then name,
+because a `pid` can change after a reset).
 
 Smaller points: events are registered before the state is read (the
 specification suggests the reverse); `player_now_playing_progress` is

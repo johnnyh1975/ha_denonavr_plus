@@ -164,3 +164,24 @@ async def test_controls_without_a_feature_name_appear_when_they_answer(
         assert registry_entry(hass, entry, key)
     with pytest.raises(AssertionError):
         registry_entry(hass, entry, "select_imax")
+
+
+async def test_the_setup_probe_ends_at_the_first_pause(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """A model without these controls stays silent; setup must not wait for them."""
+    calls: list[tuple[list[str], Any]] = []
+
+    async def probe(host: str, queries: list[str], on_line: Any, is_complete: Any, **kwargs: Any) -> None:
+        calls.append((queries, is_complete))
+
+    with patch("custom_components.denonavr_plus.avr.device.async_probe", probe):
+        entry = MockConfigEntry(
+            domain=DOMAIN, data={CONF_HOST: "192.0.2.10"}, minor_version=CONFIG_MINOR_VERSION
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    queries, is_complete = next(call for call in calls if "STBY?" in call[0])
+    # Nothing has answered, yet the probe may end as soon as the line is quiet.
+    assert is_complete() is True

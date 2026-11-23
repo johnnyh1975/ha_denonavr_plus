@@ -420,12 +420,12 @@ class DenonAvrDevice:
         queries = list(dict.fromkeys(spec.query for spec in specs if spec.query))
         if not queries:
             return
+        # All queries are sent before reading; the receiver answers within
+        # 200 ms. So the first pause of 0.4 s without a line ends it: a model
+        # without these controls stays silent, and waiting for answers that
+        # never come would only delay every start.
         await async_probe(
-            self._host,
-            queries,
-            self._feed_quietly,
-            lambda: all(spec.id in self._state.values for spec in specs),
-            deadline=2.0,
+            self._host, queries, self._feed_quietly, _answers_done, deadline=2.0
         )
         self._discovery.answered = {spec.id for spec in specs if spec.id in self._state.values}
 
@@ -1213,3 +1213,9 @@ def _reply_or_error(prefix: str) -> Callable[[str], bool]:
         return line.startswith(prefix) or line in ("?", "ERR", "ERROR")
 
     return wanted
+
+
+def _answers_done() -> bool:
+    """For the setup probe of the model-dependent controls: done at the first pause."""
+
+    return True

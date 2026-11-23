@@ -79,36 +79,39 @@ enabled. Denon AVR Plus can replace it once the older-receiver work
 
 ## Gaps and suggested work
 
-Findings from this analysis, with the roadmap item they belong to. Items
-that were new when the analysis was written now have their own numbers
-(44 to 47).
+The open findings of this analysis, with the roadmap item they belong to.
 
 | Finding | Effect | Roadmap |
 |---|---|---|
-| goform port fixed to 8080 | AVR-X2000 setup fails | 16 (fixed) |
-| Entities gated only on `FuncName`; AVR-X2000 lists 55 names without Audyssey, tone levels or video | Even with the port fixed, most settings would stay hidden | 16 (probe telnet queries as a second gate for receivers with `CommApiVers` below 0300) |
-| Choose the port from `CommApiVers` / model, not by fallback | Avoids storing a waking receiver on the wrong port; port 80 for 0210 to 0300, the old encodings only for 0210 | 16 (port fixed; encodings open) |
+| Entities gated only on `FuncName`; AVR-X2000 lists 55 names without Audyssey, tone levels or video | Most settings stay hidden on that model | 16 (a telnet answer as the second gate; the `answered` scope of the model-dependent controls is that mechanism) |
+| The old encodings of receivers with `CommApiVers` 0210 | Values read wrongly on those models | 16 |
 | The 2018 and FY21 Denon protocol spreadsheets are missing | Many AVR-X2600H facts stay "To test" | add to the project sources |
 | `MV99` = minimum on pre-2012 models | Volume read as +19 dB | 16 |
 | Picture controls are two-digit on the AVR-X2000 | Wrong values written | 16 |
 | `CV?` ends without `CVEND` and reports unused channels as `50` on the AVR-X2000 | The parser does not wait for `CVEND` today (keep it so); unused channels must not create enabled entities | 16 |
 | No `MNZST ?` on the AVR-X2000 | All Zone Stereo state must come from `MS` | 16, 32 |
 | Tuner presets `A1`–`G8` vs `01`–`56` | Wrong preset recalled | 37 |
-| HEOS player chosen as the first `get_players` entry | Wrong now playing with HEOS speakers in the home | 44 (fixed) |
-| HEOS `player_state_changed` applied without `pid` check | Speakers change the receiver's play state | 45 (fixed) |
 | HEOS `play_stream?url=` documented since CLI 1.9 | Basis for `play_media` and announcements | 14, 21 (To test) |
 | HEOS `check_update` documented since CLI 1.10 | Basis for the `update` entity | 31 (To test) |
 | HEOS `player_now_playing_progress` ignored | Position and duration missing | 23 |
-| Setup config API on HTTP 11080 on newer firmware | Graphic EQ and video setup missing there | 46 (fixed: 11080 when 10443 is closed; 11080 To test) |
 | README says both "one telnet session" and "several sessions" | Users get contradictory advice | 34, after the concurrency test |
-| Marantz manufacturer strings not in the SSDP matcher | No automatic discovery | 17 (fixed) |
-| No HEOS heart beat | Idle HEOS connection may drop unnoticed (community: drops after 60 s or more; pyheos beats after 10 s idle) | 47 (fixed) |
-| SSDP matches only AiosDevice + `Denon` | No discovery for Marantz, `DENON`-labelled or pre-2016 units | 17 (fixed) |
 | Official entity unique ids `{model}-{serial}-{zone}` | Key for taking over entity ids | 18 |
-| Now playing kept while HEOS reports `stop` | Stale title in the media player | 45 (fixed) |
 | Quick Select numbers beyond the advertised count | A Marantz became unstable after an out-of-range recall | 13, 30 |
 | Live sound mode list and video signal via `/ajax/control` and `/ajax/info` | Better sound mode handling, video sensors | 30, 39 (To test on 10443) |
 | Telnet `SYSDVIN`, `SYSDVOUT`, `SSINFAISFOR` | Signal sensors without HTTP | 39 (To test) |
+
+How the integration handles the findings that are settled:
+
+- The goform port is chosen from `CommApiVers`: port 80 for receivers that
+  report an interface older than 0301, 8080 otherwise; the port is stored.
+- The HEOS player is matched on the receiver's address; events of other
+  players are ignored, and `stop` clears the title.
+- An idle HEOS connection sends `system/heart_beat` after 10 s and
+  reconnects without an answer.
+- The setup interface is tried on HTTPS 10443 and, when that does not accept
+  a connection, on HTTP 11080 (To test).
+- SSDP matches AiosDevice, MediaRenderer and MediaServer under Denon, DENON,
+  DENON PROFESSIONAL and Marantz.
 
 ### Lessons from ha-denon-marantz-avr
 

@@ -54,15 +54,15 @@ AVR-X2600H").
 
 ## Main findings
 
-1. **The AVR-X2000 cannot be added today.** Its web interface answers on
-   port 80; this integration reads the device description on port 8080 only
+1. **The AVR-X2000 answers on port 80.** The integration chooses the port
+   from what the receiver reports (`CommApiVers`) and stores it
    ([details](02-network-and-protocols.md#http-port-80-or-8080)).
-2. **Even with the port fixed, the AVR-X2000 would show few settings.** Its
+2. **The AVR-X2000 shows few settings.** Its
    recorded device description lists 55 function names, against 117 on an
    AVC-X3700H (2020). Audyssey, tone, subwoofer and video functions are missing from
    the list, although the telnet protocol for the model documents commands
    for them. Entities are gated on that list
-   ([details](models/AVR-X2000.md#what-blocks-it-in-this-integration)).
+   ([details](models/AVR-X2000.md#what-limits-it-in-this-integration)).
 3. **The two receivers share the telnet grammar, not the interface set.**
    HEOS (1255), the UPnP description (60006), the setup config API (10443)
    and the calibration port (1256) exist only on the 2016 generation.
@@ -76,9 +76,10 @@ AVR-X2600H").
    `CV?` replies). Most changes date from 2014, so the AVR-X2000 (2013) is on
    the old side and even the AVR-X2100W (2014) on the new one. Code that is
    correct for one generation can misread the other ([details](03-command-reference.md#differences-between-protocol-versions)).
-6. **The HEOS client needs hardening** before a beta with other HEOS devices
-   in the home: choose the receiver's own player, filter events by player,
-   send a heart beat ([details](05-heos.md#how-this-integration-uses-heos)).
+6. **Several HEOS players at one address** (the zones of an AVR, as Music
+   Assistant warns) are not handled yet; the integration matches the
+   receiver's player by its address, ignores other players' events and sends
+   a heart beat ([details](05-heos.md#how-this-integration-uses-heos)).
 7. **The setup interface carries live state too.** `/ajax/info` and
    `/ajax/control` return the video signal and the sound modes offered for
    the current input; community projects use them on port 11080
