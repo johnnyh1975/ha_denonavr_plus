@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime
 
 from homeassistant.components.media_player import (
     MediaPlayerDeviceClass,
@@ -16,8 +17,10 @@ from homeassistant.components.media_player import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
     MediaType,
+    RepeatMode,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -30,6 +33,10 @@ from .device_trigger import turn_on_trigger
 from .entity import DenonAvrEntity, receiver_action, zone_device
 
 _LOGGER = logging.getLogger(__name__)
+
+# HEOS play modes and Home Assistant's repeat modes.
+_REPEAT_FROM_HEOS = {"off": RepeatMode.OFF, "on_all": RepeatMode.ALL, "on_one": RepeatMode.ONE}
+_REPEAT_TO_HEOS = {mode: heos for heos, mode in _REPEAT_FROM_HEOS.items()}
 
 # The turn-on volume waits until the zone reports that it is on, then a
 # moment longer: a receiver that is still starting can drop the command
@@ -131,6 +138,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                     | MediaPlayerEntityFeature.STOP
                     | MediaPlayerEntityFeature.NEXT_TRACK
                     | MediaPlayerEntityFeature.PREVIOUS_TRACK
+                    | MediaPlayerEntityFeature.REPEAT_SET
+                    | MediaPlayerEntityFeature.SHUFFLE_SET
                 )
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
@@ -327,6 +336,39 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         now = self._now_playing
         return now.album if now and now.active else None
 
+    @property
+    def media_position(self) -> int | None:
+        now = self._now_playing
+        if now and now.active and now.position is not None:
+            return int(now.position)
+        return None
+
+    @property
+    def media_duration(self) -> int | None:
+        now = self._now_playing
+        if now and now.active and now.duration:
+            return int(now.duration)
+        return None
+
+    @property
+    def media_position_updated_at(self) -> datetime | None:
+        now = self._now_playing
+        if now and now.active and now.position_at is not None:
+            return dt_util.utc_from_timestamp(now.position_at)
+        return None
+
+    @property
+    def repeat(self) -> RepeatMode | None:
+        now = self._now_playing
+        if now is None or now.repeat is None:
+            return None
+        return _REPEAT_FROM_HEOS.get(now.repeat)
+
+    @property
+    def shuffle(self) -> bool | None:
+        now = self._now_playing
+        return now.shuffle if now is not None else None
+
     # Commands -------------------------------------------------------------
 
     @receiver_action
@@ -443,3 +485,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @receiver_action
     async def async_media_previous_track(self) -> None:
         await self._device.async_media_previous()
+
+    @receiver_action
+    async def async_set_repeat(self, repeat: RepeatMode) -> None:
+        await self._device.async_media_repeat(_REPEAT_TO_HEOS[repeat])
+
+    @receiver_action
+    async def async_set_shuffle(self, shuffle: bool) -> None:
+        await self._device.async_media_shuffle(shuffle)

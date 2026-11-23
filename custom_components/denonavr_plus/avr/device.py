@@ -956,6 +956,14 @@ class DenonAvrDevice:
     async def async_media_previous(self) -> None:
         await self._heos.async_previous()
 
+    async def async_media_repeat(self, repeat: str) -> None:
+        """Repeat off, all or one (HEOS off / on_all / on_one)."""
+
+        await self._heos.async_set_repeat(repeat)
+
+    async def async_media_shuffle(self, shuffle: bool) -> None:
+        await self._heos.async_set_shuffle(shuffle)
+
     @property
     def graphic_eq(self) -> graphic_eq.GraphicEqController:
         """The manual graphic-EQ subsystem (read/edit/apply). See GraphicEqController."""

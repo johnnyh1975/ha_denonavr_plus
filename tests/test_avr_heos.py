@@ -96,6 +96,69 @@ def test_playing_again_after_stop_reads_the_track_again() -> None:
     assert _sent(client) == ["heos://player/get_now_playing_media?pid=202"]
 
 
+def _playing(client: HeosClient) -> None:
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    _feed(client, "event/player_state_changed", "pid=202&state=play")
+    _sent(client)
+
+
+def test_the_play_mode_is_read_and_followed() -> None:
+    client, updates = _client()
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    assert "heos://player/get_play_mode?pid=202" in _sent(client)
+    _feed(client, "player/get_play_mode", "pid=202&repeat=on_all&shuffle=off")
+    assert (updates[-1]["repeat"], updates[-1]["shuffle"]) == ("on_all", False)
+    _feed(client, "event/shuffle_mode_changed", "pid=202&shuffle=on")
+    assert updates[-1]["shuffle"] is True
+    # Another player's change is not this receiver's.
+    _feed(client, "event/repeat_mode_changed", "pid=101&repeat=on_one")
+    assert updates[-1]["repeat"] == "on_all"
+
+
+async def test_setting_one_play_mode_keeps_the_other() -> None:
+    client, _ = _client()
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    _feed(client, "player/get_play_mode", "pid=202&repeat=on_one&shuffle=on")
+    _sent(client)
+    await client.async_set_shuffle(False)
+    await client.async_set_repeat("off")
+    assert _sent(client) == [
+        "heos://player/set_play_mode?pid=202&repeat=on_one&shuffle=off",
+        "heos://player/set_play_mode?pid=202&repeat=off&shuffle=on",
+    ]
+
+
+def test_progress_counts_only_when_the_position_jumps() -> None:
+    """HEOS reports every second; Home Assistant extrapolates in between."""
+    client, updates = _client()
+    now = [1000.0]
+    client._clock = lambda: now[0]
+    _playing(client)
+    _feed(client, "event/player_now_playing_progress", "pid=202&cur_pos=30000&duration=240000")
+    assert (updates[-1]["position"], updates[-1]["duration"]) == (30.0, 240.0)
+    count = len(updates)
+    now[0] += 1
+    _feed(client, "event/player_now_playing_progress", "pid=202&cur_pos=31000&duration=240000")
+    assert len(updates) == count
+    # A seek.
+    now[0] += 1
+    _feed(client, "event/player_now_playing_progress", "pid=202&cur_pos=120000&duration=240000")
+    assert (updates[-1]["position"], updates[-1]["position_at"]) == (120.0, 1002.0)
+
+
+def test_pause_freezes_the_position_and_stop_clears_it() -> None:
+    client, updates = _client()
+    now = [1000.0]
+    client._clock = lambda: now[0]
+    _playing(client)
+    _feed(client, "event/player_now_playing_progress", "pid=202&cur_pos=10000&duration=200000")
+    now[0] += 5
+    _feed(client, "event/player_state_changed", "pid=202&state=pause")
+    assert (updates[-1]["position"], updates[-1]["position_at"]) == (15.0, 1005.0)
+    _feed(client, "event/player_state_changed", "pid=202&state=stop")
+    assert updates[-1]["position"] is None and updates[-1]["duration"] is None
+
+
 class _HeosServer:
     """A HEOS stand-in on localhost that records commands and connections."""
 

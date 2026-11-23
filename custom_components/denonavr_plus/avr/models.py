@@ -264,6 +264,13 @@ class NowPlaying:
     artist: str | None = None
     album: str | None = None
     image_url: str | None = None
+    # Seconds, and the wall clock time (epoch) the position was reported at.
+    position: float | None = None
+    duration: float | None = None
+    position_at: float | None = None
+    # off / on_all / on_one, and shuffle on or off.
+    repeat: str | None = None
+    shuffle: bool | None = None
 
     @property
     def active(self) -> bool:

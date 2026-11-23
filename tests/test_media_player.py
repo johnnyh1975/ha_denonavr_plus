@@ -289,3 +289,46 @@ async def test_an_avr_x2000_offers_the_sound_modes_it_lists(
         {"entity_id": main, "sound_mode": "MULTI CH STEREO"}, blocking=True,
     )
     assert "MSMCH STEREO" in telnet.sent
+
+
+async def test_position_repeat_and_shuffle_come_from_heos(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+
+    from .test_init import FakeHeos
+
+    heos_client = FakeHeos.instances[-1]
+    heos_client.on_update(
+        {
+            "state": "play",
+            "media_type": "song",
+            "title": "Track",
+            "artist": None,
+            "album": None,
+            "image_url": None,
+            "position": 42.0,
+            "duration": 240.0,
+            "position_at": 1_700_000_000.0,
+            "repeat": "on_one",
+            "shuffle": True,
+        }
+    )
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    state = hass.states.get(main)
+    assert state is not None
+    assert state.attributes["media_position"] == 42
+    assert state.attributes["media_duration"] == 240
+    assert state.attributes["repeat"] == "one"
+    assert state.attributes["shuffle"] is True
+    features = MediaPlayerEntityFeature(state.attributes["supported_features"])
+    assert features & MediaPlayerEntityFeature.REPEAT_SET
+    await hass.services.async_call(
+        "media_player", "repeat_set", {"entity_id": main, "repeat": "all"}, blocking=True
+    )
+    await hass.services.async_call(
+        "media_player", "shuffle_set", {"entity_id": main, "shuffle": False}, blocking=True
+    )
+    assert heos_client.calls == [("repeat", "on_all"), ("shuffle", False)]

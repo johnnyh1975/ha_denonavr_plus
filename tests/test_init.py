@@ -81,10 +81,21 @@ class FakeTelnet:
 
 
 class FakeHeos:
-    """Stands in for HeosClient; now playing is not part of these tests."""
+    """Stands in for HeosClient: records play mode commands, lets a test push now playing."""
+
+    instances: list[FakeHeos] = []
 
     def __init__(self, host: str, on_update: Callable[[dict[str, Any]], None], port: int = 1255) -> None:
         self.host = host
+        self.on_update = on_update
+        self.calls: list[tuple[str, Any]] = []
+        FakeHeos.instances.append(self)
+
+    async def async_set_repeat(self, repeat: str) -> None:
+        self.calls.append(("repeat", repeat))
+
+    async def async_set_shuffle(self, shuffle: bool) -> None:
+        self.calls.append(("shuffle", shuffle))
 
     async def async_start(self) -> None:
         return None
@@ -106,6 +117,7 @@ async def _await_ready_without_waiting(self: DenonAvrDevice, timeout: float = 8.
 def receiver_network() -> Any:
     """Patch the receiver's network edges; yields the patch context."""
     FakeTelnet.instances.clear()
+    FakeHeos.instances.clear()
     with (
         patch("custom_components.denonavr_plus.avr.device.TelnetClient", FakeTelnet),
         patch("custom_components.denonavr_plus.avr.device.HeosClient", FakeHeos),

@@ -9,8 +9,9 @@ newline-delimited JSON messages and hands a plain snapshot dict to a callback.
 It is strictly auxiliary: any failure here leaves core telnet control untouched,
 so every error is swallowed and simply results in no now-playing data. The
 connection registers for HEOS change events and re-queries on the ones that
-matter (now-playing changed, transport state changed), ignoring the
-once-a-second progress events. Only the receiver's own player counts: the HEOS
+matter (now-playing changed, transport state changed). The once-a-second
+progress events only count when the position jumps (a seek, a new track), so
+Home Assistant extrapolates in between as it does for other players. Only the receiver's own player counts: the HEOS
 system lists every HEOS device in the home, so the player is matched on the
 receiver's address and events of other players are ignored.
 """
@@ -20,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from collections.abc import Callable
 from typing import Any
 from urllib.parse import parse_qs
@@ -43,6 +45,10 @@ _COMMAND_SPACING = 0.05
 HEARTBEAT_INTERVAL = 10.0
 HEARTBEAT_TIMEOUT = 5.0
 _HEARTBEAT = "heos://system/heart_beat"
+# A progress report this far from where the position should be (seconds) is
+# a jump worth reporting: a seek, a new track, a stall.
+_POSITION_JUMP = 2.0
+REPEAT_MODES = ("off", "on_all", "on_one")
 
 
 class HeosClient:
@@ -74,7 +80,14 @@ class HeosClient:
             "artist": None,
             "album": None,
             "image_url": None,
+            "position": None,
+            "duration": None,
+            "position_at": None,
+            "repeat": None,
+            "shuffle": None,
         }
+        # Wall clock, replaceable in tests.
+        self._clock: Callable[[], float] = time.time
 
     async def async_start(self) -> None:
         """Start the background connection manager."""
@@ -112,6 +125,23 @@ class HeosClient:
 
     async def async_previous(self) -> None:
         await self._send_player("play_previous", "")
+
+    async def async_set_repeat(self, repeat: str) -> None:
+        """Repeat off, all or one (off, on_all, on_one)."""
+
+        await self._set_play_mode(repeat=repeat)
+
+    async def async_set_shuffle(self, shuffle: bool) -> None:
+        await self._set_play_mode(shuffle=shuffle)
+
+    async def _set_play_mode(self, repeat: str | None = None, shuffle: bool | None = None) -> None:
+        # The command takes both; the one not changed keeps its current value.
+        repeat = repeat or self._snapshot.get("repeat") or "off"
+        if shuffle is None:
+            shuffle = bool(self._snapshot.get("shuffle"))
+        await self._send_player(
+            "set_play_mode", f"&repeat={repeat}&shuffle={'on' if shuffle else 'off'}"
+        )
 
     async def _send_player(self, command: str, extra: str) -> None:
         if self._pid is None:
@@ -242,11 +272,30 @@ class HeosClient:
                 # Bootstrap the current media and transport state.
                 self._request_now_playing()
                 self._request_play_state()
+                self._request_play_mode()
             return
 
         # Events name the player they are about; the HEOS system holds every
         # HEOS device in the home, so ignore events for the other players.
-        if command.startswith("event/player_") and not self._is_own(attrs):
+        if command.startswith(("event/player_", "event/repeat_", "event/shuffle_")) and (
+            not self._is_own(attrs)
+        ):
+            return
+
+        if command in ("player/get_play_mode", "player/set_play_mode"):
+            self._apply_play_mode(attrs)
+            return
+
+        if command == "event/repeat_mode_changed":
+            self._apply_play_mode(attrs)
+            return
+
+        if command == "event/shuffle_mode_changed":
+            self._apply_play_mode(attrs)
+            return
+
+        if command == "event/player_now_playing_progress":
+            self._apply_progress(attrs)
             return
 
         if command == "player/get_now_playing_media":
@@ -265,7 +314,7 @@ class HeosClient:
             self._request_now_playing()
             return
 
-        # event/player_now_playing_progress and everything else: ignore.
+        # Everything else: ignore.
 
     def _own_player(self, players: list[dict[str, Any]]) -> dict[str, Any] | None:
         """Pick the receiver's own player from the HEOS system's player list.
@@ -299,6 +348,43 @@ class HeosClient:
                 f"heos://player/get_now_playing_media?pid={self._pid}"
             )
 
+    def _request_play_mode(self) -> None:
+        if self._pid is not None:
+            self._queue.put_nowait(f"heos://player/get_play_mode?pid={self._pid}")
+
+    def _apply_play_mode(self, attrs: dict[str, str]) -> None:
+        fields: dict[str, Any] = {}
+        if attrs.get("repeat") in REPEAT_MODES:
+            fields["repeat"] = attrs["repeat"]
+        if attrs.get("shuffle") in ("on", "off"):
+            fields["shuffle"] = attrs["shuffle"] == "on"
+        if fields:
+            self._update(**fields)
+
+    def _expected_position(self) -> float | None:
+        """Where the track should be now, from the last report."""
+
+        position = self._snapshot.get("position")
+        if position is None:
+            return None
+        if self._snapshot.get("state") != "play":
+            return float(position)
+        return float(position) + self._clock() - float(self._snapshot.get("position_at") or 0)
+
+    def _apply_progress(self, attrs: dict[str, str]) -> None:
+        try:
+            position = int(attrs["cur_pos"]) / 1000
+            duration = int(attrs["duration"]) / 1000
+        except (KeyError, ValueError):
+            return
+        expected = self._expected_position()
+        if (
+            expected is None
+            or abs(position - expected) > _POSITION_JUMP
+            or duration != self._snapshot.get("duration")
+        ):
+            self._update(position=position, duration=duration or None, position_at=self._clock())
+
     def _request_play_state(self) -> None:
         if self._pid is not None:
             self._queue.put_nowait(f"heos://player/get_play_state?pid={self._pid}")
@@ -326,9 +412,17 @@ class HeosClient:
                 artist=None,
                 album=None,
                 image_url=None,
+                position=None,
+                duration=None,
+                position_at=None,
             )
         elif state:
-            self._update(state=state)
+            # Freeze or restart the position where it stands now.
+            expected = self._expected_position()
+            if expected is not None and state != self._snapshot.get("state"):
+                self._update(state=state, position=expected, position_at=self._clock())
+            else:
+                self._update(state=state)
             # Playback resumed after a stop: the track was cleared, read it again.
             if state == "play" and self._snapshot.get("title") is None:
                 self._request_now_playing()
