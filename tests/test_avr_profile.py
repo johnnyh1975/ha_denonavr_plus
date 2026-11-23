@@ -70,3 +70,28 @@ def test_refresh_groups_have_triggers_and_queries() -> None:
     for group_id, group in load_profile().refresh_groups.items():
         assert group.get("on"), group_id
         assert group.get("queries"), group_id
+
+
+def test_every_query_is_in_the_protocol_docs() -> None:
+    """A query the integration sends must be described in docs/protocol."""
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    raw = json.loads(
+        (root / "custom_components/denonavr_plus/avr/protocol_profile.json").read_text()
+    )
+    queries = {s["query"] for s in raw["controls"].values() if s.get("query")}
+    queries |= {v["query"] for v in raw["readonly"].values()}
+    queries |= {
+        v["query"] for v in raw["introspection"].values()
+        if isinstance(v, dict) and v.get("query")
+    }
+    for group in raw["refresh"]["groups"].values():
+        queries |= set(group.get("queries", []))
+    docs = "\n".join(f.read_text() for f in sorted((root / "docs/protocol").rglob("*.md")))
+    missing = sorted(
+        q for q in queries
+        if not re.search(r"(?<![A-Z])" + re.escape(q.rstrip("?").strip()) + r"(?![A-Z])", docs)
+    )
+    assert not missing, f"queries not described in docs/protocol: {missing}"
