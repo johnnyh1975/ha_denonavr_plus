@@ -10,9 +10,15 @@ else to install.
     python3 probe_receiver.py 192.0.2.10 --quick
 
 The script only reads. Every telnet command it sends is a query (it ends in
-"?", or is one of the read-only screen requests NSE, NSA and NSH), and every
-web request is a GET of a status page. It never changes a setting, never
-switches anything on or off and never stores a preset.
+"?", or is one of the read-only screen requests NSE, NSA and NSH). Every web
+request is a GET of a status page, or a POST to AppCommand.xml of commands
+whose names start with "Get". HEOS gets only "get_" requests and a heartbeat.
+It never changes a setting, never switches anything on or off and never
+stores a preset.
+
+Besides what the receiver can do, it measures how fast it answers, whether
+it drops queries sent close together, and whether it accepts a second
+telnet session.
 
 Before you run it:
 
@@ -28,10 +34,11 @@ It writes two files next to the script:
 - avr-probe-<model>.json: everything the receiver answered, for the
   developers (test data for Denon AVR Plus).
 
-The address, MAC address, serial number, friendly name and any other private
-network address are replaced by placeholders before the files are written.
-Read them before you share them: the now-playing and preset lines can show
-what you listen to.
+The address, MAC addresses, serial numbers, the names of the receiver and of
+other HEOS speakers, Wi-Fi names, account names and any other private network
+address are replaced by placeholders before the files are written. Read them
+before you share them: the now-playing and preset lines can show what you
+listen to.
 """
 
 from __future__ import annotations
@@ -50,11 +57,14 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "1"
+VERSION = "2"
 PLACEHOLDER_HOST = "192.0.2.10"
 PLACEHOLDER_OTHER_HOST = "192.0.2.99"
 PLACEHOLDER_MAC = "aa:bb:cc:dd:ee:ff"
 PLACEHOLDER_SERIAL = "SERIAL0000000"
+PLACEHOLDER_ACCOUNT = "user@example.com"
+PLACEHOLDER_WIFI = "WLAN"
+PLACEHOLDER_IPV6 = "2001:db8::10"
 
 PORTS = {
     23: "telnet control",
@@ -121,6 +131,7 @@ CATALOGUE: list[Query] = [
     _q("SD?", "Volume and input", "Input mode (auto/HDMI/digital/analog)"),
     _q("DC?", "Volume and input", "Digital input mode"),
     _q("SLP?", "Volume and input", "Sleep timer"),
+    _q("SLP ?", "Volume and input", "Sleep timer (with a space, as Denon AVR Plus asks)"),
     _q("STBY?", "Volume and input", "Auto standby"),
     _q("ECO?", "Volume and input", "ECO mode"),
     _q("DIM ?", "Volume and input", "Display dimmer"),
@@ -188,6 +199,11 @@ CATALOGUE: list[Query] = [
     _q("PSDACFIL ?", "Audio", "DAC filter (Marantz)"),
     _q("PSMDAX ?", "Audio", "M-DAX (Marantz)"),
     _q("PSIMAX ?", "Audio", "IMAX"),
+    _q("PSIMAXAUD ?", "Audio", "IMAX audio settings"),
+    _q("PSIMAXHPF ?", "Audio", "IMAX high-pass filter"),
+    _q("PSIMAXLPF ?", "Audio", "IMAX low-pass filter"),
+    _q("PSIMAXSWM ?", "Audio", "IMAX subwoofer mode"),
+    _q("PSIMAXSWO ?", "Audio", "IMAX subwoofer output"),
     _q("PSDIRAC ?", "Audio", "Dirac Live filter"),
     _q("SPPR ?", "Audio", "Speaker preset"),
     # Video
@@ -242,6 +258,8 @@ CATALOGUE: list[Query] = [
     _q("SSALS ?", "Signal and setup", "Auto lip sync (other form)"),
     _q("SSANA ?", "Signal and setup", "Analog input settings", wait=1.0),
     _q("SSAUDIO ?", "Signal and setup", "Audio settings", wait=1.0),
+    _q("SSTTR ?", "Signal and setup", "Tactile transducer"),
+    _q("BTTX ?", "Signal and setup", "Bluetooth transmitter"),
     _q("ILB ?", "Signal and setup", "Unknown event seen on 2026 firmware"),
     _q("RM ?", "Signal and setup", "Remote maintenance mode"),
 ]
@@ -256,19 +274,55 @@ QUICK = {
 READ_ONLY_REQUESTS = {"NSE", "NSA", "NSH"}
 
 HEOS_PER_PLAYER = [
+    "player/get_player_info",
     "player/get_now_playing_media",
     "player/get_play_state",
+    "player/get_play_mode",
     "player/get_volume",
     "player/get_mute",
     "player/get_quickselects",
     "player/check_update",
 ]
+HEOS_GLOBAL = ["system/heart_beat", "group/get_groups", "browse/get_music_sources"]
+
+# goform status pages, read on port 80 and on port 8080.
+GOFORM_PAGES = [
+    "Deviceinfo.xml",
+    "formMainZone_MainZoneXml.xml",
+    "formMainZone_MainZoneXmlStatus.xml",
+    "formMainZone_MainZoneXmlStatusLite.xml",
+    "formZone2_Zone2XmlStatus.xml",
+    "formZone2_Zone2XmlStatusLite.xml",
+    "formZone3_Zone3XmlStatus.xml",
+    "formZone3_Zone3XmlStatusLite.xml",
+    "formNetAudio_StatusXml.xml",
+    "formTuner_TunerXml.xml",
+]
+
+# Read-only AppCommand.xml commands (as the denonavr library sends them, at
+# most five per request). Only names starting with "Get" are ever sent.
+APPCOMMANDS = [
+    "GetFriendlyName", "GetAllZonePowerStatus", "GetAllZoneSource",
+    "GetAllZoneVolume", "GetAllZoneMuteStatus", "GetRenameSource",
+    "GetDeletedSource", "GetSurroundModeStatus", "GetToneControl",
+    "GetAutoStandby", "GetDimmer", "GetECO",
+]
+APPCOMMAND0300 = ("GetAudyssey", ["dynamiceq", "reflevoffset", "dynamicvol", "multeq"])
 
 SETUP_PAGES = [
     "/ajax/globals/get_config?type=1",
     "/ajax/audio/get_config?type=1",
+    # The pages Denon AVR Plus reads: graphic EQ (channel 0), the video
+    # menus (HDMI setup, on-screen display, 4K format, TV format) and amp
+    # assign.
+    "/ajax/audio/get_config?type=10&opt1=0&opt2=0",
     "/ajax/video/get_config?type=1",
+    "/ajax/video/get_config?type=3",
+    "/ajax/video/get_config?type=7",
+    "/ajax/video/get_config?type=8",
+    "/ajax/video/get_config?type=9",
     "/ajax/speakers/get_config?type=1",
+    "/ajax/speakers/get_config?type=2",
     "/ajax/control/get_config?type=1",
     "/ajax/control/get_config?type=2",
     "/ajax/info/get_config?type=1",
@@ -311,6 +365,82 @@ def http_get(url: str) -> dict[str, object]:
         return {"error": str(getattr(err, "reason", err))}
 
 
+def appcommand_body(names: list[str]) -> bytes:
+    """A read-only AppCommand.xml request; refuses anything but Get commands."""
+
+    for name in names:
+        if not name.startswith("Get"):
+            raise ValueError(f"refusing to send a non-read AppCommand: {name}")
+    cmds = "".join(f'<cmd id="1">{name}</cmd>' for name in names)
+    return f'<?xml version="1.0" encoding="utf-8"?><tx>{cmds}</tx>'.encode()
+
+
+def appcommand0300_body(name: str, params: list[str]) -> bytes:
+    if not name.startswith("Get"):
+        raise ValueError(f"refusing to send a non-read AppCommand: {name}")
+    items = "".join(f'<param name="{param}"></param>' for param in params)
+    return (
+        f'<?xml version="1.0" encoding="utf-8"?><tx><cmd id="3"><name>{name}</name>'
+        f"<list>{items}</list></cmd></tx>"
+    ).encode()
+
+
+def http_post(url: str, body: bytes) -> dict[str, object]:
+    """POST a read-only AppCommand request; never raises."""
+
+    request = urllib.request.Request(
+        url, data=body, headers={"Content-Type": "text/xml"}, method="POST"
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            text = response.read(300_000).decode("utf-8", errors="replace")
+            return {"status": response.status, "body": text}
+    except urllib.error.HTTPError as err:
+        return {"status": err.code}
+    except (urllib.error.URLError, OSError) as err:
+        return {"error": str(getattr(err, "reason", err))}
+
+
+def ssdp_search(host: str, wait: float = 3.0) -> list[dict[str, str]]:
+    """The receiver's own answers to an SSDP search (what discovery sees)."""
+
+    found: list[dict[str, str]] = []
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        sock.settimeout(0.3)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+        for target in ("ssdp:all", "upnp:rootdevice"):
+            message = (
+                "M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\n"
+                f'MAN: "ssdp:discover"\r\nMX: 2\r\nST: {target}\r\n\r\n'
+            )
+            sock.sendto(message.encode(), ("239.255.255.250", 1900))
+    except OSError as err:
+        return [{"error": str(err)}]
+    end = time.monotonic() + wait
+    seen: set[str] = set()
+    while time.monotonic() < end:
+        try:
+            data, (address, _) = sock.recvfrom(65536)
+        except TimeoutError:
+            continue
+        except OSError:
+            break
+        if address != host:
+            continue
+        headers: dict[str, str] = {}
+        for line in data.decode("utf-8", errors="replace").split("\r\n")[1:]:
+            key, sep, value = line.partition(":")
+            if sep:
+                headers[key.strip().upper()] = value.strip()
+        key = headers.get("USN", "") + headers.get("ST", "")
+        if key not in seen:
+            seen.add(key)
+            found.append(headers)
+    sock.close()
+    return found
+
+
 def reply_prefix(command: str) -> str:
     """The text a reply to this query starts with (the command without '?')."""
 
@@ -336,6 +466,9 @@ class Telnet:
         self.sock.settimeout(0.05)
         self.buffer = b""
         self.events: list[str] = []
+        # When each line arrived, to measure how fast an answer comes.
+        self.arrivals: list[tuple[float, str]] = []
+        self.last_ms: int | None = None
 
     def close(self) -> None:
         self.sock.close()
@@ -350,9 +483,12 @@ class Telnet:
             except OSError:
                 break
             if chunk:
+                now = time.monotonic()
                 self.buffer += chunk
                 *parts, self.buffer = self.buffer.split(b"\r")
-                lines += [p.decode("utf-8", errors="replace").strip() for p in parts if p.strip()]
+                new = [p.decode("utf-8", errors="replace").strip() for p in parts if p.strip()]
+                self.arrivals += [(now, line) for line in new]
+                lines += new
                 if done is not None and done(lines):
                     break
         return lines
@@ -361,6 +497,7 @@ class Telnet:
         if not query.command.endswith("?") and query.command not in READ_ONLY_REQUESTS:
             raise ValueError(f"refusing to send a non-query command: {query.command}")
         self.events += self._read(time.monotonic() + 0.05, None)
+        self.arrivals = []
         self.sock.sendall(query.command.encode("ascii") + b"\r")
         prefix = reply_prefix(query.command)
 
@@ -369,13 +506,68 @@ class Telnet:
                 return any(line.endswith(query.ends_with) for line in lines)
             return any(line.startswith(prefix) for line in lines)
 
-        lines = self._read(time.monotonic() + query.wait, done)
+        sent = time.monotonic()
+        lines = self._read(sent + query.wait, done)
+        # Time to the first line of the answer, for the pacing of Denon AVR Plus.
+        answer = next((at for at, line in self.arrivals if line.startswith(prefix)), None)
+        self.last_ms = None if answer is None else round((answer - sent) * 1000)
         if not query.ends_with and any(line.startswith(prefix) for line in lines):
             lines += self._read(time.monotonic() + 0.15, None)  # companion lines
         return lines
 
+    def burst(self, commands: list[str], spacing: float, wait: float = 1.5) -> list[str]:
+        """Send queries close together without waiting; return what came back."""
+
+        for command in commands:
+            if not command.endswith("?"):
+                raise ValueError(f"refusing to send a non-query command: {command}")
+        self.events += self._read(time.monotonic() + 0.3, None)
+        for command in commands:
+            self.sock.sendall(command.encode("ascii") + b"\r")
+            if spacing:
+                time.sleep(spacing)
+        return self._read(time.monotonic() + wait, None)
+
 
 # Probes --------------------------------------------------------------------
+
+
+# Queries every receiver answers, for the spacing test.
+BURST = ["PW?", "MV?", "MU?", "SI?", "MS?", "ZM?"]
+BURST_SPACINGS = (0.0, 0.02, 0.05, 0.08)
+
+
+def spacing_test(telnet: Telnet) -> list[dict[str, object]]:
+    """Which of six queries sent close together get an answer."""
+
+    results = []
+    for spacing in BURST_SPACINGS:
+        lines = telnet.burst(BURST, spacing)
+        answered = [c for c in BURST if any(line.startswith(reply_prefix(c)) for line in lines)]
+        results.append({"spacing_ms": round(spacing * 1000), "sent": len(BURST),
+                        "answered": len(answered), "lines": lines})
+        print(f"  {round(spacing * 1000):3d} ms apart: {len(answered)} of {len(BURST)} answered")
+    return results
+
+
+def second_session_test(host: str, first: Telnet) -> dict[str, object]:
+    """Whether the receiver accepts and answers a second telnet session."""
+
+    result: dict[str, object] = {}
+    try:
+        second = Telnet(host)
+    except OSError as err:
+        return {"second_connects": False, "error": str(err)}
+    result["second_connects"] = True
+    try:
+        lines = second.query(_q("PW?", "", ""))
+        result["second_answers"] = any(line.startswith("PW") for line in lines)
+        lines = first.query(_q("PW?", "", ""))
+        result["first_still_answers"] = any(line.startswith("PW") for line in lines)
+    finally:
+        second.close()
+    print(f"  second session: {result}")
+    return result
 
 
 def probe_telnet(host: str, catalogue: list[Query]) -> dict[str, object]:
@@ -391,12 +583,21 @@ def probe_telnet(host: str, catalogue: list[Query]) -> dict[str, object]:
                 "error": "connected, but no reply to PW?. Another program probably "
                 "holds the receiver's only telnet session."
             }
-        results[catalogue[0].command] = {"result": classify("PW?", first), "lines": first}
+        results[catalogue[0].command] = {
+            "result": classify("PW?", first), "lines": first, "ms": telnet.last_ms
+        }
+        if any(line.startswith("PWSTANDBY") for line in first):
+            print("  The receiver is in standby: many answers will be missing. "
+                  "Switch it on and run the probe again.")
         for query in catalogue[1:]:
             lines = telnet.query(query)
             result = classify(query.command, lines)
-            results[query.command] = {"result": result, "lines": lines}
+            results[query.command] = {"result": result, "lines": lines, "ms": telnet.last_ms}
             print(f"  {query.command:16s} {result}")
+        print("Telnet spacing")
+        results["_spacing"] = spacing_test(telnet)
+        print("Telnet sessions")
+        results["_sessions"] = second_session_test(host, telnet)
         results["_unrelated_events"] = telnet.events
     finally:
         telnet.close()
@@ -436,7 +637,8 @@ def probe_heos(host: str) -> dict[str, object]:
         for index, player in enumerate(payload):
             for command in HEOS_PER_PLAYER:
                 results[f"{command} (player {index})"] = ask(f"{command}?pid={player.get('pid')}")
-        results["group/get_groups"] = ask("group/get_groups")
+        for command in HEOS_GLOBAL:
+            results[command] = ask(command)
     finally:
         sock.close()
     return results
@@ -445,33 +647,75 @@ def probe_heos(host: str) -> dict[str, object]:
 # Anonymisation ----------------------------------------------------------------
 
 
-def find_identity(texts: list[str]) -> tuple[set[str], set[str], set[str], str]:
+def find_identity(
+    texts: list[str], host: str
+) -> tuple[set[str], set[str], dict[str, str], str]:
+    """MACs, serial numbers, names (with their replacement) and the model."""
+
     macs: set[str] = set()
     serials: set[str] = set()
-    names: set[str] = set()
+    names: dict[str, str] = {}
     model = "receiver"
     for text in texts:
         macs.update(re.findall(r"<MacAddress>\s*([0-9A-Fa-f:\-]{12,17})\s*<", text))
         serials.update(re.findall(r"<(?:SerialNumber|serialNumber)>\s*([^<\s]+)\s*<", text))
         serials.update(re.findall(r'"serial"\s*:\s*"([^"]+)"', text))
-        names.update(n for n in re.findall(r"<[Ff]riendlyName>\s*([^<]+?)\s*<", text) if n)
+        for name in re.findall(r"<[Ff]riendlyName>\s*(?:<value>)?\s*([^<]+?)\s*<", text):
+            names[name] = "Denon AVR"
+        for name in re.findall(r"NSFRN ([^\"\r\n]+)", text):
+            names[name.strip()] = "Denon AVR"
         found = re.findall(r"<ModelName>\s*\*?([^<\s]+)\s*<", text)
         if found and model == "receiver":
             model = found[0]
+    # HEOS: the receiver's own player and every other speaker and group in the
+    # home carry the names their owner gave them ("Kitchen").
+    for text in texts:
+        try:
+            data = json.loads(text)
+        except ValueError:
+            continue
+        players = data.get("player/get_players", {}) if isinstance(data, dict) else {}
+        payload = players.get("payload", []) if isinstance(players, dict) else []
+        for index, player in enumerate(payload):
+            if isinstance(player, dict) and player.get("name"):
+                own = player.get("ip") == host
+                names[str(player["name"])] = "Denon AVR" if own else f"HEOS speaker {index + 1}"
+        groups = data.get("group/get_groups", {}) if isinstance(data, dict) else {}
+        for index, group in enumerate(groups.get("payload", []) if isinstance(groups, dict) else []):
+            if isinstance(group, dict) and group.get("name"):
+                names[str(group["name"])] = f"HEOS group {index + 1}"
+    names.pop("", None)
     return macs, serials, names, model
 
 
-def anonymise(text: str, host: str, macs: set[str], serials: set[str], names: set[str]) -> str:
+_ANY_MAC = re.compile(r"(?i)(?<![0-9a-f:\-])(?:[0-9a-f]{2}[:\-]){5}[0-9a-f]{2}(?![0-9a-f:\-])")
+_IPV6 = re.compile(r"(?i)\b(?:fe80|fd[0-9a-f]{2}|2[0-9a-f]{3}):[0-9a-f:]{2,}[0-9a-f]\b")
+_EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+_WIFI = re.compile(r"(?i)(<(\w*ssid\w*)>)([^<]+)(</\2>)")
+_WIFI_JSON = re.compile(r'(?i)("\w*ssid\w*"\s*:\s*")([^"]+)(")')
+_ACCOUNT_JSON = re.compile(r'(?i)("(?:service_username|username|user)"\s*:\s*")([^"]+)(")')
+
+
+def anonymise(
+    text: str, host: str, macs: set[str], serials: set[str], names: dict[str, str]
+) -> str:
     text = text.replace(host, PLACEHOLDER_HOST)
     for mac in macs:
         plain = re.sub(r"[^0-9A-Fa-f]", "", mac).lower()
         for form in (plain, ":".join(plain[i:i + 2] for i in range(0, 12, 2)),
                      "-".join(plain[i:i + 2] for i in range(0, 12, 2))):
             text = re.sub(re.escape(form), PLACEHOLDER_MAC, text, flags=re.IGNORECASE)
+    # Any other MAC, for example the Wi-Fi one on the setup pages.
+    text = _ANY_MAC.sub(PLACEHOLDER_MAC, text)
     for serial in serials:
         text = text.replace(serial, PLACEHOLDER_SERIAL)
     for name in sorted(names, key=len, reverse=True):
-        text = text.replace(name, "Denon AVR")
+        text = text.replace(name, names[name])
+    text = _WIFI.sub(lambda m: m.group(1) + PLACEHOLDER_WIFI + m.group(4), text)
+    text = _WIFI_JSON.sub(lambda m: m.group(1) + PLACEHOLDER_WIFI + m.group(3), text)
+    text = _ACCOUNT_JSON.sub(lambda m: m.group(1) + PLACEHOLDER_ACCOUNT + m.group(3), text)
+    text = _EMAIL.sub(PLACEHOLDER_ACCOUNT, text)
+    text = _IPV6.sub(PLACEHOLDER_IPV6, text)
     return re.sub(
         r"\b(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))(?:\.\d{1,3}){2,3}\b",
         PLACEHOLDER_OTHER_HOST,
@@ -509,6 +753,11 @@ def summary_markdown(report: dict[str, object], catalogue: list[Query]) -> str:
         f"Recorded {report['recorded']} with probe_receiver.py version {VERSION}.",
         f"Generation: {report['generation']}.",
         "",
+    ]
+    if report.get("power") == "standby":
+        lines += ["**The receiver was in standby.** Many answers exist only while it is "
+                  "on; run the probe again with the receiver switched on.", ""]
+    lines += [
         "## Network interfaces",
         "",
         "| Port | Interface | Open |",
@@ -520,6 +769,18 @@ def summary_markdown(report: dict[str, object], catalogue: list[Query]) -> str:
     if isinstance(heos, dict) and isinstance(heos.get("player/get_players"), dict):
         count = len(heos["player/get_players"].get("payload", []))
         lines += ["", f"HEOS: {count} player(s) in the HEOS system."]
+    ssdp = report.get("ssdp")
+    if isinstance(ssdp, list):
+        servers = sorted({h.get("SERVER", "") for h in ssdp if isinstance(h, dict)} - {""})
+        lines += ["", f"SSDP: {len(ssdp)} answer(s) from the receiver"
+                  + (f" ({'; '.join(servers)})" if servers else "") + "."]
+    http = report.get("http")
+    if isinstance(http, dict) and http:
+        lines += ["", "## Web pages", "", "| Page | Result |", "|---|---|"]
+        for page, entry in http.items():
+            if isinstance(entry, dict):
+                state = entry.get("status", entry.get("error", "?"))
+                lines.append(f"| `{page}` | {state} |")
     if "error" in telnet:
         lines += ["", f"Telnet: {telnet['error']}"]
         return "\n".join(lines) + "\n"
@@ -544,6 +805,29 @@ def summary_markdown(report: dict[str, object], catalogue: list[Query]) -> str:
         answered += entry["result"] == "answered"
         lines.append(f"| {query.what} | `{query.command}` | {result} | {reply} |")
     lines += ["", f"{answered} of {len(catalogue)} queries answered."]
+
+    times = sorted(e["ms"] for e in telnet.values()
+                   if isinstance(e, dict) and isinstance(e.get("ms"), int))
+    if times:
+        lines += ["", "## Timing", "",
+                  f"Reply time over {len(times)} answered queries: fastest {times[0]} ms, "
+                  f"median {times[len(times) // 2]} ms, slowest {times[-1]} ms."]
+    spacing = telnet.get("_spacing")
+    if isinstance(spacing, list) and spacing:
+        lines += ["", "Six queries sent close together, without waiting for answers:", "",
+                  "| Gap | Answered |", "|---|---|"]
+        lines += [f"| {s['spacing_ms']} ms | {s['answered']} of {s['sent']} |" for s in spacing]
+    sessions = telnet.get("_sessions")
+    if isinstance(sessions, dict):
+        if not sessions.get("second_connects"):
+            verdict = "refuses a second telnet session"
+        elif sessions.get("second_answers") and sessions.get("first_still_answers"):
+            verdict = "accepts a second telnet session and answers both"
+        elif sessions.get("second_answers"):
+            verdict = "accepts a second session, which takes over from the first"
+        else:
+            verdict = "accepts a second connection but does not answer it"
+        lines += ["", "## Telnet sessions", "", f"The receiver {verdict}."]
     return "\n".join(lines) + "\n"
 
 
@@ -572,16 +856,22 @@ def main() -> int:
 
     print("Web pages")
     http: dict[str, object] = {}
-    if ports.get(80):
-        http["80 /goform/Deviceinfo.xml"] = http_get(f"http://{host}/goform/Deviceinfo.xml")
-        http["80 /"] = http_get(f"http://{host}/")
-        for page in ("formMainZone_MainZoneXml.xml", "formMainZone_MainZoneXmlStatusLite.xml",
-                     "formNetAudio_StatusXml.xml", "formTuner_TunerXml.xml"):
-            http[f"80 /goform/{page}"] = http_get(f"http://{host}/goform/{page}")
-    if ports.get(8080):
-        for page in ("goform/Deviceinfo.xml", "goform/formMainZone_MainZoneXmlStatusLite.xml",
-                     "description.xml"):
-            http[f"8080 /{page}"] = http_get(f"http://{host}:8080/{page}")
+    for port in (80, 8080):
+        if not ports.get(port):
+            continue
+        base = f"http://{host}" if port == 80 else f"http://{host}:{port}"
+        http[f"{port} /"] = http_get(f"{base}/")
+        for page in GOFORM_PAGES:
+            http[f"{port} /goform/{page}"] = http_get(f"{base}/goform/{page}")
+        if port == 8080:
+            http["8080 /description.xml"] = http_get(f"{base}/description.xml")
+        for start in range(0, len(APPCOMMANDS), 5):
+            names = APPCOMMANDS[start:start + 5]
+            http[f"{port} AppCommand.xml {', '.join(names)}"] = http_post(
+                f"{base}/goform/AppCommand.xml", appcommand_body(names))
+        name, params = APPCOMMAND0300
+        http[f"{port} AppCommand0300.xml {name}"] = http_post(
+            f"{base}/goform/AppCommand0300.xml", appcommand0300_body(name, params))
     if ports.get(60006):
         http["60006 aios_device.xml"] = http_get(
             f"http://{host}:60006/upnp/desc/aios_device/aios_device.xml")
@@ -591,6 +881,13 @@ def main() -> int:
                 http[f"{port} {page}"] = http_get(f"{scheme}://{host}:{port}{page}")
     report["http"] = http
 
+    print("SSDP discovery")
+    ssdp = ssdp_search(host)
+    report["ssdp"] = ssdp
+    for location in sorted({h.get("LOCATION", "") for h in ssdp if isinstance(h, dict)}):
+        if location.startswith(f"http://{host}:") or location.startswith(f"http://{host}/"):
+            http[f"SSDP {location.replace(host, PLACEHOLDER_HOST)}"] = http_get(location)
+
     if ports.get(1255):
         print("HEOS")
         report["heos"] = probe_heos(host)
@@ -598,10 +895,17 @@ def main() -> int:
     print("Telnet")
     time.sleep(1)  # the port check above briefly took the only telnet session
     report["telnet"] = probe_telnet(host, catalogue) if ports.get(23) else {"error": "port 23 closed"}
+    power = report["telnet"].get("PW?") if isinstance(report["telnet"], dict) else None
+    if isinstance(power, dict):
+        report["power"] = (
+            "standby" if any(str(line).startswith("PWSTANDBY") for line in power["lines"])
+            else "on"
+        )
 
     texts = [str(v.get("body", "")) for v in http.values() if isinstance(v, dict)]
     texts.append(json.dumps(report.get("heos", {})))
-    macs, serials, names, model = find_identity(texts)
+    texts.append(json.dumps(report.get("telnet", {})))
+    macs, serials, names, model = find_identity(texts, host)
     version = comm_api_version(texts)
     report["model"] = model
     report["comm_api_version"] = version

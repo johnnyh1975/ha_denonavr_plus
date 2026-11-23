@@ -80,10 +80,29 @@ integrations.
 ### Automated probe
 
 `tools/probe_receiver.py` runs the read-only part of these tests in one go:
-the port test, the device description and status pages, every documented
-telnet query (about 150, from the 2012 to 2015 protocol documents, the
-2016+ queries the integration sends and the undocumented ones listed
-below), the HEOS player list and status, and the setup interface pages.
+
+- the port test and the SSDP answers of the receiver (what discovery sees),
+  with the device description they point to;
+- the goform pages on port 80 and 8080: device description, the status
+  pages of every zone (main, zone 2, zone 3, also the ones the HTTP
+  fallback reads), network audio and tuner;
+- `AppCommand.xml` and `AppCommand0300.xml` with the read-only `Get…`
+  commands of the `denonavr` library (sources and their names, hidden
+  sources, power, volume, mute, sound mode, tone, Audyssey);
+- every documented telnet query (about 160, from the 2012 to 2015 protocol
+  documents, the 2016+ queries the integration sends in their exact form,
+  the full resynchronisation of the `denonavr` library and the undocumented
+  ones listed above), with the reply time of each;
+- the spacing test: six queries sent 0, 20, 50 and 80 ms apart without
+  waiting, and how many get an answer;
+- the session test: whether a second telnet session connects, gets
+  answers, and leaves the first one working;
+- HEOS: the player list, per player the info, now playing, play state,
+  repeat and shuffle, volume, mute, Quick Selects and firmware update
+  check; the groups, the music sources and a heartbeat;
+- the setup interface pages, including the ones the integration reads
+  (graphic EQ, HDMI setup, on-screen display, 4K and TV format, amp
+  assign).
 
 ```bash
 python3 tools/probe_receiver.py 192.0.2.10
@@ -91,17 +110,22 @@ python3 tools/probe_receiver.py 192.0.2.10 --quick   # about 20 queries
 ```
 
 It sends only queries (commands ending in `?`, plus the screen-text
-requests `NSE`, `NSA` and `NSH`) and refuses anything else, so it cannot
-change a setting. It writes `avr-probe-<model>.md`, a table per
-capability group with "yes", "no reply", "rejected" or "other lines
-only", and `avr-probe-<model>.json` with every reply line. Addresses, the
-MAC, serial numbers and friendly names are replaced before writing. The
-JSON is the input for test fixtures and for the
+requests `NSE`, `NSA` and `NSH`), only `Get…` AppCommands and only HEOS
+`get_`, `check_` and heartbeat requests, and refuses anything else, so it
+cannot change a setting. When the receiver answers `PWSTANDBY`, it warns
+that the results are incomplete. It writes `avr-probe-<model>.md`, a table
+per capability group with "yes", "no reply", "rejected" or "other lines
+only", plus the web pages, reply times, spacing and session results, and
+`avr-probe-<model>.json` with every reply. Addresses, MACs (also the Wi-Fi
+one), serial numbers, the names of the receiver and of other HEOS speakers
+and groups, Wi-Fi names and account names are replaced before writing.
+The JSON is the input for test fixtures and for the
 [capability matrix](models/capability-matrix.md); "yes" there counts as
 Tested for that model and firmware.
 
 The tests below that change state (zones, All Zone Stereo, network
-standby, concurrent sessions) are not part of the probe and stay manual.
+standby) are not part of the probe and stay manual. The concurrent-session
+test is part of the probe as far as it only reads.
 
 ### Test: reachable ports
 
