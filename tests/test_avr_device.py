@@ -236,6 +236,19 @@ async def test_controls_without_a_feature_name_appear_when_they_answer(
         registry_entry(hass, entry, "select_imax")
 
 
+async def test_the_resync_asks_what_the_receivers_answer(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Seen on an AVR-X2000 and an AVR-X2600H: both answer SLP? and Z2MU?, not SLP ?.
+
+    Without them the sleep timer and the zone 2 mute stayed unknown until
+    they changed (tests/fixtures/capability_check).
+    """
+    queries = loaded_entry.runtime_data.device._resync_queries()
+    assert "SLP?" in queries and "SLP ?" not in queries
+    assert "Z2MU?" in queries
+
+
 async def test_the_setup_probe_ends_at_the_first_pause(
     hass: HomeAssistant, receiver_network: Any
 ) -> None:

@@ -495,7 +495,7 @@
       "min": -10,
       "max": 0,
       "step": 1,
-      "doc": "LFE level, 0 down to -10 dB. The receiver does not publish this range (its LFE block is empty), so the protocol defined range is given here as a fallback."
+      "doc": "LFE level, 0 down to -10 dB. The receiver does not publish this range (its LFE block is empty), so the protocol defined range is given here as a fallback. Asked as 'SLP?' without a space: an AVR-X2000 and an AVR-X2600H answer that, not 'SLP ?'."
     },
     "dynamic_eq": {
       "group": "audyssey",
@@ -732,7 +732,7 @@
       "scope": "feature",
       "feature": "SleepTimer",
       "kind": "minutes",
-      "query": "SLP ?",
+      "query": "SLP?",
       "prefix": "SLP",
       "off": "OFF",
       "min": 0,

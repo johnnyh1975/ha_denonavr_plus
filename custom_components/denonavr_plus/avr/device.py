@@ -679,6 +679,8 @@ class DenonAvrDevice:
         for zone in self._discovery.zones:
             if not zone.is_main:
                 add(f"{prefix}{zone.index}?")
+                # Z2? reports power, source and volume, not the mute state.
+                add(f"{prefix}{zone.index}MU?")
         # Read only audio information.
         for spec in self._profile.readonly.values():
             add(spec.get("query"))

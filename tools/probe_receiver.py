@@ -133,7 +133,7 @@ CATALOGUE: list[Query] = [
     _q("SD?", "Volume and input", "Input mode (auto/HDMI/digital/analog)"),
     _q("DC?", "Volume and input", "Digital input mode"),
     _q("SLP?", "Volume and input", "Sleep timer"),
-    _q("SLP ?", "Volume and input", "Sleep timer (with a space, as Denon AVR Plus asks)"),
+    _q("SLP ?", "Volume and input", "Sleep timer with a space (no answer on AVR-X2000, AVR-X2600H)"),
     _q("STBY?", "Volume and input", "Auto standby"),
     _q("ECO?", "Volume and input", "ECO mode"),
     _q("DIM ?", "Volume and input", "Display dimmer"),
