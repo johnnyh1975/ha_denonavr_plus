@@ -39,7 +39,7 @@ def test_classify() -> None:
 
 
 def test_addresses_are_replaced() -> None:
-    line = "SSINFIPA 198.51.100.7 MAC 02:00:00:00:00:7A owner me@home.example"
+    line = "SSINFIPA 198.51.100.7 MAC 02:00:00:00:00:7A owner someone@example.org"
     assert capability_check.anonymise(line) == (
         "SSINFIPA 192.0.2.10 MAC aa:bb:cc:dd:ee:ff owner user@example.com"
     )
