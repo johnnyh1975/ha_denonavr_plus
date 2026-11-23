@@ -34,6 +34,8 @@ async def async_get_config_entry_diagnostics(
         "started_offline": coordinator.started_offline,
         "http_port": device.http_port,
         "setup_port": device.setup_port,
+        # The capability check, with addresses already replaced (None: not run).
+        "capability_check": coordinator.capabilities.result,
         "telnet_response_ms": (
             None
             if device.telnet_response_time is None

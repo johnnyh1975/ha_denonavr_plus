@@ -22,6 +22,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .avr import AvrState, DenonAvrDevice
+from .capabilities import CapabilityResults
 from .const import (
     CONF_PORT,
     DEFAULT_SETUP_REFRESH,
@@ -95,6 +96,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self.started_offline = False
         self._reload_scheduled = False
         self._snapshot = snapshot_store(hass, entry.entry_id)
+        # The last capability check of this receiver (see capabilities.py).
+        self.capabilities = CapabilityResults(hass, entry.entry_id)
 
     async def async_setup(self) -> None:
         """Discover the receiver and start the telnet transport.
@@ -103,6 +106,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         entry setup is retried by Home Assistant.
         """
 
+        await self.capabilities.async_load()
         try:
             await self.device.async_discover()
         except ConnectionError:
@@ -131,6 +135,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
 
         await self.device.async_stop()
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id)
+        self.capabilities.async_delete_issues()
         await super().async_shutdown()
 
     async def _async_update_data(self) -> AvrState:

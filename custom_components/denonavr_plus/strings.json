@@ -32,6 +32,13 @@
         "data": {
           "receiver": "Receiver"
         }
+      },
+      "unknown_model": {
+        "title": "Model not checked yet",
+        "description": "The {model} has not been checked with this integration yet. Its entities are built from what it reports, but some settings may be missing or read wrongly.\n\nThe capability check asks the receiver about 150 read-only questions (nothing is changed) once it is connected, and puts the answers into the diagnostics file. You can then attach that file to a prefilled issue on GitHub, so the model can be supported properly. Nothing is sent anywhere by itself.",
+        "data": {
+          "check": "Run the capability check after setup"
+        }
       }
     },
     "error": {
@@ -57,7 +64,8 @@
           "zones": "Zones",
           "sources": "Sources",
           "sound_modes": "Sound modes",
-          "connection": "Connection"
+          "connection": "Connection",
+          "check": "Check capabilities"
         }
       },
       "volume": {
@@ -182,6 +190,14 @@
           "heos": "Shows title, artist and cover of network sources and offers play, pause and skip. Turn it off if another program needs the HEOS connection or you do not use network sources.",
           "setup_refresh": "The graphic EQ, video setup and amp assign are read when the connection comes up and after every change from Home Assistant. This also reads them every so many minutes, to notice changes made on the receiver's menu; 0 reads them only then."
         }
+      },
+      "check": {
+        "title": "Check capabilities",
+        "description": "Asks the receiver about 150 read-only questions over the existing connection; nothing is changed. It takes up to a minute and a half; commands from Home Assistant still go first. The answers go into the diagnostics file."
+      },
+      "check_done": {
+        "title": "Check finished",
+        "description": "The {model} answered {answered} of {total} questions. The answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file. Read the file before you attach it; addresses are already replaced."
       }
     },
     "error": {
@@ -192,6 +208,9 @@
       "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
       "no_additional_zones": "This receiver has no additional zone.",
       "no_sound_modes": "The receiver has not reported any sound modes yet."
+    },
+    "progress": {
+      "capability_check": "Asking the receiver. This takes up to a minute and a half."
     }
   },
   "entity": {
@@ -714,6 +733,31 @@
     "telnet_unavailable": {
       "title": "{model} does not accept a control connection",
       "description": "The {model} answers on the network, but has not accepted a telnet connection on port 23 for several minutes. Until it does, the media players work over the web interface only: power, volume, mute and source, with up to 10 seconds delay. All other settings are unavailable.\n\nThe receiver allows only one telnet connection at a time. Common causes:\n\n- Another integration or program holds that connection, for example the official Denon AVR integration or another home automation system. Remove or disable it for this receiver.\n- A firewall or VLAN rule blocks port 23 between Home Assistant and the receiver, while the web ports are open.\n\nThe message disappears by itself as soon as the connection works again."
+    },
+    "capability_check": {
+      "title": "{model} has not been checked yet",
+      "fix_flow": {
+        "step": {
+          "check": {
+            "title": "Check capabilities",
+            "description": "Asks the receiver about 150 read-only questions over the existing connection; nothing is changed. It takes up to a minute and a half; commands from Home Assistant still go first. The answers go into the diagnostics file."
+          },
+          "check_done": {
+            "title": "Check finished",
+            "description": "The {model} answered {answered} of {total} questions. The answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file. Read the file before you attach it; addresses are already replaced."
+          }
+        },
+        "progress": {
+          "capability_check": "Asking the receiver. This takes up to a minute and a half."
+        },
+        "abort": {
+          "not_connected": "The receiver is not connected over telnet. The check needs that connection; try again when it is on."
+        }
+      }
+    },
+    "capability_report": {
+      "title": "Help support the {model}",
+      "description": "The capability check of the {model} has finished; its answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it."
     }
   },
   "selector": {

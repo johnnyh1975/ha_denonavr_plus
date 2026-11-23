@@ -32,6 +32,13 @@
         "data": {
           "receiver": "Ampli-tuner"
         }
+      },
+      "unknown_model": {
+        "title": "Modèle pas encore vérifié",
+        "description": "Le {model} n'a pas encore été vérifié avec cette intégration. Ses entités sont créées à partir de ce qu'il annonce, mais certains réglages peuvent manquer ou être mal lus.\n\nLa vérification des fonctions pose à l'ampli-tuner environ 150 questions en lecture seule (rien n'est modifié) une fois connecté, et place les réponses dans le fichier de diagnostic. Vous pouvez ensuite joindre ce fichier à un ticket prérempli sur GitHub afin que le modèle soit bien pris en charge. Rien n'est envoyé automatiquement.",
+        "data": {
+          "check": "Lancer la vérification après la configuration"
+        }
       }
     },
     "error": {
@@ -57,7 +64,8 @@
           "zones": "Zones",
           "sources": "Sources",
           "sound_modes": "Modes son",
-          "connection": "Connexion"
+          "connection": "Connexion",
+          "check": "Vérifier les fonctions"
         }
       },
       "volume": {
@@ -182,6 +190,14 @@
           "heos": "Affiche le titre, l'artiste et la pochette des sources réseau et propose lecture, pause et saut. Désactivez-le si un autre programme a besoin de la connexion HEOS ou si vous n'utilisez pas de sources réseau.",
           "setup_refresh": "L'égaliseur graphique, la configuration vidéo et l'affectation des amplis sont lus à l'établissement de la connexion et après chaque modification depuis Home Assistant. Ceci les lit en plus toutes les tant de minutes, pour remarquer les modifications faites dans le menu de l'ampli-tuner ; 0 ne les lit qu'à ces moments-là."
         }
+      },
+      "check": {
+        "title": "Vérifier les fonctions",
+        "description": "Pose à l'ampli-tuner environ 150 questions en lecture seule via la connexion existante ; rien n'est modifié. Cela prend jusqu'à une minute et demie ; les commandes de Home Assistant restent prioritaires. Les réponses vont dans le fichier de diagnostic."
+      },
+      "check_done": {
+        "title": "Vérification terminée",
+        "description": "Le {model} a répondu à {answered} questions sur {total}. Les réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic. Lisez le fichier avant de le joindre ; les adresses sont déjà remplacées."
       }
     },
     "error": {
@@ -192,6 +208,9 @@
       "not_connected": "L'ampli-tuner n'est pas connecté. Ses sources et modes son sont lus depuis l'appareil ; réessayez lorsqu'il est allumé.",
       "no_additional_zones": "Cet ampli-tuner n'a pas de zone supplémentaire.",
       "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son."
+    },
+    "progress": {
+      "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie."
     }
   },
   "entity": {
@@ -714,6 +733,31 @@
     "telnet_unavailable": {
       "title": "Le {model} n'accepte pas de connexion de commande",
       "description": "Le {model} répond sur le réseau, mais n'accepte plus de connexion telnet sur le port 23 depuis plusieurs minutes. En attendant, les lecteurs multimédias fonctionnent uniquement via l'interface web : alimentation, volume, sourdine et source, avec jusqu'à 10 secondes de retard. Tous les autres réglages sont indisponibles.\n\nL'ampli-tuner n'accepte qu'une seule connexion telnet à la fois. Causes fréquentes :\n\n- Une autre intégration ou un autre programme occupe cette connexion, par exemple l'intégration officielle Denon AVR ou un autre système domotique. Supprimez-la ou désactivez-la pour cet ampli-tuner.\n- Une règle de pare-feu ou de VLAN bloque le port 23 entre Home Assistant et l'ampli-tuner, alors que les ports web sont ouverts.\n\nLe message disparaît de lui-même dès que la connexion fonctionne à nouveau."
+    },
+    "capability_check": {
+      "title": "Le {model} n'a pas encore été vérifié",
+      "fix_flow": {
+        "step": {
+          "check": {
+            "title": "Vérifier les fonctions",
+            "description": "Pose à l'ampli-tuner environ 150 questions en lecture seule via la connexion existante ; rien n'est modifié. Cela prend jusqu'à une minute et demie ; les commandes de Home Assistant restent prioritaires. Les réponses vont dans le fichier de diagnostic."
+          },
+          "check_done": {
+            "title": "Vérification terminée",
+            "description": "Le {model} a répondu à {answered} questions sur {total}. Les réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic. Lisez le fichier avant de le joindre ; les adresses sont déjà remplacées."
+          }
+        },
+        "progress": {
+          "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie."
+        },
+        "abort": {
+          "not_connected": "L'ampli-tuner n'est pas connecté via telnet. La vérification a besoin de cette connexion ; réessayez quand il est allumé."
+        }
+      }
+    },
+    "capability_report": {
+      "title": "Aidez à prendre en charge le {model}",
+      "description": "La vérification du {model} est terminée ; ses réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le ticket prérempli avec « En savoir plus » et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager."
     }
   },
   "selector": {

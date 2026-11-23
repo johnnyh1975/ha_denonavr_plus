@@ -179,6 +179,8 @@ rules:
       or port 23 blocked). It clears itself once the connection is back.
       A receiver that does not answer at all is only logged, since being off
       without network standby can be intended.
+      A model not checked before gets a fixable repair that runs the
+      capability check; afterwards a repair links to a prefilled GitHub issue.
   stale-devices:
     status: exempt
     comment: One receiver per config entry; its sub-devices are fixed.

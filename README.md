@@ -410,11 +410,23 @@ first: it lists the checks every change has to pass
 (`bash scripts/check_all.sh`) and the rules for tests, private data and
 protocol facts. For a receiver that is not fully supported, the
 diagnostics file is what makes support possible; the issue form asks
-for it. Where the integration cannot be set up at all, or to find out what a
-model can do, run `python3 tools/probe_receiver.py <address>`: it asks the
-receiver every documented query, changes nothing, and writes a summary of
-its capabilities plus the raw answers with addresses and serial numbers
-replaced.
+for it.
+
+**Capability check.** For a model that has not been checked with this
+integration yet, setup offers to run the capability check once the receiver is
+connected, and a repair asks for it later. You can also run it any time under
+Configure → **Check capabilities**. It asks the receiver about 150 read-only
+questions over the integration's own connection (nothing is changed, commands
+from Home Assistant still go first) and takes up to a minute and a half. The
+answers go into the diagnostics file, with addresses replaced. A repair then
+links to a prefilled issue on GitHub; attach the diagnostics file there. Nothing
+is sent anywhere by itself.
+
+Where the integration cannot be set up at all, run
+`python3 tools/probe_receiver.py <address>`: it asks the same questions and
+more (web pages, HEOS, the setup interface), changes nothing, and writes a
+summary plus the raw answers with addresses and serial numbers replaced. The
+two lists of questions are kept equal by a test.
 
 ## Origin
 

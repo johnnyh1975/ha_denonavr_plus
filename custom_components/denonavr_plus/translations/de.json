@@ -32,6 +32,13 @@
         "data": {
           "receiver": "Receiver"
         }
+      },
+      "unknown_model": {
+        "title": "Modell noch nicht geprüft",
+        "description": "Der {model} wurde mit dieser Integration noch nicht geprüft. Seine Entitäten entstehen aus dem, was er meldet, aber einzelne Einstellungen können fehlen oder falsch gelesen werden.\n\nDer Prüflauf stellt dem Receiver nach der Verbindung rund 150 Fragen, die nur lesen (nichts wird verändert), und legt die Antworten in die Diagnose-Datei. Diese Datei kannst du dann an ein vorausgefülltes Issue auf GitHub anhängen, damit das Modell richtig unterstützt werden kann. Von selbst wird nichts gesendet.",
+        "data": {
+          "check": "Prüflauf nach der Einrichtung starten"
+        }
       }
     },
     "error": {
@@ -57,7 +64,8 @@
           "zones": "Zonen",
           "sources": "Quellen",
           "sound_modes": "Klangmodi",
-          "connection": "Verbindung"
+          "connection": "Verbindung",
+          "check": "Fähigkeiten prüfen"
         }
       },
       "volume": {
@@ -182,6 +190,14 @@
           "heos": "Zeigt Titel, Interpret und Cover von Netzwerkquellen und bietet Wiedergabe, Pause und Springen. Schalte es aus, wenn ein anderes Programm die HEOS-Verbindung braucht oder du keine Netzwerkquellen nutzt.",
           "setup_refresh": "Grafik-EQ, Video-Setup und Endstufenzuweisung werden beim Verbindungsaufbau und nach jeder Änderung aus Home Assistant gelesen. Zusätzlich alle so viele Minuten, um Änderungen im Menü des Receivers zu bemerken; 0 liest sie nur dann."
         }
+      },
+      "check": {
+        "title": "Fähigkeiten prüfen",
+        "description": "Stellt dem Receiver über die bestehende Verbindung rund 150 Fragen, die nur lesen; nichts wird verändert. Das dauert bis zu anderthalb Minuten; Befehle aus Home Assistant haben weiter Vorrang. Die Antworten kommen in die Diagnose-Datei."
+      },
+      "check_done": {
+        "title": "Prüfung abgeschlossen",
+        "description": "Der {model} hat {answered} von {total} Fragen beantwortet. Die Antworten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen).\n\nUm die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Diagnose-Datei an. Lies die Datei, bevor du sie anhängst; Adressen sind bereits ersetzt."
       }
     },
     "error": {
@@ -192,6 +208,9 @@
       "not_connected": "Der Receiver ist nicht verbunden. Seine Quellen und Klangmodi werden von ihm gelesen; versuche es erneut, wenn er eingeschaltet ist.",
       "no_additional_zones": "Dieser Receiver hat keine weitere Zone.",
       "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet."
+    },
+    "progress": {
+      "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten."
     }
   },
   "entity": {
@@ -714,6 +733,31 @@
     "telnet_unavailable": {
       "title": "{model} nimmt keine Steuerverbindung an",
       "description": "Der {model} antwortet im Netzwerk, nimmt aber seit einigen Minuten keine Telnet-Verbindung auf Port 23 an. Bis dahin funktionieren die Media Player nur über die Weboberfläche: Ein/Aus, Lautstärke, Stummschaltung und Quelle, mit bis zu 10 Sekunden Verzögerung. Alle anderen Einstellungen sind nicht verfügbar.\n\nDer Receiver erlaubt nur eine Telnet-Verbindung gleichzeitig. Häufige Ursachen:\n\n- Eine andere Integration oder ein anderes Programm belegt diese Verbindung, zum Beispiel die offizielle Denon-AVR-Integration oder ein anderes Hausautomationssystem. Entferne oder deaktiviere sie für diesen Receiver.\n- Eine Firewall- oder VLAN-Regel sperrt Port 23 zwischen Home Assistant und dem Receiver, während die Web-Ports offen sind.\n\nDie Meldung verschwindet von selbst, sobald die Verbindung wieder funktioniert."
+    },
+    "capability_check": {
+      "title": "{model} wurde noch nicht geprüft",
+      "fix_flow": {
+        "step": {
+          "check": {
+            "title": "Fähigkeiten prüfen",
+            "description": "Stellt dem Receiver über die bestehende Verbindung rund 150 Fragen, die nur lesen; nichts wird verändert. Das dauert bis zu anderthalb Minuten; Befehle aus Home Assistant haben weiter Vorrang. Die Antworten kommen in die Diagnose-Datei."
+          },
+          "check_done": {
+            "title": "Prüfung abgeschlossen",
+            "description": "Der {model} hat {answered} von {total} Fragen beantwortet. Die Antworten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen).\n\nUm die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Diagnose-Datei an. Lies die Datei, bevor du sie anhängst; Adressen sind bereits ersetzt."
+          }
+        },
+        "progress": {
+          "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten."
+        },
+        "abort": {
+          "not_connected": "Der Receiver ist nicht über Telnet verbunden. Die Prüfung braucht diese Verbindung; versuche es erneut, wenn er eingeschaltet ist."
+        }
+      }
+    },
+    "capability_report": {
+      "title": "Hilf bei der Unterstützung des {model}",
+      "description": "Der Prüflauf des {model} ist abgeschlossen; die Antworten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne über „Mehr erfahren“ das vorausgefüllte Issue und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest."
     }
   },
   "selector": {

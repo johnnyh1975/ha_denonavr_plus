@@ -32,6 +32,13 @@
         "data": {
           "receiver": "Receptor"
         }
+      },
+      "unknown_model": {
+        "title": "Modelo aún no comprobado",
+        "description": "El {model} aún no se ha comprobado con esta integración. Sus entidades se crean a partir de lo que informa, pero algunos ajustes pueden faltar o leerse mal.\n\nLa comprobación de funciones hace al receptor unas 150 preguntas de solo lectura (no se cambia nada) una vez conectado, y guarda las respuestas en el archivo de diagnóstico. Después puedes adjuntar ese archivo a una incidencia prerrellenada en GitHub, para que el modelo pueda tener buen soporte. No se envía nada automáticamente.",
+        "data": {
+          "check": "Ejecutar la comprobación tras la configuración"
+        }
       }
     },
     "error": {
@@ -57,7 +64,8 @@
           "zones": "Zonas",
           "sources": "Fuentes",
           "sound_modes": "Modos de sonido",
-          "connection": "Conexión"
+          "connection": "Conexión",
+          "check": "Comprobar funciones"
         }
       },
       "volume": {
@@ -182,6 +190,14 @@
           "heos": "Muestra título, artista y carátula de las fuentes de red y ofrece reproducir, pausar y saltar. Desactívalo si otro programa necesita la conexión HEOS o no usas fuentes de red.",
           "setup_refresh": "El ecualizador gráfico, la configuración de vídeo y la asignación de amplificadores se leen al establecer la conexión y después de cada cambio desde Home Assistant. Esto además los lee cada tantos minutos, para notar los cambios hechos en el menú del receptor; 0 los lee solo entonces."
         }
+      },
+      "check": {
+        "title": "Comprobar funciones",
+        "description": "Hace al receptor unas 150 preguntas de solo lectura por la conexión existente; no se cambia nada. Tarda hasta minuto y medio; las órdenes de Home Assistant siguen teniendo prioridad. Las respuestas van al archivo de diagnóstico."
+      },
+      "check_done": {
+        "title": "Comprobación terminada",
+        "description": "El {model} respondió {answered} de {total} preguntas. Las respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico. Lee el archivo antes de adjuntarlo; las direcciones ya están sustituidas."
       }
     },
     "error": {
@@ -192,6 +208,9 @@
       "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
       "no_additional_zones": "Este receptor no tiene zonas adicionales.",
       "no_sound_modes": "El receptor aún no ha informado de ningún modo de sonido."
+    },
+    "progress": {
+      "capability_check": "Consultando al receptor. Tarda hasta minuto y medio."
     }
   },
   "entity": {
@@ -714,6 +733,31 @@
     "telnet_unavailable": {
       "title": "El {model} no acepta una conexión de control",
       "description": "El {model} responde en la red, pero desde hace varios minutos no acepta una conexión telnet en el puerto 23. Mientras tanto, los reproductores multimedia solo funcionan a través de la interfaz web: encendido, volumen, silencio y fuente, con hasta 10 segundos de retraso. Todos los demás ajustes no están disponibles.\n\nEl receptor solo permite una conexión telnet a la vez. Causas habituales:\n\n- Otra integración u otro programa ocupa esa conexión, por ejemplo la integración oficial Denon AVR u otro sistema de domótica. Elimínala o desactívala para este receptor.\n- Una regla del cortafuegos o de la VLAN bloquea el puerto 23 entre Home Assistant y el receptor, mientras que los puertos web están abiertos.\n\nEl mensaje desaparece por sí solo en cuanto la conexión vuelve a funcionar."
+    },
+    "capability_check": {
+      "title": "El {model} aún no se ha comprobado",
+      "fix_flow": {
+        "step": {
+          "check": {
+            "title": "Comprobar funciones",
+            "description": "Hace al receptor unas 150 preguntas de solo lectura por la conexión existente; no se cambia nada. Tarda hasta minuto y medio; las órdenes de Home Assistant siguen teniendo prioridad. Las respuestas van al archivo de diagnóstico."
+          },
+          "check_done": {
+            "title": "Comprobación terminada",
+            "description": "El {model} respondió {answered} de {total} preguntas. Las respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico. Lee el archivo antes de adjuntarlo; las direcciones ya están sustituidas."
+          }
+        },
+        "progress": {
+          "capability_check": "Consultando al receptor. Tarda hasta minuto y medio."
+        },
+        "abort": {
+          "not_connected": "El receptor no está conectado por telnet. La comprobación necesita esa conexión; inténtalo de nuevo cuando esté encendido."
+        }
+      }
+    },
+    "capability_report": {
+      "title": "Ayuda a dar soporte al {model}",
+      "description": "La comprobación del {model} ha terminado; sus respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Abre la incidencia prerrellenada con «Más información» y adjunta allí el archivo. Ignora este mensaje si no quieres compartirlo."
     }
   },
   "selector": {

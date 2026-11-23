@@ -29,6 +29,7 @@ from .coordinator import (
     connection_options,
     snapshot_store,
 )
+from .capabilities import OPT_CHECK_PENDING, CapabilityResults, async_run_pending
 from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
 from .services import async_setup_services
 
@@ -86,6 +87,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     _remove_hidden_zones(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, _platforms(coordinator))
     _apply_channel_defaults(hass, entry, coordinator)
+    coordinator.capabilities.async_update_issues(coordinator.device.discovery.device.model_name)
+    if entry.options.get(OPT_CHECK_PENDING) and not coordinator.started_offline:
+        entry.async_create_background_task(
+            hass, async_run_pending(hass, entry), "denonavr_plus capability check"
+        )
     entry.async_on_unload(entry.add_update_listener(_async_entry_updated))
     return True
 
@@ -101,9 +107,10 @@ def _platforms(coordinator: DenonAvrCoordinator) -> list[Platform]:
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
-    """Remove the kept discovery with the entry."""
+    """Remove the kept discovery and capability check with the entry."""
 
     await snapshot_store(hass, entry.entry_id).async_remove()
+    await CapabilityResults(hass, entry.entry_id).async_remove()
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:

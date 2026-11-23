@@ -52,6 +52,7 @@ from .const import (
     OPT_POLL_INTERVAL,
     OPT_SETUP_REFRESH,
 )
+from .capabilities import OPT_CHECK_PENDING, CapabilityCheckSteps, known_model
 from .coordinator import connection_options
 from . import choices
 from .choices import (
@@ -81,6 +82,7 @@ SSDP_DEVICE_TYPES = (
     "urn:schemas-upnp-org:device:MediaServer:1",
 )
 CONF_RECEIVER = "receiver"
+CONF_CHECK = "check"
 
 
 def _skip_reason(upnp: Any) -> str | None:
@@ -109,6 +111,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._name: str = "Denon AVR"
         self._port: int | None = None
         self._found: dict[str, str] = {}
+        self._new_entry: tuple[str, dict[str, Any]] = ("", {})
 
     async def _async_identify(self, host: str) -> tuple[str | None, str]:
         """Fetch the receiver's MAC and model name. Raises ConnectionError.
@@ -193,7 +196,38 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured(updates=self._entry_data(host))
         else:
             self._async_abort_entries_match({CONF_HOST: host})
-        return self.async_create_entry(title=name, data=self._entry_data(host))
+        return self._async_create(name, self._entry_data(host))
+
+    def _async_create(self, title: str, data: dict[str, Any]) -> ConfigFlowResult:
+        """Create the entry; for a model not checked before, offer the check first."""
+
+        if known_model(title):
+            return self.async_create_entry(title=title, data=data)
+        self._new_entry = (title, data)
+        return self._unknown_model_form()
+
+    def _unknown_model_form(self) -> ConfigFlowResult:
+        return self.async_show_form(
+            step_id="unknown_model",
+            data_schema=vol.Schema({vol.Required(CONF_CHECK, default=True): BooleanSelector()}),
+            description_placeholders={"model": self._new_entry[0]},
+        )
+
+    async def async_step_unknown_model(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """A model not checked before: run the capability check after setup?
+
+        The check runs once the integration has connected, over its own
+        connection, and the result goes into the diagnostics. Nothing is sent
+        anywhere; a repair then points to a prefilled issue on GitHub.
+        """
+
+        if user_input is None:
+            return self._unknown_model_form()
+        title, data = self._new_entry
+        options = {OPT_CHECK_PENDING: True} if user_input[CONF_CHECK] else {}
+        return self.async_create_entry(title=title, data=data, options=options)
 
     async def _async_discovered_receivers(self) -> dict[str, str]:
         """Receivers Home Assistant has seen over SSDP and that are not set up.
@@ -280,9 +314,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             assert self._host is not None
-            return self.async_create_entry(
-                title=self._name, data=self._entry_data(self._host)
-            )
+            return self._async_create(self._name, self._entry_data(self._host))
         return self.async_show_form(
             step_id="ssdp_confirm",
             description_placeholders={"name": self._name},
@@ -348,7 +380,7 @@ def _zones(hass: Any, entry: ConfigEntry) -> list[str]:
     return [zone for zone in _ZONE_ORDER if zone in found] or ["main"]
 
 
-class DenonAvrOptionsFlow(OptionsFlow):
+class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
     """Options: volume, zones, and which sources and sound modes appear, and how."""
 
     def __init__(self) -> None:
@@ -375,8 +407,16 @@ class DenonAvrOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["volume", "zones", "sources", "sound_modes", "connection"],
+            menu_options=["volume", "zones", "sources", "sound_modes", "connection", "check"],
         )
+
+    # Capability check (steps in capabilities.CapabilityCheckSteps) ---------
+
+    def _check_entry(self) -> Any:
+        return self.config_entry
+
+    def _check_finished(self) -> ConfigFlowResult:
+        return self.async_create_entry(data=dict(self.config_entry.options))
 
     # Connection ------------------------------------------------------------
 

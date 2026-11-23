@@ -32,6 +32,13 @@
         "data": {
           "receiver": "Recetor"
         }
+      },
+      "unknown_model": {
+        "title": "Modelo ainda não verificado",
+        "description": "O {model} ainda não foi verificado com esta integração. As suas entidades são criadas a partir do que comunica, mas algumas definições podem faltar ou ser lidas incorretamente.\n\nA verificação de funções faz ao recetor cerca de 150 perguntas só de leitura (nada é alterado) depois de ligado, e guarda as respostas no ficheiro de diagnóstico. Pode depois anexar esse ficheiro a um problema pré-preenchido no GitHub, para que o modelo seja bem suportado. Nada é enviado automaticamente.",
+        "data": {
+          "check": "Executar a verificação após a configuração"
+        }
       }
     },
     "error": {
@@ -57,7 +64,8 @@
           "zones": "Zonas",
           "sources": "Fontes",
           "sound_modes": "Modos de som",
-          "connection": "Ligação"
+          "connection": "Ligação",
+          "check": "Verificar funções"
         }
       },
       "volume": {
@@ -182,6 +190,14 @@
           "heos": "Mostra título, artista e capa das fontes de rede e oferece reproduzir, pausar e saltar. Desative-o se outro programa precisar da ligação HEOS ou se não usar fontes de rede.",
           "setup_refresh": "O equalizador gráfico, a configuração de vídeo e a atribuição de amplificadores são lidos quando a ligação é estabelecida e após cada alteração a partir do Home Assistant. Isto lê-os também a cada tantos minutos, para notar alterações feitas no menu do recetor; 0 lê-os só nessas alturas."
         }
+      },
+      "check": {
+        "title": "Verificar funções",
+        "description": "Faz ao recetor cerca de 150 perguntas só de leitura pela ligação existente; nada é alterado. Demora até minuto e meio; os comandos do Home Assistant continuam a ter prioridade. As respostas vão para o ficheiro de diagnóstico."
+      },
+      "check_done": {
+        "title": "Verificação concluída",
+        "description": "O {model} respondeu a {answered} de {total} perguntas. As respostas estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos).\n\nPara ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro de diagnóstico. Leia o ficheiro antes de o anexar; os endereços já estão substituídos."
       }
     },
     "error": {
@@ -192,6 +208,9 @@
       "not_connected": "O recetor não está ligado à rede. As fontes e os modos de som são lidos do aparelho; tente novamente quando estiver ligado.",
       "no_additional_zones": "Este recetor não tem zonas adicionais.",
       "no_sound_modes": "O recetor ainda não indicou nenhum modo de som."
+    },
+    "progress": {
+      "capability_check": "A consultar o recetor. Demora até minuto e meio."
     }
   },
   "entity": {
@@ -714,6 +733,31 @@
     "telnet_unavailable": {
       "title": "O {model} não aceita uma ligação de controlo",
       "description": "O {model} responde na rede, mas há vários minutos que não aceita uma ligação telnet na porta 23. Até lá, os leitores multimédia só funcionam através da interface web: ligar/desligar, volume, silêncio e fonte, com até 10 segundos de atraso. Todas as outras definições estão indisponíveis.\n\nO recetor só permite uma ligação telnet de cada vez. Causas comuns:\n\n- Outra integração ou outro programa ocupa essa ligação, por exemplo a integração oficial Denon AVR ou outro sistema de domótica. Remova-a ou desative-a para este recetor.\n- Uma regra de firewall ou de VLAN bloqueia a porta 23 entre o Home Assistant e o recetor, enquanto as portas web estão abertas.\n\nA mensagem desaparece por si própria assim que a ligação voltar a funcionar."
+    },
+    "capability_check": {
+      "title": "O {model} ainda não foi verificado",
+      "fix_flow": {
+        "step": {
+          "check": {
+            "title": "Verificar funções",
+            "description": "Faz ao recetor cerca de 150 perguntas só de leitura pela ligação existente; nada é alterado. Demora até minuto e meio; os comandos do Home Assistant continuam a ter prioridade. As respostas vão para o ficheiro de diagnóstico."
+          },
+          "check_done": {
+            "title": "Verificação concluída",
+            "description": "O {model} respondeu a {answered} de {total} perguntas. As respostas estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos).\n\nPara ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro de diagnóstico. Leia o ficheiro antes de o anexar; os endereços já estão substituídos."
+          }
+        },
+        "progress": {
+          "capability_check": "A consultar o recetor. Demora até minuto e meio."
+        },
+        "abort": {
+          "not_connected": "O recetor não está ligado por telnet. A verificação precisa dessa ligação; tente novamente quando estiver ligado."
+        }
+      }
+    },
+    "capability_report": {
+      "title": "Ajude a suportar o {model}",
+      "description": "A verificação do {model} terminou; as respostas estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Abra o problema pré-preenchido com «Saber mais» e anexe lá o ficheiro. Ignore esta mensagem se não o quiser partilhar."
     }
   },
   "selector": {

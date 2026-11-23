@@ -13,6 +13,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
+from custom_components.denonavr_plus.avr import capability_check
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.transport import GoformClient
 
@@ -60,3 +61,44 @@ async def test_an_own_query_is_dropped_quietly_without_telnet(
         await device._send("MV?")
         with pytest.raises(CommandNotSent):
             await device._send("MVUP")
+
+
+async def test_the_capability_check_asks_every_query(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    device = loaded_entry.runtime_data.device
+    answers = {"PW?": ["PWON"], "MV?": ["MV50", "MVMAX 80"], "PSFOO ?": ["?"]}
+
+    async def answer(command: str) -> None:
+        telnet.sent.append(command)
+        if command in answers:
+            hass.loop.call_soon(telnet.push, *answers[command])
+
+    progress: list[float] = []
+    queries = (("PW?", "Power"), ("MV?", "Volume"), ("PSFOO ?", "Test"), ("SSINF ?", "Test"))
+    with (
+        patch.object(telnet, "async_send", answer),
+        patch.object(capability_check, "QUERIES", queries),
+        patch("custom_components.denonavr_plus.avr.device.CHECK_REPLY_FIRST", 0.02),
+        patch("custom_components.denonavr_plus.avr.device.REPLY_COLLECT_QUIET", 0.02),
+    ):
+        result = await device.async_check_capabilities(progress.append)
+    assert {command: item["result"] for command, item in result["queries"].items()} == {
+        "PW?": "answered",
+        "MV?": "answered",
+        "PSFOO ?": "rejected",
+        "SSINF ?": "no reply",
+    }
+    assert result["queries"]["MV?"]["lines"] == ["MV50", "MVMAX 80"]
+    assert result["model"] == device.discovery.device.model_name
+    assert progress == [0.25, 0.5, 0.75, 1.0]
+
+
+async def test_the_capability_check_needs_telnet(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = False
+    with pytest.raises(CommandNotSent):
+        await loaded_entry.runtime_data.device.async_check_capabilities()

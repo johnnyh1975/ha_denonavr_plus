@@ -32,6 +32,13 @@
         "data": {
           "receiver": "Sintoamplificatore"
         }
+      },
+      "unknown_model": {
+        "title": "Modello non ancora verificato",
+        "description": "Il {model} non è ancora stato verificato con questa integrazione. Le sue entità vengono create da ciò che comunica, ma alcune impostazioni potrebbero mancare o essere lette in modo errato.\n\nLa verifica delle funzioni pone al sintoamplificatore circa 150 domande di sola lettura (non viene modificato nulla) una volta connesso, e mette le risposte nel file di diagnostica. Puoi poi allegare quel file a una segnalazione precompilata su GitHub, così il modello può essere supportato correttamente. Non viene inviato nulla automaticamente.",
+        "data": {
+          "check": "Avvia la verifica dopo la configurazione"
+        }
       }
     },
     "error": {
@@ -57,7 +64,8 @@
           "zones": "Zone",
           "sources": "Sorgenti",
           "sound_modes": "Modalità audio",
-          "connection": "Connessione"
+          "connection": "Connessione",
+          "check": "Verifica funzioni"
         }
       },
       "volume": {
@@ -182,6 +190,14 @@
           "heos": "Mostra titolo, artista e copertina delle sorgenti di rete e offre riproduzione, pausa e salto. Disattivalo se un altro programma ha bisogno della connessione HEOS o se non usi sorgenti di rete.",
           "setup_refresh": "L'equalizzatore grafico, il setup video e l'assegnazione degli amplificatori vengono letti all'avvio della connessione e dopo ogni modifica da Home Assistant. Questo li legge anche ogni tot minuti, per notare le modifiche fatte nel menu del sintoamplificatore; 0 li legge solo in quei momenti."
         }
+      },
+      "check": {
+        "title": "Verifica funzioni",
+        "description": "Pone al sintoamplificatore circa 150 domande di sola lettura tramite la connessione esistente; non viene modificato nulla. Richiede fino a un minuto e mezzo; i comandi di Home Assistant hanno comunque la precedenza. Le risposte finiscono nel file di diagnostica."
+      },
+      "check_done": {
+        "title": "Verifica completata",
+        "description": "Il {model} ha risposto a {answered} domande su {total}. Le risposte sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica).\n\nPer aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file di diagnostica. Leggi il file prima di allegarlo; gli indirizzi sono già sostituiti."
       }
     },
     "error": {
@@ -192,6 +208,9 @@
       "not_connected": "Il sintoamplificatore non è connesso. Sorgenti e modalità audio vengono lette dal dispositivo; riprova quando è acceso.",
       "no_additional_zones": "Questo sintoamplificatore non ha zone aggiuntive.",
       "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio."
+    },
+    "progress": {
+      "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo."
     }
   },
   "entity": {
@@ -714,6 +733,31 @@
     "telnet_unavailable": {
       "title": "Il {model} non accetta una connessione di controllo",
       "description": "Il {model} risponde in rete, ma da alcuni minuti non accetta una connessione telnet sulla porta 23. Fino ad allora i lettori multimediali funzionano solo tramite l'interfaccia web: accensione, volume, silenziamento e sorgente, con un ritardo fino a 10 secondi. Tutte le altre impostazioni non sono disponibili.\n\nIl sintoamplificatore consente una sola connessione telnet alla volta. Cause comuni:\n\n- Un'altra integrazione o un altro programma occupa questa connessione, ad esempio l'integrazione ufficiale Denon AVR o un altro sistema di domotica. Rimuovila o disattivala per questo sintoamplificatore.\n- Una regola del firewall o della VLAN blocca la porta 23 tra Home Assistant e il sintoamplificatore, mentre le porte web sono aperte.\n\nIl messaggio scompare da solo non appena la connessione funziona di nuovo."
+    },
+    "capability_check": {
+      "title": "Il {model} non è ancora stato verificato",
+      "fix_flow": {
+        "step": {
+          "check": {
+            "title": "Verifica funzioni",
+            "description": "Pone al sintoamplificatore circa 150 domande di sola lettura tramite la connessione esistente; non viene modificato nulla. Richiede fino a un minuto e mezzo; i comandi di Home Assistant hanno comunque la precedenza. Le risposte finiscono nel file di diagnostica."
+          },
+          "check_done": {
+            "title": "Verifica completata",
+            "description": "Il {model} ha risposto a {answered} domande su {total}. Le risposte sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica).\n\nPer aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file di diagnostica. Leggi il file prima di allegarlo; gli indirizzi sono già sostituiti."
+          }
+        },
+        "progress": {
+          "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo."
+        },
+        "abort": {
+          "not_connected": "Il sintoamplificatore non è connesso tramite telnet. La verifica ha bisogno di questa connessione; riprova quando è acceso."
+        }
+      }
+    },
+    "capability_report": {
+      "title": "Aiuta a supportare il {model}",
+      "description": "La verifica del {model} è terminata; le risposte sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Apri la segnalazione precompilata con «Ulteriori informazioni» e allega lì il file. Ignora questo messaggio se non vuoi condividerlo."
     }
   },
   "selector": {

@@ -33,14 +33,16 @@ body:
     attributes:
       label: Diagnostics
       description: >
-        Settings → Devices & Services → Denon AVR Plus → ⋮ → Download
-        diagnostics, then drag the file here.
+        Run the capability check first (Configure → Check capabilities, or
+        the repair that asks for it), then Settings → Devices & Services →
+        Denon AVR Plus → ⋮ → Download diagnostics, and drag the file here.
+        The check's answers are in it, with addresses replaced.
     validations:
       required: true
   - type: textarea
     id: probe
     attributes:
-      label: Probe result (optional, very helpful)
+      label: Probe result (optional; for a receiver that cannot be set up)
       description: >
         Run tools/probe_receiver.py from this repository against the receiver
         (it only reads, nothing is changed) and drag both result files here:

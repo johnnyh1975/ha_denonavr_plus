@@ -32,7 +32,7 @@ from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 HOST = "192.0.2.10"
 MAC = "aa:bb:cc:dd:ee:ff"
-MODEL = "AVR-X2600H"
+MODEL = "AVR-X3600H"  # a model in KNOWN_MODELS; unknown ones are tested apart
 
 
 @pytest.fixture(autouse=True)
@@ -412,9 +412,31 @@ async def test_older_receiver_is_set_up_on_port_80(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: HOST}
     )
+    # A model not checked before: the check is offered first.
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "unknown_model"
+    assert result["description_placeholders"] == {"model": "AVR-X2000"}
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"check": False}
+    )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "AVR-X2000"
     assert result["data"] == {CONF_HOST: HOST, CONF_PORT: 80}
+    assert result["result"].options == {}
+
+
+async def test_an_unknown_model_can_be_checked_after_setup(hass: HomeAssistant) -> None:
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity(model="SR6015")):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    assert result["step_id"] == "unknown_model"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"check": True})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["result"].options == {"capability_check_pending": True}
 
 
 async def test_options_keep_the_markers_they_do_not_show(hass: HomeAssistant) -> None:
@@ -466,7 +488,7 @@ async def _options_step(hass: HomeAssistant, entry: MockConfigEntry, step: str) 
     """Open the options and pick a step from the menu."""
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.MENU
-    assert result["menu_options"] == ["volume", "zones", "sources", "sound_modes", "connection"]
+    assert result["menu_options"] == ["volume", "zones", "sources", "sound_modes", "connection", "check"]
     return await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": step}
     )
@@ -633,3 +655,36 @@ async def test_dhcp_for_a_unit_that_does_not_answer(hass: HomeAssistant) -> None
         )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "cannot_connect"
+
+
+async def test_the_capability_check_from_the_options(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    result_data = {"model": "AVC-X3700H", "firmware": "1.2.3", "queries": {
+        "PW?": {"group": "Power", "result": "answered", "lines": ["PWON"]},
+    }}
+    options_before = dict(loaded_entry.options)
+    with patch.object(
+        DenonAvrDevice, "async_check_capabilities", AsyncMock(return_value=result_data)
+    ):
+        result = await _options_step(hass, loaded_entry, "check")
+        assert result["step_id"] == "check"
+        result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+        assert result["type"] is FlowResultType.SHOW_PROGRESS
+        await hass.async_block_till_done()
+        result = await hass.config_entries.options.async_configure(result["flow_id"])
+    assert result["step_id"] == "check_done"
+    assert result["description_placeholders"]["answered"] == "1"
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    # The check changes no option.
+    assert dict(loaded_entry.options) == options_before
+
+
+async def test_the_capability_check_needs_the_receiver(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, data={CONF_HOST: "192.0.2.10"})
+    entry.add_to_hass(hass)
+    result = await _options_step(hass, entry, "check")
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "not_connected"

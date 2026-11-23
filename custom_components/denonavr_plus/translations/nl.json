@@ -32,6 +32,13 @@
         "data": {
           "receiver": "Receiver"
         }
+      },
+      "unknown_model": {
+        "title": "Model nog niet gecontroleerd",
+        "description": "De {model} is nog niet met deze integratie gecontroleerd. De entiteiten worden opgebouwd uit wat hij meldt, maar sommige instellingen kunnen ontbreken of verkeerd gelezen worden.\n\nDe functiecontrole stelt de receiver na het verbinden ongeveer 150 vragen die alleen lezen (er wordt niets veranderd) en zet de antwoorden in het diagnosebestand. Dat bestand kun je daarna bij een vooraf ingevulde issue op GitHub voegen, zodat het model goed ondersteund kan worden. Er wordt niets vanzelf verstuurd.",
+        "data": {
+          "check": "Functiecontrole na het instellen uitvoeren"
+        }
       }
     },
     "error": {
@@ -57,7 +64,8 @@
           "zones": "Zones",
           "sources": "Bronnen",
           "sound_modes": "Geluidsmodi",
-          "connection": "Verbinding"
+          "connection": "Verbinding",
+          "check": "Functies controleren"
         }
       },
       "volume": {
@@ -182,6 +190,14 @@
           "heos": "Toont titel, artiest en hoes van netwerkbronnen en biedt afspelen, pauzeren en overslaan. Zet het uit als een ander programma de HEOS-verbinding nodig heeft of als je geen netwerkbronnen gebruikt.",
           "setup_refresh": "De grafische EQ, de video-instellingen en de versterkertoewijzing worden gelezen wanneer de verbinding tot stand komt en na elke wijziging vanuit Home Assistant. Dit leest ze daarnaast elke zoveel minuten, om wijzigingen in het menu van de receiver op te merken; 0 leest ze alleen dan."
         }
+      },
+      "check": {
+        "title": "Functies controleren",
+        "description": "Stelt de receiver via de bestaande verbinding ongeveer 150 vragen die alleen lezen; er wordt niets veranderd. Het duurt tot anderhalve minuut; opdrachten uit Home Assistant gaan nog steeds voor. De antwoorden komen in het diagnosebestand."
+      },
+      "check_done": {
+        "title": "Controle voltooid",
+        "description": "De {model} beantwoordde {answered} van {total} vragen. De antwoorden staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden).\n\nOm dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het diagnosebestand toe. Lees het bestand voordat je het toevoegt; adressen zijn al vervangen."
       }
     },
     "error": {
@@ -192,6 +208,9 @@
       "not_connected": "De receiver is niet verbonden. De bronnen en geluidsmodi worden van de receiver gelezen; probeer het opnieuw als hij aan staat.",
       "no_additional_zones": "Deze receiver heeft geen extra zone.",
       "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld."
+    },
+    "progress": {
+      "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut."
     }
   },
   "entity": {
@@ -714,6 +733,31 @@
     "telnet_unavailable": {
       "title": "{model} accepteert geen besturingsverbinding",
       "description": "De {model} reageert op het netwerk, maar heeft al enkele minuten geen telnet-verbinding op poort 23 geaccepteerd. Tot die tijd werken de mediaspelers alleen via de webinterface: aan/uit, volume, dempen en bron, met tot 10 seconden vertraging. Alle andere instellingen zijn niet beschikbaar.\n\nDe receiver staat maar één telnet-verbinding tegelijk toe. Veelvoorkomende oorzaken:\n\n- Een andere integratie of een ander programma gebruikt die verbinding, bijvoorbeeld de officiële Denon AVR-integratie of een ander domoticasysteem. Verwijder of schakel die uit voor deze receiver.\n- Een firewall- of VLAN-regel blokkeert poort 23 tussen Home Assistant en de receiver, terwijl de webpoorten open zijn.\n\nDeze melding verdwijnt vanzelf zodra de verbinding weer werkt."
+    },
+    "capability_check": {
+      "title": "{model} is nog niet gecontroleerd",
+      "fix_flow": {
+        "step": {
+          "check": {
+            "title": "Functies controleren",
+            "description": "Stelt de receiver via de bestaande verbinding ongeveer 150 vragen die alleen lezen; er wordt niets veranderd. Het duurt tot anderhalve minuut; opdrachten uit Home Assistant gaan nog steeds voor. De antwoorden komen in het diagnosebestand."
+          },
+          "check_done": {
+            "title": "Controle voltooid",
+            "description": "De {model} beantwoordde {answered} van {total} vragen. De antwoorden staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden).\n\nOm dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het diagnosebestand toe. Lees het bestand voordat je het toevoegt; adressen zijn al vervangen."
+          }
+        },
+        "progress": {
+          "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut."
+        },
+        "abort": {
+          "not_connected": "De receiver is niet via telnet verbonden. De controle heeft die verbinding nodig; probeer het opnieuw wanneer hij aan staat."
+        }
+      }
+    },
+    "capability_report": {
+      "title": "Help de {model} te ondersteunen",
+      "description": "De functiecontrole van de {model} is klaar; de antwoorden staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Open via 'Meer informatie' de vooraf ingevulde issue en voeg het bestand daar toe. Negeer deze melding als je het niet wilt delen."
     }
   },
   "selector": {

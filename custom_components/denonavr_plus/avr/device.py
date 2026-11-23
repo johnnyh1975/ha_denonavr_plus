@@ -33,8 +33,8 @@ from .models import (
 )
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ProtocolProfile, load_profile
-from . import graphic_eq, video_config
-from .const import REPLY_COLLECT_FIRST, REPLY_COLLECT_QUIET
+from . import capability_check, graphic_eq, video_config
+from .const import CHECK_REPLY_FIRST, REPLY_COLLECT_FIRST, REPLY_COLLECT_QUIET
 from .errors import CommandNotSent
 from .transport import (
     DEFAULT_PORT,
@@ -669,18 +669,31 @@ class DenonAvrDevice:
             return []
 
         prefix = command[:2].upper()
+        return await self._send_and_collect(
+            command, lambda line: line.startswith(prefix), REPLY_COLLECT_FIRST
+        )
+
+    async def _send_and_collect(
+        self, command: str, wanted: Callable[[str], bool], first: float
+    ) -> list[str]:
+        """Send over telnet and return the wanted lines that arrive after it.
+
+        Up to `first` seconds for the first line, then until none came for
+        REPLY_COLLECT_QUIET; the replies of one command come in a burst.
+        """
+
         replies: list[str] = []
         arrived = asyncio.Event()
 
         def listen(line: str) -> None:
-            if line.startswith(prefix):
+            if wanted(line):
                 replies.append(line)
                 arrived.set()
 
         self._reply_listeners.append(listen)
         try:
             await self._telnet.async_send(command)
-            wait = REPLY_COLLECT_FIRST
+            wait = first
             while True:
                 try:
                     async with asyncio.timeout(wait):
@@ -692,6 +705,40 @@ class DenonAvrDevice:
         finally:
             self._reply_listeners.remove(listen)
         return replies
+
+    async def async_check_capabilities(
+        self, on_progress: Callable[[float], None] | None = None
+    ) -> dict[str, Any]:
+        """Ask every query of the capability check and return what came back.
+
+        Over the existing telnet connection, as queries, so commands from Home
+        Assistant still go first. Takes up to about a minute and a half. The
+        reply lines are anonymised (MAC, IP and e-mail addresses). Raises
+        CommandNotSent when telnet is down: the answers only come that way.
+        """
+
+        if not self._telnet.connected:
+            raise CommandNotSent("query_needs_telnet")
+        results: dict[str, dict[str, Any]] = {}
+        for index, (command, group) in enumerate(capability_check.QUERIES):
+            lines = await self._send_and_collect(
+                command, _reply_or_error(capability_check.reply_prefix(command)), CHECK_REPLY_FIRST
+            )
+            results[command] = {
+                "group": group,
+                "result": capability_check.classify(command, lines),
+                "lines": [capability_check.anonymise(line) for line in lines],
+            }
+            if on_progress is not None:
+                on_progress((index + 1) / len(capability_check.QUERIES))
+        device = self._discovery.device
+        return {
+            "check_version": capability_check.CHECK_VERSION,
+            "model": device.model_name,
+            "firmware": device.firmware_version,
+            "hardware_type": device.hardware_type,
+            "queries": results,
+        }
 
     async def _send(self, command: str) -> None:
         """Send over telnet, or over HTTP while the telnet link is down.
@@ -1065,3 +1112,12 @@ class DenonAvrDevice:
                 return spec.get("off", "OFF")
             return f"{minutes:03d}"
         return str(value)
+
+
+def _reply_or_error(prefix: str) -> Callable[[str], bool]:
+    """Match a reply to a query with this prefix, or the receiver's error answer."""
+
+    def wanted(line: str) -> bool:
+        return line.startswith(prefix) or line in ("?", "ERR", "ERROR")
+
+    return wanted
