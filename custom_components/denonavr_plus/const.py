@@ -37,6 +37,7 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
     Platform.NUMBER,
     Platform.BUTTON,
+    Platform.REMOTE,
 ]
 
 # How often the HTTP reconciliation poll runs. Real time updates arrive over

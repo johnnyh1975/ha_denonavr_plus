@@ -808,6 +808,20 @@ class DenonAvrDevice:
         base = self._profile.zones.get("additional_prefix", "Z")
         return f"{base}{zone.index}"
 
+    @property
+    def remote_commands(self) -> list[str]:
+        """The names the remote entity accepts, in the profile's order."""
+
+        return list(self._profile.remote_commands)
+
+    async def async_send_remote(self, name: str) -> None:
+        """Send one remote command by name (cursor, enter, setup menu …).
+
+        Raises KeyError for a name the profile does not know.
+        """
+
+        await self._send(self._profile.remote_commands[name])
+
     async def async_set_power(self, zone_id: str, on: bool) -> None:
         """Turn a zone on or off using that zone's power control."""
 

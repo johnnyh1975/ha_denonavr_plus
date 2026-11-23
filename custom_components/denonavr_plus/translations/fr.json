@@ -710,6 +710,11 @@
       "eq_default": {
         "name": "Par défaut"
       }
+    },
+    "remote": {
+      "remote": {
+        "name": "Télécommande"
+      }
     }
   },
   "exceptions": {
@@ -727,6 +732,9 @@
     },
     "receiver_unreachable": {
       "message": "Le {model} n'a pas pu être joint, le réglage n'a donc pas été envoyé. Vérifiez qu'il est sur le réseau et que la veille réseau est activée."
+    },
+    "unknown_remote_command": {
+      "message": "Commande de télécommande inconnue : {command}. Commandes connues : {commands}."
     }
   },
   "issues": {

@@ -710,6 +710,11 @@
       "eq_default": {
         "name": "Predeterminado"
       }
+    },
+    "remote": {
+      "remote": {
+        "name": "Mando a distancia"
+      }
     }
   },
   "exceptions": {
@@ -727,6 +732,9 @@
     },
     "receiver_unreachable": {
       "message": "No se pudo contactar con el {model}, así que el ajuste no se envió. Comprueba que está en la red y que el modo de espera de red está activado."
+    },
+    "unknown_remote_command": {
+      "message": "Orden del mando desconocida: {command}. Órdenes conocidas: {commands}."
     }
   },
   "issues": {

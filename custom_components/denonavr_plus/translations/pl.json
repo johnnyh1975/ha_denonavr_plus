@@ -710,6 +710,11 @@
       "eq_default": {
         "name": "Domyślne"
       }
+    },
+    "remote": {
+      "remote": {
+        "name": "Pilot"
+      }
     }
   },
   "exceptions": {
@@ -727,6 +732,9 @@
     },
     "receiver_unreachable": {
       "message": "Nie udało się połączyć z {model}, więc ustawienie nie zostało wysłane. Sprawdź, czy jest w sieci i czy sieciowy tryb czuwania jest włączony."
+    },
+    "unknown_remote_command": {
+      "message": "Nieznane polecenie pilota: {command}. Znane polecenia: {commands}."
     }
   },
   "issues": {

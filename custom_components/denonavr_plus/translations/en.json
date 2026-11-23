@@ -710,6 +710,11 @@
       "eq_default": {
         "name": "Default"
       }
+    },
+    "remote": {
+      "remote": {
+        "name": "Remote"
+      }
     }
   },
   "exceptions": {
@@ -727,6 +732,9 @@
     },
     "receiver_unreachable": {
       "message": "The {model} could not be reached, so the setting was not sent. Check that it is on the network and that network standby is on."
+    },
+    "unknown_remote_command": {
+      "message": "Unknown remote command: {command}. Known commands: {commands}."
     }
   },
   "issues": {

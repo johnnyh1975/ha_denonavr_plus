@@ -91,6 +91,8 @@ class ProtocolProfile:
         self.grammar: dict[str, Any] = raw.get("grammar", {})
         self.zones: dict[str, Any] = raw.get("zones", {})
         self.speakers: dict[str, Any] = raw.get("speakers", {})
+        # Remote entity: command name -> telnet command ("doc" left out).
+        self.remote_commands: dict[str, str] = dict(raw.get("remote", {}).get("commands", {}))
         self.sound_mode_genre_commands: dict[str, str] = {
             code: value
             for code, value in raw.get("sound_mode_genre_commands", {}).items()

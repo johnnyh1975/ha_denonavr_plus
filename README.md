@@ -341,6 +341,21 @@ telnet, so the action reports an error. It also reports one when the receiver
 cannot be reached. This replaces `denonavr.get_command` of the official
 integration.
 
+### Remote (`remote.send_command`)
+
+The receiver's remote entity drives its on-screen menu. Commands: `up`,
+`down`, `left`, `right`, `enter`, `back`, `option`, `info`, `channel_level`
+(the channel level menu), `setup_menu_on`, `setup_menu_off`. `num_repeats` and
+`delay_secs` work as usual; turning the remote on or off switches the main zone.
+
+```yaml
+action: remote.send_command
+target:
+  entity_id: remote.avr_x3600h_remote
+data:
+  command: [setup_menu_on, down, enter]
+```
+
 ## Device trigger: turn on requested
 
 With network standby off, a receiver that is off does not answer on the network

@@ -384,6 +384,11 @@
     "enabled": true,
     "category": null
   },
+  "remote": {
+    "entity_id": "remote.avc_x3700h_remote",
+    "enabled": true,
+    "category": null
+  },
   "select_aspect_ratio": {
     "entity_id": "select.avc_x3700h_video_aspect_ratio",
     "enabled": false,

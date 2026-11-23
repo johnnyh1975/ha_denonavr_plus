@@ -710,6 +710,11 @@
       "eq_default": {
         "name": "Standard"
       }
+    },
+    "remote": {
+      "remote": {
+        "name": "Fernbedienung"
+      }
     }
   },
   "exceptions": {
@@ -727,6 +732,9 @@
     },
     "receiver_unreachable": {
       "message": "Der {model} war nicht erreichbar, die Einstellung wurde nicht gesendet. Prüfe, ob er im Netzwerk ist und Network Standby eingeschaltet ist."
+    },
+    "unknown_remote_command": {
+      "message": "Unbekannter Fernbedienungsbefehl: {command}. Bekannte Befehle: {commands}."
     }
   },
   "issues": {

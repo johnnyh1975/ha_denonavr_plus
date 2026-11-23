@@ -162,4 +162,4 @@ level table says the same (`385` = −11.5 dB, `505` = +0.5 dB).
 | `UGIDN` | Show and return the 12-digit upgrade ID | Documented |
 | `RCKSK…`, `RCSHP…` | Send an IR code through the control port | Documented in the AVR-X2000 document; needs the IR code list; To test |
 | `CVZRL` | Reset all channel levels | Documented (2015) |
-| `MNMEN ON/OFF`, `MNCUP` … `MNRTN`, `MNOPT`, `MNINF` | Setup menu and cursor keys | Documented (both); fits a `remote` entity (roadmap item 12) |
+| `MNMEN ON/OFF`, `MNCUP` … `MNRTN`, `MNOPT`, `MNINF`, `MNCHL` | Setup menu, cursor keys, channel level menu | Documented (both); sent by the `remote` entity; To test |

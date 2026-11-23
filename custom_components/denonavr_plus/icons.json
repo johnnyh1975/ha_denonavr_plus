@@ -67,6 +67,11 @@
         "default": "mdi:volume-high"
       }
     },
+    "remote": {
+      "remote": {
+        "default": "mdi:remote"
+      }
+    },
     "select": {
       "all_crossover": {
         "default": "mdi:sine-wave"
