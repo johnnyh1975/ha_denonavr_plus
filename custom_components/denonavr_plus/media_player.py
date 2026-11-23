@@ -36,6 +36,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import choices
 from . import volume as _volume
+from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent
 from .const import DOMAIN
 from .avr.models import NowPlaying, ZoneDescriptor
@@ -123,12 +124,13 @@ async def async_setup_entry(
     """Create one media player per discovered zone."""
 
     coordinator = entry.runtime_data
-    entities = [
-        DenonAvrMediaPlayer(coordinator, zone)
-        for zone in coordinator.device.discovery.zones
-        if choices.zone_enabled(dict(entry.options), zone.id)
-    ]
-    async_add_entities(entities)
+    # The receiver's players know each other: a zone joins the main zone's
+    # group by playing its source.
+    players: dict[str, DenonAvrMediaPlayer] = {}
+    for zone in coordinator.device.discovery.zones:
+        if choices.zone_enabled(dict(entry.options), zone.id):
+            players[zone.id] = DenonAvrMediaPlayer(coordinator, zone, players)
+    async_add_entities(players.values())
 
 
 class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
@@ -136,9 +138,15 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     _attr_device_class = MediaPlayerDeviceClass.RECEIVER
 
-    def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
+    def __init__(
+        self,
+        coordinator: DenonAvrCoordinator,
+        zone: ZoneDescriptor,
+        players: dict[str, DenonAvrMediaPlayer],
+    ) -> None:
         super().__init__(coordinator, f"media_player_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
+        self._players = players
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
         self._attr_name = None
@@ -151,16 +159,15 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             | MediaPlayerEntityFeature.VOLUME_MUTE
             | MediaPlayerEntityFeature.SELECT_SOURCE
         )
-        # Only the main zone carries the surround / sound mode and the network
-        # transport controls (HEOS drives the whole receiver, i.e. the main
-        # zone); without HEOS (a connection option) there is no transport.
+        # Only the main zone carries the surround / sound mode and the media
+        # browser. Transport is added while a network source plays (see
+        # supported_features).
         if zone.is_main:
             features |= (
                 MediaPlayerEntityFeature.SELECT_SOUND_MODE
                 | MediaPlayerEntityFeature.BROWSE_MEDIA
                 | MediaPlayerEntityFeature.PLAY_MEDIA
             )
-            features |= self._media_features(coordinator)
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -192,13 +199,24 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if not self._reachable:
             return MediaPlayerEntityFeature.TURN_ON | MediaPlayerEntityFeature.TURN_OFF
         features = self._attr_supported_features
-        if not self._zone.is_main and self._now_playing is not None:
-            # A zone playing the network player or the main zone's source.
+        if len(self._players) > 1:
+            features |= MediaPlayerEntityFeature.GROUPING
+        if self._network_media:
+            # Play, pause and skip only where they reach what plays.
             features |= self._media_features(self.coordinator)
         if self._device.is_tuner(self._source_code):
             # Skip steps through the tuner presets.
             features |= _SKIP
         return features
+
+    @property
+    def _network_media(self) -> bool:
+        """Whether this zone hears the network player (playing, or its source)."""
+
+        now = self._now_playing
+        if now is None:
+            return False
+        return now.active or self._source_code in self._device.profile.netaudio.get("sources", [])
 
     @staticmethod
     def _media_features(coordinator: DenonAvrCoordinator) -> MediaPlayerEntityFeature:
@@ -381,6 +399,15 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         return f"AM {frequency // 100} kHz"
 
     @property
+    def media_content_id(self) -> str | None:
+        """The recalled tuner preset, as the browser names it."""
+
+        if not self._device.is_tuner(self._source_code):
+            return None
+        preset = self.coordinator.data.values.get("tuner_preset")
+        return f"{_TUNER_PRESET}{preset}" if preset else None
+
+    @property
     def media_content_type(self) -> str | None:
         now = self._now_playing
         if now and now.active:
@@ -421,12 +448,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def media_channel(self) -> str | None:
-        """The recalled tuner preset while the tuner plays."""
+        """The station (or frequency) while the tuner plays."""
 
-        if not self._device.is_tuner(self._source_code):
-            return None
-        preset = self.coordinator.data.values.get("tuner_preset")
-        return str(preset) if preset else None
+        return self._tuner_title
 
     @property
     def media_album_name(self) -> str | None:
@@ -619,16 +643,25 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             children.append(self._folder("tuner_presets", names["tuner_presets"], None))
         if self._device.can_play_url:
             try:
-                children.append(
-                    await media_source.async_browse_media(
-                        self.hass,
-                        None,
-                        content_filter=lambda item: item.media_content_type.startswith("audio/"),
-                    )
+                media = await media_source.async_browse_media(
+                    self.hass,
+                    None,
+                    content_filter=lambda item: item.media_content_type.startswith("audio/"),
                 )
             except BrowseError:
                 # No media folder: the receiver's own items still show.
                 pass
+            else:
+                # Home Assistant's media sources (text to speech, radio, ...)
+                # next to the receiver's own folders, not one level down.
+                if (
+                    isinstance(media, media_source.BrowseMediaSource)
+                    and media.domain is None
+                    and media.children
+                ):
+                    children.extend(media.children)
+                else:
+                    children.append(media)
         return BrowseMedia(
             media_class=MediaClass.DIRECTORY,
             media_content_id="",
@@ -728,6 +761,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     ) -> None:
         """A quick select, a source, or a URL (also from Home Assistant's media, TTS)."""
 
+        await self._ensure_on()
         if media_id.startswith(_QUICK_SELECT):
             await self._device.async_select_quick_select(int(media_id[len(_QUICK_SELECT):]))
             return
@@ -757,6 +791,95 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
             media_id = item.url
         await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
+
+    async def _ensure_on(self) -> None:
+        """Turn the zone on and wait until it reports so.
+
+        A receiver in standby ignores a quick select, a source or a preset.
+        """
+
+        if self._zone_state.power is not False:
+            return
+        await self._device.async_set_power(self._zone.id, True)
+        try:
+            async with asyncio.timeout(TURN_ON_WAIT):
+                while not self._zone_state.power:
+                    await asyncio.sleep(0.25)
+        except TimeoutError:
+            _LOGGER.debug("Zone %s did not report on; playing anyway", self._zone.id)
+            return
+        await asyncio.sleep(TURN_ON_SETTLE)
+
+    # Zones as a group: a zone joins the main zone by playing its source ----
+
+    @property
+    def _follows_main(self) -> bool:
+        return (
+            not self._zone.is_main
+            and bool(self._zone_state.power)
+            and self._zone_state.source == FOLLOW_MAIN
+        )
+
+    @property
+    def group_members(self) -> list[str] | None:
+        """The main zone first, then the zones that play its source."""
+
+        if len(self._players) < 2 or self.entity_id is None:
+            return None
+        main = self._players.get("main")
+        followers = [player for player in self._players.values() if player._follows_main]
+        if main is None or main.entity_id is None or not (self._zone.is_main or self._follows_main):
+            return [self.entity_id]
+        if not followers:
+            return [main.entity_id]
+        return [main.entity_id] + [player.entity_id for player in followers if player.entity_id]
+
+    @receiver_action
+    async def async_join_players(self, group_members: list[str]) -> None:
+        """Let the receiver's other zones play the main zone's source."""
+
+        model = self._device.discovery.device.model_name or "receiver"
+        members = []
+        for entity in group_members:
+            if entity == self.entity_id:
+                continue
+            player = next(
+                (item for item in self._players.values() if item.entity_id == entity), None
+            )
+            if player is None:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="join_other_device",
+                    translation_placeholders={"entity": entity, "model": model},
+                )
+            members.append(player)
+        if members and not self._zone.is_main:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="join_only_main",
+                translation_placeholders={"model": model},
+            )
+        await self._ensure_on()
+        for player in members:
+            await player._ensure_on()
+            await self._device.async_select_source(player._zone.id, FOLLOW_MAIN)
+
+    @receiver_action
+    async def async_unjoin_player(self) -> None:
+        """A zone keeps the main zone's input but no longer follows it.
+
+        Unjoining the main zone lets every zone go.
+        """
+
+        leaving = (
+            [player for player in self._players.values() if player._follows_main]
+            if self._zone.is_main
+            else [self] if self._follows_main else []
+        )
+        # Unknown before the main zone first reports its input: nothing to switch to.
+        if source := self.coordinator.data.zone("main").source:
+            for player in leaving:
+                await self._device.async_select_source(player._zone.id, source)
 
     @receiver_action
     async def async_set_repeat(self, repeat: RepeatMode) -> None:

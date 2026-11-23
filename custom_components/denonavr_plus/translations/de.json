@@ -953,6 +953,12 @@
     },
     "unknown_tuner_preset": {
       "message": "{preset} ist kein Tuner-Preset des {model}."
+    },
+    "join_only_main": {
+      "message": "Nur die Hauptzone des {model} kann eine Gruppe führen: Füge die anderen Zonen der Hauptzone hinzu."
+    },
+    "join_other_device": {
+      "message": "{entity} ist keine Zone des {model}: Eine Zone kann nur der Hauptzone ihres eigenen Receivers beitreten."
     }
   },
   "issues": {

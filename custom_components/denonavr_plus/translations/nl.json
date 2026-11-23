@@ -953,6 +953,12 @@
     },
     "unknown_tuner_preset": {
       "message": "{preset} is geen tunervoorkeuze van de {model}."
+    },
+    "join_only_main": {
+      "message": "Alleen de hoofdzone van de {model} kan een groep leiden: voeg de andere zones aan de hoofdzone toe."
+    },
+    "join_other_device": {
+      "message": "{entity} is geen zone van de {model}: een zone kan alleen de hoofdzone van de eigen receiver volgen."
     }
   },
   "issues": {

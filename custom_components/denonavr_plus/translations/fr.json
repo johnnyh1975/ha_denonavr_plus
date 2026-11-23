@@ -953,6 +953,12 @@
     },
     "unknown_tuner_preset": {
       "message": "{preset} n'est pas une présélection du tuner du {model}."
+    },
+    "join_only_main": {
+      "message": "Seule la zone principale du {model} peut diriger un groupe : ajoutez les autres zones à la zone principale."
+    },
+    "join_other_device": {
+      "message": "{entity} n'est pas une zone du {model} : une zone ne peut rejoindre que la zone principale de son propre ampli-tuner."
     }
   },
   "issues": {

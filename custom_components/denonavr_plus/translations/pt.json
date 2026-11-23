@@ -953,6 +953,12 @@
     },
     "unknown_tuner_preset": {
       "message": "{preset} não é uma predefinição do sintonizador do {model}."
+    },
+    "join_only_main": {
+      "message": "Só a zona principal do {model} pode liderar um grupo: junte as outras zonas à zona principal."
+    },
+    "join_other_device": {
+      "message": "{entity} não é uma zona do {model}: uma zona só pode juntar-se à zona principal do seu próprio recetor."
     }
   },
   "issues": {

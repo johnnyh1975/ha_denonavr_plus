@@ -344,6 +344,8 @@ async def test_the_tuner_shows_its_station_or_frequency(
     assert state.attributes["media_title"] == "FM 92.90 MHz"
     await _push(hass, "TFANNAMEBayern 3")
     assert hass.states.get(main).attributes["media_title"] == "Bayern 3"
+    # The station is the channel, as other receiver integrations report it.
+    assert hass.states.get(main).attributes["media_channel"] == "Bayern 3"
 
 
 async def test_the_browser_offers_sources_and_home_assistant_media(
@@ -556,7 +558,7 @@ async def test_skip_steps_through_the_tuner_presets(
         player = entity_id(hass, loaded_entry, zone)
         state = hass.states.get(player)
         assert state is not None
-        assert state.attributes["media_channel"] == "07"
+        assert state.attributes["media_content_id"] == "tuner_preset/07"
         assert MediaPlayerEntityFeature(state.attributes["supported_features"]) & (
             MediaPlayerEntityFeature.NEXT_TRACK
         )
@@ -605,3 +607,143 @@ async def test_the_browser_recalls_a_tuner_preset(
             {"entity_id": main, "media_content_type": "channel", "media_content_id": "tuner_preset/99"},
             blocking=True,
         )
+
+
+async def test_zone_2_joins_the_main_zone_as_a_group(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """join puts zone 2 on the main zone's source (Z2SOURCE), unjoin keeps the input."""
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+    from homeassistant.exceptions import ServiceValidationError
+
+    await _push(hass, "PWON", "ZMON", "SIDVD", "Z2ON", "Z2CD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    state = hass.states.get(main)
+    assert state is not None
+    assert MediaPlayerEntityFeature(state.attributes["supported_features"]) & (
+        MediaPlayerEntityFeature.GROUPING
+    )
+    assert state.attributes["group_members"] == [main]
+    assert hass.states.get(zone2).attributes["group_members"] == [zone2]
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    # A zone that follows nothing has nothing to leave.
+    await hass.services.async_call("media_player", "unjoin", {"entity_id": zone2}, blocking=True)
+    assert telnet.sent == []
+    await hass.services.async_call(
+        "media_player", "join", {"entity_id": main, "group_members": [main, zone2]}, blocking=True
+    )
+    assert telnet.sent == ["Z2SOURCE"]
+    await _push(hass, "Z2SOURCE")
+    for player in (main, zone2):
+        assert hass.states.get(player).attributes["group_members"] == [main, zone2]
+
+    telnet.sent.clear()
+    await hass.services.async_call("media_player", "unjoin", {"entity_id": zone2}, blocking=True)
+    assert telnet.sent == ["Z2DVD"]
+    await _push(hass, "Z2SOURCE")
+    telnet.sent.clear()
+    await hass.services.async_call("media_player", "unjoin", {"entity_id": main}, blocking=True)
+    assert telnet.sent == ["Z2DVD"]
+
+    # Only the main zone leads, and only the receiver's own zones join.
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "media_player", "join", {"entity_id": zone2, "group_members": [main]}, blocking=True
+        )
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "media_player",
+            "join",
+            {"entity_id": main, "group_members": ["media_player.kitchen"]},
+            blocking=True,
+        )
+
+
+async def test_transport_only_while_the_network_plays(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """On a TV input play and pause would reach nothing, so they are not offered."""
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    features = MediaPlayerEntityFeature(hass.states.get(main).attributes["supported_features"])
+    assert not features & MediaPlayerEntityFeature.PAUSE
+    await _push(hass, "SINET")
+    features = MediaPlayerEntityFeature(hass.states.get(main).attributes["supported_features"])
+    assert features & MediaPlayerEntityFeature.PAUSE
+
+
+async def test_play_media_turns_the_zone_on_first(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMOFF")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+
+    async def answer() -> None:
+        for _ in range(100):
+            if "ZMON" in telnet.sent:
+                telnet.push("ZMON")
+                return
+            await asyncio.sleep(0.01)
+
+    task = asyncio.create_task(answer())
+    with patch("custom_components.denonavr_plus.media_player.TURN_ON_SETTLE", 0):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "channel", "media_content_id": "source/CD"},
+            blocking=True,
+        )
+    await task
+    assert telnet.sent == ["ZMON", "SICD"]
+
+    # A zone that does not report on in time still gets the command.
+    await _push(hass, "ZMOFF")
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.media_player.TURN_ON_WAIT", 0.05):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "channel", "media_content_id": "source/CD"},
+            blocking=True,
+        )
+    assert telnet.sent == ["ZMON", "SICD"]
+
+
+async def test_home_assistant_media_sits_next_to_the_receivers_folders(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_source import BrowseMediaSource
+
+    child = BrowseMediaSource(
+        domain="tts",
+        identifier=None,
+        media_class="app",
+        media_content_type="",
+        title="Text to speech",
+        can_play=False,
+        can_expand=True,
+    )
+    overview = BrowseMediaSource(
+        domain=None,
+        identifier=None,
+        media_class="directory",
+        media_content_type="",
+        title="Media",
+        can_play=False,
+        can_expand=True,
+        children=[child],
+    )
+    entity = _player(hass, entity_id(hass, loaded_entry, "media_player_main"))
+    with patch(
+        "custom_components.denonavr_plus.media_player.media_source.async_browse_media",
+        AsyncMock(return_value=overview),
+    ):
+        root = await entity.async_browse_media()
+    assert [item.title for item in root.children or []][-1] == "Text to speech"

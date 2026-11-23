@@ -953,6 +953,12 @@
     },
     "unknown_tuner_preset": {
       "message": "{preset} non è una preselezione del sintonizzatore del {model}."
+    },
+    "join_only_main": {
+      "message": "Solo la zona principale del {model} può guidare un gruppo: unisci le altre zone alla zona principale."
+    },
+    "join_other_device": {
+      "message": "{entity} non è una zona del {model}: una zona può unirsi solo alla zona principale del proprio sintoamplificatore."
     }
   },
   "issues": {

@@ -953,6 +953,12 @@
     },
     "unknown_tuner_preset": {
       "message": "{preset} no es una presintonía del sintonizador del {model}."
+    },
+    "join_only_main": {
+      "message": "Solo la zona principal del {model} puede dirigir un grupo: une las demás zonas a la zona principal."
+    },
+    "join_other_device": {
+      "message": "{entity} no es una zona del {model}: una zona solo puede unirse a la zona principal de su propio receptor."
     }
   },
   "issues": {

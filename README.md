@@ -217,13 +217,19 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   frequency and the recalled preset; skip steps through the presets. On any
   other input the player shows the input's name, with the sound mode below it,
   and a source‑aware **input icon** (TV, disc, tuner, Bluetooth, USB, cast, …).
-  Zone 2 on the main zone's source (or on a network source) shows what plays
-  there and takes play, pause and skip too.
+  Play, pause and skip show only while a network source plays (on the tuner,
+  skip only). Zone 2 on the main zone's source (or on a network source) shows
+  what plays there and takes play, pause and skip too.
+- **Zones as a group**: joining zone 2 to the main zone (Home Assistant's
+  join, or the group dialog of the media player) sets it to the main zone's
+  source, so it follows every change of input. Leaving the group keeps the
+  current input without following. Only the main zone leads.
 - **Media browser and `play_media`** on the main zone: quick selects,
   sources and tuner presets (by number: the receiver gives no preset names) to
-  pick, and on receivers with HEOS any URL and Home Assistant's own media, text
-  to speech included (HEOS `play_stream`, not yet tried on a receiver).
-  Receivers without HEOS take quick selects, sources and presets only.
+  pick, and on receivers with HEOS any URL and Home Assistant's own media
+  sources (text to speech, radio, …) on the first level (HEOS `play_stream`,
+  not yet tried on a receiver). Receivers without HEOS take quick selects,
+  sources and presets only. A zone in standby is turned on first.
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,

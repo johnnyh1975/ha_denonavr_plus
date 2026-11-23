@@ -953,6 +953,12 @@
     },
     "unknown_tuner_preset": {
       "message": "{preset} nie jest zapisaną stacją tunera {model}."
+    },
+    "join_only_main": {
+      "message": "Tylko strefa główna {model} może prowadzić grupę: dołącz pozostałe strefy do strefy głównej."
+    },
+    "join_other_device": {
+      "message": "{entity} nie jest strefą {model}: strefa może dołączyć tylko do strefy głównej własnego amplitunera."
     }
   },
   "issues": {
