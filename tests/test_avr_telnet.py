@@ -12,7 +12,11 @@ from custom_components.denonavr_plus.avr.const import (
     POWER_ON_SETTLE,
     REPLY_TIMEOUT_MAX,
 )
-from custom_components.denonavr_plus.avr.transport.telnet import TelnetClient, is_query
+from custom_components.denonavr_plus.avr.transport.telnet import (
+    TelnetClient,
+    async_probe,
+    is_query,
+)
 
 LOOPBACK = "127.0.0.1"
 
@@ -201,3 +205,58 @@ async def test_nothing_is_queued_while_the_link_is_down() -> None:
     client = TelnetClient(LOOPBACK, on_line=lambda line: None)
     await client.async_send("MVUP")
     assert client.queued == 0
+
+
+class BusyReceiver(FakeReceiver):
+    """Drops a query that arrives while it still answers the previous one.
+
+    Seen on an AVR-X2000: of about 70 setup queries sent 80 ms apart it
+    answered the first ~20.
+    """
+
+    busy_for = 0.15
+
+    async def _serve(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ) -> None:
+        loop = asyncio.get_running_loop()
+        busy_until = 0.0
+        try:
+            while True:
+                raw = await reader.readuntil(b"\r")
+                now = loop.time()
+                line = raw.decode().strip("\r")
+                self.received.append((now, line))
+                if now < busy_until:
+                    continue
+                busy_until = now + self.busy_for
+                answer = f"{line.rstrip('?').strip()}OK\r".encode()
+                loop.call_later(self.busy_for, writer.write, answer)
+        except (asyncio.IncompleteReadError, ConnectionError):
+            pass
+        finally:
+            await asyncio.sleep(self.busy_for)
+            writer.close()
+
+
+@pytest.mark.parametrize(("reply_wait", "answered"), [(0.0, False), (0.25, True)])
+async def test_a_paced_probe_gets_every_answer_of_a_busy_receiver(
+    reply_wait: float, answered: bool
+) -> None:
+    server = BusyReceiver()
+    await server.start()
+    queries = [f"Q{index:02d} ?" for index in range(8)]
+    lines: list[str] = []
+    try:
+        await async_probe(
+            LOOPBACK,
+            queries,
+            lines.append,
+            lambda: True,
+            port=server.port,
+            deadline=1.0,
+            reply_wait=reply_wait,
+        )
+    finally:
+        await server.stop()
+    assert (len(lines) == len(queries)) is answered

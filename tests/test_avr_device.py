@@ -134,9 +134,13 @@ X2000_ANSWERS = {
 }
 
 
+X2000_PROBES: list[dict[str, Any]] = []
+
+
 async def _x2000_answering(
     host: str, queries: list[str], on_line: Any, is_complete: Any, **kwargs: Any
 ) -> None:
+    X2000_PROBES.append(kwargs)
     for query in queries:
         for line in X2000_ANSWERS.get(query, []):
             on_line(line)
@@ -172,6 +176,8 @@ async def test_features_an_older_receiver_does_not_name_appear_when_they_answer(
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
     discovery = entry.runtime_data.device.discovery
+    # It drops queries sent while it still answers: its probe waits for each.
+    assert X2000_PROBES[-1]["reply_wait"] > 0
     assert not discovery.supports("MultEq")
     assert {"multeq", "dynamic_eq", "dynamic_volume", "bass"} <= discovery.answered
     # A feature it neither names nor answers stays away.

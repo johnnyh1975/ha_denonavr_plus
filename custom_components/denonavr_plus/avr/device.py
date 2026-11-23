@@ -34,7 +34,13 @@ from .models import (
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ProtocolProfile, load_profile
 from . import capability_check, graphic_eq, video_config
-from .const import CHECK_REPLY_FIRST, QUEUE_WAIT_MAX, REPLY_COLLECT_FIRST, REPLY_COLLECT_QUIET
+from .const import (
+    CHECK_REPLY_FIRST,
+    QUEUE_WAIT_MAX,
+    REPLY_COLLECT_FIRST,
+    REPLY_COLLECT_QUIET,
+    REPLY_WAIT_OLDER,
+)
 from .errors import CommandNotSent
 from .transport.webconfig import HTTP_PORT as HTTP_SETUP_PORT
 from .transport import (
@@ -443,8 +449,17 @@ class DenonAvrDevice:
         # 200 ms. So the first pause of 0.4 s without a line ends it: a model
         # without these controls stays silent, and waiting for answers that
         # never come would only delay every start.
+        # Older receivers (port 80, AVR-X2000) drop queries sent while they
+        # still answer one: wait for each answer (the protocol promises one
+        # within 200 ms). They are also the ones that name few functions, so
+        # their probe is long.
         await async_probe(
-            self._host, queries, self._feed_quietly, _answers_done, deadline=2.0
+            self._host,
+            queries,
+            self._feed_quietly,
+            _answers_done,
+            deadline=2.0,
+            reply_wait=REPLY_WAIT_OLDER if self._http_port == 80 else 0.0,
         )
         self._discovery.answered = {spec.id for spec in specs if spec.id in self._state.values}
 

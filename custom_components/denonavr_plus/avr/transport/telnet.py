@@ -74,11 +74,15 @@ async def async_probe(
     *,
     port: int = DEFAULT_PORT,
     deadline: float = 3.0,
+    reply_wait: float = 0.0,
 ) -> None:
     """Open a short-lived telnet connection to run discovery queries.
 
     Sends every query, then feeds each received line to `on_line` until
-    `is_complete()` returns True or `deadline` seconds pass, then closes. This is
+    `is_complete()` returns True or `deadline` seconds pass, then closes.
+    With `reply_wait`, each query waits for a line, at most that long, before
+    the next goes out: older receivers (AVR-X2000) drop queries that arrive
+    while they are still answering an earlier one. This is
     separate from the persistent connection so discovery is deterministic at
     setup time. It never raises; on any failure it simply returns and the
     persistent resync fills the model slightly later.
@@ -98,6 +102,8 @@ async def async_probe(
             writer.write(query.encode("utf-8") + _TERMINATOR)
             await writer.drain()
             await asyncio.sleep(COMMAND_SPACING)
+            if reply_wait:
+                await _read_one(reader, on_line, reply_wait)
         # Read responses until the key discovery data is present or the deadline.
         end = loop.time() + deadline
         while loop.time() < end:
@@ -118,6 +124,20 @@ async def async_probe(
             await writer.wait_closed()
         except OSError:
             pass
+
+
+async def _read_one(
+    reader: asyncio.StreamReader, on_line: Callable[[str], None], timeout: float
+) -> None:
+    """Feed the next line to `on_line`, if one arrives within `timeout`."""
+
+    try:
+        raw = await asyncio.wait_for(reader.readuntil(_TERMINATOR), timeout=timeout)
+    except (asyncio.TimeoutError, asyncio.IncompleteReadError, asyncio.LimitOverrunError):
+        return
+    line = raw.decode("utf-8", errors="replace").strip("\r\n")
+    if line:
+        on_line(line)
 
 
 class TelnetClient:

@@ -22,6 +22,10 @@ COMMAND_SPACING: Final = 0.08
 # command that changes nothing gets no reply at all, so the wait must stay short.
 REPLY_TIMEOUT_MIN: Final = 0.2
 REPLY_TIMEOUT_MAX: Final = 1.0
+# The setup probe of an older receiver (port 80) waits this long for each
+# answer before the next query: an AVR-X2000 answered only the first ~20 of
+# about 70 queries sent 80 ms apart.
+REPLY_WAIT_OLDER: Final = 0.25
 # A raw command (the send_command action) that asks for its replies waits this
 # long for the first one; it may queue behind a resync. The replies of one
 # command come in a burst, so collecting ends once none arrived for QUIET.
