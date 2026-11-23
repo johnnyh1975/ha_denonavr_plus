@@ -25,9 +25,12 @@ Network-connected receivers of the HEOS generation (2016 and later).
 |---------|---------------------------|--------|
 | Denon   | AVR-X                     | Confirmed: AVR-X3600H |
 | Denon   | AVR-S, AVC-X              | Expected, not yet confirmed |
-| Marantz | SR, NR, Cinema, AV        | Expected, not yet confirmed; add by IP address (automatic discovery is planned) |
+| Marantz | SR, NR, Cinema, AV        | Expected, not yet confirmed; discovered automatically |
 
-Receivers from before 2016 are not supported yet; support is planned.
+Receivers from before 2016 (such as the AVR-X2000) can be set up and are
+discovered, but they report few of their functions, so most of their settings
+stay hidden and their older value formats are not read yet. Full support is
+planned.
 
 Own one of the unconfirmed models? Please open an issue with your model,
 firmware version and the integration's diagnostics file (Settings → Devices &

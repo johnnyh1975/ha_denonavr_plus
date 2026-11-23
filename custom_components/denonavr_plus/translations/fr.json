@@ -33,7 +33,11 @@
     "abort": {
       "already_configured": "Cet ampli-tuner est déjà configuré.",
       "wrong_device": "Cette adresse correspond à un autre ampli-tuner que celui configuré.",
-      "reconfigure_successful": "L'adresse IP a été mise à jour."
+      "reconfigure_successful": "L'adresse IP a été mise à jour.",
+      "cannot_connect": "L'ampli-tuner n'a pas répondu à cette adresse.",
+      "already_in_progress": "Cet ampli-tuner est déjà en cours de configuration.",
+      "not_denon_marantz": "L'appareil détecté n'est pas un appareil Denon ou Marantz.",
+      "not_a_receiver": "L'appareil détecté est une enceinte HEOS, pas un ampli-tuner."
     }
   },
   "options": {

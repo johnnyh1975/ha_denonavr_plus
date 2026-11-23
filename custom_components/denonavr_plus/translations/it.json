@@ -33,7 +33,11 @@
     "abort": {
       "already_configured": "Questo sintoamplificatore è già configurato.",
       "wrong_device": "Questo indirizzo appartiene a un sintoamplificatore diverso da quello configurato.",
-      "reconfigure_successful": "L'indirizzo IP è stato aggiornato."
+      "reconfigure_successful": "L'indirizzo IP è stato aggiornato.",
+      "cannot_connect": "Il sintoamplificatore non ha risposto a quell'indirizzo.",
+      "already_in_progress": "Questo sintoamplificatore è già in fase di configurazione.",
+      "not_denon_marantz": "Il dispositivo rilevato non è un dispositivo Denon o Marantz.",
+      "not_a_receiver": "Il dispositivo rilevato è un diffusore HEOS, non un sintoamplificatore."
     }
   },
   "options": {

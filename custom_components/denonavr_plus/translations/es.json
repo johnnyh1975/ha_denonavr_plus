@@ -33,7 +33,11 @@
     "abort": {
       "already_configured": "Este receptor ya está configurado.",
       "wrong_device": "Esa dirección pertenece a un receptor distinto del configurado.",
-      "reconfigure_successful": "La dirección IP se ha actualizado."
+      "reconfigure_successful": "La dirección IP se ha actualizado.",
+      "cannot_connect": "El receptor no respondió en esa dirección.",
+      "already_in_progress": "Este receptor ya se está configurando.",
+      "not_denon_marantz": "El dispositivo encontrado no es un equipo Denon o Marantz.",
+      "not_a_receiver": "El dispositivo encontrado es un altavoz HEOS, no un receptor."
     }
   },
   "options": {

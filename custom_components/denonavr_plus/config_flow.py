@@ -9,7 +9,7 @@ device is entered by hand.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlparse
 
 import voluptuous as vol
@@ -59,6 +59,12 @@ from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME
 _LOGGER = logging.getLogger(__name__)
 
 STEP_USER_SCHEMA = vol.Schema({vol.Required(CONF_HOST): str})
+
+#: Manufacturer strings of Denon and Marantz units in their UPnP description.
+SSDP_MANUFACTURERS = frozenset({"Denon", "DENON", "DENON PROFESSIONAL", "Marantz"})
+#: Model names of HEOS speakers and other units that are no receiver. They
+#: announce the same device types under the same manufacturer.
+_NOT_A_RECEIVER = ("HEOS", "Denon Home")
 
 
 class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -129,9 +135,23 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle a receiver discovered over SSDP."""
 
+        upnp = discovery_info.upnp
+        if upnp.get("manufacturer") not in SSDP_MANUFACTURERS:
+            return self.async_abort(reason="not_denon_marantz")
+        if str(upnp.get("modelName", "")).startswith(_NOT_A_RECEIVER):
+            return self.async_abort(reason="not_a_receiver")
         host = urlparse(discovery_info.ssdp_location or "").hostname
         if not host:
             return self.async_abort(reason="cannot_connect")
+        # A receiver announces up to three device types, so up to three
+        # discoveries start at once; one is enough.
+        self._async_abort_entries_match({CONF_HOST: host})
+        if any(
+            flow["context"].get(CONF_HOST) == host for flow in self._async_in_progress()
+        ):
+            return self.async_abort(reason="already_in_progress")
+        # Not a key Home Assistant defines; the flows of this domain read it above.
+        cast(dict[str, Any], self.context)[CONF_HOST] = host
         try:
             mac, name = await self._async_identify(host)
         except ConnectionError:

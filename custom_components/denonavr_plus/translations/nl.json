@@ -33,7 +33,11 @@
     "abort": {
       "already_configured": "Deze receiver is al geconfigureerd.",
       "wrong_device": "Dat adres hoort bij een andere receiver dan de geconfigureerde.",
-      "reconfigure_successful": "Het IP-adres is bijgewerkt."
+      "reconfigure_successful": "Het IP-adres is bijgewerkt.",
+      "cannot_connect": "De receiver antwoordde niet op dat adres.",
+      "already_in_progress": "Deze receiver wordt al ingesteld.",
+      "not_denon_marantz": "Het gevonden apparaat is geen Denon- of Marantz-apparaat.",
+      "not_a_receiver": "Het gevonden apparaat is een HEOS-luidspreker, geen receiver."
     }
   },
   "options": {

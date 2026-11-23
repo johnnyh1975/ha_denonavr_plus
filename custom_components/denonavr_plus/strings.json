@@ -33,7 +33,11 @@
     "abort": {
       "already_configured": "This receiver is already configured.",
       "wrong_device": "That address belongs to a different receiver than the one configured.",
-      "reconfigure_successful": "The IP address was updated."
+      "reconfigure_successful": "The IP address was updated.",
+      "cannot_connect": "The receiver did not answer at that address.",
+      "already_in_progress": "This receiver is already being set up.",
+      "not_denon_marantz": "The discovered device is not a Denon or Marantz unit.",
+      "not_a_receiver": "The discovered device is a HEOS speaker, not a receiver."
     }
   },
   "options": {

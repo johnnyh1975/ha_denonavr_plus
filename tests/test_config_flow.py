@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -18,6 +20,7 @@ from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
+from custom_components.denonavr_plus import config_flow
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
@@ -117,13 +120,87 @@ async def test_user_flow_without_mac_matches_on_host(hass: HomeAssistant) -> Non
     assert result["reason"] == "already_configured"
 
 
-def _ssdp(location: str = f"http://{HOST}:60006/upnp/desc/aios_device/aios_device.xml") -> SsdpServiceInfo:
+AIOS = "urn:schemas-denon-com:device:AiosDevice:1"
+RENDERER = "urn:schemas-upnp-org:device:MediaRenderer:1"
+
+
+def _ssdp(
+    location: str = f"http://{HOST}:60006/upnp/desc/aios_device/aios_device.xml",
+    *,
+    manufacturer: str = "Denon",
+    device_type: str = AIOS,
+    model: str = MODEL,
+) -> SsdpServiceInfo:
     return SsdpServiceInfo(
         ssdp_usn="uuid:00000000-0000-0000-0000-000000000000",
-        ssdp_st="urn:schemas-denon-com:device:AiosDevice:1",
+        ssdp_st=device_type,
         ssdp_location=location,
-        upnp={"manufacturer": "Denon", "deviceType": "urn:schemas-denon-com:device:AiosDevice:1"},
+        upnp={"manufacturer": manufacturer, "deviceType": device_type, "modelName": model},
     )
+
+
+def test_the_manifest_matches_every_spelling_and_device_type() -> None:
+    manifest = json.loads(
+        (Path(config_flow.__file__).parent / "manifest.json").read_text(encoding="utf-8")
+    )
+    matchers = {(item["deviceType"], item["manufacturer"]) for item in manifest["ssdp"]}
+    assert matchers == {
+        (device_type, manufacturer)
+        for device_type in (AIOS, RENDERER, "urn:schemas-upnp-org:device:MediaServer:1")
+        for manufacturer in config_flow.SSDP_MANUFACTURERS
+    }
+
+
+async def test_ssdp_finds_a_marantz_receiver(hass: HomeAssistant) -> None:
+    """Marantz and pre-2016 units announce only a MediaRenderer."""
+    discovery = _ssdp(manufacturer="Marantz", device_type=RENDERER, model="SR6015")
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity()):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_SSDP}, data=discovery
+        )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "ssdp_confirm"
+
+
+@pytest.mark.parametrize(
+    ("manufacturer", "model", "reason"),
+    [
+        ("Sonos, Inc.", "Play:1", "not_denon_marantz"),
+        ("Denon", "HEOS 1", "not_a_receiver"),
+        ("Denon", "Denon Home 150", "not_a_receiver"),
+    ],
+)
+async def test_ssdp_ignores_other_devices(
+    hass: HomeAssistant, manufacturer: str, model: str, reason: str
+) -> None:
+    identify = _identity()
+    with patch.object(DenonAvrDevice, "async_fetch_identity", identify):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_SSDP},
+            data=_ssdp(manufacturer=manufacturer, device_type=RENDERER, model=model),
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == reason
+    identify.assert_not_awaited()
+
+
+async def test_ssdp_one_flow_per_receiver(hass: HomeAssistant) -> None:
+    """The same receiver announced as AiosDevice and MediaRenderer starts one flow."""
+    identify = _identity()
+    with patch.object(DenonAvrDevice, "async_fetch_identity", identify):
+        first = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_SSDP}, data=_ssdp()
+        )
+        second = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_SSDP},
+            data=_ssdp(device_type=RENDERER),
+        )
+    assert first["type"] is FlowResultType.FORM
+    assert second["type"] is FlowResultType.ABORT
+    assert second["reason"] == "already_in_progress"
+    assert identify.await_count == 1
 
 
 async def test_ssdp_discovery_and_confirm(hass: HomeAssistant) -> None:

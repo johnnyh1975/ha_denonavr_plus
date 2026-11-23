@@ -33,7 +33,11 @@
     "abort": {
       "already_configured": "Ten amplituner jest już skonfigurowany.",
       "wrong_device": "Pod tym adresem odpowiada inny amplituner niż skonfigurowany.",
-      "reconfigure_successful": "Adres IP został zmieniony."
+      "reconfigure_successful": "Adres IP został zmieniony.",
+      "cannot_connect": "Amplituner nie odpowiedział pod tym adresem.",
+      "already_in_progress": "Ten amplituner jest już konfigurowany.",
+      "not_denon_marantz": "Znalezione urządzenie nie jest urządzeniem Denon ani Marantz.",
+      "not_a_receiver": "Znalezione urządzenie to głośnik HEOS, a nie amplituner."
     }
   },
   "options": {

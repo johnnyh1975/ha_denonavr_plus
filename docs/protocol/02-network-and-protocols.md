@@ -184,11 +184,11 @@ The manufacturer string varies (`Denon`, `DENON`, `DENON PROFESSIONAL`,
 |---|---|
 | Official `denonavr` | Device types MediaRenderer, MediaServer and AiosDevice, each with all four manufacturer strings (12 entries); aborts when model name or serial is missing |
 | Official `heos` | Search target `ACT-Denon:1`, plus mDNS |
-| This integration | AiosDevice with manufacturer `Denon` only |
+| This integration | The same 12 entries as the official integration; HEOS speakers (model names `HEOS …`, `Denon Home …`) are skipped before any request, and a receiver announced under several device types starts one discovery |
 
-So this integration discovers neither Marantz nor `DENON`-labelled units,
-and no pre-2016 receiver, because those have no AiosDevice description
-(roadmap items 16 and 17).
+Marantz units and receivers from before 2016, which announce only a
+MediaRenderer, are discovered too. A unit whose `Deviceinfo.xml` does not
+answer is dropped, as it cannot be set up anyway.
 
 ## HEOS CLI (port 1255)
 

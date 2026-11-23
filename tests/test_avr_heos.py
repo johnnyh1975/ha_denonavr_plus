@@ -160,3 +160,17 @@ async def test_an_unanswered_heartbeat_opens_the_link_again() -> None:
     await _run_client(server, 0.4)
     assert "heos://system/heart_beat" in server.received
     assert server.connections >= 2
+
+
+async def test_no_heartbeat_while_messages_arrive() -> None:
+    client, _ = _client()
+    loop = asyncio.get_running_loop()
+    with patch.object(heos, "HEARTBEAT_INTERVAL", 0.01):
+        task = asyncio.ensure_future(client._heartbeat_loop())
+        for _ in range(5):
+            client._last_received = loop.time()
+            await asyncio.sleep(0.005)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    assert _sent(client) == []
