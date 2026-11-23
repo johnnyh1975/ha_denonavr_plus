@@ -175,3 +175,29 @@ async def test_no_heartbeat_while_messages_arrive() -> None:
         with pytest.raises(asyncio.CancelledError):
             await task
     assert _sent(client) == []
+
+
+class _ClosingWriter:
+    """A writer whose close waiter is shared, as asyncio's is."""
+
+    def __init__(self) -> None:
+        self.closer: asyncio.Future[None] = asyncio.get_running_loop().create_future()
+
+    def close(self) -> None:
+        pass
+
+    async def wait_closed(self) -> None:
+        await self.closer
+
+
+async def test_stopping_while_a_dropped_link_closes() -> None:
+    """Unloading during a reconnect: the close was cancelled once already."""
+    client, _ = _client()
+    client._writer = _ClosingWriter()  # type: ignore[assignment]
+    closing = asyncio.ensure_future(client._close_socket())
+    await asyncio.sleep(0)
+    closing.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await closing
+    # The second close must not wait on the cancelled waiter again.
+    await client.async_stop()

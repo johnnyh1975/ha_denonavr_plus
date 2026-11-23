@@ -168,14 +168,23 @@ class HeosClient:
             await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _close_socket(self) -> None:
-        if self._writer is not None:
-            try:
-                self._writer.close()
-                await self._writer.wait_closed()
-            except OSError:
-                pass
+        """Close the writer and drop the streams.
+
+        The streams are dropped before waiting, as in the telnet client: if
+        the wait is cancelled (the integration unloads while a dropped link
+        is being closed), async_stop must not wait on the same cancelled
+        close again.
+        """
+
+        writer = self._writer
         self._reader = None
         self._writer = None
+        if writer is not None:
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except OSError:
+                pass
 
     # I/O loops ------------------------------------------------------------
 
