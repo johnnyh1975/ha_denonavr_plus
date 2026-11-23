@@ -17,11 +17,20 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Callable
+from dataclasses import asdict, fields
+from typing import Any
 
 import aiohttp
 
 from .codec import encode_centered, encode_half_step
-from .models import AvrState, Discovery, NowPlaying
+from .models import (
+    AvrState,
+    DeviceInfo,
+    Discovery,
+    NowPlaying,
+    SourceDescriptor,
+    ZoneDescriptor,
+)
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ProtocolProfile, load_profile
 from . import graphic_eq, video_config
@@ -304,6 +313,41 @@ class DenonAvrDevice:
         # the persistent connection's later timing.
         await self._async_probe_introspection()
         return self._discovery
+
+    def discovery_snapshot(self) -> dict[str, Any]:
+        """The part of the discovery the media players need, as plain data.
+
+        Kept by the caller after every successful discovery, so the media
+        players can be set up from it while the receiver does not answer.
+        """
+
+        discovery = self._discovery
+        return {
+            "device": asdict(discovery.device),
+            "zones": [asdict(zone) for zone in discovery.zones],
+            "sources": [asdict(source) for source in discovery.sources],
+        }
+
+    def restore_discovery(self, snapshot: dict[str, Any]) -> None:
+        """Fill the discovery from a snapshot, for a start without the receiver.
+
+        Unknown keys are ignored, so a snapshot from another version still
+        loads.
+        """
+
+        def known(cls: type, data: dict[str, Any]) -> dict[str, Any]:
+            names = {item.name for item in fields(cls)}
+            return {key: value for key, value in data.items() if key in names}
+
+        discovery = self._discovery
+        discovery.device = DeviceInfo(**known(DeviceInfo, snapshot.get("device", {})))
+        discovery.zones = [
+            ZoneDescriptor(**known(ZoneDescriptor, zone)) for zone in snapshot.get("zones", [])
+        ]
+        discovery.sources = [
+            SourceDescriptor(**known(SourceDescriptor, source))
+            for source in snapshot.get("sources", [])
+        ]
 
     async def _async_fetch_version_info(self) -> None:
         """Read firmware/serial and AIOS module versions from the UPnP document.

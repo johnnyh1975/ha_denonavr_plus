@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import (
@@ -22,7 +23,7 @@ from homeassistant.helpers.typing import ConfigType
 from . import choices
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
-from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
+from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator, snapshot_store
 from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
 from .services import async_setup_services
 
@@ -78,10 +79,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     _register_main_device(hass, entry, coordinator)
     coordinator.shown_zones = _shown_zones(entry, coordinator)
     _remove_hidden_zones(hass, entry, coordinator)
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, _platforms(coordinator))
     _apply_channel_defaults(hass, entry, coordinator)
     entry.async_on_unload(entry.add_update_listener(_async_entry_updated))
     return True
+
+
+def _platforms(coordinator: DenonAvrCoordinator) -> list[Platform]:
+    """All platforms, or only the media players when started without the receiver.
+
+    The other entities need what only the receiver can tell; they keep their
+    registry entries and come back with the reload once it answers.
+    """
+
+    return [Platform.MEDIA_PLAYER] if coordinator.started_offline else PLATFORMS
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
+    """Remove the kept discovery with the entry."""
+
+    await snapshot_store(hass, entry.entry_id).async_remove()
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:
@@ -197,7 +214,9 @@ def _apply_channel_defaults(
 async def async_unload_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> bool:
     """Unload a config entry and stop the telnet transport."""
 
-    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unloaded = await hass.config_entries.async_unload_platforms(
+        entry, _platforms(entry.runtime_data)
+    )
     if unloaded:
         await entry.runtime_data.async_shutdown()
     return unloaded

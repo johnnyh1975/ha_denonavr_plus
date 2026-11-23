@@ -135,3 +135,24 @@ async def test_without_the_automation_an_unreachable_player_is_unavailable(
     await _receiver_gone(hass, freezer)
     state = hass.states.get(main)
     assert state is not None and state.state == STATE_UNAVAILABLE
+
+
+async def test_after_a_restart_without_the_receiver_the_automation_still_works(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The media players start from the last discovery, so turning on still works."""
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    calls = await _automation(hass, _receiver_device(hass, loaded_entry).id)
+    assert await hass.config_entries.async_unload(loaded_entry.entry_id)
+    with (
+        patch.object(GoformClient, "async_get_device_info", AsyncMock(return_value=None)),
+        patch.object(FakeTelnet, "async_start", AsyncMock()),
+    ):
+        assert await hass.config_entries.async_setup(loaded_entry.entry_id)
+        await hass.async_block_till_done()
+
+    state = hass.states.get(main)
+    assert state is not None and state.state == STATE_OFF
+    await hass.services.async_call("media_player", "turn_on", {"entity_id": main}, blocking=True)
+    await hass.async_block_till_done()
+    assert len(calls) == 1

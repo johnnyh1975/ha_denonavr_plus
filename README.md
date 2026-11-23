@@ -352,9 +352,11 @@ actions:
       command: denon_power_on
 ```
 
-The media players exist only once the integration has reached the receiver
-since Home Assistant started. After a restart while the receiver is off without
-network standby, switch it on by hand once.
+After a restart of Home Assistant while the receiver does not answer, its media
+players are set up from what the integration read the last time it reached the
+receiver, so turning on works then too. The other entities stay unavailable until
+the receiver answers; then the integration sets itself up in full by itself. A
+receiver that has never been reached since it was added has to be on for setup.
 
 ## Notes and limitations
 

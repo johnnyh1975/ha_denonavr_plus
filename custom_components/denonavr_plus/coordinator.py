@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -32,6 +34,14 @@ _LOGGER = logging.getLogger(__name__)
 
 # The typed config entry carries the coordinator as its runtime data.
 type DenonAvrConfigEntry = ConfigEntry[DenonAvrCoordinator]
+
+_SNAPSHOT_VERSION = 1
+
+
+def snapshot_store(hass: HomeAssistant, entry_id: str) -> Store[dict[str, Any]]:
+    """Where the last discovery of an entry is kept (see async_setup)."""
+
+    return Store(hass, _SNAPSHOT_VERSION, f"{DOMAIN}.{entry_id}.discovery")
 
 
 class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
@@ -57,6 +67,11 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # long outage has already been reported (log once, repair while it lasts).
         self._link_down_since: datetime | None = None
         self._outage_reported = False
+        # Set when the receiver did not answer at setup and the media players
+        # were built from the last discovery; the entry reloads once it answers.
+        self.started_offline = False
+        self._reload_scheduled = False
+        self._snapshot = snapshot_store(hass, entry.entry_id)
 
     async def async_setup(self) -> None:
         """Discover the receiver and start the telnet transport.
@@ -65,7 +80,25 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         entry setup is retried by Home Assistant.
         """
 
-        await self.device.async_discover()
+        try:
+            await self.device.async_discover()
+        except ConnectionError:
+            # A receiver off without network standby does not answer. With the
+            # last discovery the media players can still be set up (shown off,
+            # see the turn-on trigger); everything else waits for a reload.
+            snapshot = await self._snapshot.async_load()
+            if not snapshot:
+                raise
+            self.device.restore_discovery(snapshot)
+            self.started_offline = True
+            _LOGGER.info(
+                "%s does not answer; starting its media players from the last "
+                "discovery until it does",
+                self.device.discovery.device.model_name or "Denon AVR",
+            )
+            await self.device.async_start()
+            return
+        await self._snapshot.async_save(self.device.discovery_snapshot())
         await self.device.async_start()
         # Give the initial resync a moment so per channel entities can be built.
         await self.device.async_await_ready()
@@ -111,6 +144,13 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """
 
         self._set_poll_interval()
+        if self.started_offline and not self._reload_scheduled and (
+            self.device.available or self.device.http_reachable
+        ):
+            # The receiver answers again: set it up in full.
+            assert self.config_entry is not None
+            self._reload_scheduled = True
+            self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
         model = self.device.discovery.device.model_name or "Denon AVR"
         if self.device.available:
             if self._outage_reported:

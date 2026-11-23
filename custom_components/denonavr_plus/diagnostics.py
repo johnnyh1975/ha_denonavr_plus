@@ -31,6 +31,7 @@ async def async_get_config_entry_diagnostics(
 
     return {
         "available": device.available,
+        "started_offline": coordinator.started_offline,
         "http_port": device.http_port,
         "setup_port": device.setup_port,
         "telnet_response_ms": (
