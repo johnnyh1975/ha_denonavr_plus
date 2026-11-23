@@ -83,11 +83,13 @@
             "description": "Laissez un champ vide pour ne rien régler.",
             "data": {
               "max_volume": "Volume maximal",
-              "turn_on_volume": "Volume à l'allumage"
+              "turn_on_volume": "Volume à l'allumage",
+              "volume_step": "Pas du volume"
             },
             "data_description": {
               "max_volume": "Home Assistant ne règle jamais le volume de cette zone plus haut, en dB comme l'affiche l'ampli-tuner (0 dB est la référence). Les touches de l'ampli-tuner ne sont pas limitées.",
-              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB."
+              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB.",
+              "volume_step": "dB par hausse ou baisse du volume depuis Home Assistant. Vide : le pas de l'ampli-tuner (0,5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Laissez un champ vide pour ne rien régler.",
             "data": {
               "max_volume": "Volume maximal",
-              "turn_on_volume": "Volume à l'allumage"
+              "turn_on_volume": "Volume à l'allumage",
+              "volume_step": "Pas du volume"
             },
             "data_description": {
               "max_volume": "Home Assistant ne règle jamais le volume de cette zone plus haut, en dB comme l'affiche l'ampli-tuner (0 dB est la référence). Les touches de l'ampli-tuner ne sont pas limitées.",
-              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB."
+              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB.",
+              "volume_step": "dB par hausse ou baisse du volume depuis Home Assistant. Vide : le pas de l'ampli-tuner (0,5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Laissez un champ vide pour ne rien régler.",
             "data": {
               "max_volume": "Volume maximal",
-              "turn_on_volume": "Volume à l'allumage"
+              "turn_on_volume": "Volume à l'allumage",
+              "volume_step": "Pas du volume"
             },
             "data_description": {
               "max_volume": "Home Assistant ne règle jamais le volume de cette zone plus haut, en dB comme l'affiche l'ampli-tuner (0 dB est la référence). Les touches de l'ampli-tuner ne sont pas limitées.",
-              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB."
+              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB.",
+              "volume_step": "dB par hausse ou baisse du volume depuis Home Assistant. Vide : le pas de l'ampli-tuner (0,5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "Le {model} n'enregistre une présélection que pendant qu'une zone allumée joue le tuner."
+    },
+    "unknown_quick_select": {
+      "message": "{number} n'est pas un Quick Select de cette zone du {model}."
+    },
+    "play_url_main_zone": {
+      "message": "Le {model} lit les adresses web dans sa zone principale (via HEOS). Lisez-les là et ajoutez cette zone à la zone principale."
     }
   },
   "issues": {

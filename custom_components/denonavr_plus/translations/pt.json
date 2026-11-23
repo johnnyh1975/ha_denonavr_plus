@@ -83,11 +83,13 @@
             "description": "Deixe um campo vazio para não definir nada.",
             "data": {
               "max_volume": "Volume máximo",
-              "turn_on_volume": "Volume ao ligar"
+              "turn_on_volume": "Volume ao ligar",
+              "volume_step": "Passo do volume"
             },
             "data_description": {
               "max_volume": "O Home Assistant nunca define o volume desta zona acima disto, em dB como o recetor o mostra (0 dB é a referência). Os botões do recetor não são limitados.",
-              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB."
+              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB.",
+              "volume_step": "dB por cada subida ou descida do volume a partir do Home Assistant. Vazio: o passo do recetor (0,5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Deixe um campo vazio para não definir nada.",
             "data": {
               "max_volume": "Volume máximo",
-              "turn_on_volume": "Volume ao ligar"
+              "turn_on_volume": "Volume ao ligar",
+              "volume_step": "Passo do volume"
             },
             "data_description": {
               "max_volume": "O Home Assistant nunca define o volume desta zona acima disto, em dB como o recetor o mostra (0 dB é a referência). Os botões do recetor não são limitados.",
-              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB."
+              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB.",
+              "volume_step": "dB por cada subida ou descida do volume a partir do Home Assistant. Vazio: o passo do recetor (0,5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Deixe um campo vazio para não definir nada.",
             "data": {
               "max_volume": "Volume máximo",
-              "turn_on_volume": "Volume ao ligar"
+              "turn_on_volume": "Volume ao ligar",
+              "volume_step": "Passo do volume"
             },
             "data_description": {
               "max_volume": "O Home Assistant nunca define o volume desta zona acima disto, em dB como o recetor o mostra (0 dB é a referência). Os botões do recetor não são limitados.",
-              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB."
+              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB.",
+              "volume_step": "dB por cada subida ou descida do volume a partir do Home Assistant. Vazio: o passo do recetor (0,5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "O {model} só guarda uma predefinição enquanto uma zona ligada reproduz o sintonizador."
+    },
+    "unknown_quick_select": {
+      "message": "{number} não é um Quick Select desta zona do {model}."
+    },
+    "play_url_main_zone": {
+      "message": "O {model} reproduz endereços web na zona principal (via HEOS). Reproduza-os aí e junte esta zona à zona principal."
     }
   },
   "issues": {

@@ -747,3 +747,91 @@ async def test_home_assistant_media_sits_next_to_the_receivers_folders(
     ):
         root = await entity.async_browse_media()
     assert [item.title for item in root.children or []][-1] == "Text to speech"
+
+
+async def test_zone_2_browses_and_plays_its_own_items(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Zone 2 has its own quick selects (Z2QUICK), sources and tuner presets; URLs stay on main."""
+    from homeassistant.exceptions import ServiceValidationError
+
+    from .test_avr_device import _x2000_entry
+
+    entry = await _x2000_entry(hass)
+    device = entry.runtime_data.device
+    device.discovery.quick_select_names = {1: "Kino", 2: "Radio"}
+    zone2 = entity_id(hass, entry, "media_player_zone2")
+    player = _player(hass, zone2)
+    root = await player.async_browse_media()
+    ids = [child.media_content_id for child in root.children or []]
+    assert ids[:2] == ["quick_select", "sources"]
+    assert not any(content_id.startswith("media-source://") for content_id in ids)
+    folder = await player.async_browse_media(None, "quick_select")
+    assert [child.title for child in folder.children or []] == ["Quick Select 1", "Quick Select 2"]
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = True
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {"entity_id": zone2, "media_content_type": "playlist", "media_content_id": "quick_select/2"},
+        blocking=True,
+    )
+    assert telnet.sent == ["Z2QUICK2"]
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": zone2, "media_content_type": "playlist", "media_content_id": "quick_select/9"},
+            blocking=True,
+        )
+
+
+async def test_a_url_plays_on_the_main_zone_only(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.exceptions import ServiceValidationError
+
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    with pytest.raises(ServiceValidationError) as err:
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": zone2, "media_content_type": "music", "media_content_id": "http://example.com/a.mp3"},
+            blocking=True,
+        )
+    assert err.value.translation_key == "play_url_main_zone"
+
+
+async def test_volume_steps_by_the_zones_option(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={"main": {volume.OPT_VOLUME_STEP: 2.0}, "zone2": {volume.OPT_VOLUME_STEP: 1.0}},
+    )
+    await hass.async_block_till_done()
+    await _push(hass, "PWON", "ZMON", "MV50", "Z2ON", "Z240")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    await hass.services.async_call("media_player", "volume_up", {"entity_id": main}, blocking=True)
+    await hass.services.async_call("media_player", "volume_down", {"entity_id": main}, blocking=True)
+    await hass.services.async_call("media_player", "volume_down", {"entity_id": zone2}, blocking=True)
+    assert telnet.sent == ["MV52", "MV48", "Z239"]
+
+
+async def test_choosing_a_source_turns_the_zone_on_first(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMOFF")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.media_player.TURN_ON_WAIT", 0.05):
+        await hass.services.async_call(
+            "media_player", "select_source", {"entity_id": main, "source": "CD"}, blocking=True
+        )
+    assert telnet.sent[0] == "ZMON" and telnet.sent[-1] == "SICD"

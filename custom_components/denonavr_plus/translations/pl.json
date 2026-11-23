@@ -83,11 +83,13 @@
             "description": "Zostaw pole puste, aby nic nie ustawiać.",
             "data": {
               "max_volume": "Maksymalna głośność",
-              "turn_on_volume": "Głośność po włączeniu"
+              "turn_on_volume": "Głośność po włączeniu",
+              "volume_step": "Krok głośności"
             },
             "data_description": {
               "max_volume": "Home Assistant nigdy nie ustawi głośności tej strefy wyżej, w dB tak, jak pokazuje amplituner (0 dB to poziom odniesienia). Przyciski amplitunera nie są ograniczane.",
-              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB."
+              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB.",
+              "volume_step": "dB na każde zwiększenie lub zmniejszenie głośności z Home Assistant. Puste: własny krok amplitunera (0,5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Zostaw pole puste, aby nic nie ustawiać.",
             "data": {
               "max_volume": "Maksymalna głośność",
-              "turn_on_volume": "Głośność po włączeniu"
+              "turn_on_volume": "Głośność po włączeniu",
+              "volume_step": "Krok głośności"
             },
             "data_description": {
               "max_volume": "Home Assistant nigdy nie ustawi głośności tej strefy wyżej, w dB tak, jak pokazuje amplituner (0 dB to poziom odniesienia). Przyciski amplitunera nie są ograniczane.",
-              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB."
+              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB.",
+              "volume_step": "dB na każde zwiększenie lub zmniejszenie głośności z Home Assistant. Puste: własny krok amplitunera (0,5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Zostaw pole puste, aby nic nie ustawiać.",
             "data": {
               "max_volume": "Maksymalna głośność",
-              "turn_on_volume": "Głośność po włączeniu"
+              "turn_on_volume": "Głośność po włączeniu",
+              "volume_step": "Krok głośności"
             },
             "data_description": {
               "max_volume": "Home Assistant nigdy nie ustawi głośności tej strefy wyżej, w dB tak, jak pokazuje amplituner (0 dB to poziom odniesienia). Przyciski amplitunera nie są ograniczane.",
-              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB."
+              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB.",
+              "volume_step": "dB na każde zwiększenie lub zmniejszenie głośności z Home Assistant. Puste: własny krok amplitunera (0,5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "{model} zapisuje stację tylko wtedy, gdy włączona strefa odtwarza tuner."
+    },
+    "unknown_quick_select": {
+      "message": "{number} nie jest Quick Select tej strefy {model}."
+    },
+    "play_url_main_zone": {
+      "message": "{model} odtwarza adresy internetowe w strefie głównej (przez HEOS). Odtwórz je tam i dołącz tę strefę do strefy głównej."
     }
   },
   "issues": {

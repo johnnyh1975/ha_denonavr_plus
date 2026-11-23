@@ -12,8 +12,8 @@ Two mappings are offered:
   after moving over.
 
 Per zone the options can set a maximum (Home Assistant never sets the volume
-above it) and a turn-on volume (applied when Home Assistant switches the zone
-on).
+above it), a turn-on volume (applied when Home Assistant switches the zone
+on) and the step of volume up and down.
 """
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ from .avr import DenonAvrDevice
 OPT_OFFICIAL_SCALE = "official_volume_scale"
 OPT_MAX_VOLUME = "max_volume"
 OPT_TURN_ON_VOLUME = "turn_on_volume"
+OPT_VOLUME_STEP = "volume_step"
 
 #: The official integration's mapping: level = (dB + 80) / 100.
 _OFFICIAL_OFFSET_DB = 80.0
@@ -38,6 +39,8 @@ class ZoneVolumeOptions:
 
     max_db: float | None = None
     turn_on_db: float | None = None
+    #: dB per volume up or down; None: the receiver's own step.
+    step_db: float | None = None
 
 
 def zone_options(options: dict[str, Any], zone_id: str) -> ZoneVolumeOptions:
@@ -46,9 +49,11 @@ def zone_options(options: dict[str, Any], zone_id: str) -> ZoneVolumeOptions:
         return ZoneVolumeOptions()
     max_db = section.get(OPT_MAX_VOLUME)
     turn_on_db = section.get(OPT_TURN_ON_VOLUME)
+    step_db = section.get(OPT_VOLUME_STEP)
     return ZoneVolumeOptions(
         max_db=float(max_db) if max_db is not None else None,
         turn_on_db=float(turn_on_db) if turn_on_db is not None else None,
+        step_db=float(step_db) if step_db else None,
     )
 
 

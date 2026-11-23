@@ -83,11 +83,13 @@
             "description": "Leave a field empty for no setting.",
             "data": {
               "max_volume": "Maximum volume",
-              "turn_on_volume": "Turn-on volume"
+              "turn_on_volume": "Turn-on volume",
+              "volume_step": "Volume step"
             },
             "data_description": {
               "max_volume": "Home Assistant never sets the volume of this zone higher, in dB as the receiver shows it (0 dB is the reference). The receiver's own buttons are not limited.",
-              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB."
+              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB.",
+              "volume_step": "dB per volume up or down from Home Assistant. Empty: the receiver's own step (0.5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Leave a field empty for no setting.",
             "data": {
               "max_volume": "Maximum volume",
-              "turn_on_volume": "Turn-on volume"
+              "turn_on_volume": "Turn-on volume",
+              "volume_step": "Volume step"
             },
             "data_description": {
               "max_volume": "Home Assistant never sets the volume of this zone higher, in dB as the receiver shows it (0 dB is the reference). The receiver's own buttons are not limited.",
-              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB."
+              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB.",
+              "volume_step": "dB per volume up or down from Home Assistant. Empty: the receiver's own step (0.5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Leave a field empty for no setting.",
             "data": {
               "max_volume": "Maximum volume",
-              "turn_on_volume": "Turn-on volume"
+              "turn_on_volume": "Turn-on volume",
+              "volume_step": "Volume step"
             },
             "data_description": {
               "max_volume": "Home Assistant never sets the volume of this zone higher, in dB as the receiver shows it (0 dB is the reference). The receiver's own buttons are not limited.",
-              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB."
+              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB.",
+              "volume_step": "dB per volume up or down from Home Assistant. Empty: the receiver's own step (0.5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "The {model} stores a tuner preset only while a zone that is on plays the tuner."
+    },
+    "unknown_quick_select": {
+      "message": "{number} is not a quick select of this zone of the {model}."
+    },
+    "play_url_main_zone": {
+      "message": "The {model} plays web addresses on its main zone (over HEOS). Play them there and join this zone to it."
     }
   },
   "issues": {

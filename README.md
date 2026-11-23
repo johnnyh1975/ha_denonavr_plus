@@ -114,6 +114,9 @@ it changes the receiver; it changes what Home Assistant shows and does.
     setting.
   - **Turn-on volume**: set when Home Assistant switches the zone on, once the
     zone reports that it is on.
+  - **Volume step**: dB per volume up or down from Home Assistant (the
+    buttons of the media player card), 0.5 to 5 dB. Empty: the receiver's own
+    step of 0.5 dB.
 
 **Zones**: which additional zones (zone 2, zone 3) get entities. Each such zone
 is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume and
@@ -224,12 +227,15 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   join, or the group dialog of the media player) sets it to the main zone's
   source, so it follows every change of input. Leaving the group keeps the
   current input without following. Only the main zone leads.
-- **Media browser and `play_media`** on the main zone: quick selects,
-  sources and tuner presets (by number: the receiver gives no preset names) to
-  pick, and on receivers with HEOS any URL and Home Assistant's own media
-  sources (text to speech, radio, …) on the first level (HEOS `play_stream`,
-  not yet tried on a receiver). Receivers without HEOS take quick selects,
-  sources and presets only. A zone in standby is turned on first.
+- **Media browser and `play_media`** on every zone: quick selects (zone 2
+  its own, numbered), sources and tuner presets (by number: the receiver gives
+  no preset names) to pick, each kind with its own icon. On receivers with
+  HEOS the main zone also plays any URL and Home Assistant's own media sources
+  (text to speech, radio, …), shown on the first level (HEOS `play_stream`,
+  not yet tried on a receiver); another zone hears them by joining the main
+  zone. Receivers without HEOS take quick selects, sources and presets only.
+  A zone in standby is turned on first, also when a source or a sound mode is
+  picked.
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,

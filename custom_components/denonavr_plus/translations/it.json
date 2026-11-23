@@ -83,11 +83,13 @@
             "description": "Lascia vuoto un campo per non impostare nulla.",
             "data": {
               "max_volume": "Volume massimo",
-              "turn_on_volume": "Volume all'accensione"
+              "turn_on_volume": "Volume all'accensione",
+              "volume_step": "Passo del volume"
             },
             "data_description": {
               "max_volume": "Home Assistant non imposta mai il volume di questa zona più in alto, in dB come lo mostra il sintoamplificatore (0 dB è il riferimento). I tasti del sintoamplificatore non sono limitati.",
-              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB."
+              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB.",
+              "volume_step": "dB per ogni aumento o riduzione del volume da Home Assistant. Vuoto: il passo del sintoamplificatore (0,5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Lascia vuoto un campo per non impostare nulla.",
             "data": {
               "max_volume": "Volume massimo",
-              "turn_on_volume": "Volume all'accensione"
+              "turn_on_volume": "Volume all'accensione",
+              "volume_step": "Passo del volume"
             },
             "data_description": {
               "max_volume": "Home Assistant non imposta mai il volume di questa zona più in alto, in dB come lo mostra il sintoamplificatore (0 dB è il riferimento). I tasti del sintoamplificatore non sono limitati.",
-              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB."
+              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB.",
+              "volume_step": "dB per ogni aumento o riduzione del volume da Home Assistant. Vuoto: il passo del sintoamplificatore (0,5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Lascia vuoto un campo per non impostare nulla.",
             "data": {
               "max_volume": "Volume massimo",
-              "turn_on_volume": "Volume all'accensione"
+              "turn_on_volume": "Volume all'accensione",
+              "volume_step": "Passo del volume"
             },
             "data_description": {
               "max_volume": "Home Assistant non imposta mai il volume di questa zona più in alto, in dB come lo mostra il sintoamplificatore (0 dB è il riferimento). I tasti del sintoamplificatore non sono limitati.",
-              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB."
+              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB.",
+              "volume_step": "dB per ogni aumento o riduzione del volume da Home Assistant. Vuoto: il passo del sintoamplificatore (0,5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "Il {model} salva una preselezione solo mentre una zona accesa riproduce il sintonizzatore."
+    },
+    "unknown_quick_select": {
+      "message": "{number} non è un Quick Select di questa zona del {model}."
+    },
+    "play_url_main_zone": {
+      "message": "Il {model} riproduce gli indirizzi web nella zona principale (tramite HEOS). Riproducili lì e unisci questa zona a quella principale."
     }
   },
   "issues": {

@@ -83,11 +83,13 @@
             "description": "Laat een veld leeg voor geen instelling.",
             "data": {
               "max_volume": "Maximaal volume",
-              "turn_on_volume": "Volume bij inschakelen"
+              "turn_on_volume": "Volume bij inschakelen",
+              "volume_step": "Volumestap"
             },
             "data_description": {
               "max_volume": "Home Assistant zet het volume van deze zone nooit hoger, in dB zoals de receiver het toont (0 dB is de referentie). De knoppen van de receiver worden niet begrensd.",
-              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB."
+              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB.",
+              "volume_step": "dB per keer harder of zachter vanuit Home Assistant. Leeg: de eigen stap van de receiver (0,5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Laat een veld leeg voor geen instelling.",
             "data": {
               "max_volume": "Maximaal volume",
-              "turn_on_volume": "Volume bij inschakelen"
+              "turn_on_volume": "Volume bij inschakelen",
+              "volume_step": "Volumestap"
             },
             "data_description": {
               "max_volume": "Home Assistant zet het volume van deze zone nooit hoger, in dB zoals de receiver het toont (0 dB is de referentie). De knoppen van de receiver worden niet begrensd.",
-              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB."
+              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB.",
+              "volume_step": "dB per keer harder of zachter vanuit Home Assistant. Leeg: de eigen stap van de receiver (0,5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Laat een veld leeg voor geen instelling.",
             "data": {
               "max_volume": "Maximaal volume",
-              "turn_on_volume": "Volume bij inschakelen"
+              "turn_on_volume": "Volume bij inschakelen",
+              "volume_step": "Volumestap"
             },
             "data_description": {
               "max_volume": "Home Assistant zet het volume van deze zone nooit hoger, in dB zoals de receiver het toont (0 dB is de referentie). De knoppen van de receiver worden niet begrensd.",
-              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB."
+              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB.",
+              "volume_step": "dB per keer harder of zachter vanuit Home Assistant. Leeg: de eigen stap van de receiver (0,5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "De {model} slaat een tunervoorkeuze alleen op terwijl een zone die aan staat de tuner speelt."
+    },
+    "unknown_quick_select": {
+      "message": "{number} is geen Quick Select van deze zone van de {model}."
+    },
+    "play_url_main_zone": {
+      "message": "De {model} speelt webadressen af in de hoofdzone (via HEOS). Speel ze daar af en voeg deze zone aan de hoofdzone toe."
     }
   },
   "issues": {

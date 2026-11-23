@@ -83,11 +83,13 @@
             "description": "Deja un campo vacío para no ajustar nada.",
             "data": {
               "max_volume": "Volumen máximo",
-              "turn_on_volume": "Volumen al encender"
+              "turn_on_volume": "Volumen al encender",
+              "volume_step": "Paso de volumen"
             },
             "data_description": {
               "max_volume": "Home Assistant nunca sube el volumen de esta zona por encima, en dB tal como lo muestra el receptor (0 dB es la referencia). Los botones del receptor no se limitan.",
-              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB."
+              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB.",
+              "volume_step": "dB por cada subida o bajada de volumen desde Home Assistant. Vacío: el paso propio del receptor (0,5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Deja un campo vacío para no ajustar nada.",
             "data": {
               "max_volume": "Volumen máximo",
-              "turn_on_volume": "Volumen al encender"
+              "turn_on_volume": "Volumen al encender",
+              "volume_step": "Paso de volumen"
             },
             "data_description": {
               "max_volume": "Home Assistant nunca sube el volumen de esta zona por encima, en dB tal como lo muestra el receptor (0 dB es la referencia). Los botones del receptor no se limitan.",
-              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB."
+              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB.",
+              "volume_step": "dB por cada subida o bajada de volumen desde Home Assistant. Vacío: el paso propio del receptor (0,5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Deja un campo vacío para no ajustar nada.",
             "data": {
               "max_volume": "Volumen máximo",
-              "turn_on_volume": "Volumen al encender"
+              "turn_on_volume": "Volumen al encender",
+              "volume_step": "Paso de volumen"
             },
             "data_description": {
               "max_volume": "Home Assistant nunca sube el volumen de esta zona por encima, en dB tal como lo muestra el receptor (0 dB es la referencia). Los botones del receptor no se limitan.",
-              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB."
+              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB.",
+              "volume_step": "dB por cada subida o bajada de volumen desde Home Assistant. Vacío: el paso propio del receptor (0,5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "El {model} solo guarda una presintonía mientras una zona encendida reproduce el sintonizador."
+    },
+    "unknown_quick_select": {
+      "message": "{number} no es un Quick Select de esta zona del {model}."
+    },
+    "play_url_main_zone": {
+      "message": "El {model} reproduce direcciones web en su zona principal (mediante HEOS). Reprodúcelas allí y une esta zona a ella."
     }
   },
   "issues": {

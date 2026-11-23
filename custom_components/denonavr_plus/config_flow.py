@@ -62,7 +62,7 @@ from .choices import (
     OPT_SOURCES,
     OPT_ZONES,
 )
-from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME
+from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME, OPT_VOLUME_STEP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -362,6 +362,11 @@ _DB_SELECTOR = NumberSelector(
         min=-80.0, max=18.0, step=0.5, unit_of_measurement="dB", mode=NumberSelectorMode.BOX
     )
 )
+_STEP_SELECTOR = NumberSelector(
+    NumberSelectorConfig(
+        min=0.5, max=5.0, step=0.5, unit_of_measurement="dB", mode=NumberSelectorMode.BOX
+    )
+)
 # Zones in the order the options show them; the receiver decides which exist.
 _ZONE_ORDER = ("main", "zone2", "zone3")
 _ZONE_MARKER = "_media_player_"
@@ -501,6 +506,10 @@ class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
                     OPT_TURN_ON_VOLUME,
                     description={"suggested_value": current.get(OPT_TURN_ON_VOLUME)},
                 ): _DB_SELECTOR,
+                vol.Optional(
+                    OPT_VOLUME_STEP,
+                    description={"suggested_value": current.get(OPT_VOLUME_STEP)},
+                ): _STEP_SELECTOR,
             }
             fields[vol.Required(zone)] = section(
                 vol.Schema(zone_fields), {"collapsed": zone != "main"}

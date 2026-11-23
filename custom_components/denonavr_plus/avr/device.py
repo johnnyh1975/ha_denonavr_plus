@@ -1445,10 +1445,12 @@ class DenonAvrDevice:
 
         self._create_task(_later())
 
-    async def async_select_quick_select(self, number: int) -> None:
-        """Recall a main zone quick select preset by its number."""
+    async def async_select_quick_select(self, number: int, zone_id: str = "main") -> None:
+        """Recall a quick select preset of a zone by its number (MSQUICK, Z2QUICK)."""
 
-        await self._send(f"MSQUICK{int(number)}")
+        spec = None if zone_id == "main" else self._profile.control(f"{zone_id}_quick_select")
+        prefix = spec.prefix if spec is not None else "MSQUICK"
+        await self._send(f"{prefix}{int(number)}")
 
     async def async_select_sound_mode_group(self, code: str) -> None:
         """Switch the receiver to a sound mode genre group by its code.

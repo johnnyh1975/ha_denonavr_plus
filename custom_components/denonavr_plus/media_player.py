@@ -159,15 +159,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             | MediaPlayerEntityFeature.VOLUME_MUTE
             | MediaPlayerEntityFeature.SELECT_SOURCE
         )
-        # Only the main zone carries the surround / sound mode and the media
-        # browser. Transport is added while a network source plays (see
-        # supported_features).
+        # Every zone browses its quick selects, sources and tuner presets;
+        # only the main zone carries the surround / sound mode. Transport is
+        # added while a network source plays (see supported_features).
+        features |= MediaPlayerEntityFeature.BROWSE_MEDIA | MediaPlayerEntityFeature.PLAY_MEDIA
         if zone.is_main:
-            features |= (
-                MediaPlayerEntityFeature.SELECT_SOUND_MODE
-                | MediaPlayerEntityFeature.BROWSE_MEDIA
-                | MediaPlayerEntityFeature.PLAY_MEDIA
-            )
+            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -543,6 +540,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_volume_up(self) -> None:
+        if await self._step_by_option(up=True):
+            return
         current = self._zone_state.volume_raw
         ceiling = _volume.ceiling_raw(self._device, self._zone.id, self._entry_options)
         if current is not None and current + self._device.volume_step > ceiling:
@@ -555,12 +554,27 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_volume_down(self) -> None:
+        if await self._step_by_option(up=False):
+            return
         if self._zone.is_main:
             await self._device.async_volume_step(self._zone.id, up=False)
         else:
             # Additional zones have no dedicated up/down command, so step by one
             # device volume step on the raw scale.
             await self._step_zone_volume(up=False)
+
+    async def _step_by_option(self, up: bool) -> bool:
+        """Step by the zone's step from the options, if one is set (and known volume)."""
+
+        step = _volume.zone_options(self._entry_options, self._zone.id).step_db
+        current = self._zone_state.volume_raw
+        if step is None or current is None:
+            return False
+        raw = _volume.clamp_raw(
+            self._device, self._zone.id, current + step if up else current - step, self._entry_options
+        )
+        await self._device.async_set_volume_raw(self._zone.id, raw)
+        return True
 
     async def _step_zone_volume(self, up: bool) -> None:
         current = self._zone_state.volume_raw
@@ -579,10 +593,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @receiver_action
     async def async_select_source(self, source: str) -> None:
         code = choices.source_code_for(self._device.discovery, self._entry_options, source)
+        await self._ensure_on()
         await self._device.async_select_source(self._zone.id, code or source)
 
     @receiver_action
     async def async_select_sound_mode(self, sound_mode: str) -> None:
+        await self._ensure_on()
         await self._device.async_select_sound_mode(
             choices.sound_mode_for(self._entry_options, sound_mode)
         )
@@ -636,12 +652,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if media_content_id == "tuner_presets":
             return self._folder("tuner_presets", names["tuner_presets"], self._tuner_preset_items())
         children: list[BrowseMedia] = []
-        if self._device.discovery.quick_select_names:
+        if self._quick_select_numbers():
             children.append(self._folder("quick_select", names["quick_select"], None))
         children.append(self._folder("sources", names["sources"], None))
         if self._has_tuner_presets:
             children.append(self._folder("tuner_presets", names["tuner_presets"], None))
-        if self._device.can_play_url:
+        if self._device.can_play_url and self._zone.is_main:
             try:
                 media = await media_source.async_browse_media(
                     self.hass,
@@ -702,17 +718,36 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             children_media_class=MediaClass.MUSIC if children is not None else None,
         )
 
+    def _quick_select_numbers(self) -> dict[int, str]:
+        """This zone's quick selects: number -> name.
+
+        The main zone's carry the names the receiver reports; another zone's
+        (Z2QUICK) are numbered, as many as the main zone has, when the
+        receiver answered their query.
+        """
+
+        names = self._device.discovery.quick_select_names
+        if self._zone.is_main:
+            return dict(names)
+        spec = self._device.profile.control(f"{self._zone.id}_quick_select")
+        if spec is None or not self._device.discovery.has_control(spec.scope, spec.feature, spec.id):
+            return {}
+        return {number: f"Quick Select {number}" for number in sorted(names)}
+
+    # Media classes give each kind its own icon in the browser: a quick select
+    # a playlist, an input a channel, a tuner preset music.
+
     def _quick_select_items(self) -> list[BrowseMedia]:
         return [
             BrowseMedia(
-                media_class=MediaClass.MUSIC,
+                media_class=MediaClass.PLAYLIST,
                 media_content_id=f"{_QUICK_SELECT}{number}",
-                media_content_type=MediaType.MUSIC,
+                media_content_type=MediaType.PLAYLIST,
                 title=name,
                 can_play=True,
                 can_expand=False,
             )
-            for number, name in sorted(self._device.discovery.quick_select_names.items())
+            for number, name in sorted(self._quick_select_numbers().items())
         ]
 
     def _source_items(self) -> list[BrowseMedia]:
@@ -745,7 +780,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             return []
         return [
             BrowseMedia(
-                media_class=MediaClass.CHANNEL,
+                media_class=MediaClass.MUSIC,
                 media_content_id=f"{_TUNER_PRESET}{code}",
                 media_content_type=MediaType.CHANNEL,
                 title=code,
@@ -763,7 +798,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         await self._ensure_on()
         if media_id.startswith(_QUICK_SELECT):
-            await self._device.async_select_quick_select(int(media_id[len(_QUICK_SELECT):]))
+            number = media_id[len(_QUICK_SELECT):]
+            if not number.isdigit() or int(number) not in self._quick_select_numbers():
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="unknown_quick_select",
+                    translation_placeholders={"number": number, "model": self._model},
+                )
+            await self._device.async_select_quick_select(int(number), self._zone.id)
             return
         if media_id.startswith(_SOURCE):
             await self._device.async_select_source(self._zone.id, media_id[len(_SOURCE):])
@@ -785,12 +827,22 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="play_url_unsupported",
-                translation_placeholders={"model": self._device.discovery.device.model_name or "receiver"},
+                translation_placeholders={"model": self._model},
+            )
+        if not self._zone.is_main:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="play_url_main_zone",
+                translation_placeholders={"model": self._model},
             )
         if media_source.is_media_source_id(media_id):
             item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
             media_id = item.url
         await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
+
+    @property
+    def _model(self) -> str:
+        return self._device.discovery.device.model_name or "receiver"
 
     async def _ensure_on(self) -> None:
         """Turn the zone on and wait until it reports so.

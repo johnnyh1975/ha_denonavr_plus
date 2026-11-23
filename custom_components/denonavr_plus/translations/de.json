@@ -83,11 +83,13 @@
             "description": "Ein leeres Feld bedeutet: keine Einstellung.",
             "data": {
               "max_volume": "Maximale Lautstärke",
-              "turn_on_volume": "Einschaltlautstärke"
+              "turn_on_volume": "Einschaltlautstärke",
+              "volume_step": "Lautstärke-Schritt"
             },
             "data_description": {
               "max_volume": "Höher stellt Home Assistant die Lautstärke dieser Zone nie, in dB wie am Receiver angezeigt (0 dB ist der Referenzpegel). Die Tasten am Receiver werden nicht begrenzt.",
-              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB."
+              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB.",
+              "volume_step": "dB pro Lauter oder Leiser aus Home Assistant. Leer: der Schritt des Receivers (0,5 dB)."
             }
           },
           "zone2": {
@@ -95,11 +97,13 @@
             "description": "Ein leeres Feld bedeutet: keine Einstellung.",
             "data": {
               "max_volume": "Maximale Lautstärke",
-              "turn_on_volume": "Einschaltlautstärke"
+              "turn_on_volume": "Einschaltlautstärke",
+              "volume_step": "Lautstärke-Schritt"
             },
             "data_description": {
               "max_volume": "Höher stellt Home Assistant die Lautstärke dieser Zone nie, in dB wie am Receiver angezeigt (0 dB ist der Referenzpegel). Die Tasten am Receiver werden nicht begrenzt.",
-              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB."
+              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB.",
+              "volume_step": "dB pro Lauter oder Leiser aus Home Assistant. Leer: der Schritt des Receivers (0,5 dB)."
             }
           },
           "zone3": {
@@ -107,11 +111,13 @@
             "description": "Ein leeres Feld bedeutet: keine Einstellung.",
             "data": {
               "max_volume": "Maximale Lautstärke",
-              "turn_on_volume": "Einschaltlautstärke"
+              "turn_on_volume": "Einschaltlautstärke",
+              "volume_step": "Lautstärke-Schritt"
             },
             "data_description": {
               "max_volume": "Höher stellt Home Assistant die Lautstärke dieser Zone nie, in dB wie am Receiver angezeigt (0 dB ist der Referenzpegel). Die Tasten am Receiver werden nicht begrenzt.",
-              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB."
+              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB.",
+              "volume_step": "dB pro Lauter oder Leiser aus Home Assistant. Leer: der Schritt des Receivers (0,5 dB)."
             }
           }
         }
@@ -971,6 +977,12 @@
     },
     "tuner_not_playing": {
       "message": "Der {model} speichert ein Tuner-Preset nur, während eine eingeschaltete Zone den Tuner spielt."
+    },
+    "unknown_quick_select": {
+      "message": "{number} ist kein Quick Select dieser Zone des {model}."
+    },
+    "play_url_main_zone": {
+      "message": "Der {model} spielt Webadressen in der Hauptzone ab (über HEOS). Spiele sie dort ab und füge diese Zone der Hauptzone hinzu."
     }
   },
   "issues": {
