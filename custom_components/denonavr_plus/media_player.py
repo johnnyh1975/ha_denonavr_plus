@@ -18,12 +18,14 @@ from homeassistant.components.media_player import (
     MediaType,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import choices
 from . import volume as _volume
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
+from .device_trigger import turn_on_trigger
 from .entity import DenonAvrEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -129,8 +131,24 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 | MediaPlayerEntityFeature.PREVIOUS_TRACK
             )
         self._attr_supported_features = features
+        # Automations with the "Turn on requested" device trigger; see
+        # device_trigger.py.
+        self._turn_on_action = PluggableAction(self.async_write_ha_state)
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (entry := self.registry_entry) and entry.device_id:
+            self.async_on_remove(
+                self._turn_on_action.async_register(
+                    self.hass, turn_on_trigger(entry.device_id)
+                )
+            )
 
     # State ----------------------------------------------------------------
+
+    @property
+    def _reachable(self) -> bool:
+        return self.coordinator.available or self._device.http_reachable
 
     @property
     def available(self) -> bool:
@@ -138,12 +156,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         Power, volume, mute and source then come from the HTTP poll and
         commands go over HTTP. The other entities need telnet and go
-        unavailable.
+        unavailable. With a "Turn on requested" automation the player also
+        stays usable while the receiver does not answer at all, shown as off,
+        so it can be turned on through that automation.
         """
 
-        return self.coordinator.last_update_success and (
-            self.coordinator.available or self._device.http_reachable
-        )
+        if self._turn_on_action and not self._reachable:
+            return True
+        return self.coordinator.last_update_success and self._reachable
 
     @property
     def _zone_state(self):
@@ -159,6 +179,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def state(self) -> MediaPlayerState | None:
+        if not self._reachable:
+            # Only reached with a turn-on automation; the last state is stale.
+            return MediaPlayerState.OFF
         power = self._zone_state.power
         if power is None:
             return None
@@ -282,6 +305,10 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     # Commands -------------------------------------------------------------
 
     async def async_turn_on(self) -> None:
+        if not self._reachable and self._turn_on_action:
+            _LOGGER.debug("%s is unreachable; running the turn-on automation", self.entity_id)
+            await self._turn_on_action.async_run(self.hass, self._context)
+            return
         await self._device.async_set_power(self._zone.id, True)
         target = _volume.zone_options(self._entry_options, self._zone.id).turn_on_db
         entry = self.coordinator.config_entry

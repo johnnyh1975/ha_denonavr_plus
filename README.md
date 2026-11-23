@@ -326,6 +326,36 @@ telnet, so the action reports an error. It also reports one when the receiver
 cannot be reached. This replaces `denonavr.get_command` of the official
 integration.
 
+## Device trigger: turn on requested
+
+With network standby off, a receiver that is off does not answer on the network
+and cannot be switched on from Home Assistant. For that case the receiver device
+offers the trigger **Turn on requested while the receiver does not answer**.
+Build an automation with it that switches the receiver on another way, for
+example with an infrared blaster or through HDMI-CEC from the TV.
+
+As long as such an automation exists, the receiver's media players stay usable
+while it does not answer and show it as off; turning one on runs the automation.
+Once the receiver answers again, turning on goes over the network as usual.
+
+```yaml
+triggers:
+  - trigger: device
+    domain: denonavr_plus
+    device_id: <the receiver's device>
+    type: turn_on
+actions:
+  - action: remote.send_command
+    target:
+      entity_id: remote.living_room_ir
+    data:
+      command: denon_power_on
+```
+
+The media players exist only once the integration has reached the receiver
+since Home Assistant started. After a restart while the receiver is off without
+network standby, switch it on by hand once.
+
 ## Notes and limitations
 
 - Some parameters only apply to certain signals or sound modes (for example

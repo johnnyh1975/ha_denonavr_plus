@@ -519,5 +519,10 @@
         }
       }
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "turn_on": "Allumage demandé alors que l'ampli-tuner ne répond pas"
+    }
   }
 }

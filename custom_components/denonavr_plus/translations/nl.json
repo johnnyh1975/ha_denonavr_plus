@@ -519,5 +519,10 @@
         }
       }
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "turn_on": "Inschakelen gevraagd terwijl de receiver niet antwoordt"
+    }
   }
 }

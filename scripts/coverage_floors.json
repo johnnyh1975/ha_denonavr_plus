@@ -17,7 +17,7 @@
     "avr/transport/upnp.py": 0.5404,
     "avr/video_config.py": 0.495,
     "helpers.py": 0.6408,
-    "media_player.py": 0.8445,
+    "media_player.py": 0.8577,
     "select.py": 0.6073,
     "switch.py": 0.82
   }

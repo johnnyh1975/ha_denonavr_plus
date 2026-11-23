@@ -519,5 +519,10 @@
         }
       }
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "turn_on": "Encendido solicitado mientras el receptor no responde"
+    }
   }
 }

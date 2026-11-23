@@ -519,5 +519,10 @@
         }
       }
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "turn_on": "Ligar pedido enquanto o recetor não responde"
+    }
   }
 }

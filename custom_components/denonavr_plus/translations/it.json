@@ -519,5 +519,10 @@
         }
       }
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "turn_on": "Accensione richiesta mentre il sintoamplificatore non risponde"
+    }
   }
 }
