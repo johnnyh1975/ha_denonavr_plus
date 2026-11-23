@@ -102,6 +102,12 @@ AVR-X2000.
 | `SSSMG ?` | Sound mode group `MOV`, `MUS`, `GAM`, `PUR` | marantz-denon-mqtt; this integration |
 | `OPSML ?`, `OPSMLALL ?` | Available sound modes per group, ending in `OPSMLALL END` | this integration; marantz-denon-mqtt |
 | `PSAUROMODE ?` | Auro-3D mode | denon_avr_parameter, `denonavr` |
+| `SSINFAISSIG ?` | Input signal type as a raw code | this integration |
+| `SSQSNZMA ?` | Quick Select names of the main zone, one per line (`SSQSNZMAQS<n> <name>`), ending in `SSQSNZMA END` | this integration |
+| `SSHOSALS ?` | Auto lip sync, `ON`/`OFF`; silent unless a video source is active | this integration (candidate) |
+| `SSLFL ?` | Low-pass filter for LFE, three-digit Hz: `080`, `090`, `100`, `110`, `120`, `150`, `180`, `200`, `250` | this integration; read and written on the AVR-X3600H |
+| `SSSWM ?` | Subwoofer mode `LFE` or `L+M` (LFE + Main) | this integration; read and written on the AVR-X3600H |
+| `SSVCTZMA ?` | Main zone volume settings, one line each: `SSVCTZMADIS` scale `REL`/`ABS`, `SSVCTZMALIM` limit `OFF`/`060`/`070`/`080`, `SSVCTZMAMLV` muting level `MUT`/`040` | this integration; read and written on the AVR-X3600H |
 
 The `SYSDVIN`/`SYSDVOUT` and `SSINFAISFOR` replies are candidates for the
 video and input-signal sensors (roadmap item 39).
