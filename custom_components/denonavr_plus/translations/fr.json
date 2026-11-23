@@ -56,7 +56,8 @@
           "volume": "Volume",
           "zones": "Zones",
           "sources": "Sources",
-          "sound_modes": "Modes son"
+          "sound_modes": "Modes son",
+          "connection": "Connexion"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Noms des modes son",
         "description": "Noms des modes son dans Home Assistant. Vide utilise le nom de l'ampli-tuner."
+      },
+      "connection": {
+        "title": "Connexion",
+        "description": "Comment l'intégration reste en contact avec l'ampli-tuner. Une modification redémarre l'intégration.",
+        "data": {
+          "poll_interval": "Intervalle de vérification",
+          "heos": "Lecture en cours via HEOS",
+          "setup_refresh": "Lire les réglages de configuration toutes les"
+        },
+        "data_description": {
+          "poll_interval": "Fréquence à laquelle l'ampli-tuner est vérifié par HTTP tant que telnet est connecté, en secondes. Les changements arrivent de toute façon immédiatement par telnet ; si telnet est coupé, la vérification a lieu toutes les 10 secondes.",
+          "heos": "Affiche le titre, l'artiste et la pochette des sources réseau et propose lecture, pause et saut. Désactivez-le si un autre programme a besoin de la connexion HEOS ou si vous n'utilisez pas de sources réseau.",
+          "setup_refresh": "L'égaliseur graphique, la configuration vidéo et l'affectation des amplis sont lus à l'établissement de la connexion et après chaque modification depuis Home Assistant. Ceci les lit en plus toutes les tant de minutes, pour remarquer les modifications faites dans le menu de l'ampli-tuner ; 0 ne les lit qu'à ces moments-là."
+        }
       }
     },
     "error": {

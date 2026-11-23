@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import timedelta
 import re
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -464,7 +465,7 @@ async def _options_step(hass: HomeAssistant, entry: MockConfigEntry, step: str) 
     """Open the options and pick a step from the menu."""
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.MENU
-    assert result["menu_options"] == ["volume", "zones", "sources", "sound_modes"]
+    assert result["menu_options"] == ["volume", "zones", "sources", "sound_modes", "connection"]
     return await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": step}
     )
@@ -561,3 +562,33 @@ async def test_zones_can_be_switched_off(
     await hass.async_block_till_done()
     assert loaded_entry.state is ConfigEntryState.LOADED
     assert loaded_entry.runtime_data.shown_zones == frozenset({"main"})
+
+
+async def test_connection_options_open_without_the_receiver(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, data={CONF_HOST: "192.0.2.10"})
+    entry.add_to_hass(hass)
+    result = await _options_step(hass, entry, "connection")
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "connection"
+    defaults = {
+        str(key): key.default() for key in result["data_schema"].schema
+    }
+    assert defaults == {"poll_interval": 60, "heos": True, "setup_refresh": 15}
+
+
+async def test_connection_options_reload_the_entry(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    result = await _options_step(hass, loaded_entry, "connection")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"poll_interval": 120.0, "heos": False, "setup_refresh": 0.0}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert loaded_entry.options["poll_interval"] == 120
+    assert loaded_entry.options["setup_refresh"] == 0
+    # A change of the connection reloads the entry; let it finish here.
+    await hass.async_block_till_done()
+    assert loaded_entry.state is ConfigEntryState.LOADED
+    coordinator = loaded_entry.runtime_data
+    assert coordinator.connection == {"poll_interval": 120, "heos": False, "setup_refresh": 0}
+    assert coordinator.update_interval == timedelta(seconds=120)

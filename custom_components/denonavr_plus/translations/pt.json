@@ -56,7 +56,8 @@
           "volume": "Volume",
           "zones": "Zonas",
           "sources": "Fontes",
-          "sound_modes": "Modos de som"
+          "sound_modes": "Modos de som",
+          "connection": "Ligação"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Nomes dos modos de som",
         "description": "Nomes dos modos de som no Home Assistant. Vazio usa o nome do recetor."
+      },
+      "connection": {
+        "title": "Ligação",
+        "description": "Como a integração se mantém em contacto com o recetor. Uma alteração reinicia a integração.",
+        "data": {
+          "poll_interval": "Intervalo de verificação",
+          "heos": "A reproduzir via HEOS",
+          "setup_refresh": "Ler as definições de configuração a cada"
+        },
+        "data_description": {
+          "poll_interval": "Com que frequência o recetor é verificado por HTTP enquanto o telnet está ligado, em segundos. As alterações chegam de qualquer forma de imediato por telnet; com o telnet desligado, a verificação é feita a cada 10 segundos.",
+          "heos": "Mostra título, artista e capa das fontes de rede e oferece reproduzir, pausar e saltar. Desative-o se outro programa precisar da ligação HEOS ou se não usar fontes de rede.",
+          "setup_refresh": "O equalizador gráfico, a configuração de vídeo e a atribuição de amplificadores são lidos quando a ligação é estabelecida e após cada alteração a partir do Home Assistant. Isto lê-os também a cada tantos minutos, para notar alterações feitas no menu do recetor; 0 lê-os só nessas alturas."
+        }
       }
     },
     "error": {

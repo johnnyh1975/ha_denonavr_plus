@@ -56,7 +56,8 @@
           "volume": "Volume",
           "zones": "Zones",
           "sources": "Sources",
-          "sound_modes": "Sound modes"
+          "sound_modes": "Sound modes",
+          "connection": "Connection"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Sound mode names",
         "description": "Names for the sound modes in Home Assistant. Empty uses the receiver's name."
+      },
+      "connection": {
+        "title": "Connection",
+        "description": "How the integration keeps in touch with the receiver. A change restarts the integration.",
+        "data": {
+          "poll_interval": "Check interval",
+          "heos": "Now playing over HEOS",
+          "setup_refresh": "Read setup settings every"
+        },
+        "data_description": {
+          "poll_interval": "How often the receiver is checked over HTTP while telnet is connected, in seconds. Changes arrive over telnet at once anyway; while telnet is down the check runs every 10 seconds.",
+          "heos": "Shows title, artist and cover of network sources and offers play, pause and skip. Turn it off if another program needs the HEOS connection or you do not use network sources.",
+          "setup_refresh": "The graphic EQ, video setup and amp assign are read when the connection comes up and after every change from Home Assistant. This also reads them every so many minutes, to notice changes made on the receiver's menu; 0 reads them only then."
+        }
       }
     },
     "error": {

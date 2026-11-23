@@ -56,7 +56,8 @@
           "volume": "Volume",
           "zones": "Zone",
           "sources": "Sorgenti",
-          "sound_modes": "Modalità audio"
+          "sound_modes": "Modalità audio",
+          "connection": "Connessione"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Nomi delle modalità audio",
         "description": "Nomi delle modalità audio in Home Assistant. Vuoto usa il nome del sintoamplificatore."
+      },
+      "connection": {
+        "title": "Connessione",
+        "description": "Come l'integrazione resta in contatto con il sintoamplificatore. Una modifica riavvia l'integrazione.",
+        "data": {
+          "poll_interval": "Intervallo di controllo",
+          "heos": "In riproduzione tramite HEOS",
+          "setup_refresh": "Leggi le impostazioni di setup ogni"
+        },
+        "data_description": {
+          "poll_interval": "Ogni quanto il sintoamplificatore viene controllato via HTTP mentre telnet è connesso, in secondi. Le modifiche arrivano comunque subito tramite telnet; se telnet è interrotto, il controllo avviene ogni 10 secondi.",
+          "heos": "Mostra titolo, artista e copertina delle sorgenti di rete e offre riproduzione, pausa e salto. Disattivalo se un altro programma ha bisogno della connessione HEOS o se non usi sorgenti di rete.",
+          "setup_refresh": "L'equalizzatore grafico, il setup video e l'assegnazione degli amplificatori vengono letti all'avvio della connessione e dopo ogni modifica da Home Assistant. Questo li legge anche ogni tot minuti, per notare le modifiche fatte nel menu del sintoamplificatore; 0 li legge solo in quei momenti."
+        }
       }
     },
     "error": {

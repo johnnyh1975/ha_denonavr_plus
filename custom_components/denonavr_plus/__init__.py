@@ -23,7 +23,12 @@ from homeassistant.helpers.typing import ConfigType
 from . import choices
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
-from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator, snapshot_store
+from .coordinator import (
+    DenonAvrConfigEntry,
+    DenonAvrCoordinator,
+    connection_options,
+    snapshot_store,
+)
 from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
 from .services import async_setup_services
 
@@ -135,14 +140,18 @@ def _remove_hidden_zones(
 
 
 async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
-    """Options changed: reload for other zones, otherwise redraw the entities.
+    """Options changed: reload for other zones or connection options.
 
     The entities read the source, sound mode and volume options when they
-    need them, so only a change of zones needs entities created or removed.
+    need them, so only a change of zones (entities created or removed) or of
+    the connection (poll, HEOS, setup reads) needs a reload.
     """
 
     coordinator = entry.runtime_data
-    if _shown_zones(entry, coordinator) != coordinator.shown_zones:
+    if (
+        _shown_zones(entry, coordinator) != coordinator.shown_zones
+        or connection_options(entry) != coordinator.connection
+    ):
         hass.config_entries.async_schedule_reload(entry.entry_id)
         return
     coordinator.async_update_listeners()

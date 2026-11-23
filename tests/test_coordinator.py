@@ -18,15 +18,17 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
+from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.transport import GoformClient
 from custom_components.denonavr_plus.const import (
+    CONFIG_MINOR_VERSION,
     DOMAIN,
     HTTP_FALLBACK_INTERVAL,
     RECONCILE_INTERVAL,
 )
 
 from .common import entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
+from .test_init import FakeHeos, FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
 
@@ -201,3 +203,62 @@ async def test_removing_the_entry_removes_the_kept_discovery(
     assert await hass.config_entries.async_remove(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert key not in hass_storage
+
+
+async def _entry(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: "192.0.2.10"},
+        options=options,
+        minor_version=CONFIG_MINOR_VERSION,
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry
+
+
+async def test_heos_can_be_left_off(hass: HomeAssistant, receiver_network: Any) -> None:
+    start = AsyncMock()
+    with patch.object(FakeHeos, "async_start", start):
+        await _entry(hass, heos=False)
+    start.assert_not_awaited()
+
+
+async def test_setup_settings_are_read_on_connect_and_every_so_often(
+    hass: HomeAssistant, receiver_network: Any, freezer: FrozenDateTimeFactory
+) -> None:
+    refresh = AsyncMock()
+    with patch.object(DenonAvrDevice, "async_refresh_setup", refresh):
+        await _entry(hass, setup_refresh=5)
+        await hass.async_block_till_done()
+        # Once when telnet came up.
+        assert refresh.await_count == 1
+        # Not with every poll (one a minute) ...
+        await _pass(hass, freezer, 4)
+        assert refresh.await_count == 1
+        # ... but after five minutes.
+        await _pass(hass, freezer, 2)
+        assert refresh.await_count == 2
+
+
+async def test_setup_settings_only_on_connect(
+    hass: HomeAssistant, receiver_network: Any, freezer: FrozenDateTimeFactory
+) -> None:
+    refresh = AsyncMock()
+    with patch.object(DenonAvrDevice, "async_refresh_setup", refresh):
+        await _entry(hass, setup_refresh=0)
+        await hass.async_block_till_done()
+        await _pass(hass, freezer, 30)
+    assert refresh.await_count == 1
+
+
+async def test_a_failing_setup_read_on_connect_is_only_logged(
+    hass: HomeAssistant, receiver_network: Any, caplog: pytest.LogCaptureFixture
+) -> None:
+    refresh = AsyncMock(side_effect=ValueError("bad XML"))
+    with patch.object(DenonAvrDevice, "async_refresh_setup", refresh):
+        entry = await _entry(hass)
+        await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert refresh.await_count == 1

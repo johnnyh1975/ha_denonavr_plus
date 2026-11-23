@@ -46,7 +46,11 @@ from .const import (
     CONFIG_MINOR_VERSION,
     CONFIG_VERSION,
     DOMAIN,
+    OPT_HEOS,
+    OPT_POLL_INTERVAL,
+    OPT_SETUP_REFRESH,
 )
+from .coordinator import connection_options
 from . import choices
 from .choices import (
     OPT_SOUND_MODE_NAMES,
@@ -345,8 +349,51 @@ class DenonAvrOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         return self.async_show_menu(
-            step_id="init", menu_options=["volume", "zones", "sources", "sound_modes"]
+            step_id="init",
+            menu_options=["volume", "zones", "sources", "sound_modes", "connection"],
         )
+
+    # Connection ------------------------------------------------------------
+
+    async def async_step_connection(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Poll interval, HEOS and how often the setup settings are read.
+
+        Opens without the receiver; a change reloads the entry.
+        """
+
+        if user_input is not None:
+            return self._save(
+                {
+                    OPT_POLL_INTERVAL: int(user_input[OPT_POLL_INTERVAL]),
+                    OPT_HEOS: user_input[OPT_HEOS],
+                    OPT_SETUP_REFRESH: int(user_input[OPT_SETUP_REFRESH]),
+                }
+            )
+        current = connection_options(self.config_entry)
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    OPT_POLL_INTERVAL, default=current[OPT_POLL_INTERVAL]
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=30, max=600, step=10, unit_of_measurement="s",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Required(OPT_HEOS, default=current[OPT_HEOS]): BooleanSelector(),
+                vol.Required(
+                    OPT_SETUP_REFRESH, default=current[OPT_SETUP_REFRESH]
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=120, step=1, unit_of_measurement="min",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(step_id="connection", data_schema=schema)
 
     # Volume ----------------------------------------------------------------
 

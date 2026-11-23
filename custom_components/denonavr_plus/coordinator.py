@@ -10,7 +10,7 @@ if the telnet link is temporarily down.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -24,8 +24,12 @@ from homeassistant.util import dt as dt_util
 from .avr import AvrState, DenonAvrDevice
 from .const import (
     CONF_PORT,
+    DEFAULT_SETUP_REFRESH,
     DOMAIN,
     HTTP_FALLBACK_INTERVAL,
+    OPT_HEOS,
+    OPT_POLL_INTERVAL,
+    OPT_SETUP_REFRESH,
     RECONCILE_INTERVAL,
     TELNET_OUTAGE_GRACE,
 )
@@ -34,6 +38,19 @@ _LOGGER = logging.getLogger(__name__)
 
 # The typed config entry carries the coordinator as its runtime data.
 type DenonAvrConfigEntry = ConfigEntry[DenonAvrCoordinator]
+
+def connection_options(entry: ConfigEntry) -> dict[str, Any]:
+    """The connection options of an entry, with their defaults."""
+
+    options = entry.options
+    return {
+        OPT_POLL_INTERVAL: int(
+            options.get(OPT_POLL_INTERVAL, RECONCILE_INTERVAL.total_seconds())
+        ),
+        OPT_HEOS: bool(options.get(OPT_HEOS, True)),
+        OPT_SETUP_REFRESH: int(options.get(OPT_SETUP_REFRESH, DEFAULT_SETUP_REFRESH)),
+    }
+
 
 _SNAPSHOT_VERSION = 1
 
@@ -48,15 +65,21 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
     """Coordinate updates from a single Denon AVR receiver."""
 
     def __init__(self, hass: HomeAssistant, entry: DenonAvrConfigEntry, host: str) -> None:
+        self.connection = connection_options(entry)
+        self._poll_interval = timedelta(seconds=self.connection[OPT_POLL_INTERVAL])
         super().__init__(
             hass,
             _LOGGER,
             name=f"{DOMAIN} {host}",
-            update_interval=RECONCILE_INTERVAL,
+            update_interval=self._poll_interval,
             config_entry=entry,
         )
         session = async_get_clientsession(hass)
-        self.device = DenonAvrDevice(session, host, entry.data.get(CONF_PORT))
+        self.device = DenonAvrDevice(
+            session, host, entry.data.get(CONF_PORT), heos=self.connection[OPT_HEOS]
+        )
+        # When the setup settings were last read by the poll (see _async_update_data).
+        self._setup_read_at: datetime | None = None
         self.device.register_update_callback(self._handle_device_update)
         # Registry id of the main receiver device, set once at setup so the
         # sub-devices can link to it via `via_device_id` (HA 2026.8+).
@@ -115,10 +138,30 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
 
         try:
             await self.device.async_poll()
+            await self._maybe_read_setup()
         except Exception as err:  # noqa: BLE001 - surface as an update failure
             raise UpdateFailed(f"Error polling Denon AVR: {err}") from err
         self._check_link()
         return self.device.state
+
+    async def _maybe_read_setup(self) -> None:
+        """Read the setup settings every OPT_SETUP_REFRESH minutes (0: never).
+
+        They are also read whenever the telnet link comes up and after each
+        own write, so this only catches changes made on the receiver's menu.
+        """
+
+        minutes = self.connection[OPT_SETUP_REFRESH]
+        if not minutes or not self.device.available:
+            return
+        now = dt_util.utcnow()
+        if self._setup_read_at is None:
+            # The link just came up and read them; count from here.
+            self._setup_read_at = now
+            return
+        if now - self._setup_read_at >= timedelta(minutes=minutes):
+            self._setup_read_at = now
+            await self.device.async_refresh_setup()
 
     @callback
     def _handle_device_update(self) -> None:
@@ -197,7 +240,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """Poll more often while the media players depend on HTTP alone."""
 
         interval = (
-            RECONCILE_INTERVAL if self.device.available else HTTP_FALLBACK_INTERVAL
+            self._poll_interval if self.device.available else HTTP_FALLBACK_INTERVAL
         )
         if self.update_interval == interval:
             return

@@ -95,8 +95,8 @@ To change the address later, open the integration's menu (three dots) and choose
 
 ### Options
 
-**Configure** on the integration entry opens a menu: volume, zones, sources
-and sound modes. Nothing in it changes the receiver; it changes what Home
+**Configure** on the integration entry opens a menu: volume, zones, sources,
+sound modes and connection. Nothing in it changes the receiver; it changes what Home
 Assistant shows and does.
 
 **Volume** (works even when the receiver is off):
@@ -129,6 +129,19 @@ zone's media player offers, and their names. The receiver only offers the
 modes that fit the current signal. The current source and sound mode are
 always shown, also when they are not selected. The sound mode selects keep
 the receiver's full list.
+
+**Connection** (works even when the receiver is off; a change restarts the
+integration):
+
+- **Check interval**: how often the receiver is checked over HTTP while telnet
+  is connected, 30 to 600 seconds (default 60). Changes arrive over telnet at
+  once anyway; while telnet is down the check runs every 10 seconds.
+- **Now playing over HEOS** (default on): title, artist, cover and play/pause for
+  network sources. Turn it off if another program needs the HEOS connection.
+- **Read setup settings every** … minutes (default 15): the graphic EQ, video
+  setup and amp assign have no push. They are read when the connection comes up,
+  after every change from Home Assistant, and at this interval to notice changes
+  made on the receiver's menu; 0 reads them only then.
 
 ## Removal
 

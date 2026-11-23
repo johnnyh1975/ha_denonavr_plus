@@ -56,7 +56,8 @@
           "volume": "Volumen",
           "zones": "Zonas",
           "sources": "Fuentes",
-          "sound_modes": "Modos de sonido"
+          "sound_modes": "Modos de sonido",
+          "connection": "Conexión"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Nombres de los modos de sonido",
         "description": "Nombres de los modos de sonido en Home Assistant. Vacío usa el nombre del receptor."
+      },
+      "connection": {
+        "title": "Conexión",
+        "description": "Cómo la integración se mantiene en contacto con el receptor. Un cambio reinicia la integración.",
+        "data": {
+          "poll_interval": "Intervalo de comprobación",
+          "heos": "Reproducción actual por HEOS",
+          "setup_refresh": "Leer los ajustes de configuración cada"
+        },
+        "data_description": {
+          "poll_interval": "Cada cuánto se comprueba el receptor por HTTP mientras telnet está conectado, en segundos. Los cambios llegan de todos modos al instante por telnet; si telnet está cortado, se comprueba cada 10 segundos.",
+          "heos": "Muestra título, artista y carátula de las fuentes de red y ofrece reproducir, pausar y saltar. Desactívalo si otro programa necesita la conexión HEOS o no usas fuentes de red.",
+          "setup_refresh": "El ecualizador gráfico, la configuración de vídeo y la asignación de amplificadores se leen al establecer la conexión y después de cada cambio desde Home Assistant. Esto además los lee cada tantos minutos, para notar los cambios hechos en el menú del receptor; 0 los lee solo entonces."
+        }
       }
     },
     "error": {

@@ -56,7 +56,8 @@
           "volume": "Głośność",
           "zones": "Strefy",
           "sources": "Źródła",
-          "sound_modes": "Tryby dźwięku"
+          "sound_modes": "Tryby dźwięku",
+          "connection": "Połączenie"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Nazwy trybów dźwięku",
         "description": "Nazwy trybów dźwięku w Home Assistant. Puste pole oznacza nazwę z amplitunera."
+      },
+      "connection": {
+        "title": "Połączenie",
+        "description": "Jak integracja utrzymuje kontakt z amplitunerem. Zmiana uruchamia integrację ponownie.",
+        "data": {
+          "poll_interval": "Odstęp sprawdzania",
+          "heos": "Odtwarzanie przez HEOS",
+          "setup_refresh": "Odczytuj ustawienia konfiguracji co"
+        },
+        "data_description": {
+          "poll_interval": "Jak często amplituner jest sprawdzany przez HTTP, gdy telnet jest połączony, w sekundach. Zmiany i tak przychodzą natychmiast przez telnet; gdy telnet jest rozłączony, sprawdzanie odbywa się co 10 sekund.",
+          "heos": "Pokazuje tytuł, wykonawcę i okładkę źródeł sieciowych oraz oferuje odtwarzanie, pauzę i przeskakiwanie. Wyłącz, jeśli inny program potrzebuje połączenia HEOS lub nie używasz źródeł sieciowych.",
+          "setup_refresh": "Korektor graficzny, ustawienia wideo i przypisanie wzmacniaczy są odczytywane po nawiązaniu połączenia i po każdej zmianie z Home Assistant. Dodatkowo odczytuje je co tyle minut, aby zauważyć zmiany w menu amplitunera; 0 odczytuje je tylko wtedy."
+        }
       }
     },
     "error": {

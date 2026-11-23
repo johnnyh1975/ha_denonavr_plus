@@ -99,11 +99,11 @@ that were new when the analysis was written now have their own numbers
 | HEOS `play_stream?url=` documented since CLI 1.9 | Basis for `play_media` and announcements | 14, 21 (To test) |
 | HEOS `check_update` documented since CLI 1.10 | Basis for the `update` entity | 31 (To test) |
 | HEOS `player_now_playing_progress` ignored | Position and duration missing | 23 |
-| Setup config API on HTTP 11080 on newer firmware | Graphic EQ and video setup missing there | 46: try 11080 when 10443 is closed |
+| Setup config API on HTTP 11080 on newer firmware | Graphic EQ and video setup missing there | 46 (fixed: 11080 when 10443 is closed; 11080 To test) |
 | README says both "one telnet session" and "several sessions" | Users get contradictory advice | 34, after the concurrency test |
-| Marantz manufacturer strings not in the SSDP matcher | No automatic discovery | 17 |
-| No HEOS heart beat | Idle HEOS connection may drop unnoticed (community: drops after 60 s or more; pyheos beats after 10 s idle) | 47 |
-| SSDP matches only AiosDevice + `Denon` | No discovery for Marantz, `DENON`-labelled or pre-2016 units | 16, 17 |
+| Marantz manufacturer strings not in the SSDP matcher | No automatic discovery | 17 (fixed) |
+| No HEOS heart beat | Idle HEOS connection may drop unnoticed (community: drops after 60 s or more; pyheos beats after 10 s idle) | 47 (fixed) |
+| SSDP matches only AiosDevice + `Denon` | No discovery for Marantz, `DENON`-labelled or pre-2016 units | 17 (fixed) |
 | Official entity unique ids `{model}-{serial}-{zone}` | Key for taking over entity ids | 18 |
 | Now playing kept while HEOS reports `stop` | Stale title in the media player | 45 (fixed) |
 | Quick Select numbers beyond the advertised count | A Marantz became unstable after an out-of-range recall | 13, 30 |

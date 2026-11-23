@@ -56,7 +56,8 @@
           "volume": "Lautstärke",
           "zones": "Zonen",
           "sources": "Quellen",
-          "sound_modes": "Klangmodi"
+          "sound_modes": "Klangmodi",
+          "connection": "Verbindung"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Namen der Klangmodi",
         "description": "Namen für die Klangmodi in Home Assistant. Leer bedeutet: der Name vom Receiver."
+      },
+      "connection": {
+        "title": "Verbindung",
+        "description": "Wie die Integration mit dem Receiver in Verbindung bleibt. Eine Änderung startet die Integration neu.",
+        "data": {
+          "poll_interval": "Prüfintervall",
+          "heos": "Wiedergabe über HEOS",
+          "setup_refresh": "Setup-Einstellungen lesen alle"
+        },
+        "data_description": {
+          "poll_interval": "Wie oft der Receiver über HTTP geprüft wird, solange Telnet verbunden ist, in Sekunden. Änderungen kommen ohnehin sofort über Telnet; ist Telnet getrennt, wird alle 10 Sekunden geprüft.",
+          "heos": "Zeigt Titel, Interpret und Cover von Netzwerkquellen und bietet Wiedergabe, Pause und Springen. Schalte es aus, wenn ein anderes Programm die HEOS-Verbindung braucht oder du keine Netzwerkquellen nutzt.",
+          "setup_refresh": "Grafik-EQ, Video-Setup und Endstufenzuweisung werden beim Verbindungsaufbau und nach jeder Änderung aus Home Assistant gelesen. Zusätzlich alle so viele Minuten, um Änderungen im Menü des Receivers zu bemerken; 0 liest sie nur dann."
+        }
       }
     },
     "error": {

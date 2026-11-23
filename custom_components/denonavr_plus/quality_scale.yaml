@@ -17,8 +17,9 @@ rules:
     status: done
     comment: >
       State is pushed over telnet. An HTTP reconciliation poll runs every
-      60 s. It also re-reads the setup API menus, which is more than needed
-      and is reduced later.
+      60 s (an option, 30 to 600 s), every 10 s only while telnet is down.
+      The setup API menus are read when the link comes up, after own
+      writes and every 15 minutes (an option; 0 for never).
   brands:
     status: done
     comment: Brand images ship in the inline brand/ directory.

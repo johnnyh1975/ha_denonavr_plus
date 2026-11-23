@@ -44,6 +44,15 @@ PLATFORMS: list[Platform] = [
 # push channel is temporarily down.
 RECONCILE_INTERVAL = timedelta(seconds=60)
 
+# Connection options (Configure -> Connection). The poll interval replaces
+# RECONCILE_INTERVAL; HEOS can be left off; the setup settings (graphic EQ,
+# video and speaker setup, read over the setup interface) are read when the
+# link comes up, after own writes, and every so many minutes (0: never).
+OPT_POLL_INTERVAL = "poll_interval"
+OPT_HEOS = "heos"
+OPT_SETUP_REFRESH = "setup_refresh"
+DEFAULT_SETUP_REFRESH = 15  # minutes
+
 # While the telnet link is down the media players run on this HTTP poll alone,
 # so it runs more often to catch changes made at the receiver.
 HTTP_FALLBACK_INTERVAL = timedelta(seconds=10)

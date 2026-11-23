@@ -66,8 +66,12 @@ class DenonAvrDevice:
         session: aiohttp.ClientSession,
         host: str,
         http_port: int | None = None,
+        *,
+        heos: bool = True,
     ) -> None:
         self._host = host
+        # Whether to open the HEOS channel for now playing (connection option).
+        self._heos_enabled = heos
         self._session = session
         # The goform port; None until it is known (detected at the first
         # Deviceinfo read, or given from the stored config entry).
@@ -393,7 +397,8 @@ class DenonAvrDevice:
 
         await self._telnet.async_start()
         # Best effort; the HEOS channel is auxiliary and self-heals on its own.
-        await self._heos.async_start()
+        if self._heos_enabled:
+            await self._heos.async_start()
 
     async def async_await_ready(self, timeout: float = 8.0) -> None:
         """Wait, best effort, until the initial resync has populated state.
@@ -455,13 +460,19 @@ class DenonAvrDevice:
             self._apply_http_status(self._main_zone_id(), status)
             await self._poll_additional_zones()
             self._schedule_update()
-        # Refresh the manual graphic EQ per-band values (non-disruptive; a no-op
-        # unless the receiver advertises a graphic EQ this profile can drive).
+
+    async def async_refresh_setup(self) -> None:
+        """Read the settings kept on the setup interface again.
+
+        The graphic EQ bands, the video setup and the speaker setup (amp
+        assign) have no telnet push. They are read when the telnet link comes
+        up, after each own write, and when the caller asks (every so many
+        minutes, a connection option). Each read is non-disruptive and a no-op
+        when the receiver does not offer it; a failed read leaves the values.
+        """
+
         await self._graphic_eq.refresh()
-        # Refresh the video setup menu values (non-disruptive; no-op unless the
-        # receiver advertises a video config API this profile can drive).
         await self._video_config.refresh()
-        # Refresh the speaker setup menu values (amp assign).
         await self._speaker_config.refresh()
 
     # Telnet callbacks -----------------------------------------------------
@@ -508,6 +519,16 @@ class DenonAvrDevice:
 
         for command in self._resync_queries():
             await self._telnet.async_send(command)
+        # The setup settings may have changed while the link was down.
+        self._create_task(self._refresh_setup_quietly())
+
+    async def _refresh_setup_quietly(self) -> None:
+        """async_refresh_setup as a background task: report, never raise."""
+
+        try:
+            await self.async_refresh_setup()
+        except Exception as err:  # noqa: BLE001 - a background task must not raise
+            _LOGGER.debug("Reading the setup settings of %s failed: %s", self._host, err)
 
     def _resync_queries(self) -> list[str]:
         """Build the list of query commands used to resynchronise state."""

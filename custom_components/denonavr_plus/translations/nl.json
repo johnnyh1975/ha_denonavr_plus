@@ -56,7 +56,8 @@
           "volume": "Volume",
           "zones": "Zones",
           "sources": "Bronnen",
-          "sound_modes": "Geluidsmodi"
+          "sound_modes": "Geluidsmodi",
+          "connection": "Verbinding"
         }
       },
       "volume": {
@@ -167,6 +168,20 @@
       "sound_mode_names": {
         "title": "Namen van de geluidsmodi",
         "description": "Namen voor de geluidsmodi in Home Assistant. Leeg gebruikt de naam van de receiver."
+      },
+      "connection": {
+        "title": "Verbinding",
+        "description": "Hoe de integratie contact houdt met de receiver. Een wijziging herstart de integratie.",
+        "data": {
+          "poll_interval": "Controle-interval",
+          "heos": "Nu afspelen via HEOS",
+          "setup_refresh": "Setup-instellingen lezen elke"
+        },
+        "data_description": {
+          "poll_interval": "Hoe vaak de receiver via HTTP wordt gecontroleerd terwijl telnet verbonden is, in seconden. Wijzigingen komen hoe dan ook direct via telnet binnen; is telnet verbroken, dan wordt elke 10 seconden gecontroleerd.",
+          "heos": "Toont titel, artiest en hoes van netwerkbronnen en biedt afspelen, pauzeren en overslaan. Zet het uit als een ander programma de HEOS-verbinding nodig heeft of als je geen netwerkbronnen gebruikt.",
+          "setup_refresh": "De grafische EQ, de video-instellingen en de versterkertoewijzing worden gelezen wanneer de verbinding tot stand komt en na elke wijziging vanuit Home Assistant. Dit leest ze daarnaast elke zoveel minuten, om wijzigingen in het menu van de receiver op te merken; 0 leest ze alleen dan."
+        }
       }
     },
     "error": {
