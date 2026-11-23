@@ -63,7 +63,8 @@ modules start at 95 %.
    (`scripts/check_translations.py`). Entity ids are built from the English
    name in every language (`entity.py`, `suggested_object_id`), so name
    entities through `translation_key`, with placeholders for parts that
-   come from the receiver, and keep device names English.
+   come from the receiver, and keep device names English. The locale-slug
+   guard enforces this (`scripts/check_locale_slugs.py`).
 8. **Protocol facts say where they come from.** A command token or value
    that has not been confirmed on a receiver is marked in its test with
    `@pytest.mark.assumed("what is unconfirmed, and what would settle it")`.

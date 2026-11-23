@@ -122,6 +122,9 @@ jobs:
       - name: Check strings.json vs. all translations/*.json
         run: python3 scripts/check_translations.py
 
+      - name: Entity ids stay English in every language
+        run: python3 scripts/check_locale_slugs.py
+
   private-data:
     name: No Private Data
     runs-on: ubuntu-latest
