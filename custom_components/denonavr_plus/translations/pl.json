@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Wprowadź adres IP swojego amplitunera Denon. Nazwa i funkcje są odczytywane automatycznie z urządzenia.",
+        "description": "Wprowadź adres IP swojego amplitunera Denon lub Marantz albo zostaw pole puste, aby wybrać spośród amplitunerów znalezionych w sieci. Nazwa i funkcje są odczytywane automatycznie z urządzenia.",
         "data": {
           "host": "Adres IP"
         },
         "data_description": {
-          "host": "Adres IP amplitunera, na przykład 192.0.2.10. Znajdziesz go w informacjach sieciowych amplitunera lub w routerze. Stały adres (rezerwacja DHCP) zapewnia stabilne połączenie."
+          "host": "Adres IP amplitunera, na przykład 192.0.2.10. Znajdziesz go w informacjach sieciowych amplitunera lub w routerze. Stały adres (rezerwacja DHCP) zapewnia stabilne połączenie. Zostaw puste, aby wyszukać."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "Adres IP amplitunera, na przykład 192.0.2.10. Znajdziesz go w informacjach sieciowych amplitunera lub w routerze. Stały adres (rezerwacja DHCP) zapewnia stabilne połączenie."
         }
+      },
+      "pick": {
+        "title": "Znalezione amplitunery",
+        "description": "W sieci znaleziono kilka amplitunerów. Wybierz ten, który chcesz dodać.",
+        "data": {
+          "receiver": "Amplituner"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Nie można połączyć się z amplitunerem. Sprawdź adres IP oraz czy amplituner jest włączony i podłączony do sieci."
+      "cannot_connect": "Nie można połączyć się z amplitunerem. Sprawdź adres IP oraz czy amplituner jest włączony i podłączony do sieci.",
+      "no_receivers_found": "W sieci nie znaleziono żadnego nieskonfigurowanego amplitunera. Wprowadź jego adres IP."
     },
     "abort": {
       "already_configured": "Ten amplituner jest już skonfigurowany.",

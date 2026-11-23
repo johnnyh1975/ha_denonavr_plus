@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Introduce la dirección IP de tu receptor Denon. El nombre y las funciones se leen automáticamente del dispositivo.",
+        "description": "Introduce la dirección IP de tu receptor Denon o Marantz, o déjala vacía para elegir entre los receptores encontrados en la red. El nombre y las funciones se leen automáticamente del dispositivo.",
         "data": {
           "host": "Dirección IP"
         },
         "data_description": {
-          "host": "La dirección IP del receptor, por ejemplo 192.0.2.10. La encontrarás en la información de red del receptor o en tu router. Una dirección fija (reserva DHCP) mantiene estable la conexión."
+          "host": "La dirección IP del receptor, por ejemplo 192.0.2.10. La encontrarás en la información de red del receptor o en tu router. Una dirección fija (reserva DHCP) mantiene estable la conexión. Déjala vacía para buscar."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "La dirección IP del receptor, por ejemplo 192.0.2.10. La encontrarás en la información de red del receptor o en tu router. Una dirección fija (reserva DHCP) mantiene estable la conexión."
         }
+      },
+      "pick": {
+        "title": "Receptores encontrados",
+        "description": "Se encontraron varios receptores en la red. Elige el que quieres añadir.",
+        "data": {
+          "receiver": "Receptor"
+        }
       }
     },
     "error": {
-      "cannot_connect": "No se puede acceder al receptor. Comprueba la dirección IP y que el receptor esté encendido y conectado a la red."
+      "cannot_connect": "No se puede acceder al receptor. Comprueba la dirección IP y que el receptor esté encendido y conectado a la red.",
+      "no_receivers_found": "No se encontró en la red ningún receptor sin configurar. Introduce su dirección IP."
     },
     "abort": {
       "already_configured": "Este receptor ya está configurado.",

@@ -6,14 +6,22 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 FIXTURES = Path(__file__).parent / "fixtures"
 DENONAVR_FIXTURES = FIXTURES / "denonavr"
 
 
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> Iterator[None]:
-    """Let Home Assistant load custom_components/denonavr_plus in every test."""
+def auto_enable_custom_integrations(
+    enable_custom_integrations: None, hass: HomeAssistant
+) -> Iterator[None]:
+    """Let Home Assistant load custom_components/denonavr_plus in every test.
+
+    SSDP, a dependency, counts as loaded: the real one opens sockets. Tests
+    that read its cache patch ssdp.async_get_discovery_info_by_st.
+    """
+    hass.config.components.add("ssdp")
     yield
 
 

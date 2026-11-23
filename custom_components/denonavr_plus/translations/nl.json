@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Voer het IP-adres van je Denon-receiver in. De naam en mogelijkheden worden automatisch van het apparaat gelezen.",
+        "description": "Voer het IP-adres van je Denon- of Marantz-receiver in, of laat het leeg om te kiezen uit de receivers die op het netwerk zijn gevonden. De naam en mogelijkheden worden automatisch van het apparaat gelezen.",
         "data": {
           "host": "IP-adres"
         },
         "data_description": {
-          "host": "Het IP-adres van de receiver, bijvoorbeeld 192.0.2.10. Je vindt het in de netwerkinformatie van de receiver of in je router. Een vast adres (DHCP-reservering) houdt de verbinding stabiel."
+          "host": "Het IP-adres van de receiver, bijvoorbeeld 192.0.2.10. Je vindt het in de netwerkinformatie van de receiver of in je router. Een vast adres (DHCP-reservering) houdt de verbinding stabiel. Laat leeg om te zoeken."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "Het IP-adres van de receiver, bijvoorbeeld 192.0.2.10. Je vindt het in de netwerkinformatie van de receiver of in je router. Een vast adres (DHCP-reservering) houdt de verbinding stabiel."
         }
+      },
+      "pick": {
+        "title": "Gevonden receivers",
+        "description": "Er zijn meerdere receivers op het netwerk gevonden. Kies welke je wilt toevoegen.",
+        "data": {
+          "receiver": "Receiver"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Kon de receiver niet bereiken. Controleer het IP-adres en of de receiver aan staat en op het netwerk zit."
+      "cannot_connect": "Kon de receiver niet bereiken. Controleer het IP-adres en of de receiver aan staat en op het netwerk zit.",
+      "no_receivers_found": "Er is op het netwerk geen receiver gevonden die nog niet is ingesteld. Voer het IP-adres in."
     },
     "abort": {
       "already_configured": "Deze receiver is al geconfigureerd.",

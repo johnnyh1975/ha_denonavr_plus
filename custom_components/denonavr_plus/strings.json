@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Enter the IP address of your Denon receiver. The name and capabilities are read from the device automatically.",
+        "description": "Enter the IP address of your Denon or Marantz receiver, or leave it empty to choose from the receivers found on the network. The name and capabilities are read from the device automatically.",
         "data": {
           "host": "IP address"
         },
         "data_description": {
-          "host": "The IP address of the receiver, for example 192.0.2.10. You find it in the receiver's network information or in your router. A fixed address (DHCP reservation) keeps the connection stable."
+          "host": "The IP address of the receiver, for example 192.0.2.10. You find it in the receiver's network information or in your router. A fixed address (DHCP reservation) keeps the connection stable. Leave it empty to search."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "The IP address of the receiver, for example 192.0.2.10. You find it in the receiver's network information or in your router. A fixed address (DHCP reservation) keeps the connection stable."
         }
+      },
+      "pick": {
+        "title": "Receivers found",
+        "description": "Several receivers were found on the network. Choose the one to add.",
+        "data": {
+          "receiver": "Receiver"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Could not reach the receiver. Check the IP address and that the receiver is powered on and on the network."
+      "cannot_connect": "Could not reach the receiver. Check the IP address and that the receiver is powered on and on the network.",
+      "no_receivers_found": "No receiver that is not set up yet was found on the network. Enter its IP address."
     },
     "abort": {
       "already_configured": "This receiver is already configured.",

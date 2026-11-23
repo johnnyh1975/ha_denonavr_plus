@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Gib die IP-Adresse deines Denon-Receivers ein. Name und Funktionen werden automatisch vom Gerät gelesen.",
+        "description": "Gib die IP-Adresse deines Denon- oder Marantz-Receivers ein, oder lass das Feld leer, um aus den im Netzwerk gefundenen Receivern zu wählen. Name und Funktionen werden automatisch vom Gerät gelesen.",
         "data": {
           "host": "IP-Adresse"
         },
         "data_description": {
-          "host": "Die IP-Adresse des Receivers, zum Beispiel 192.0.2.10. Du findest sie in den Netzwerkinformationen des Receivers oder in deinem Router. Eine feste Adresse (DHCP-Reservierung) hält die Verbindung stabil."
+          "host": "Die IP-Adresse des Receivers, zum Beispiel 192.0.2.10. Du findest sie in den Netzwerkinformationen des Receivers oder in deinem Router. Eine feste Adresse (DHCP-Reservierung) hält die Verbindung stabil. Leer lassen, um zu suchen."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "Die IP-Adresse des Receivers, zum Beispiel 192.0.2.10. Du findest sie in den Netzwerkinformationen des Receivers oder in deinem Router. Eine feste Adresse (DHCP-Reservierung) hält die Verbindung stabil."
         }
+      },
+      "pick": {
+        "title": "Gefundene Receiver",
+        "description": "Im Netzwerk wurden mehrere Receiver gefunden. Wähle den, der hinzugefügt werden soll.",
+        "data": {
+          "receiver": "Receiver"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Der Receiver ist nicht erreichbar. Prüfe die IP-Adresse und ob der Receiver eingeschaltet und im Netzwerk ist."
+      "cannot_connect": "Der Receiver ist nicht erreichbar. Prüfe die IP-Adresse und ob der Receiver eingeschaltet und im Netzwerk ist.",
+      "no_receivers_found": "Im Netzwerk wurde kein Receiver gefunden, der noch nicht eingerichtet ist. Gib seine IP-Adresse ein."
     },
     "abort": {
       "already_configured": "Dieser Receiver ist bereits eingerichtet.",

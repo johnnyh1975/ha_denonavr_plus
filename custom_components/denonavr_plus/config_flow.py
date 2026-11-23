@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 
 import voluptuous as vol
 
+from homeassistant.components import ssdp
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
@@ -58,13 +59,30 @@ from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME
 
 _LOGGER = logging.getLogger(__name__)
 
-STEP_USER_SCHEMA = vol.Schema({vol.Required(CONF_HOST): str})
+STEP_USER_SCHEMA = vol.Schema({vol.Optional(CONF_HOST): str})
 
 #: Manufacturer strings of Denon and Marantz units in their UPnP description.
 SSDP_MANUFACTURERS = frozenset({"Denon", "DENON", "DENON PROFESSIONAL", "Marantz"})
 #: Model names of HEOS speakers and other units that are no receiver. They
 #: announce the same device types under the same manufacturer.
 _NOT_A_RECEIVER = ("HEOS", "Denon Home")
+#: The device types Denon and Marantz units announce over SSDP.
+SSDP_DEVICE_TYPES = (
+    "urn:schemas-denon-com:device:AiosDevice:1",
+    "urn:schemas-upnp-org:device:MediaRenderer:1",
+    "urn:schemas-upnp-org:device:MediaServer:1",
+)
+CONF_RECEIVER = "receiver"
+
+
+def _skip_reason(upnp: Any) -> str | None:
+    """Why an SSDP announcement is no receiver to set up, or None if it is."""
+
+    if upnp.get("manufacturer") not in SSDP_MANUFACTURERS:
+        return "not_denon_marantz"
+    if str(upnp.get("modelName", "")).startswith(_NOT_A_RECEIVER):
+        return "not_a_receiver"
+    return None
 
 
 class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -82,6 +100,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._host: str | None = None
         self._name: str = "Denon AVR"
         self._port: int | None = None
+        self._found: dict[str, str] = {}
 
     async def _async_identify(self, host: str) -> tuple[str | None, str]:
         """Fetch the receiver's MAC and model name. Raises ConnectionError.
@@ -109,37 +128,93 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step where the user enters the IP address."""
+        """Ask for the address; left empty, offer the receivers found on the network."""
 
         errors: dict[str, str] = {}
         if user_input is not None:
-            host = user_input[CONF_HOST].strip()
-            try:
-                mac, name = await self._async_identify(host)
-            except ConnectionError:
-                errors["base"] = "cannot_connect"
-            else:
-                if mac:
-                    await self.async_set_unique_id(mac)
-                    self._abort_if_unique_id_configured(updates=self._entry_data(host))
+            host = (user_input.get(CONF_HOST) or "").strip()
+            if not host:
+                self._found = await self._async_discovered_receivers()
+                if len(self._found) > 1:
+                    return await self.async_step_pick()
+                if not self._found:
+                    errors["base"] = "no_receivers_found"
                 else:
-                    self._async_abort_entries_match({CONF_HOST: host})
-                return self.async_create_entry(title=name, data=self._entry_data(host))
+                    host = next(iter(self._found))
+            if host:
+                result = await self._async_add(host, errors)
+                if result is not None:
+                    return result
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors
         )
+
+    async def async_step_pick(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose one of several receivers found on the network."""
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            result = await self._async_add(user_input[CONF_RECEIVER], errors)
+            if result is not None:
+                return result
+        options = [
+            SelectOptionDict(value=host, label=label) for host, label in self._found.items()
+        ]
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_RECEIVER): SelectSelector(
+                    SelectSelectorConfig(options=options, mode=SelectSelectorMode.LIST)
+                )
+            }
+        )
+        return self.async_show_form(step_id="pick", data_schema=schema, errors=errors)
+
+    async def _async_add(self, host: str, errors: dict[str, str]) -> ConfigFlowResult | None:
+        """Identify the receiver at host and create its entry; None after an error."""
+
+        try:
+            mac, name = await self._async_identify(host)
+        except ConnectionError:
+            errors["base"] = "cannot_connect"
+            return None
+        if mac:
+            await self.async_set_unique_id(mac)
+            self._abort_if_unique_id_configured(updates=self._entry_data(host))
+        else:
+            self._async_abort_entries_match({CONF_HOST: host})
+        return self.async_create_entry(title=name, data=self._entry_data(host))
+
+    async def _async_discovered_receivers(self) -> dict[str, str]:
+        """Receivers Home Assistant has seen over SSDP and that are not set up.
+
+        Maps the address to a label for the list, the receiver's own name and
+        its address. Comes from the SSDP cache, so it needs no new search.
+        """
+
+        configured = {
+            entry.data.get(CONF_HOST)
+            for entry in self._async_current_entries(include_ignore=False)
+        }
+        found: dict[str, str] = {}
+        for device_type in SSDP_DEVICE_TYPES:
+            for info in await ssdp.async_get_discovery_info_by_st(self.hass, device_type):
+                host = urlparse(info.ssdp_location or "").hostname
+                if not host or host in configured or _skip_reason(info.upnp):
+                    continue
+                name = info.upnp.get("friendlyName") or info.upnp.get("modelName") or host
+                found.setdefault(host, f"{name} ({host})")
+        return found
 
     async def async_step_ssdp(
         self, discovery_info: SsdpServiceInfo
     ) -> ConfigFlowResult:
         """Handle a receiver discovered over SSDP."""
 
-        upnp = discovery_info.upnp
-        if upnp.get("manufacturer") not in SSDP_MANUFACTURERS:
-            return self.async_abort(reason="not_denon_marantz")
-        if str(upnp.get("modelName", "")).startswith(_NOT_A_RECEIVER):
-            return self.async_abort(reason="not_a_receiver")
+        if reason := _skip_reason(discovery_info.upnp):
+            return self.async_abort(reason=reason)
         host = urlparse(discovery_info.ssdp_location or "").hostname
         if not host:
             return self.async_abort(reason="cannot_connect")

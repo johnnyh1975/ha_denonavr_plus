@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Saisissez l'adresse IP de votre ampli-tuner Denon. Le nom et les fonctions sont lus automatiquement depuis l'appareil.",
+        "description": "Saisissez l'adresse IP de votre ampli-tuner Denon ou Marantz, ou laissez le champ vide pour choisir parmi les amplis-tuners trouvés sur le réseau. Le nom et les fonctions sont lus automatiquement depuis l'appareil.",
         "data": {
           "host": "Adresse IP"
         },
         "data_description": {
-          "host": "L'adresse IP de l'ampli-tuner, par exemple 192.0.2.10. Vous la trouvez dans les informations réseau de l'ampli-tuner ou dans votre routeur. Une adresse fixe (réservation DHCP) garde la connexion stable."
+          "host": "L'adresse IP de l'ampli-tuner, par exemple 192.0.2.10. Vous la trouvez dans les informations réseau de l'ampli-tuner ou dans votre routeur. Une adresse fixe (réservation DHCP) garde la connexion stable. Laissez vide pour rechercher."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "L'adresse IP de l'ampli-tuner, par exemple 192.0.2.10. Vous la trouvez dans les informations réseau de l'ampli-tuner ou dans votre routeur. Une adresse fixe (réservation DHCP) garde la connexion stable."
         }
+      },
+      "pick": {
+        "title": "Amplis-tuners trouvés",
+        "description": "Plusieurs amplis-tuners ont été trouvés sur le réseau. Choisissez celui à ajouter.",
+        "data": {
+          "receiver": "Ampli-tuner"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de joindre l'ampli-tuner. Vérifiez l'adresse IP et que l'ampli-tuner est allumé et connecté au réseau."
+      "cannot_connect": "Impossible de joindre l'ampli-tuner. Vérifiez l'adresse IP et que l'ampli-tuner est allumé et connecté au réseau.",
+      "no_receivers_found": "Aucun ampli-tuner non configuré n'a été trouvé sur le réseau. Saisissez son adresse IP."
     },
     "abort": {
       "already_configured": "Cet ampli-tuner est déjà configuré.",

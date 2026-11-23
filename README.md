@@ -81,9 +81,14 @@ Copy the `denonavr_plus` folder into `<config>/custom_components/` and restart H
 
 ## Configuration
 
-Settings → Devices & Services → Add Integration → **Denon AVR Plus**, then enter the
-receiver's **IP address**. The name and all capabilities are read from the device
-automatically; no other input is required.
+Receivers on the network usually show up by themselves under Settings → Devices &
+Services → Discovered.
+
+Otherwise: Settings → Devices & Services → Add Integration → **Denon AVR Plus**,
+then enter the receiver's **IP address**. Leave the field empty to choose from the
+receivers Home Assistant has found on the network and that are not set up yet;
+with only one, it is added directly. The name and all capabilities are read from
+the device automatically; no other input is required.
 
 To change the address later, open the integration's menu (three dots) and choose
 **Reconfigure**. The new address must belong to the same receiver.

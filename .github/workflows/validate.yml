@@ -43,7 +43,11 @@ jobs:
         run: python -m pip install "uv==0.12.18"
 
       - name: Install a recent Home Assistant and test tooling
-        run: uv pip install --system "pytest-homeassistant-custom-component==0.13.375"
+        # async-upnp-client: the SSDP integration's requirement, at the version
+        # this Home Assistant pins; the setup step reads its cache.
+        run: |
+          uv pip install --system "pytest-homeassistant-custom-component==0.13.375" \
+                      "async-upnp-client==0.48.2"
 
       - name: Run full test suite with coverage
         env:
@@ -82,7 +86,9 @@ jobs:
         run: python -m pip install "uv==0.12.18"
 
       - name: Install Home Assistant 2026.8 and test tooling
-        run: uv pip install --system "pytest-homeassistant-custom-component==0.13.357"
+        run: |
+          uv pip install --system "pytest-homeassistant-custom-component==0.13.357" \
+                      "async-upnp-client==0.47.1"
 
       - name: Run full test suite
         run: python -m pytest tests/ -q -n auto

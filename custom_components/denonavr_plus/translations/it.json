@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Inserisci l'indirizzo IP del tuo sintoamplificatore Denon. Nome e funzioni vengono letti automaticamente dal dispositivo.",
+        "description": "Inserisci l'indirizzo IP del tuo sintoamplificatore Denon o Marantz, oppure lascialo vuoto per scegliere tra quelli trovati in rete. Nome e funzioni vengono letti automaticamente dal dispositivo.",
         "data": {
           "host": "Indirizzo IP"
         },
         "data_description": {
-          "host": "L'indirizzo IP del sintoamplificatore, ad esempio 192.0.2.10. Lo trovi nelle informazioni di rete del sintoamplificatore o nel router. Un indirizzo fisso (prenotazione DHCP) mantiene stabile la connessione."
+          "host": "L'indirizzo IP del sintoamplificatore, ad esempio 192.0.2.10. Lo trovi nelle informazioni di rete del sintoamplificatore o nel router. Un indirizzo fisso (prenotazione DHCP) mantiene stabile la connessione. Lascia vuoto per cercare."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "L'indirizzo IP del sintoamplificatore, ad esempio 192.0.2.10. Lo trovi nelle informazioni di rete del sintoamplificatore o nel router. Un indirizzo fisso (prenotazione DHCP) mantiene stabile la connessione."
         }
+      },
+      "pick": {
+        "title": "Sintoamplificatori trovati",
+        "description": "In rete sono stati trovati più sintoamplificatori. Scegli quello da aggiungere.",
+        "data": {
+          "receiver": "Sintoamplificatore"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Impossibile raggiungere il sintoamplificatore. Controlla l'indirizzo IP e che il sintoamplificatore sia acceso e collegato alla rete."
+      "cannot_connect": "Impossibile raggiungere il sintoamplificatore. Controlla l'indirizzo IP e che il sintoamplificatore sia acceso e collegato alla rete.",
+      "no_receivers_found": "In rete non è stato trovato alcun sintoamplificatore non ancora configurato. Inserisci il suo indirizzo IP."
     },
     "abort": {
       "already_configured": "Questo sintoamplificatore è già configurato.",

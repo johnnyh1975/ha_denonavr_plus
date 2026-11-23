@@ -203,6 +203,87 @@ async def test_ssdp_one_flow_per_receiver(hass: HomeAssistant) -> None:
     assert identify.await_count == 1
 
 
+def _seen(*receivers: tuple[str, str, str, str]) -> AsyncMock:
+    """The SSDP cache: (address, manufacturer, model, friendly name) per unit.
+
+    Each unit is announced under every device type, as HEOS-era receivers do.
+    """
+
+    async def by_st(hass: HomeAssistant, device_type: str) -> list[SsdpServiceInfo]:
+        return [
+            SsdpServiceInfo(
+                ssdp_usn=f"uuid:{host}",
+                ssdp_st=device_type,
+                ssdp_location=f"http://{host}:60006/upnp/desc/aios_device/aios_device.xml",
+                upnp={"manufacturer": maker, "modelName": model, "friendlyName": name},
+            )
+            for host, maker, model, name in receivers
+        ]
+
+    return AsyncMock(side_effect=by_st)
+
+
+LIVING = ("192.0.2.10", "Denon", MODEL, "Living room")
+CINEMA = ("192.0.2.11", "Marantz", "SR6015", "Cinema")
+KITCHEN = ("192.0.2.12", "Denon", "HEOS 1", "Kitchen")
+
+
+async def _search(hass: HomeAssistant, cache: AsyncMock) -> Any:
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with patch.object(config_flow.ssdp, "async_get_discovery_info_by_st", cache):
+        return await hass.config_entries.flow.async_configure(result["flow_id"], {})
+
+
+async def test_an_empty_address_offers_the_receivers_found(hass: HomeAssistant) -> None:
+    result = await _search(hass, _seen(LIVING, CINEMA, KITCHEN))
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "pick"
+    options = result["data_schema"].schema["receiver"].config["options"]
+    # The HEOS speaker is not offered, and each receiver once.
+    assert options == [
+        {"value": "192.0.2.10", "label": "Living room (192.0.2.10)"},
+        {"value": "192.0.2.11", "label": "Cinema (192.0.2.11)"},
+    ]
+
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity()):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"receiver": "192.0.2.10"}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"] == {CONF_HOST: "192.0.2.10"}
+
+
+async def test_a_single_receiver_found_is_added_directly(hass: HomeAssistant) -> None:
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity()):
+        result = await _search(hass, _seen(LIVING, KITCHEN))
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"] == {CONF_HOST: "192.0.2.10"}
+
+
+async def test_receivers_already_set_up_are_not_offered(hass: HomeAssistant) -> None:
+    MockConfigEntry(
+        domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, unique_id=MAC, data={CONF_HOST: "192.0.2.10"}
+    ).add_to_hass(hass)
+    result = await _search(hass, _seen(LIVING))
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"] == {"base": "no_receivers_found"}
+
+
+async def test_a_picked_receiver_that_does_not_answer(hass: HomeAssistant) -> None:
+    result = await _search(hass, _seen(LIVING, CINEMA))
+    failing = AsyncMock(side_effect=ConnectionError("unreachable"))
+    with patch.object(DenonAvrDevice, "async_fetch_identity", failing):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"receiver": "192.0.2.11"}
+        )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "pick"
+    assert result["errors"] == {"base": "cannot_connect"}
+
+
 async def test_ssdp_discovery_and_confirm(hass: HomeAssistant) -> None:
     with patch.object(DenonAvrDevice, "async_fetch_identity", _identity()):
         result = await hass.config_entries.flow.async_init(

@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Denon AVR Plus",
-        "description": "Introduza o endereço IP do seu recetor Denon. O nome e as funções são lidos automaticamente do dispositivo.",
+        "description": "Introduza o endereço IP do seu recetor Denon ou Marantz, ou deixe-o vazio para escolher entre os recetores encontrados na rede. O nome e as funções são lidos automaticamente do dispositivo.",
         "data": {
           "host": "Endereço IP"
         },
         "data_description": {
-          "host": "O endereço IP do recetor, por exemplo 192.0.2.10. Encontra-o nas informações de rede do recetor ou no seu router. Um endereço fixo (reserva DHCP) mantém a ligação estável."
+          "host": "O endereço IP do recetor, por exemplo 192.0.2.10. Encontra-o nas informações de rede do recetor ou no seu router. Um endereço fixo (reserva DHCP) mantém a ligação estável. Deixe vazio para procurar."
         }
       },
       "ssdp_confirm": {
@@ -25,10 +25,18 @@
         "data_description": {
           "host": "O endereço IP do recetor, por exemplo 192.0.2.10. Encontra-o nas informações de rede do recetor ou no seu router. Um endereço fixo (reserva DHCP) mantém a ligação estável."
         }
+      },
+      "pick": {
+        "title": "Recetores encontrados",
+        "description": "Foram encontrados vários recetores na rede. Escolha o que quer adicionar.",
+        "data": {
+          "receiver": "Recetor"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Não foi possível contactar o recetor. Verifique o endereço IP e se o recetor está ligado e na rede."
+      "cannot_connect": "Não foi possível contactar o recetor. Verifique o endereço IP e se o recetor está ligado e na rede.",
+      "no_receivers_found": "Não foi encontrado na rede nenhum recetor por configurar. Introduza o seu endereço IP."
     },
     "abort": {
       "already_configured": "Este recetor já está configurado.",

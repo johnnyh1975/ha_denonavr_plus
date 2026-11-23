@@ -41,7 +41,7 @@ jobs:
       - name: Install Home Assistant 2026.8 and mypy
         run: |
           uv pip install --system "pytest-homeassistant-custom-component==0.13.357" \
-                      "mypy==2.4.1"
+                      "async-upnp-client==0.47.1" "mypy==2.4.1"
 
       - name: Run mypy against the baseline
         run: python scripts/check_typing_baseline.py
