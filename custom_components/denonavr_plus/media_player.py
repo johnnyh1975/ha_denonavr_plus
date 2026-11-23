@@ -263,9 +263,22 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             return None
         # Prefer the receiver's display name for the active mode; fall back to
         # the raw wire token when the display name is not known yet.
+        mode = self._current_sound_mode
+        return choices.sound_mode_display(self._entry_options, mode) if mode else None
+
+    @property
+    def _current_sound_mode(self) -> str | None:
+        """The active mode under the receiver's name for it, before renaming."""
+
         values = self.coordinator.data.values
         mode = values.get("sound_mode_display") or values.get("sound_mode")
-        return choices.sound_mode_display(self._entry_options, str(mode)) if mode else None
+        if not mode:
+            return None
+        discovery = self._device.discovery
+        if not (discovery.all_sound_modes or discovery.current_sound_modes):
+            # A receiver without its own list reports the wire token only.
+            return self._device.fallback_sound_mode_name(str(mode)) or str(mode)
+        return str(mode)
 
     @property
     def sound_mode_list(self) -> list[str] | None:
@@ -280,11 +293,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         for mode in discovery.current_sound_modes:
             if mode not in modes:
                 modes.append(mode)
-        values = self.coordinator.data.values
-        current = values.get("sound_mode_display") or values.get("sound_mode")
-        shown = choices.sound_mode_list(
-            self._entry_options, modes, str(current) if current else None
-        )
+        if not modes:
+            modes = self._device.fallback_sound_modes
+        shown = choices.sound_mode_list(self._entry_options, modes, self._current_sound_mode)
         return shown or None
 
     # Now-playing media (network sources, via HEOS) ------------------------

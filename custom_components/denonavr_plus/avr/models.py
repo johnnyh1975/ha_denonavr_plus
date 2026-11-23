@@ -120,8 +120,9 @@ class Discovery:
     # 'reference' is the absolute value that equals 0.0 dB, 'step' the increment,
     # 'absolute_max' the highest absolute value. Empty when not published.
     volume: dict[str, float] = field(default_factory=dict)
-    # Controls of scope "answered" (no Deviceinfo name to gate them) that the
-    # receiver answered at setup; only these get entities.
+    # Controls of scope "answered" (no Deviceinfo name to gate them), and
+    # feature controls whose name Deviceinfo lacks, that the receiver answered
+    # at setup; only these get entities.
     answered: set[str] = field(default_factory=set)
 
     def supports(self, function_name: str) -> bool:
@@ -132,7 +133,8 @@ class Discovery:
     def has_control(self, scope: str, feature: str | None, control_id: str) -> bool:
         """Whether a profile control applies to this receiver.
 
-        core: always. feature: the receiver names the feature in Deviceinfo.
+        core: always. feature: the receiver names the feature in Deviceinfo,
+        or answered the control's query at setup (older receivers name few).
         answered: the receiver answered the control's query at setup.
         """
 
@@ -140,7 +142,7 @@ class Discovery:
             return True
         if scope == "answered":
             return control_id in self.answered
-        return self.supports(feature or "")
+        return self.supports(feature or "") or control_id in self.answered
 
     def visible_sources(self) -> list[SourceDescriptor]:
         """Return the sources that are not hidden by the user."""

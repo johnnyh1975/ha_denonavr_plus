@@ -25,7 +25,7 @@ from pathlib import Path
 #: Errors reported by `mypy custom_components/denonavr_plus` under the
 #: settings in mypy.ini. Lower this when you fix things. Raising it
 #: should be an argued decision, not a convenience.
-BASELINE = 86
+BASELINE = 83
 
 
 def main() -> int:

@@ -303,6 +303,13 @@ class DenonAvrDevice:
         # Copy discovered data into our shared discovery object so the parser and
         # entities keep referencing a single instance.
         self._discovery.device = discovered.device
+        # Like the denonavr library: an AVR-X answering on port 80 is the older
+        # "avr-x" type (AVR-X2000), on 8080 "avr-x-2016".
+        receiver_type = self._profile.receiver_type
+        if self._http_port == 80 and discovered.device.hardware_type == receiver_type.get(
+            "avr_x_type"
+        ):
+            discovered.device.hardware_type = receiver_type.get("avr_x_port80_type")
         # Enrich the device identity with the firmware version and serial number,
         # which the goform document omits but the UPnP description carries.
         await self._async_fetch_version_info()
@@ -414,9 +421,16 @@ class DenonAvrDevice:
 
         These controls (auto standby, triggers, IMAX, Auro-3D, Dirac …) have
         no Deviceinfo name to gate them, so the receiver's answer decides.
+        So does it for a feature control whose name the receiver does not
+        list: older receivers (AVR-X2000) name few features in Deviceinfo but
+        answer MultEQ, Dynamic EQ, tone and the like over telnet.
         """
 
-        specs = self._profile.controls_by_scope("answered")
+        specs = self._profile.controls_by_scope("answered") + [
+            spec
+            for spec in self._profile.feature_controls()
+            if spec.scope == "feature" and not self._discovery.supports(spec.feature or "")
+        ]
         queries = list(dict.fromkeys(spec.query for spec in specs if spec.query))
         if not queries:
             return
@@ -615,11 +629,14 @@ class DenonAvrDevice:
         # Feature controls, only those the receiver advertises. Some controls
         # have several queries (a list query and a read query, e.g. channel
         # calibration via SSLEV plus live trims via CV); send all of them.
-        for spec in self._profile.feature_controls():
-            if spec.feature and self._discovery.supports(spec.feature):
-                add(spec.query)
-                add(spec.get("list_query"))
-                add(spec.get("read_query"))
+        for control in self._profile.feature_controls():
+            if control.feature and (
+                self._discovery.supports(control.feature)
+                or control.id in self._discovery.answered
+            ):
+                add(control.query)
+                add(control.get("list_query"))
+                add(control.get("read_query"))
         # Controls without a Deviceinfo name that answered at setup.
         for answered in self._profile.controls_by_scope("answered"):
             if answered.id in self._discovery.answered:
@@ -1004,7 +1021,30 @@ class DenonAvrDevice:
         override = self._profile.sound_mode_wire_overrides.get(name)
         if override:
             return override
+        listed = self._profile.listed_sound_modes.get(name)
+        if listed:
+            return listed
         return name.upper()
+
+    @property
+    def fallback_sound_modes(self) -> list[str]:
+        """The sound modes of a receiver that does not list them over telnet.
+
+        Older receivers (AVR-X2000) answer neither OPSML nor OPSMLALL. Their
+        Deviceinfo lists the modes as function names; those with a documented
+        MS command are offered, in the profile's order.
+        """
+
+        features = self._discovery.features
+        return [name for name in self._profile.listed_sound_modes if name in features]
+
+    def fallback_sound_mode_name(self, wire: str) -> str | None:
+        """The listed name of a reported mode token ("MCH STEREO" -> "MULTI CH STEREO")."""
+
+        for name in self.fallback_sound_modes:
+            if self._profile.listed_sound_modes[name] == wire:
+                return name
+        return None
 
     def _current_sound_modes_query(self) -> str | None:
         """The OPSML query token from the profile, or None if unavailable."""

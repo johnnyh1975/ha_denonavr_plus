@@ -107,6 +107,13 @@ class ProtocolProfile:
             for name, value in raw.get("sound_mode_wire_overrides", {}).items()
             if name != "doc"
         }
+        # Function name in Deviceinfo -> MS wire token, for receivers that do
+        # not list their sound modes over telnet.
+        self.listed_sound_modes: dict[str, str] = {
+            name: value
+            for name, value in raw.get("listed_sound_modes", {}).items()
+            if name != "doc"
+        }
         self.introspection: dict[str, dict[str, Any]] = raw.get("introspection", {})
         self.readonly: dict[str, dict[str, Any]] = raw.get("readonly", {})
         self.refresh: dict[str, Any] = raw.get("refresh", {})

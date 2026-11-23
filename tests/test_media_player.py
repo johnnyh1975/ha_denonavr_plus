@@ -244,3 +244,48 @@ async def test_without_heos_there_is_no_transport(
     features = MediaPlayerEntityFeature(state.attributes["supported_features"])
     assert not features & MediaPlayerEntityFeature.PLAY
     assert features & MediaPlayerEntityFeature.SELECT_SOUND_MODE
+
+
+@pytest.mark.assumed(
+    "the MS tokens come from the AVR-X2000/E400 protocol document (v03); that the "
+    "receiver takes them from a Home Assistant select has not been tried on one"
+)
+async def test_an_avr_x2000_offers_the_sound_modes_it_lists(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """An AVR-X2000 answers no OPSML: its list came out empty but for the active mode."""
+    from homeassistant.const import CONF_HOST, CONF_PORT
+
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+
+    from .conftest import deviceinfo
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: "192.0.2.11", CONF_PORT: 80},
+        minor_version=CONFIG_MINOR_VERSION,
+    )
+    entry.add_to_hass(hass)
+    with patch.object(
+        GoformClient,
+        "async_get_device_info",
+        AsyncMock(return_value=deviceinfo("AVR-X2000-Deviceinfo.xml")),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    assert entry.runtime_data.device.discovery.device.hardware_type == "avr-x"
+    await _push(hass, "MSMCH STEREO")
+    main = entity_id(hass, entry, "media_player_main")
+    state = hass.states.get(main)
+    assert state is not None
+    assert state.attributes["sound_mode"] == "MULTI CH STEREO"
+    modes = state.attributes["sound_mode_list"]
+    assert {"STEREO", "PURE DIRECT", "MULTI CH STEREO", "MOVIE"} <= set(modes)
+    assert "PURE" not in modes and "MCH STEREO" not in modes
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player", "select_sound_mode",
+        {"entity_id": main, "sound_mode": "MULTI CH STEREO"}, blocking=True,
+    )
+    assert "MSMCH STEREO" in telnet.sent

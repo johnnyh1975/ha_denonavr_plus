@@ -124,6 +124,64 @@ async def _probe_answering(
             on_line(line)
 
 
+X2000_ANSWERS = {
+    "PSMULTEQ: ?": ["PSMULTEQ:OFF"],
+    "PSDYNEQ ?": ["PSDYNEQ ON"],
+    "PSDYNVOL ?": ["PSDYNVOL MED"],
+    "PSBAS ?": ["PSBAS 50"],
+}
+
+
+async def _x2000_answering(
+    host: str, queries: list[str], on_line: Any, is_complete: Any, **kwargs: Any
+) -> None:
+    for query in queries:
+        for line in X2000_ANSWERS.get(query, []):
+            on_line(line)
+
+
+async def test_features_an_older_receiver_does_not_name_appear_when_they_answer(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """An AVR-X2000 names few features in Deviceinfo but answers them over telnet.
+
+    Its diagnostics (0.3.2) showed MultEQ, Dynamic EQ, Dynamic Volume and tone
+    values from the receiver, yet no entity for any of them.
+    """
+    from homeassistant.const import CONF_PORT
+    from homeassistant.helpers import entity_registry as er
+
+    from .conftest import deviceinfo
+
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _x2000_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVR-X2000-Deviceinfo.xml")),
+        ),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.11", CONF_PORT: 80},
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    discovery = entry.runtime_data.device.discovery
+    assert not discovery.supports("MultEq")
+    assert {"multeq", "dynamic_eq", "dynamic_volume", "bass"} <= discovery.answered
+    # A feature it neither names nor answers stays away.
+    assert "cinema_eq" not in discovery.answered
+    unique_ids = {
+        item.unique_id.split("_", 1)[1]
+        for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+    }
+    assert {"select_multeq", "switch_dynamic_eq", "select_dynamic_volume"} <= unique_ids
+    assert "switch_cinema_eq" not in unique_ids
+
+
 @pytest.mark.assumed(
     "the formats of TR and SSTTR come from the denonavr library and are what its "
     "parser expects; STBY and BTTX are as an AVR-X2600H answered "

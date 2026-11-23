@@ -61,8 +61,9 @@ AVR-X2600H").
    recorded device description lists 55 function names, against 117 on an
    AVC-X3700H (2020). Audyssey, tone, subwoofer and video functions are missing from
    the list, although the telnet protocol for the model documents commands
-   for them. Entities are gated on that list
-   ([details](models/AVR-X2000.md#what-limits-it-in-this-integration)).
+   for them. A function missing from that list gets its entity when the
+   receiver answers its telnet query at setup
+   ([details](models/AVR-X2000.md#in-this-integration)).
 3. **The two receivers share the telnet grammar, not the interface set.**
    HEOS (1255), the UPnP description (60006), the setup config API (10443)
    and the calibration port (1256) exist only on the 2016 generation.
