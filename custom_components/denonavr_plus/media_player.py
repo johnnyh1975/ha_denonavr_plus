@@ -7,6 +7,9 @@ the sound mode list are both built from what the receiver reports.
 
 from __future__ import annotations
 
+import asyncio
+import logging
+
 from homeassistant.components.media_player import (
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
@@ -17,9 +20,18 @@ from homeassistant.components.media_player import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from . import volume as _volume
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity
+
+_LOGGER = logging.getLogger(__name__)
+
+# The turn-on volume waits until the zone reports that it is on, then a
+# moment longer: a receiver that is still starting can drop the command
+# (docs/protocol/02, "Timing": 1 s after PWON, 3 to 5 s for a full boot).
+TURN_ON_WAIT = 15.0
+TURN_ON_SETTLE = 1.0
 
 # An icon-style picture of the selected input, shown when there is no album art
 # to display. Keyed by the receiver's wire source code (what the state holds);
@@ -163,14 +175,10 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def volume_level(self) -> float | None:
-        zone = self._zone_state
-        if zone.volume_raw is None:
+        raw = self._zone_state.volume_raw
+        if raw is None:
             return None
-        # Use the same ceiling as the set path so a set/read round trip is stable.
-        ceiling = self._device.volume_effective_max(self._zone.id)
-        if not ceiling:
-            return None
-        return max(0.0, min(1.0, zone.volume_raw / ceiling))
+        return _volume.level_from_raw(self._device, self._zone.id, raw, self._entry_options)
 
     @property
     def is_volume_muted(self) -> bool | None:
@@ -270,15 +278,45 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     async def async_turn_on(self) -> None:
         await self._device.async_set_power(self._zone.id, True)
+        target = _volume.zone_options(self._entry_options, self._zone.id).turn_on_db
+        entry = self.coordinator.config_entry
+        if target is not None and entry is not None:
+            entry.async_create_background_task(
+                self.hass,
+                self._apply_turn_on_volume(target),
+                f"denonavr_plus turn-on volume {self._zone.id}",
+            )
+
+    async def _apply_turn_on_volume(self, db: float) -> None:
+        """Set the turn-on volume once the zone reports that it is on."""
+
+        try:
+            async with asyncio.timeout(TURN_ON_WAIT):
+                while not self._zone_state.power:
+                    await asyncio.sleep(0.25)
+        except TimeoutError:
+            _LOGGER.debug("Zone %s did not report on; turn-on volume skipped", self._zone.id)
+            return
+        await asyncio.sleep(TURN_ON_SETTLE)
+        raw = _volume.clamp_raw(
+            self._device, self._zone.id, self._device.volume_reference + db, self._entry_options
+        )
+        await self._device.async_set_volume_raw(self._zone.id, raw)
 
     async def async_turn_off(self) -> None:
         await self._device.async_set_power(self._zone.id, False)
 
     async def async_set_volume_level(self, volume: float) -> None:
-        await self._device.async_set_volume_level(self._zone.id, volume)
+        raw = _volume.raw_from_level(self._device, self._zone.id, volume, self._entry_options)
+        await self._device.async_set_volume_raw(self._zone.id, raw)
 
     async def async_volume_up(self) -> None:
-        if self._zone.is_main:
+        current = self._zone_state.volume_raw
+        ceiling = _volume.ceiling_raw(self._device, self._zone.id, self._entry_options)
+        if current is not None and current + self._device.volume_step > ceiling:
+            # At the zone's limit: never step past it.
+            await self._device.async_set_volume_raw(self._zone.id, ceiling)
+        elif self._zone.is_main:
             await self._device.async_volume_step(self._zone.id, up=True)
         else:
             await self._step_zone_volume(up=True)
@@ -296,9 +334,10 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if current is None:
             return
         step = self._device.volume_step
-        await self._device.async_set_volume_raw(
-            self._zone.id, current + step if up else current - step
+        raw = _volume.clamp_raw(
+            self._device, self._zone.id, current + step if up else current - step, self._entry_options
         )
+        await self._device.async_set_volume_raw(self._zone.id, raw)
 
     async def async_mute_volume(self, mute: bool) -> None:
         await self._device.async_set_mute(self._zone.id, mute)

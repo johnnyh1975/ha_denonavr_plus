@@ -36,6 +36,61 @@
       "reconfigure_successful": "L'adresse IP a été mise à jour."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Volume",
+        "description": "Réglages des lecteurs multimédias et des nombres de volume de cet ampli-tuner.",
+        "data": {
+          "official_volume_scale": "Échelle de volume de l'intégration officielle"
+        },
+        "data_description": {
+          "official_volume_scale": "Activé : 100 % correspond à +20 dB et 0 % à −80 dB, comme dans l'intégration officielle Denon AVR, afin que les volumes des automatisations restent identiques après le changement. Désactivé : 0 à 100 % couvrent toute la plage de l'ampli-tuner jusqu'à son maximum."
+        },
+        "sections": {
+          "main": {
+            "name": "Zone principale",
+            "description": "Laissez un champ vide pour ne rien régler.",
+            "data": {
+              "max_volume": "Volume maximal",
+              "turn_on_volume": "Volume à l'allumage"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant ne règle jamais le volume de cette zone plus haut, en dB comme l'affiche l'ampli-tuner (0 dB est la référence). Les touches de l'ampli-tuner ne sont pas limitées.",
+              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "description": "Laissez un champ vide pour ne rien régler.",
+            "data": {
+              "max_volume": "Volume maximal",
+              "turn_on_volume": "Volume à l'allumage"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant ne règle jamais le volume de cette zone plus haut, en dB comme l'affiche l'ampli-tuner (0 dB est la référence). Les touches de l'ampli-tuner ne sont pas limitées.",
+              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "description": "Laissez un champ vide pour ne rien régler.",
+            "data": {
+              "max_volume": "Volume maximal",
+              "turn_on_volume": "Volume à l'allumage"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant ne règle jamais le volume de cette zone plus haut, en dB comme l'affiche l'ampli-tuner (0 dB est la référence). Les touches de l'ampli-tuner ne sont pas limitées.",
+              "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "Le volume à l'allumage dépasse le volume maximal."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Mode son"
-      },
-      "volume": {
-        "name": "Volume"
       },
       "input_signal": {
         "name": "Signal d'entrée"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "Distance {channel}"
+      },
+      "volume": {
+        "name": "Volume"
+      },
+      "zone_volume": {
+        "name": "Volume zone {index}"
       }
     },
     "button": {

@@ -4,6 +4,14 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 0.1.0
+
+The read-only volume sensor (`sensor.<receiver>_volume`) is replaced by a
+settable volume per zone in dB (`number.<receiver>_volume`,
+`number.<receiver>_zone_2_volume`). The old sensor is removed at the first
+start. If an automation, script or dashboard used it, point it to the
+number; the value is the same.
+
 ## Coming from another Denon integration
 
 Denon AVR Plus (`denonavr_plus`) is a separate integration. It does not take

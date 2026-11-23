@@ -374,6 +374,16 @@
     "enabled": true,
     "category": "config"
   },
+  "number_volume_main": {
+    "entity_id": "number.avc_x3700h_volume",
+    "enabled": true,
+    "category": null
+  },
+  "number_volume_zone2": {
+    "entity_id": "number.avc_x3700h_zone_2_volume",
+    "enabled": true,
+    "category": null
+  },
   "select_aspect_ratio": {
     "entity_id": "select.avc_x3700h_video_aspect_ratio",
     "enabled": false,
@@ -523,11 +533,6 @@
     "entity_id": "sensor.avc_x3700h_sound_mode",
     "enabled": false,
     "category": "diagnostic"
-  },
-  "sensor_volume_db": {
-    "entity_id": "sensor.avc_x3700h_volume",
-    "enabled": true,
-    "category": null
   },
   "switch_all_zone_stereo": {
     "entity_id": "switch.avc_x3700h_all_zone_stereo",

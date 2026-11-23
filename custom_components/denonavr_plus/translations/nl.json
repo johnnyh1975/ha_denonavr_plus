@@ -36,6 +36,61 @@
       "reconfigure_successful": "Het IP-adres is bijgewerkt."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Volume",
+        "description": "Instellingen voor de mediaspelers en de volumegetallen van deze receiver.",
+        "data": {
+          "official_volume_scale": "Volumeschaal van de officiële integratie"
+        },
+        "data_description": {
+          "official_volume_scale": "Aan: 100 % is +20 dB en 0 % is −80 dB, zoals in de officiële Denon AVR-integratie, zodat volumes in automatiseringen na de overstap hetzelfde klinken. Uit: 0 tot 100 % beslaat het hele bereik van de receiver tot zijn maximum."
+        },
+        "sections": {
+          "main": {
+            "name": "Hoofdzone",
+            "description": "Laat een veld leeg voor geen instelling.",
+            "data": {
+              "max_volume": "Maximaal volume",
+              "turn_on_volume": "Volume bij inschakelen"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant zet het volume van deze zone nooit hoger, in dB zoals de receiver het toont (0 dB is de referentie). De knoppen van de receiver worden niet begrensd.",
+              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "description": "Laat een veld leeg voor geen instelling.",
+            "data": {
+              "max_volume": "Maximaal volume",
+              "turn_on_volume": "Volume bij inschakelen"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant zet het volume van deze zone nooit hoger, in dB zoals de receiver het toont (0 dB is de referentie). De knoppen van de receiver worden niet begrensd.",
+              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "description": "Laat een veld leeg voor geen instelling.",
+            "data": {
+              "max_volume": "Maximaal volume",
+              "turn_on_volume": "Volume bij inschakelen"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant zet het volume van deze zone nooit hoger, in dB zoals de receiver het toont (0 dB is de referentie). De knoppen van de receiver worden niet begrensd.",
+              "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "Het volume bij inschakelen ligt boven het maximale volume."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Geluidsmodus"
-      },
-      "volume": {
-        "name": "Volume"
       },
       "input_signal": {
         "name": "Ingangssignaal"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "Afstand {channel}"
+      },
+      "volume": {
+        "name": "Volume"
+      },
+      "zone_volume": {
+        "name": "Zone {index} volume"
       }
     },
     "button": {

@@ -653,12 +653,6 @@ class DenonAvrDevice:
         token = spec.get("on", "ON") if on else spec.get("off", "STANDBY")
         await self._send(f"{spec.prefix}{token}")
 
-    async def async_set_volume_level(self, zone_id: str, level: float) -> None:
-        """Set the volume for a zone from a 0..1 level."""
-
-        raw = self._level_to_raw(zone_id, level)
-        await self.async_set_volume_raw(zone_id, raw)
-
     async def async_set_volume_raw(self, zone_id: str, raw: float) -> None:
         """Set a zone's volume to a raw scale value (clamped to the reachable max)."""
 
@@ -911,13 +905,6 @@ class DenonAvrDevice:
         await self._send(f"{set_prefix}{group} {token}")
 
     # Encoding helpers -----------------------------------------------------
-
-    def _level_to_raw(self, zone_id: str, level: float) -> float:
-        """Convert a 0..1 level to the raw volume scale using the reported max."""
-
-        level = max(0.0, min(1.0, level))
-        ceiling = self.volume_effective_max(zone_id)
-        return round(level * ceiling * 2) / 2
 
     def _encode_control_value(self, spec, value: object) -> str | None:
         """Encode a Python value into the wire argument for a control."""

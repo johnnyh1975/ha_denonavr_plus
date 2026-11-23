@@ -231,3 +231,48 @@ async def test_older_receiver_is_set_up_on_port_80(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "AVR-X2000"
     assert result["data"] == {CONF_HOST: HOST, CONF_PORT: 80}
+
+
+async def test_options_keep_the_markers_they_do_not_show(hass: HomeAssistant) -> None:
+    from homeassistant.helpers import entity_registry as er
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={CONF_HOST: "192.0.2.10"},
+        options={"channels_initialized": True},
+    )
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    for zone in ("main", "zone2"):
+        registry.async_get_or_create(
+            "media_player", DOMAIN, f"aa:bb:cc:dd:ee:ff_media_player_{zone}", config_entry=entry
+        )
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    # One section per zone of the receiver, read from the registry.
+    fields = [str(key) for key in result["data_schema"].schema]
+    assert fields == ["official_volume_scale", "main", "zone2"]
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"official_volume_scale": True, "main": {"max_volume": -10.0}, "zone2": {}},
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options == {
+        "channels_initialized": True,
+        "official_volume_scale": True,
+        "main": {"max_volume": -10.0},
+        "zone2": {},
+    }
+
+
+async def test_options_refuse_a_turn_on_volume_above_the_maximum(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "192.0.2.10"})
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"official_volume_scale": False, "main": {"max_volume": -30.0, "turn_on_volume": -20.0}},
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "turn_on_above_max"}

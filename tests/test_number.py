@@ -41,3 +41,32 @@ async def test_setting_a_level_sends_its_command(
         blocking=True,
     )
     assert any(line.startswith(spec.prefix) for line in telnet.sent), telnet.sent
+
+
+async def test_the_volume_number_shows_and_sets_db(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+
+    from custom_components.denonavr_plus import volume
+
+    number = entity_id(hass, loaded_entry, "number_volume_main")
+    FakeTelnet.instances[-1].push("MV425")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    state = hass.states.get(number)
+    assert state is not None and float(state.state) == -37.5
+
+    # The range follows the zone's limit, and a value above it is not sent.
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"main": {volume.OPT_MAX_VOLUME: -20.0}}
+    )
+    await hass.async_block_till_done()
+    state = hass.states.get(number)
+    assert state is not None and state.attributes["max"] == -20.0
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": number, "value": -20.0}, blocking=True
+    )
+    assert telnet.sent == ["MV60"]

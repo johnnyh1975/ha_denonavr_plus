@@ -36,6 +36,61 @@
       "reconfigure_successful": "O endereço IP foi atualizado."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Volume",
+        "description": "Definições dos leitores multimédia e dos números de volume deste recetor.",
+        "data": {
+          "official_volume_scale": "Escala de volume da integração oficial"
+        },
+        "data_description": {
+          "official_volume_scale": "Ativado: 100 % corresponde a +20 dB e 0 % a −80 dB, como na integração oficial Denon AVR, para que os volumes nas automações soem iguais após a mudança. Desativado: 0 a 100 % abrange toda a gama do recetor até ao seu máximo."
+        },
+        "sections": {
+          "main": {
+            "name": "Zona principal",
+            "description": "Deixe um campo vazio para não definir nada.",
+            "data": {
+              "max_volume": "Volume máximo",
+              "turn_on_volume": "Volume ao ligar"
+            },
+            "data_description": {
+              "max_volume": "O Home Assistant nunca define o volume desta zona acima disto, em dB como o recetor o mostra (0 dB é a referência). Os botões do recetor não são limitados.",
+              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB."
+            }
+          },
+          "zone2": {
+            "name": "Zona 2",
+            "description": "Deixe um campo vazio para não definir nada.",
+            "data": {
+              "max_volume": "Volume máximo",
+              "turn_on_volume": "Volume ao ligar"
+            },
+            "data_description": {
+              "max_volume": "O Home Assistant nunca define o volume desta zona acima disto, em dB como o recetor o mostra (0 dB é a referência). Os botões do recetor não são limitados.",
+              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB."
+            }
+          },
+          "zone3": {
+            "name": "Zona 3",
+            "description": "Deixe um campo vazio para não definir nada.",
+            "data": {
+              "max_volume": "Volume máximo",
+              "turn_on_volume": "Volume ao ligar"
+            },
+            "data_description": {
+              "max_volume": "O Home Assistant nunca define o volume desta zona acima disto, em dB como o recetor o mostra (0 dB é a referência). Os botões do recetor não são limitados.",
+              "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "O volume ao ligar está acima do volume máximo."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Modo de som"
-      },
-      "volume": {
-        "name": "Volume"
       },
       "input_signal": {
         "name": "Sinal de entrada"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "Distância {channel}"
+      },
+      "volume": {
+        "name": "Volume"
+      },
+      "zone_volume": {
+        "name": "Volume zona {index}"
       }
     },
     "button": {

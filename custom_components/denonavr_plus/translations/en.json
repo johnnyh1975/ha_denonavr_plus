@@ -36,6 +36,61 @@
       "reconfigure_successful": "The IP address was updated."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Volume",
+        "description": "Settings for the media players and the volume numbers of this receiver.",
+        "data": {
+          "official_volume_scale": "Volume scale of the official integration"
+        },
+        "data_description": {
+          "official_volume_scale": "On: 100 % is +20 dB and 0 % is −80 dB, as in the official Denon AVR integration, so volume levels in automations sound the same after moving over. Off: 0 to 100 % spans the receiver's whole range up to its maximum."
+        },
+        "sections": {
+          "main": {
+            "name": "Main zone",
+            "description": "Leave a field empty for no setting.",
+            "data": {
+              "max_volume": "Maximum volume",
+              "turn_on_volume": "Turn-on volume"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant never sets the volume of this zone higher, in dB as the receiver shows it (0 dB is the reference). The receiver's own buttons are not limited.",
+              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "description": "Leave a field empty for no setting.",
+            "data": {
+              "max_volume": "Maximum volume",
+              "turn_on_volume": "Turn-on volume"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant never sets the volume of this zone higher, in dB as the receiver shows it (0 dB is the reference). The receiver's own buttons are not limited.",
+              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "description": "Leave a field empty for no setting.",
+            "data": {
+              "max_volume": "Maximum volume",
+              "turn_on_volume": "Turn-on volume"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant never sets the volume of this zone higher, in dB as the receiver shows it (0 dB is the reference). The receiver's own buttons are not limited.",
+              "turn_on_volume": "Set when Home Assistant switches this zone on, in dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "The turn-on volume is above the maximum volume."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Sound Mode"
-      },
-      "volume": {
-        "name": "Volume"
       },
       "input_signal": {
         "name": "Input Signal"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "{channel} Distance"
+      },
+      "volume": {
+        "name": "Volume"
+      },
+      "zone_volume": {
+        "name": "Zone {index} Volume"
       }
     },
     "button": {

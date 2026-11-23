@@ -115,6 +115,13 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
         )
 
     @property
+    def _entry_options(self) -> dict[str, Any]:
+        """The entry options (volume settings), empty before the entry exists."""
+
+        entry = self.coordinator.config_entry
+        return dict(entry.options) if entry is not None else {}
+
+    @property
     def suggested_object_id(self) -> str | None:
         """Build the entity id from the English name, whatever the language.
 

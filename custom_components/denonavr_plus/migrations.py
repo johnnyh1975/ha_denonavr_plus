@@ -19,6 +19,10 @@ Version history (the entry version, not the release version):
 
   1.1 (0.1.0): host, and the goform port once detected; options hold the
                one-time marker for disabling unconfigured channels.
+  1.2:         the read-only volume sensor (unique id ..._sensor_volume_db)
+               is replaced by a settable volume number per zone; its
+               registry entry is removed. Options may hold volume settings
+               per zone, absent means none.
 
 To add a step: raise CONFIG_VERSION or CONFIG_MINOR_VERSION in const.py,
 register a function under the version it starts from in STEPS, and add a
@@ -32,6 +36,7 @@ import logging
 from collections.abc import Awaitable, Callable
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 
 from .const import CONFIG_MINOR_VERSION, CONFIG_VERSION
 from .coordinator import DenonAvrConfigEntry
@@ -43,9 +48,22 @@ _LOGGER = logging.getLogger(__name__)
 #: itself, through hass.config_entries.async_update_entry or the registries.
 Step = Callable[[HomeAssistant, DenonAvrConfigEntry], Awaitable[tuple[int, int]]]
 
-#: The steps, by the version they start from. None yet: 1.1 is the first
-#: released schema.
-STEPS: dict[tuple[int, int], Step] = {}
+async def _remove_volume_sensor(
+    hass: HomeAssistant, entry: DenonAvrConfigEntry
+) -> tuple[int, int]:
+    """1.1 -> 1.2: the volume number replaces the read-only volume sensor."""
+
+    registry = er.async_get(hass)
+    for item in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if item.domain == "sensor" and item.unique_id.endswith("_sensor_volume_db"):
+            registry.async_remove(item.entity_id)
+    return (1, 2)
+
+
+#: The steps, by the version they start from.
+STEPS: dict[tuple[int, int], Step] = {
+    (1, 1): _remove_volume_sensor,
+}
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> bool:

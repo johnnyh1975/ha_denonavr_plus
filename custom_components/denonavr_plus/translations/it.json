@@ -36,6 +36,61 @@
       "reconfigure_successful": "L'indirizzo IP è stato aggiornato."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Volume",
+        "description": "Impostazioni per i lettori multimediali e i numeri del volume di questo sintoamplificatore.",
+        "data": {
+          "official_volume_scale": "Scala del volume dell'integrazione ufficiale"
+        },
+        "data_description": {
+          "official_volume_scale": "Attivo: 100 % corrisponde a +20 dB e 0 % a −80 dB, come nell'integrazione ufficiale Denon AVR, così i volumi nelle automazioni restano uguali dopo il passaggio. Disattivo: da 0 a 100 % copre l'intera gamma del sintoamplificatore fino al suo massimo."
+        },
+        "sections": {
+          "main": {
+            "name": "Zona principale",
+            "description": "Lascia vuoto un campo per non impostare nulla.",
+            "data": {
+              "max_volume": "Volume massimo",
+              "turn_on_volume": "Volume all'accensione"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant non imposta mai il volume di questa zona più in alto, in dB come lo mostra il sintoamplificatore (0 dB è il riferimento). I tasti del sintoamplificatore non sono limitati.",
+              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB."
+            }
+          },
+          "zone2": {
+            "name": "Zona 2",
+            "description": "Lascia vuoto un campo per non impostare nulla.",
+            "data": {
+              "max_volume": "Volume massimo",
+              "turn_on_volume": "Volume all'accensione"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant non imposta mai il volume di questa zona più in alto, in dB come lo mostra il sintoamplificatore (0 dB è il riferimento). I tasti del sintoamplificatore non sono limitati.",
+              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB."
+            }
+          },
+          "zone3": {
+            "name": "Zona 3",
+            "description": "Lascia vuoto un campo per non impostare nulla.",
+            "data": {
+              "max_volume": "Volume massimo",
+              "turn_on_volume": "Volume all'accensione"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant non imposta mai il volume di questa zona più in alto, in dB come lo mostra il sintoamplificatore (0 dB è il riferimento). I tasti del sintoamplificatore non sono limitati.",
+              "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "Il volume all'accensione supera il volume massimo."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Modalità audio"
-      },
-      "volume": {
-        "name": "Volume"
       },
       "input_signal": {
         "name": "Segnale di ingresso"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "Distanza {channel}"
+      },
+      "volume": {
+        "name": "Volume"
+      },
+      "zone_volume": {
+        "name": "Volume zona {index}"
       }
     },
     "button": {

@@ -85,6 +85,23 @@ automatically; no other input is required.
 To change the address later, open the integration's menu (three dots) and choose
 **Reconfigure**. The new address must belong to the same receiver.
 
+### Volume options
+
+**Configure** on the integration entry opens the volume options. They work
+even when the receiver is off.
+
+- **Volume scale of the official integration**: off, the media player's 0 to
+  100 % spans the receiver's whole range up to its maximum. On, 100 % is
+  +20 dB and 0 % is −80 dB, as the official Denon AVR integration computes it,
+  so `volume_set` levels in automations sound the same after moving over.
+- Per zone, in dB as the receiver shows it (0 dB is the reference):
+  - **Maximum volume**: Home Assistant never sets the zone louder, whether
+    from the media player, the volume number or volume up. The receiver's own
+    buttons and remote are not limited; for that, use its Volume Limit
+    setting.
+  - **Turn-on volume**: set when Home Assistant switches the zone on, once the
+    zone reports that it is on.
+
 ## Removal
 
 1. Settings → Devices & Services → **Denon AVR Plus** → three dots on the receiver
@@ -165,6 +182,8 @@ the sub‑device its setting belongs to.
   DTS Neural:X, Low Frequency Containment (LFC), Graphic EQ, Auto Lip Sync,
   All Zone Stereo, and — on **Video** — HDMI Control (CEC), ARC/eARC, TV Audio
   Switching, HDMI Power Saving, Smart Menu, HDMI Pass‑Through, On‑Screen Info.
+- **Volume** per zone in dB, settable (−80 dB up to the receiver's maximum or
+  the zone's maximum from the options), next to the media player's 0–100 %.
 - **Numbers**: Bass, Treble, Subwoofer Level, LFE, Dialog Control, Center Level
   Adjust, Audio Delay, Effect Level, Containment Amount, Sleep Timer, per channel
   volume trim and speaker distance (m) for each configured speaker, and — on
@@ -177,7 +196,7 @@ the sub‑device its setting belongs to.
   curve, and **Default** resets the channel to flat. See the equalizer card
   recipe below.
 - **Sensors** (diagnostic): sample rate, decoder, audio format, input signal,
-  mode info and sound mode; and the volume in dB.
+  mode info and sound mode.
 - **Binary sensor**: telnet connectivity.
 
 ### Enabled and disabled entities
@@ -190,7 +209,8 @@ listening starts enabled:
   Compression, MultEQ, Cinema EQ, dialogue level and Dialog Control
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
 - the trims of the speakers the receiver has configured
-- the decoder and volume sensors, and the connectivity sensor
+- the volume of each zone in dB
+- the decoder and connectivity sensors
 
 Everything else starts disabled: speaker setup (distances, crossovers, sizes,
 amp assign), video and HDMI setup, picture adjustment, the graphic EQ, volume
@@ -199,8 +219,6 @@ which repeat the media player. The sample rate, input signal, audio format and
 mode info sensors also start disabled, because they change with every track and
 fill the history. Enable any of them on the device page under its entities, or
 in the entity's settings. Home Assistant keeps your choice from then on.
-
-The volume sensor has no state class, so it keeps no long‑term statistics.
 
 Speaker crossover frequencies are a discrete, non-uniform set, so they are
 exposed as a select rather than a stepped number. The current crossover per group

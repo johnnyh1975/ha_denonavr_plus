@@ -36,6 +36,61 @@
       "reconfigure_successful": "Adres IP został zmieniony."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Głośność",
+        "description": "Ustawienia odtwarzaczy multimedialnych i wartości głośności tego amplitunera.",
+        "data": {
+          "official_volume_scale": "Skala głośności oficjalnej integracji"
+        },
+        "data_description": {
+          "official_volume_scale": "Włączone: 100 % to +20 dB, a 0 % to −80 dB, jak w oficjalnej integracji Denon AVR, dzięki czemu głośności w automatyzacjach brzmią tak samo po przejściu. Wyłączone: od 0 do 100 % obejmuje cały zakres amplitunera aż do jego maksimum."
+        },
+        "sections": {
+          "main": {
+            "name": "Strefa główna",
+            "description": "Zostaw pole puste, aby nic nie ustawiać.",
+            "data": {
+              "max_volume": "Maksymalna głośność",
+              "turn_on_volume": "Głośność po włączeniu"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant nigdy nie ustawi głośności tej strefy wyżej, w dB tak, jak pokazuje amplituner (0 dB to poziom odniesienia). Przyciski amplitunera nie są ograniczane.",
+              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB."
+            }
+          },
+          "zone2": {
+            "name": "Strefa 2",
+            "description": "Zostaw pole puste, aby nic nie ustawiać.",
+            "data": {
+              "max_volume": "Maksymalna głośność",
+              "turn_on_volume": "Głośność po włączeniu"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant nigdy nie ustawi głośności tej strefy wyżej, w dB tak, jak pokazuje amplituner (0 dB to poziom odniesienia). Przyciski amplitunera nie są ograniczane.",
+              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB."
+            }
+          },
+          "zone3": {
+            "name": "Strefa 3",
+            "description": "Zostaw pole puste, aby nic nie ustawiać.",
+            "data": {
+              "max_volume": "Maksymalna głośność",
+              "turn_on_volume": "Głośność po włączeniu"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant nigdy nie ustawi głośności tej strefy wyżej, w dB tak, jak pokazuje amplituner (0 dB to poziom odniesienia). Przyciski amplitunera nie są ograniczane.",
+              "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "Głośność po włączeniu jest wyższa niż maksymalna głośność."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Tryb dźwięku"
-      },
-      "volume": {
-        "name": "Głośność"
       },
       "input_signal": {
         "name": "Sygnał wejściowy"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "Odległość {channel}"
+      },
+      "volume": {
+        "name": "Głośność"
+      },
+      "zone_volume": {
+        "name": "Strefa {index} głośność"
       }
     },
     "button": {

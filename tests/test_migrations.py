@@ -85,7 +85,7 @@ async def test_an_older_entry_runs_its_step(
 async def test_an_entry_without_a_step_is_not_loaded(
     hass: HomeAssistant, receiver_network: Any, caplog: pytest.LogCaptureFixture
 ) -> None:
-    entry = await _set_up(hass, CONFIG_VERSION, CONFIG_MINOR_VERSION - 1)
+    entry = await _set_up(hass, 1, 0)
     assert entry.state is ConfigEntryState.MIGRATION_ERROR
     assert "Cannot migrate" in caplog.text
 
@@ -103,3 +103,30 @@ async def test_an_entry_from_a_newer_major_version_is_refused(
 ) -> None:
     entry = await _set_up(hass, CONFIG_VERSION + 1, 1)
     assert entry.state is ConfigEntryState.MIGRATION_ERROR
+
+
+async def test_1_1_removes_the_volume_sensor(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """0.1.0 had a read-only volume sensor; the volume number replaces it."""
+    from homeassistant.helpers import entity_registry as er
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={CONF_HOST: HOST}, version=1, minor_version=1
+    )
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    old = registry.async_get_or_create(
+        "sensor", DOMAIN, "aa:bb:cc:dd:ee:ff_sensor_volume_db",
+        config_entry=entry, suggested_object_id="avc_x3700h_volume",
+    )
+    kept = registry.async_get_or_create(
+        "sensor", DOMAIN, "aa:bb:cc:dd:ee:ff_sensor_decoder",
+        config_entry=entry, suggested_object_id="avc_x3700h_decoder",
+    )
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (1, 2)
+    assert registry.async_get(old.entity_id) is None
+    assert registry.async_get(kept.entity_id) is not None

@@ -38,7 +38,8 @@ async def _entity_ids(hass: HomeAssistant, language: str) -> dict[str, str]:
 
 # Recorded with the English setup of the AVC-X3700H recording.
 ENGLISH_IDS = {
-    "sensor_volume_db": "sensor.avc_x3700h_volume",
+    "number_volume_main": "number.avc_x3700h_volume",
+    "number_volume_zone2": "number.avc_x3700h_zone_2_volume",
     "sensor_sample_rate": "sensor.avc_x3700h_sample_rate",
     "switch_main_power": "switch.avc_x3700h_main_power",
     "number_treble": "number.avc_x3700h_audio_treble",
@@ -67,9 +68,9 @@ async def test_names_are_translated_but_ids_are_not(
     hass: HomeAssistant, receiver_network: Any
 ) -> None:
     ids = await _entity_ids(hass, "de")
-    volume = next(eid for uid, eid in ids.items() if uid.endswith("_sensor_volume_db"))
+    volume = next(eid for uid, eid in ids.items() if uid.endswith("_number_volume_main"))
     trim = next(eid for uid, eid in ids.items() if uid.endswith("_number_channel_trim_C"))
-    assert volume == "sensor.avc_x3700h_volume"
+    assert volume == "number.avc_x3700h_volume"
     assert trim == "number.avc_x3700h_speakers_center_trim"
     volume_state = hass.states.get(volume)
     trim_state = hass.states.get(trim)

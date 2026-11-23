@@ -36,6 +36,61 @@
       "reconfigure_successful": "La dirección IP se ha actualizado."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Volumen",
+        "description": "Ajustes de los reproductores multimedia y de los números de volumen de este receptor.",
+        "data": {
+          "official_volume_scale": "Escala de volumen de la integración oficial"
+        },
+        "data_description": {
+          "official_volume_scale": "Activado: 100 % equivale a +20 dB y 0 % a −80 dB, como en la integración oficial Denon AVR, para que los volúmenes de las automatizaciones suenen igual tras el cambio. Desactivado: de 0 a 100 % abarca todo el rango del receptor hasta su máximo."
+        },
+        "sections": {
+          "main": {
+            "name": "Zona principal",
+            "description": "Deja un campo vacío para no ajustar nada.",
+            "data": {
+              "max_volume": "Volumen máximo",
+              "turn_on_volume": "Volumen al encender"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant nunca sube el volumen de esta zona por encima, en dB tal como lo muestra el receptor (0 dB es la referencia). Los botones del receptor no se limitan.",
+              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB."
+            }
+          },
+          "zone2": {
+            "name": "Zona 2",
+            "description": "Deja un campo vacío para no ajustar nada.",
+            "data": {
+              "max_volume": "Volumen máximo",
+              "turn_on_volume": "Volumen al encender"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant nunca sube el volumen de esta zona por encima, en dB tal como lo muestra el receptor (0 dB es la referencia). Los botones del receptor no se limitan.",
+              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB."
+            }
+          },
+          "zone3": {
+            "name": "Zona 3",
+            "description": "Deja un campo vacío para no ajustar nada.",
+            "data": {
+              "max_volume": "Volumen máximo",
+              "turn_on_volume": "Volumen al encender"
+            },
+            "data_description": {
+              "max_volume": "Home Assistant nunca sube el volumen de esta zona por encima, en dB tal como lo muestra el receptor (0 dB es la referencia). Los botones del receptor no se limitan.",
+              "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "El volumen al encender supera el volumen máximo."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Modo de sonido"
-      },
-      "volume": {
-        "name": "Volumen"
       },
       "input_signal": {
         "name": "Señal de entrada"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "Distancia {channel}"
+      },
+      "volume": {
+        "name": "Volumen"
+      },
+      "zone_volume": {
+        "name": "Volumen zona {index}"
       }
     },
     "button": {

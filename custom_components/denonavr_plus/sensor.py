@@ -8,7 +8,6 @@ the per channel calibration levels. Which sensors exist depends on the device.
 from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import UnitOfSoundPressure
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -41,10 +40,6 @@ async def async_setup_entry(
 
     # The current sound mode as a diagnostic sensor (also on the media player).
     entities.append(DenonAvrSoundModeSensor(coordinator))
-
-    # The current master volume as a read only dB value. The media player keeps
-    # the standard percentage control; this shows the actual level in dB.
-    entities.append(DenonAvrVolumeSensor(coordinator))
 
     async_add_entities(entities)
 
@@ -82,26 +77,3 @@ class DenonAvrSoundModeSensor(DenonAvrEntity, SensorEntity):
     def native_value(self) -> str | None:
         value = self.coordinator.data.values.get("sound_mode")
         return str(value) if value is not None else None
-
-
-class DenonAvrVolumeSensor(DenonAvrEntity, SensorEntity):
-    """Read only master volume in dB (relative to the receiver's 0 dB reference).
-
-    No state class: a volume level has no use as a long-term statistic, and the
-    statistics would be kept for good.
-    """
-
-    _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
-
-    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
-        super().__init__(coordinator, "sensor_volume_db")
-        self._attr_translation_key = "volume"
-
-    @property
-    def native_value(self) -> float | None:
-        raw = self.coordinator.data.zone("main").volume_raw
-        if raw is None:
-            return None
-        # Show the level relative to the reference, matching the receiver's
-        # relative (dB) display, for example -38.0 dB.
-        return round(raw - self.coordinator.device.volume_reference, 1)

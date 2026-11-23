@@ -19,7 +19,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from . import volume as _volume
 from .avr import graphic_eq
+from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity
@@ -44,6 +46,10 @@ async def async_setup_entry(
     device = coordinator.device
     discovery = device.discovery
     entities: list[NumberEntity] = []
+
+    # The volume of each zone in dB, settable (the media player shows 0..1).
+    for zone in discovery.zones:
+        entities.append(DenonAvrVolume(coordinator, zone))
 
     for spec in device.profile.controls.values():
         if spec.kind not in _NUMBER_KINDS:
@@ -229,3 +235,51 @@ class DenonAvrEqBand(DenonAvrEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         # Stage the edit; press Apply (button) to write the whole curve.
         await self.coordinator.device.graphic_eq.set_band(self._tag, value)
+
+
+class DenonAvrVolume(DenonAvrEntity, NumberEntity):
+    """A zone's master volume in dB, as the receiver shows it (for example -38.0).
+
+    0 dB is the receiver's reference. The upper end follows the receiver's
+    maximum and the zone's maximum from the options; values above are never
+    sent. Like the media player it stays usable over HTTP while telnet is down.
+    """
+
+    _attr_device_class = NumberDeviceClass.SOUND_PRESSURE
+    _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
+    _attr_mode = NumberMode.SLIDER
+
+    def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
+        super().__init__(coordinator, f"number_volume_{zone.id}")
+        self._zone = zone
+        if zone.is_main:
+            self._attr_translation_key = "volume"
+        else:
+            self._attr_translation_key = "zone_volume"
+            self._attr_translation_placeholders = {"index": str(zone.index)}
+        self._attr_native_step = coordinator.device.volume_step or 0.5
+        self._attr_native_min_value = -coordinator.device.volume_reference
+
+    @property
+    def available(self) -> bool:
+        return self.coordinator.last_update_success and (
+            self.coordinator.available or self._device.http_reachable
+        )
+
+    @property
+    def native_max_value(self) -> float:
+        ceiling = _volume.ceiling_raw(self._device, self._zone.id, self._entry_options)
+        return ceiling - self._device.volume_reference
+
+    @property
+    def native_value(self) -> float | None:
+        raw = self.coordinator.data.zone(self._zone.id).volume_raw
+        if raw is None:
+            return None
+        return round(raw - self._device.volume_reference, 1)
+
+    async def async_set_native_value(self, value: float) -> None:
+        raw = _volume.clamp_raw(
+            self._device, self._zone.id, value + self._device.volume_reference, self._entry_options
+        )
+        await self._device.async_set_volume_raw(self._zone.id, raw)

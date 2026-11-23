@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .common import entity_id, registry_entry
+from .common import registry_entry
 from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
@@ -27,9 +27,17 @@ async def test_only_the_decoder_starts_enabled(
         assert registry_entry(hass, loaded_entry, key).disabled_by is not None, key
 
 
-async def test_volume_keeps_no_long_term_statistics(
+async def test_the_sound_mode_sensor_shows_the_mode(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    state = hass.states.get(entity_id(hass, loaded_entry, "sensor_volume_db"))
-    assert state is not None
-    assert "state_class" not in state.attributes
+    import asyncio
+
+    from .common import async_enable, entity_id
+    from .test_init import FakeTelnet
+
+    await async_enable(hass, loaded_entry, "sensor_sound_mode")
+    FakeTelnet.instances[-1].push("MSSTEREO")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id(hass, loaded_entry, "sensor_sound_mode"))
+    assert state is not None and state.state not in ("unknown", "unavailable")

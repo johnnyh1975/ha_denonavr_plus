@@ -15,8 +15,19 @@ from urllib.parse import urlparse
 import voluptuous as vol
 
 from homeassistant.config_entries import (
+    ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.selector import (
+    BooleanSelector,
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
@@ -30,6 +41,7 @@ from .const import (
     CONFIG_VERSION,
     DOMAIN,
 )
+from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +53,11 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = CONFIG_VERSION
     MINOR_VERSION = CONFIG_MINOR_VERSION
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> DenonAvrOptionsFlow:
+        return DenonAvrOptionsFlow()
 
     def __init__(self) -> None:
         self._host: str | None = None
@@ -161,5 +178,80 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
                 STEP_USER_SCHEMA, {CONF_HOST: entry.data[CONF_HOST]}
             ),
             errors=errors,
+        )
+
+
+# The volume range offered in the options, in dB relative to the reference
+# (the raw scale 0..98 is -80..+18 dB).
+_DB_SELECTOR = NumberSelector(
+    NumberSelectorConfig(
+        min=-80.0, max=18.0, step=0.5, unit_of_measurement="dB", mode=NumberSelectorMode.BOX
+    )
+)
+# Zones in the order the options show them; the receiver decides which exist.
+_ZONE_ORDER = ("main", "zone2", "zone3")
+_ZONE_MARKER = "_media_player_"
+
+
+def _zones(hass: Any, entry: ConfigEntry) -> list[str]:
+    """The zones of this receiver, from its media players in the registry.
+
+    Read from the registry so the options open even when the receiver is
+    unreachable.
+    """
+
+    registry = er.async_get(hass)
+    found = {
+        item.unique_id.split(_ZONE_MARKER)[-1]
+        for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if item.domain == "media_player" and _ZONE_MARKER in item.unique_id
+    }
+    return [zone for zone in _ZONE_ORDER if zone in found] or ["main"]
+
+
+class DenonAvrOptionsFlow(OptionsFlow):
+    """Volume options: the official scale, and per zone a limit and a turn-on volume."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        zones = _zones(self.hass, self.config_entry)
+        options = dict(self.config_entry.options)
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            for zone in zones:
+                values = user_input.get(zone, {})
+                limit = values.get(OPT_MAX_VOLUME)
+                turn_on = values.get(OPT_TURN_ON_VOLUME)
+                if limit is not None and turn_on is not None and turn_on > limit:
+                    errors["base"] = "turn_on_above_max"
+            if not errors:
+                # Merge: the options also hold markers this dialog does not show.
+                return self.async_create_entry(data={**options, **user_input})
+            options = {**options, **user_input}
+
+        fields: dict[Any, Any] = {
+            vol.Required(
+                OPT_OFFICIAL_SCALE, default=bool(options.get(OPT_OFFICIAL_SCALE, False))
+            ): BooleanSelector(),
+        }
+        for zone in zones:
+            stored = options.get(zone)
+            current: dict[str, Any] = stored if isinstance(stored, dict) else {}
+            zone_fields = {
+                vol.Optional(
+                    OPT_MAX_VOLUME,
+                    description={"suggested_value": current.get(OPT_MAX_VOLUME)},
+                ): _DB_SELECTOR,
+                vol.Optional(
+                    OPT_TURN_ON_VOLUME,
+                    description={"suggested_value": current.get(OPT_TURN_ON_VOLUME)},
+                ): _DB_SELECTOR,
+            }
+            fields[vol.Required(zone)] = section(
+                vol.Schema(zone_fields), {"collapsed": zone != "main"}
+            )
+        return self.async_show_form(
+            step_id="init", data_schema=vol.Schema(fields), errors=errors
         )
 

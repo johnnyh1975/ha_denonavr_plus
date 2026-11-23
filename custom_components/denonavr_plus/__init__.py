@@ -62,7 +62,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     _register_main_device(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _apply_channel_defaults(hass, entry, coordinator)
+    # Entities read the volume options when they need them; an options change
+    # only has to redraw them (the volume number's range follows the limit).
+    entry.async_on_unload(entry.add_update_listener(_async_entry_updated))
     return True
+
+
+async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
+    entry.runtime_data.async_update_listeners()
 
 
 def _register_main_device(

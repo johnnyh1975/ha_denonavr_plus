@@ -36,6 +36,61 @@
       "reconfigure_successful": "Die IP-Adresse wurde geändert."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lautstärke",
+        "description": "Einstellungen für die Media Player und die Lautstärke-Zahlen dieses Receivers.",
+        "data": {
+          "official_volume_scale": "Lautstärke-Skala der offiziellen Integration"
+        },
+        "data_description": {
+          "official_volume_scale": "An: 100 % sind +20 dB und 0 % sind −80 dB, wie in der offiziellen Denon-AVR-Integration. Lautstärken in Automationen klingen nach dem Umzug gleich. Aus: 0 bis 100 % umfassen den ganzen Bereich des Receivers bis zu seinem Maximum."
+        },
+        "sections": {
+          "main": {
+            "name": "Hauptzone",
+            "description": "Ein leeres Feld bedeutet: keine Einstellung.",
+            "data": {
+              "max_volume": "Maximale Lautstärke",
+              "turn_on_volume": "Einschaltlautstärke"
+            },
+            "data_description": {
+              "max_volume": "Höher stellt Home Assistant die Lautstärke dieser Zone nie, in dB wie am Receiver angezeigt (0 dB ist der Referenzpegel). Die Tasten am Receiver werden nicht begrenzt.",
+              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB."
+            }
+          },
+          "zone2": {
+            "name": "Zone 2",
+            "description": "Ein leeres Feld bedeutet: keine Einstellung.",
+            "data": {
+              "max_volume": "Maximale Lautstärke",
+              "turn_on_volume": "Einschaltlautstärke"
+            },
+            "data_description": {
+              "max_volume": "Höher stellt Home Assistant die Lautstärke dieser Zone nie, in dB wie am Receiver angezeigt (0 dB ist der Referenzpegel). Die Tasten am Receiver werden nicht begrenzt.",
+              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB."
+            }
+          },
+          "zone3": {
+            "name": "Zone 3",
+            "description": "Ein leeres Feld bedeutet: keine Einstellung.",
+            "data": {
+              "max_volume": "Maximale Lautstärke",
+              "turn_on_volume": "Einschaltlautstärke"
+            },
+            "data_description": {
+              "max_volume": "Höher stellt Home Assistant die Lautstärke dieser Zone nie, in dB wie am Receiver angezeigt (0 dB ist der Referenzpegel). Die Tasten am Receiver werden nicht begrenzt.",
+              "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "turn_on_above_max": "Die Einschaltlautstärke liegt über der maximalen Lautstärke."
+    }
+  },
   "entity": {
     "media_player": {
       "zone": {
@@ -50,9 +105,6 @@
     "sensor": {
       "sound_mode": {
         "name": "Klangmodus"
-      },
-      "volume": {
-        "name": "Lautstärke"
       },
       "input_signal": {
         "name": "Eingangssignal"
@@ -314,6 +366,12 @@
       },
       "channel_distance": {
         "name": "{channel} Abstand"
+      },
+      "volume": {
+        "name": "Lautstärke"
+      },
+      "zone_volume": {
+        "name": "Zone {index} Lautstärke"
       }
     },
     "button": {
