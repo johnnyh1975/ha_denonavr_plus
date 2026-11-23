@@ -102,7 +102,11 @@ integrations.
   check; the groups, the music sources and a heartbeat;
 - the setup interface pages, including the ones the integration reads
   (graphic EQ, HDMI setup, on-screen display, 4K and TV format, amp
-  assign).
+  assign), and a scan of every section (globals, audio, video, speakers,
+  control, info) for types 1 to 20, which shows what a model offers there
+  beyond what the integration uses (not with `--quick`);
+- which zones were on, from the `ZM?`, `Z2?` and `Z3?` answers, because a
+  zone that is off answers fewer queries.
 
 ```bash
 python3 tools/probe_receiver.py 192.0.2.10

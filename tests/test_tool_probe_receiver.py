@@ -74,3 +74,18 @@ def test_private_data_is_replaced() -> None:
         assert private not in text, private
     assert "HEOS speaker 2" in text
     assert probe.PLACEHOLDER_WIFI in text
+
+
+def test_the_setup_scan_only_reads() -> None:
+    # Every page of the scan and of the fixed list is a get_config request.
+    assert all("/get_config?" in page for page in probe.SETUP_PAGES)
+    assert list(probe.SETUP_TYPES) == list(range(1, 21))
+
+
+def test_zone_states_come_from_the_power_answers() -> None:
+    telnet = {
+        "ZM?": {"lines": ["ZMON"]},
+        "Z2?": {"lines": ["Z2OFF", "Z2TUNER", "Z250"]},
+        "Z3?": {"lines": ["?"]},
+    }
+    assert probe.zone_states(telnet) == {"main": "on", "zone 2": "off"}

@@ -18,7 +18,9 @@ stores a preset.
 
 Besides what the receiver can do, it measures how fast it answers, whether
 it drops queries sent close together, and whether it accepts a second
-telnet session.
+telnet session. It reads every page type of the setup interface (not with
+--quick) and notes which zones were on, because a zone that is off answers
+fewer queries.
 
 Before you run it:
 
@@ -328,6 +330,46 @@ SETUP_PAGES = [
     "/ajax/info/get_config?type=1",
     "/ajax/info/get_config?type=3",
 ]
+
+# The full scan of the setup interface: every section, type 1 to 20, read
+# only. Shows what a model offers there beyond what Denon AVR Plus uses.
+SETUP_SECTIONS = ["globals", "audio", "video", "speakers", "control", "info"]
+SETUP_TYPES = range(1, 21)
+
+
+def setup_scan(base: str) -> dict[str, dict[str, dict[str, object]]]:
+    """GET every section and type of the setup interface; record what answers."""
+
+    scan: dict[str, dict[str, dict[str, object]]] = {}
+    for section in SETUP_SECTIONS:
+        scan[section] = {}
+        for type_id in SETUP_TYPES:
+            result = http_get(f"{base}/ajax/{section}/get_config?type={type_id}")
+            body = str(result.get("body", ""))
+            root = re.search(r"<([A-Za-z][\w.-]*)", re.sub(r"<\?.*?\?>", "", body))
+            result["root"] = root.group(1) if root else None
+            result["bytes"] = len(body)
+            scan[section][str(type_id)] = result
+        answered = sum(
+            1 for r in scan[section].values() if r.get("status") == 200 and r["bytes"]
+        )
+        print(f"  {section:9s} {answered} of {len(SETUP_TYPES)} types answered")
+    return scan
+
+
+def zone_states(telnet: dict[str, object]) -> dict[str, str]:
+    """Whether each zone was on during the probe, from the ZM?, Z2? and Z3? answers."""
+
+    states: dict[str, str] = {}
+    for zone, query, prefix in (("main", "ZM?", "ZM"), ("zone 2", "Z2?", "Z2"),
+                                ("zone 3", "Z3?", "Z3")):
+        entry = telnet.get(query)
+        lines = entry.get("lines", []) if isinstance(entry, dict) else []
+        if f"{prefix}ON" in lines:
+            states[zone] = "on"
+        elif f"{prefix}OFF" in lines:
+            states[zone] = "off"
+    return states
 
 
 # Network helpers -----------------------------------------------------------
@@ -757,6 +799,11 @@ def summary_markdown(report: dict[str, object], catalogue: list[Query]) -> str:
     if report.get("power") == "standby":
         lines += ["**The receiver was in standby.** Many answers exist only while it is "
                   "on; run the probe again with the receiver switched on.", ""]
+    zones = report.get("zones")
+    if isinstance(zones, dict) and zones:
+        lines += ["Zones during the probe: "
+                  + ", ".join(f"{zone} {state}" for zone, state in zones.items())
+                  + ". A zone that is off answers fewer queries.", ""]
     lines += [
         "## Network interfaces",
         "",
@@ -805,6 +852,23 @@ def summary_markdown(report: dict[str, object], catalogue: list[Query]) -> str:
         answered += entry["result"] == "answered"
         lines.append(f"| {query.what} | `{query.command}` | {result} | {reply} |")
     lines += ["", f"{answered} of {len(catalogue)} queries answered."]
+
+    scan = report.get("setup_scan")
+    if isinstance(scan, dict):
+        lines += ["", f"## Setup interface, all types (port {scan.get('port')})", "",
+                  "Each cell: the size of the answer in bytes and its root element; "
+                  "– means no answer.", "",
+                  "| Type | " + " | ".join(SETUP_SECTIONS) + " |",
+                  "|---|" + "---|" * len(SETUP_SECTIONS)]
+        for type_id in SETUP_TYPES:
+            cells = []
+            for section in SETUP_SECTIONS:
+                entry = scan.get(section, {}).get(str(type_id), {})
+                if entry.get("status") == 200 and entry.get("bytes"):
+                    cells.append(f"{entry['bytes']} `{entry.get('root')}`")
+                else:
+                    cells.append("–")
+            lines.append(f"| {type_id} | " + " | ".join(cells) + " |")
 
     times = sorted(e["ms"] for e in telnet.values()
                    if isinstance(e, dict) and isinstance(e.get("ms"), int))
@@ -875,10 +939,15 @@ def main() -> int:
     if ports.get(60006):
         http["60006 aios_device.xml"] = http_get(
             f"http://{host}:60006/upnp/desc/aios_device/aios_device.xml")
+    scanned = False
     for port, scheme in ((10443, "https"), (11080, "http")):
         if ports.get(port):
             for page in SETUP_PAGES:
                 http[f"{port} {page}"] = http_get(f"{scheme}://{host}:{port}{page}")
+            if not scanned and not args.quick:
+                print(f"Setup interface, all types (port {port})")
+                report["setup_scan"] = {"port": port, **setup_scan(f"{scheme}://{host}:{port}")}
+                scanned = True
     report["http"] = http
 
     print("SSDP discovery")
@@ -895,6 +964,8 @@ def main() -> int:
     print("Telnet")
     time.sleep(1)  # the port check above briefly took the only telnet session
     report["telnet"] = probe_telnet(host, catalogue) if ports.get(23) else {"error": "port 23 closed"}
+    if isinstance(report["telnet"], dict):
+        report["zones"] = zone_states(report["telnet"])
     power = report["telnet"].get("PW?") if isinstance(report["telnet"], dict) else None
     if isinstance(power, dict):
         report["power"] = (
@@ -903,6 +974,10 @@ def main() -> int:
         )
 
     texts = [str(v.get("body", "")) for v in http.values() if isinstance(v, dict)]
+    scan = report.get("setup_scan")
+    if isinstance(scan, dict):
+        texts += [str(r.get("body", "")) for s in scan.values() if isinstance(s, dict)
+                  for r in s.values() if isinstance(r, dict)]
     texts.append(json.dumps(report.get("heos", {})))
     texts.append(json.dumps(report.get("telnet", {})))
     macs, serials, names, model = find_identity(texts, host)
