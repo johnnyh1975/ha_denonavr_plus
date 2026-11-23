@@ -14,7 +14,7 @@ import voluptuous as vol
 from homeassistant.components.device_automation import DEVICE_TRIGGER_BASE_SCHEMA
 from homeassistant.const import CONF_DEVICE_ID, CONF_DOMAIN, CONF_PLATFORM, CONF_TYPE
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.trigger import PluggableAction, TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
@@ -38,10 +38,15 @@ def turn_on_trigger(device_id: str) -> dict[str, str]:
 
 
 async def async_get_triggers(hass: HomeAssistant, device_id: str) -> list[dict[str, str]]:
-    """The receiver itself offers the trigger; its sub-devices (Audio, Video …) do not."""
+    """Devices with a media player offer the trigger: the receiver and each zone.
 
-    device = dr.async_get(hass).async_get(device_id)
-    if device is None or device.via_device_id is not None:
+    Audio, Video and the other setup sub-devices do not.
+    """
+
+    entities = er.async_entries_for_device(
+        er.async_get(hass), device_id, include_disabled_entities=True
+    )
+    if not any(entity.domain == "media_player" for entity in entities):
         return []
     return [turn_on_trigger(device_id)]
 

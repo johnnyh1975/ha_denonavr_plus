@@ -20,6 +20,7 @@ from homeassistant.helpers.device_registry import (
 from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .avr.models import ZoneDescriptor
 from .avr.errors import CommandNotSent, SetupWriteError
 from .const import DOMAIN
 from .coordinator import DenonAvrCoordinator
@@ -34,7 +35,18 @@ SUB_DEVICE_NAMES = {
     "picture": "Picture",
     "speakers": "Speakers",
     "eq": "Graphic EQ",
+    "zone2": "Zone 2",
+    "zone3": "Zone 3",
 }
+
+#: Sub-devices of their own room: a zone plays elsewhere than the receiver.
+ZONE_DEVICES = frozenset({"zone2", "zone3"})
+
+
+def zone_device(zone: ZoneDescriptor) -> str | None:
+    """The sub-device of a zone's entities: none for the main zone."""
+
+    return None if zone.is_main else zone.id
 
 
 def receiver_action[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _FuncT) -> _FuncT:

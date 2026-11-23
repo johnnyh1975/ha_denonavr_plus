@@ -115,9 +115,11 @@ it changes the receiver; it changes what Home Assistant shows and does.
   - **Turn-on volume**: set when Home Assistant switches the zone on, once the
     zone reports that it is on.
 
-**Zones**: which additional zones (zone 2, zone 3) get entities. A zone that
-is switched off loses its media player, volume and source sensor; switching it
-on again brings them back.
+**Zones**: which additional zones (zone 2, zone 3) get entities. Each such zone
+is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume and
+source sensor, so you can put it in the room where it plays. A zone that is
+switched off loses its device and entities; switching it on again brings them
+back.
 
 **Sources** (needs the receiver connected, it reads its sources): per zone,
 which sources the media player offers, then a name for each in Home
@@ -198,7 +200,8 @@ split off from Video like the Graphic EQ is split off from Audio); **Video** hol
 the output/connectivity settings (video mode, HDMI setup, on‑screen display, TV/4K
 signal format). The sub‑devices are in the receiver's room: one without a room
 takes it, and when the receiver moves, those that were in its room move along. A
-sub‑device you put in another room stays there. The lists below are grouped by
+sub‑device you put in another room stays there, and the zone devices (Zone 2,
+Zone 3) keep a room of their own. The lists below are grouped by
 entity type; each entity lands on the sub‑device its setting belongs to.
 Select options follow what the receiver lists where it lists fewer than the
 protocol knows (an AVR‑X2600H offers no Manual for MultEQ).

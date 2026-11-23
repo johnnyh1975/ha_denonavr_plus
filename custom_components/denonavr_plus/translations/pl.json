@@ -215,11 +215,6 @@
     }
   },
   "entity": {
-    "media_player": {
-      "zone": {
-        "name": "Strefa {index}"
-      }
-    },
     "binary_sensor": {
       "connectivity": {
         "name": "Łączność"
@@ -246,9 +241,6 @@
       },
       "source": {
         "name": "Źródło"
-      },
-      "zone_source": {
-        "name": "Strefa {index} źródło"
       }
     },
     "select": {
@@ -872,9 +864,6 @@
       },
       "volume": {
         "name": "Głośność"
-      },
-      "zone_volume": {
-        "name": "Strefa {index} głośność"
       },
       "auro_matic_strength": {
         "name": "Siła Auro-Matic 3D"

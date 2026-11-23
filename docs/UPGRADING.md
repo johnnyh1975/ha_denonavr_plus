@@ -4,6 +4,14 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 0.3.1
+
+Zone 2 and zone 3 are devices of their own, for example `AVR-X2600H Zone 2`.
+Their entity ids stay the same. Give the zone device its room under Settings →
+Devices. An automation with the device trigger "turned on while unreachable"
+on the receiver now fires for the main zone only; for zone 2, pick the trigger
+on the zone device.
+
 ## From 0.2.0
 
 Selects with a fixed set of options (dimmer, Dynamic Volume, MultEQ, speaker

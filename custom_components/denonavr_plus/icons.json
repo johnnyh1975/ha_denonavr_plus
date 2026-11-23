@@ -77,9 +77,6 @@
       },
       "volume": {
         "default": "mdi:volume-high"
-      },
-      "zone_volume": {
-        "default": "mdi:volume-high"
       }
     },
     "remote": {
@@ -283,9 +280,6 @@
         "default": "mdi:surround-sound"
       },
       "source": {
-        "default": "mdi:import"
-      },
-      "zone_source": {
         "default": "mdi:import"
       }
     },

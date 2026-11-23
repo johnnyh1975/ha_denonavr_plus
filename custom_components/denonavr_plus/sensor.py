@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import choices
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, zone_device
 
 # The audio information fields that start enabled. The decoder ('Dolby Atmos',
 # 'PCM') is what automations react to; the raw signal code, sample rate,
@@ -100,13 +100,9 @@ class DenonAvrSourceSensor(DenonAvrEntity, SensorEntity):
     _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
-        super().__init__(coordinator, f"sensor_source_{zone.id}")
+        super().__init__(coordinator, f"sensor_source_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
-        if zone.is_main:
-            self._attr_translation_key = "source"
-        else:
-            self._attr_translation_key = "zone_source"
-            self._attr_translation_placeholders = {"index": str(zone.index)}
+        self._attr_translation_key = "source"
 
     @property
     def native_value(self) -> str | None:

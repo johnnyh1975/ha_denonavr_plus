@@ -289,12 +289,19 @@ async def test_sub_devices_follow_the_receivers_room(
     registry = dr.async_get(hass)
     devices = dr.async_entries_for_config_entry(registry, loaded_entry.entry_id)
     main = next(device for device in devices if device.via_device_id is None)
-    subs = [device for device in devices if device.via_device_id == main.id]
+    subs = [
+        device
+        for device in devices
+        if device.via_device_id == main.id and not device.name.endswith("Zone 2")
+    ]
+    zone2 = next(device for device in devices if device.name.endswith("Zone 2"))
     assert len(subs) >= 2
 
     registry.async_update_device(main.id, area_id=living)
     await hass.async_block_till_done()
     assert {registry.async_get(sub.id).area_id for sub in subs} == {living}
+    # Zone 2 plays in a room of its own: it does not follow.
+    assert registry.async_get(zone2.id).area_id is None
 
     # One the user puts elsewhere stays there when the receiver moves.
     registry.async_update_device(subs[0].id, area_id=cellar)
@@ -308,3 +315,34 @@ async def test_sub_devices_follow_the_receivers_room(
     await hass.config_entries.async_reload(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert registry.async_get(subs[1].id).area_id == kitchen
+
+
+async def test_zone_2_has_a_device_of_its_own(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Zone 2 usually plays in another room, so it gets a device with its own room."""
+    devices = dr.async_get(hass)
+    entities = er.async_get(hass)
+    main = next(
+        device
+        for device in dr.async_entries_for_config_entry(devices, loaded_entry.entry_id)
+        if device.via_device_id is None
+    )
+    on_zone2 = {
+        entity_id: entities.async_get(entity_id).device_id
+        for entity_id in (
+            "media_player.avc_x3700h_zone_2",
+            "number.avc_x3700h_zone_2_volume",
+            "sensor.avc_x3700h_zone_2_source",
+        )
+    }
+    (device_id,) = set(on_zone2.values())
+    zone2 = devices.async_get(device_id)
+    assert zone2.name == "AVC-X3700H Zone 2"
+    assert zone2.via_device_id == main.id
+    assert entities.async_get("media_player.avc_x3700h").device_id == main.id
+
+    # Left out in the options, the zone loses its device with its entities.
+    hass.config_entries.async_update_entry(loaded_entry, options={"zones": []})
+    await hass.async_block_till_done()
+    assert devices.async_get(device_id) is None

@@ -30,6 +30,7 @@ from .coordinator import (
     snapshot_store,
 )
 from .capabilities import OPT_CHECK_PENDING, CapabilityResults, async_run_pending
+from .entity import ZONE_DEVICES
 from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
 from .services import async_setup_services
 
@@ -151,6 +152,14 @@ def _remove_hidden_zones(
     for item in er.async_entries_for_config_entry(registry, entry.entry_id):
         if item.unique_id.endswith(suffixes):
             registry.async_remove(item.entity_id)
+    # And the zone's own device, which has nothing left on it.
+    devices = dr.async_get(hass)
+    for device in dr.async_entries_for_config_entry(devices, entry.entry_id):
+        if any(
+            domain == DOMAIN and value.endswith(tuple(f"_{zone}" for zone in hidden))
+            for domain, value in device.identifiers
+        ):
+            devices.async_remove_device(device.id)
 
 
 async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
@@ -208,7 +217,8 @@ def _sub_devices_follow_room(
 
     A sub-device without a room, or in the room the receiver just left, moves
     with the receiver. One the user put in another room stays there.
-    Otherwise their entities would be missing from the room's area.
+    Otherwise their entities would be missing from the room's area. The zone
+    devices are left alone: zone 2 plays in a room of its own.
     """
 
     registry = dr.async_get(hass)
@@ -224,6 +234,7 @@ def _sub_devices_follow_room(
         for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
             if (
                 device.via_device_id == main_id
+                and not _is_zone_device(device)
                 and device.area_id in (None, previous_area)
                 and device.area_id != main.area_id
             ):
@@ -239,6 +250,15 @@ def _sub_devices_follow_room(
 
     follow(None)
     entry.async_on_unload(hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, main_updated))
+
+
+def _is_zone_device(device: dr.DeviceEntry) -> bool:
+    """Whether a sub-device is the device of zone 2 or zone 3."""
+
+    return any(
+        domain == DOMAIN and value.endswith(tuple(f"_{zone}" for zone in ZONE_DEVICES))
+        for domain, value in device.identifiers
+    )
 
 
 def _apply_channel_defaults(

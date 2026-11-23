@@ -86,13 +86,19 @@ async def test_the_receiver_offers_the_trigger(
     assert [t for t in triggers if t["domain"] == DOMAIN] == [
         device_trigger.turn_on_trigger(device.id) | {"metadata": {}}
     ]
-    # The sub-devices (Audio, Video …) do not offer it.
-    sub = next(
+    # Zone 2 has a device of its own and offers it too; the setup sub-devices
+    # (Audio, Video …) do not.
+    subs = [
         d
         for d in dr.async_entries_for_config_entry(dr.async_get(hass), loaded_entry.entry_id)
         if d.via_device_id == device.id
-    )
-    assert await device_trigger.async_get_triggers(hass, sub.id) == []
+    ]
+    zone2 = next(d for d in subs if d.name.endswith("Zone 2"))
+    assert await device_trigger.async_get_triggers(hass, zone2.id) == [
+        device_trigger.turn_on_trigger(zone2.id)
+    ]
+    audio = next(d for d in subs if d.name.endswith("Audio"))
+    assert await device_trigger.async_get_triggers(hass, audio.id) == []
 
 
 async def test_turning_on_an_unreachable_receiver_runs_the_automation(

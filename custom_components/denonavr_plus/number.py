@@ -25,7 +25,7 @@ from .avr import graphic_eq
 from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action
+from .entity import DenonAvrEntity, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device
 
 # The control kinds that map to a number entity.
@@ -262,13 +262,9 @@ class DenonAvrVolume(DenonAvrEntity, NumberEntity):
     _attr_mode = NumberMode.SLIDER
 
     def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
-        super().__init__(coordinator, f"number_volume_{zone.id}")
+        super().__init__(coordinator, f"number_volume_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
-        if zone.is_main:
-            self._attr_translation_key = "volume"
-        else:
-            self._attr_translation_key = "zone_volume"
-            self._attr_translation_placeholders = {"index": str(zone.index)}
+        self._attr_translation_key = "volume"
         self._attr_native_step = coordinator.device.volume_step or 0.5
         self._attr_native_min_value = -coordinator.device.volume_reference
 

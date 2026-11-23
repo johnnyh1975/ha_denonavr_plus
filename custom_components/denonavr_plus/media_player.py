@@ -27,7 +27,7 @@ from .avr.errors import CommandNotSent
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .device_trigger import turn_on_trigger
-from .entity import DenonAvrEntity, receiver_action
+from .entity import DenonAvrEntity, receiver_action, zone_device
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,15 +105,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     _attr_device_class = MediaPlayerDeviceClass.RECEIVER
 
     def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
-        super().__init__(coordinator, f"media_player_{zone.id}")
+        super().__init__(coordinator, f"media_player_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
-        # The main zone is the primary device entity (no own name); additional
-        # zones are named "Zone <n>", translated.
-        if zone.is_main:
-            self._attr_name = None
-        else:
-            self._attr_translation_key = "zone"
-            self._attr_translation_placeholders = {"index": str(zone.index)}
+        # The device's own entity: the receiver for the main zone, the zone's
+        # device ("AVR-X2600H Zone 2") for the others.
+        self._attr_name = None
 
         features = (
             MediaPlayerEntityFeature.TURN_ON

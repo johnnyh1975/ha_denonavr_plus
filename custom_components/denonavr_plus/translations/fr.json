@@ -215,11 +215,6 @@
     }
   },
   "entity": {
-    "media_player": {
-      "zone": {
-        "name": "Zone {index}"
-      }
-    },
     "binary_sensor": {
       "connectivity": {
         "name": "Connectivité"
@@ -246,9 +241,6 @@
       },
       "source": {
         "name": "Source"
-      },
-      "zone_source": {
-        "name": "Source zone {index}"
       }
     },
     "select": {
@@ -872,9 +864,6 @@
       },
       "volume": {
         "name": "Volume"
-      },
-      "zone_volume": {
-        "name": "Volume zone {index}"
       },
       "auro_matic_strength": {
         "name": "Intensité Auro-Matic 3D"

@@ -215,11 +215,6 @@
     }
   },
   "entity": {
-    "media_player": {
-      "zone": {
-        "name": "Zone {index}"
-      }
-    },
     "binary_sensor": {
       "connectivity": {
         "name": "Verbinding"
@@ -246,9 +241,6 @@
       },
       "source": {
         "name": "Bron"
-      },
-      "zone_source": {
-        "name": "Zone {index} bron"
       }
     },
     "select": {
@@ -872,9 +864,6 @@
       },
       "volume": {
         "name": "Volume"
-      },
-      "zone_volume": {
-        "name": "Zone {index} volume"
       },
       "auro_matic_strength": {
         "name": "Auro-Matic 3D-sterkte"
