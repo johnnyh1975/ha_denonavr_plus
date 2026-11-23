@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import (
     config_validation as cv,
@@ -91,6 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     _remove_hidden_zones(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, _platforms(coordinator))
     _apply_channel_defaults(hass, entry, coordinator)
+    _sub_devices_follow_room(hass, entry, coordinator)
     coordinator.capabilities.async_update_issues(coordinator.device.discovery.device.model_name)
     if entry.options.get(OPT_CHECK_PENDING) and not coordinator.started_offline:
         entry.async_create_background_task(
@@ -196,6 +197,48 @@ def _register_main_device(
         configuration_url=coordinator.device.setup_url,
     )
     coordinator.main_device_id = entry_device.id
+
+
+def _sub_devices_follow_room(
+    hass: HomeAssistant,
+    entry: DenonAvrConfigEntry,
+    coordinator: DenonAvrCoordinator,
+) -> None:
+    """Keep Audio, Video, Speakers and the other sub-devices in the receiver's room.
+
+    A sub-device without a room, or in the room the receiver just left, moves
+    with the receiver. One the user put in another room stays there.
+    Otherwise their entities would be missing from the room's area.
+    """
+
+    registry = dr.async_get(hass)
+    main_id = coordinator.main_device_id
+    if main_id is None:
+        return
+
+    @callback
+    def follow(previous_area: str | None) -> None:
+        main = registry.async_get(main_id)
+        if main is None:
+            return
+        for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
+            if (
+                device.via_device_id == main_id
+                and device.area_id in (None, previous_area)
+                and device.area_id != main.area_id
+            ):
+                registry.async_update_device(device.id, area_id=main.area_id)
+
+    @callback
+    def main_updated(event: Event[dr.EventDeviceRegistryUpdatedData]) -> None:
+        data = event.data
+        if data["action"] != "update" or data["device_id"] != main_id:
+            return
+        if "area_id" in data["changes"]:
+            follow(data["changes"]["area_id"])
+
+    follow(None)
+    entry.async_on_unload(hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, main_updated))
 
 
 def _apply_channel_defaults(

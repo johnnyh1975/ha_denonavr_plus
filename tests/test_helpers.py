@@ -57,6 +57,49 @@ def test_without_a_label_for_every_value_the_tokens_stand_in() -> None:
     assert value_to_key == {"LOW": "low", "HI": "hi"}
 
 
+_MULTEQ = ControlSpec(
+    "multeq",
+    {
+        "kind": "enum",
+        "values": ["AUDYSSEY", "BYP.LR", "FLAT", "MANUAL", "OFF"],
+        "labels": ["Reference", "L/R Bypass", "Flat", "Manual", "Off"],
+    },
+)
+
+
+def test_only_the_options_the_receiver_lists() -> None:
+    """An AVR-X2600H (3.139.175) lists four MultEq options, without Manual."""
+    keys, key_to_value, value_to_key = helpers.enum_options(
+        _MULTEQ, ["Reference", "L/R Bypass", "Flat", "Off"]
+    )
+    assert keys == ["reference", "l_r_bypass", "flat", "off"]
+    assert "MANUAL" not in key_to_value.values()
+    assert "MANUAL" not in value_to_key
+
+
+@pytest.mark.parametrize(
+    "published",
+    [
+        None,
+        # As many as the profile: the profile's labels stay.
+        ["Reference", "L/R Bypass", "Flat", "Manual", "Off"],
+        # A name the profile does not know: nothing is dropped on a guess.
+        ["Reference", "Bypass L/R", "Off"],
+    ],
+)
+def test_the_profiles_options_otherwise(published: list[str] | None) -> None:
+    keys, _, _ = helpers.enum_options(_MULTEQ, published)
+    assert len(keys) == 5
+
+
+def test_published_names_are_compared_without_case_and_signs() -> None:
+    spec = ControlSpec(
+        "ref", {"kind": "enum", "values": ["0", "5", "10"], "labels": ["0 dB", "5 dB", "10 dB"]}
+    )
+    keys, _, _ = helpers.enum_options(spec, ["0dB", "+5dB"])
+    assert keys == ["0_db", "5_db"]
+
+
 def _discovery(*channels: tuple[str, str]) -> Discovery:
     return Discovery(channels=[ChannelDescriptor(code, name) for code, name in channels])
 

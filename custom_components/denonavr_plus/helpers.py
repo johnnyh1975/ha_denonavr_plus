@@ -126,17 +126,36 @@ def option_key(label: str) -> str:
     return prefix + slug
 
 
-def enum_options(spec: ControlSpec) -> tuple[list[str], dict[str, str], dict[str, str]]:
+def _comparable(label: str) -> str:
+    """A label reduced to lower case letters and digits ("+5dB" -> "5db")."""
+
+    return "".join(char for char in label.lower() if char.isalnum())
+
+
+def enum_options(
+    spec: ControlSpec, published: list[str] | None = None
+) -> tuple[list[str], dict[str, str], dict[str, str]]:
     """The option keys of an enum control and the maps between key and wire value.
 
     The wire values and their English labels come from the profile, in the
     receiver's order; the keys are the labels as slugs, translated on screen.
     Without labels for every value the wire tokens stand in.
+
+    `published` are the option names the receiver lists for the control. When
+    it lists fewer than the profile and each of them is one of the profile's
+    labels, only those are offered (an AVR-X2600H has no Manual for MultEq).
+    Anything else, and the profile's options stay as they are.
     """
 
-    values = spec.values
+    values = list(spec.values)
     labels = spec.get("labels") or []
     if len(labels) != len(values):
         labels = [humanize(value) for value in values]
+    elif published and len(published) < len(labels):
+        offered = {_comparable(name) for name in published}
+        if offered <= {_comparable(label) for label in labels}:
+            kept = [i for i, label in enumerate(labels) if _comparable(label) in offered]
+            values = [values[i] for i in kept]
+            labels = [labels[i] for i in kept]
     keys = [option_key(label) for label in labels]
     return keys, dict(zip(keys, values)), dict(zip(values, keys))

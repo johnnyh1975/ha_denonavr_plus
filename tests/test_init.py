@@ -18,7 +18,11 @@ import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT, STATE_ON, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import (
+    area_registry as ar,
+    device_registry as dr,
+    entity_registry as er,
+)
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.avr import DenonAvrDevice
@@ -274,3 +278,33 @@ async def test_the_device_shows_no_protocol_family_as_hardware(
     devices = dr.async_entries_for_config_entry(dr.async_get(hass), loaded_entry.entry_id)
     assert devices
     assert all(device.hw_version is None for device in devices)
+
+
+async def test_sub_devices_follow_the_receivers_room(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Seen on an AVR-X2600H: only the receiver was in its room, not Audio, Video..."""
+    areas = ar.async_get(hass)
+    living, kitchen, cellar = (areas.async_create(name).id for name in ("Living", "Kitchen", "Cellar"))
+    registry = dr.async_get(hass)
+    devices = dr.async_entries_for_config_entry(registry, loaded_entry.entry_id)
+    main = next(device for device in devices if device.via_device_id is None)
+    subs = [device for device in devices if device.via_device_id == main.id]
+    assert len(subs) >= 2
+
+    registry.async_update_device(main.id, area_id=living)
+    await hass.async_block_till_done()
+    assert {registry.async_get(sub.id).area_id for sub in subs} == {living}
+
+    # One the user puts elsewhere stays there when the receiver moves.
+    registry.async_update_device(subs[0].id, area_id=cellar)
+    registry.async_update_device(main.id, area_id=kitchen)
+    await hass.async_block_till_done()
+    assert registry.async_get(subs[0].id).area_id == cellar
+    assert {registry.async_get(sub.id).area_id for sub in subs[1:]} == {kitchen}
+
+    # A sub-device without a room takes the receiver's at the next start.
+    registry.async_update_device(subs[1].id, area_id=None)
+    await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert registry.async_get(subs[1].id).area_id == kitchen

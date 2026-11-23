@@ -614,7 +614,15 @@ class TelnetParser:
                 zone.volume_raw = value
                 return True
             return False
-        # Anything else is the zone 2 source code.
+        # Replies that share the zone prefix but are no source: quick and
+        # smart select (Z2QUICK0 means "no quick select"), and the zone's
+        # other settings. A source is a code the receiver listed, or SOURCE
+        # (the zone follows the main zone).
+        if remainder.startswith(("QUICK", "SMART")):
+            return False
+        known = {source.code for source in self._discovery.sources}
+        if known and remainder not in known and remainder != "SOURCE":
+            return False
         zone.source = remainder
         return True
 

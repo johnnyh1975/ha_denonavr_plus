@@ -164,6 +164,20 @@ def test_feed_zone2(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
     assert zone.source == "CD"
 
 
+def test_zone2_replies_that_are_no_source(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
+    """Seen on an AVR-X2600H (3.139.175): zone 2 showed the source "QUICK0"."""
+    parser, state = parser_and_state
+    parser.feed("Z2CD", state)
+    for line in ("Z2QUICK0", "Z2SMART1", "Z2SLP060", "Z2HPFOFF"):
+        parser.feed(line, state)
+        assert state.zone("zone2").source == "CD", line
+    # SOURCE: zone 2 follows the main zone.
+    assert parser.feed("Z2SOURCE", state)
+    assert state.zone("zone2").source == "SOURCE"
+
+
 def test_feed_ignores_empty_and_unknown(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
     parser, state = parser_and_state
     assert not parser.feed("", state)

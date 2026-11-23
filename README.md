@@ -196,8 +196,12 @@ quick select, input mode, front‑display dimmer); the **Audio**, **Video**,
 part of the setup. **Picture** holds the image‑quality tuning (a coherent group,
 split off from Video like the Graphic EQ is split off from Audio); **Video** holds
 the output/connectivity settings (video mode, HDMI setup, on‑screen display, TV/4K
-signal format). The lists below are grouped by entity type; each entity lands on
-the sub‑device its setting belongs to.
+signal format). The sub‑devices are in the receiver's room: one without a room
+takes it, and when the receiver moves, those that were in its room move along. A
+sub‑device you put in another room stays there. The lists below are grouped by
+entity type; each entity lands on the sub‑device its setting belongs to.
+Select options follow what the receiver lists where it lists fewer than the
+protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
 
 - **Media player** per zone (main + zone 2 where present): power, volume, mute,
   source selection, and (main zone) sound mode. On the main zone, network sources
