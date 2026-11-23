@@ -737,6 +737,16 @@
           "4_h": "4 Std.",
           "8_h": "8 Std."
         }
+      },
+      "zone2_quick_select": {
+        "name": "Quick Select",
+        "state": {
+          "quick_select_1": "Quick Select 1",
+          "quick_select_2": "Quick Select 2",
+          "quick_select_3": "Quick Select 3",
+          "quick_select_4": "Quick Select 4",
+          "quick_select_5": "Quick Select 5"
+        }
       }
     },
     "switch": {

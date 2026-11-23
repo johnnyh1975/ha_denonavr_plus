@@ -243,6 +243,7 @@ def test_replies_recorded_on_an_avr_x2600h(
     # Zone 2 settings: decoded as controls, never taken for a source.
     assert state.values["zone2_sleep_timer"] == 0
     assert state.values["zone2_auto_standby"] == "OFF"
+    assert state.values["zone2_quick_select"] == "0"  # none recalled
     assert state.values["zone2_channel_level_fl"] == 0.0
     assert state.values["zone2_channel_level_fr"] == 0.0
     # Z2NET, not Z2QUICK0 that comes later.
@@ -293,6 +294,7 @@ def test_every_model_dependent_control_has_a_reply_test() -> None:
         "bluetooth_transmitter",
         "zone2_sleep_timer",
         "zone2_auto_standby",
+        "zone2_quick_select",
         "zone2_channel_level_fl",
         "zone2_channel_level_fr",
     }

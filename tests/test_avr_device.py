@@ -136,6 +136,8 @@ X2000_ANSWERS = {
     "SSSOD ?": ["SSSODDVD USE", "SSSODCD USE", "SSSODIRADIO USE"],
     "SSHOS ?": ["SSHOSCON ON", "SSHOSALS ON", "SSHOSIPM AUT"],
     "Z2SLP?": ["Z2SLPOFF"],
+    "Z2QUICK ?": ["Z2QUICK0"],
+    "SSQSNZMA ?": [f"SSQSNZMAQS{n} Quick Select {n}" for n in range(1, 5)],
     "Z2CV?": ["Z2CVFL 50", "Z2CVFR 50"],
     "CV?": ["CVFL 51", "CVFR 50", "CVC 50", "CVSW 38", "CVSBL 50"],
     "SSSPC ?": ["SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSWF YES", "SSSPCSBK NON"],
@@ -190,8 +192,9 @@ async def test_features_an_older_receiver_does_not_name_appear_when_they_answer(
     assert {"multeq", "dynamic_eq", "dynamic_volume", "bass"} <= discovery.answered
     # A feature it neither names nor answers stays away.
     assert "cinema_eq" not in discovery.answered
-    # Its picture levels use another scale (brightness 00-12, not 000-100).
-    assert "brightness" not in discovery.answered
+    # Its picture levels use another scale: brightness 00-12, not 000-100.
+    assert "brightness" in discovery.answered
+    assert entry.runtime_data.device.state.values["brightness"] == 0
     # Auto lip sync comes in its HDMI setup list; SSHOSALS ? gets no answer.
     assert "auto_lip_sync" in discovery.answered
     # It plays from the network as SINET but lists only the network services.
@@ -215,6 +218,14 @@ async def test_features_an_older_receiver_does_not_name_appear_when_they_answer(
     )
     assert {item.device_id for item in zone2.values()} == {media_player.device_id}
     assert "select_zone2_auto_standby" not in unique_ids
+    # As many zone 2 quick selects as the main zone has: four, not five.
+    quick = registry.async_get_entity_id(
+        "select", DOMAIN, f"{item_id(entry)}_select_zone2_quick_select"
+    )
+    assert quick is not None
+    assert registry.async_get(quick).capabilities["options"] == [
+        f"quick_select_{n}" for n in range(1, 5)
+    ]
     # No SSLEV on this model: the channel levels come from CV?, the
     # configured ones enabled; no distances.
     trims = {key: key for key in unique_ids if key.startswith("number_channel_trim_")}
@@ -336,3 +347,47 @@ async def test_a_later_start_does_not_ask_again(
     asked = [probe for probe in X2000_PROBES if "PSMULTEQ: ?" in probe["queries"]]
     assert len(asked) == 1
     assert "multeq" in entry.runtime_data.device.discovery.answered
+
+
+async def test_an_older_receiver_gets_its_own_picture_scale(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """AVR-X2000 protocol v03: contrast 44-56 (50 is 0), brightness 00-12."""
+    from homeassistant.const import CONF_PORT
+    from homeassistant.helpers import entity_registry as er
+
+    from .conftest import deviceinfo
+
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _x2000_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVR-X2000-Deviceinfo.xml")),
+        ),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.11", CONF_PORT: 80},
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        registry = er.async_get(hass)
+        brightness = registry.async_get_entity_id(
+            "number", DOMAIN, f"{item_id(entry)}_number_brightness"
+        )
+        assert brightness is not None
+        registry.async_update_entity(brightness, disabled_by=None)
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+    state = hass.states.get(brightness)
+    assert state is not None
+    assert (state.attributes["min"], state.attributes["max"]) == (0, 12)
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": brightness, "value": 7}, blocking=True
+    )
+    assert "PVBR 07" in telnet.sent

@@ -33,7 +33,7 @@ from .models import (
     ZoneDescriptor,
 )
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
-from .profile import ControlSpec, ProtocolProfile, load_profile
+from .profile import ControlSpec, ProtocolProfile, load_profile, profile_variant
 from . import capability_check, graphic_eq, video_config
 from .const import (
     CHECK_REPLY_FIRST,
@@ -62,6 +62,8 @@ _LOGGER = logging.getLogger(__name__)
 #: may be incomplete, so only those of a receiver that is on are kept.
 POWER_QUERY = "PW?"
 CHANNEL_TRIMS_QUERY = "CV?"
+#: The profile variant of receivers on port 80 (AVR-X2000 and its time).
+OLDER = "older"
 
 # After a command sent over HTTP (telnet down) nothing is pushed back, so the
 # zone status is read again once the receiver has had a moment to apply it.
@@ -314,6 +316,11 @@ class DenonAvrDevice:
             enum_features,
             receiver_type=self._profile.receiver_type,
         )
+        if self._http_port == 80 and self._profile.variant != OLDER:
+            # The older generation encodes some values differently (picture
+            # levels in two digits); the profile's "older" entries say how.
+            self._profile = profile_variant(self._profile, OLDER)
+            self._parser = TelnetParser(self._profile, self._discovery)
         # Copy discovered data into our shared discovery object so the parser and
         # entities keep referencing a single instance.
         self._discovery.device = discovered.device
@@ -473,10 +480,10 @@ class DenonAvrDevice:
             for spec in self._profile.feature_controls()
             if spec.scope == "feature"
             and not self._discovery.supports(spec.feature or "")
-            # Picture levels: older receivers use another scale (AVR-X2000:
-            # contrast 44-56, brightness 00-12), so an answer does not mean
-            # this encoding fits.
-            and spec.kind != "centered"
+            # Picture levels: an answer says the encoding fits only where the
+            # profile knows the receiver's generation (the older variant has
+            # the AVR-X2000 scale); a newer receiver names PictureAdjust.
+            and (spec.kind != "centered" or self._profile.variant == OLDER)
         ]
 
     async def _async_probe_answered(self, specs: list[ControlSpec]) -> None:

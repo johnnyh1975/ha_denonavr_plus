@@ -270,6 +270,9 @@
       },
       "zone2_auto_standby": {
         "default": "mdi:timer-sand"
+      },
+      "zone2_quick_select": {
+        "default": "mdi:numeric"
       }
     },
     "sensor": {

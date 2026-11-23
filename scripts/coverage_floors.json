@@ -8,7 +8,7 @@
     "avr/device.py": 0.835,
     "avr/graphic_eq.py": 0.761,
     "avr/parser.py": 0.905,
-    "avr/profile.py": 0.896,
+    "avr/profile.py": 0.906,
     "avr/transport/goform.py": 0.6215,
     "avr/transport/heos.py": 0.899,
     "avr/transport/tcp_client.py": 0.1962,
@@ -16,7 +16,7 @@
     "avr/transport/upnp.py": 0.5404,
     "avr/video_config.py": 0.495,
     "media_player.py": 0.8651,
-    "select.py": 0.683,
+    "select.py": 0.712,
     "switch.py": 0.8283
   }
 }

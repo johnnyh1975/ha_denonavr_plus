@@ -117,8 +117,8 @@ it changes the receiver; it changes what Home Assistant shows and does.
 
 **Zones**: which additional zones (zone 2, zone 3) get entities. Each such zone
 is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume and
-source sensor, and the zone's sleep timer, front left and right level and auto
-standby where the receiver answers them, so you can put it in the room where it
+source sensor, and the zone's sleep timer, front left and right level, quick
+select and auto standby where the receiver answers them, so you can put it in the room where it
 plays. A zone that is
 switched off loses its device and entities; switching it on again brings them
 back.

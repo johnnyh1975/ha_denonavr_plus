@@ -751,6 +751,18 @@
       "labels": ["Off", "2 h", "4 h", "8 h"],
       "doc": "Zone 2 auto standby (Z2STBY 2H/4H/8H/OFF), from the 2015 X-series document. Answered by an AVR-X2600H; the AVR-X2000 does not answer it."
     },
+    "zone2_quick_select": {
+      "group": "zone",
+      "subdevice": "zone2",
+      "scope": "answered",
+      "kind": "enum",
+      "query": "Z2QUICK ?",
+      "prefix": "Z2QUICK",
+      "values": ["1", "2", "3", "4", "5"],
+      "labels": ["Quick Select 1", "Quick Select 2", "Quick Select 3", "Quick Select 4", "Quick Select 5"],
+      "count_from": "quick_select_names",
+      "doc": "Zone 2 quick select recall (Z2QUICK1-5; Z2QUICK0 when none is active). AVR-X2000/E400 protocol v03 and the 2015 X-series document; Z2QUICK ? answered by an AVR-X2000 and an AVR-X2600H. Offered as many as the main zone has (SSQSNZMA)."
+    },
     "zone2_channel_level_fl": {
       "group": "zone",
       "subdevice": "zone2",
@@ -932,6 +944,7 @@
       "doc": "Picture mode (Denon protocol PV<mode>). Tokens from the official protocol doc. The 'PV' prefix is shared with the video-adjust settings (PVBR/PVCN/...), so exact_enum makes this control claim only the picture-mode value tokens. Device reports PVSTM (Stream)."
     },
     "contrast": {
+      "older": {"width": 2, "min": -6, "max": 6, "doc": "AVR-X2000/E400 protocol v03: two digits, 44-56, 50 == 0 (-6..+6)."},
       "group": "video",
       "subdevice": "picture",
       "scope": "feature",
@@ -947,6 +960,7 @@
       "doc": "Picture contrast (Denon PVCN). 3-digit wire, 050 == 0, range -50..+50. Availability comes from the /ajax PictureAdjust menu (feature injected at discovery); writes require an active HDMI video signal."
     },
     "brightness": {
+      "older": {"center": 0, "width": 2, "min": 0, "max": 12, "doc": "AVR-X2000/E400 protocol v03: two digits, 00-12, 00 == 0."},
       "group": "video",
       "subdevice": "picture",
       "scope": "feature",
@@ -962,6 +976,7 @@
       "doc": "Picture brightness (Denon PVBR). 3-digit wire, 050 == 0, range -50..+50."
     },
     "saturation": {
+      "older": {"width": 2, "min": -6, "max": 6, "doc": "AVR-X2000/E400 protocol v03: two digits, 44-56, 50 == 0 (-6..+6)."},
       "group": "video",
       "subdevice": "picture",
       "scope": "feature",

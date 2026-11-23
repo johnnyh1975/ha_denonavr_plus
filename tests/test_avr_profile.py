@@ -95,3 +95,16 @@ def test_every_query_is_in_the_protocol_docs() -> None:
         if not re.search(r"(?<![A-Z])" + re.escape(q.rstrip("?").strip()) + r"(?![A-Z])", docs)
     )
     assert not missing, f"queries not described in docs/protocol: {missing}"
+
+
+def test_the_older_variant_replaces_a_controls_own_entries() -> None:
+    from custom_components.denonavr_plus.avr.profile import profile_variant
+
+    profile = load_profile()
+    older = profile_variant(profile, "older")
+    assert older.variant == "older"
+    assert older.control("brightness").get("width") == 2
+    assert older.control("brightness").get("max") == 12
+    assert older.control("brightness").get("older") is None
+    # The cached profile stays as it is for other receivers.
+    assert profile.control("brightness").get("width") == 3

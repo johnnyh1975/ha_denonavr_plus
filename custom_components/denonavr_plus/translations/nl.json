@@ -737,6 +737,16 @@
           "4_h": "4 uur",
           "8_h": "8 uur"
         }
+      },
+      "zone2_quick_select": {
+        "name": "Snelkeuze",
+        "state": {
+          "quick_select_1": "Snelkeuze 1",
+          "quick_select_2": "Snelkeuze 2",
+          "quick_select_3": "Snelkeuze 3",
+          "quick_select_4": "Snelkeuze 4",
+          "quick_select_5": "Snelkeuze 5"
+        }
       }
     },
     "switch": {

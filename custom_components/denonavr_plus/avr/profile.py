@@ -7,6 +7,7 @@ lookups. It contains engine logic only, never device configuration.
 
 from __future__ import annotations
 
+import copy
 import json
 from functools import lru_cache
 from pathlib import Path
@@ -88,6 +89,7 @@ class ProtocolProfile:
 
     def __init__(self, raw: dict[str, Any]) -> None:
         self._raw = raw
+        self.variant: str | None = None
         self.grammar: dict[str, Any] = raw.get("grammar", {})
         self.zones: dict[str, Any] = raw.get("zones", {})
         self.speakers: dict[str, Any] = raw.get("speakers", {})
@@ -222,6 +224,23 @@ class ProtocolProfile:
         """Return all control specs that are gated by a receiver feature."""
 
         return [spec for spec in self.controls.values() if spec.feature]
+
+
+def profile_variant(profile: ProtocolProfile, variant: str) -> ProtocolProfile:
+    """The profile with each control's `variant` entries (e.g. "older") applied.
+
+    A copy: the cached profile stays as it is for other receivers.
+    """
+
+    raw = copy.deepcopy(profile._raw)  # noqa: SLF001 - the profile's own data
+    for control in raw.get("controls", {}).values():
+        override = control.pop(variant, None)
+        if isinstance(override, dict):
+            override.pop("doc", None)
+            control.update(override)
+    result = ProtocolProfile(raw)
+    result.variant = variant
+    return result
 
 
 @lru_cache(maxsize=1)

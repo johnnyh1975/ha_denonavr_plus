@@ -120,7 +120,11 @@ class DenonAvrSelect(DenonAvrEntity, SelectEntity):
         self._spec = spec
         self._attr_translation_key = spec.id
         self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
-        published = coordinator.device.discovery.option_labels.get(spec.get("feature") or "")
+        discovery = coordinator.device.discovery
+        published = discovery.option_labels.get(spec.get("feature") or "")
+        if spec.get("count_from") == "quick_select_names" and discovery.quick_select_names:
+            # As many as the main zone has: the receiver's quick select buttons.
+            published = list(spec.get("labels") or [])[: len(discovery.quick_select_names)]
         options, self._key_to_value, self._value_to_key = enum_options(spec, published)
         self._attr_options = options
 
