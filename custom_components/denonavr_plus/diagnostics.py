@@ -14,6 +14,7 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
+from .avr.device import DenonAvrDevice
 from .coordinator import DenonAvrConfigEntry
 
 TO_REDACT = {"mac_address", "serial_number"}
@@ -51,6 +52,7 @@ async def async_get_config_entry_diagnostics(
         "numeric_meta": discovery.numeric_meta,
         "all_sound_modes": discovery.all_sound_modes,
         "current_sound_modes": discovery.current_sound_modes,
+        "media": _media(device),
         "state": {
             "system_power": state.system_power,
             "zones": {zone_id: asdict(zone) for zone_id, zone in state.zones.items()},
@@ -58,5 +60,36 @@ async def async_get_config_entry_diagnostics(
             "readonly": state.readonly,
             "channel_levels": state.channel_levels,
             "channel_trims": state.channel_trims,
+        },
+    }
+
+
+def _media(device: DenonAvrDevice) -> dict[str, Any]:
+    """How now playing and playback reach the receiver, and how it answered.
+
+    Which now-playing fields are filled, not what they say: the diagnostics
+    are attached to public issues, and the cover URL holds an address.
+    """
+
+    now = device.state.now_playing
+    return {
+        "heos_enabled": device.heos_enabled,
+        "heos_connected": device.heos_connected,
+        "telnet_media": device.telnet_media,
+        "transport_available": device.transport_available,
+        "can_play_url": device.can_play_url,
+        "heos_command_results": device.heos_command_results,
+        "now_playing": {
+            "state": now.state,
+            "media_type": now.media_type,
+            "repeat": now.repeat,
+            "shuffle": now.shuffle,
+            "duration": now.duration,
+            "has_position": now.position is not None,
+            "has": [
+                name
+                for name in ("title", "artist", "album", "image_url")
+                if getattr(now, name)
+            ],
         },
     }

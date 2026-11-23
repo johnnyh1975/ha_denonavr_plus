@@ -19,6 +19,7 @@ from custom_components.denonavr_plus.const import DOMAIN
 
 from .test_init import (  # noqa: F401 -- fixtures
     HOST,
+    FakeHeos,
     FakeTelnet,
     loaded_entry,
     receiver_network,
@@ -77,3 +78,47 @@ async def test_diagnostics_contain_no_address_mac_or_serial(
     assert result["device"]["serial_number"] == "**REDACTED**"
     for private in (SERIAL, HOST, "0123456789ab", "01:23:45:67:89:ab"):
         assert private.lower() not in dump
+
+
+async def test_diagnostics_show_how_media_reaches_the_receiver(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    loaded_entry: MockConfigEntry,
+) -> None:
+    """Which now-playing fields are filled and how HEOS answered, not what plays."""
+    heos = FakeHeos.instances[-1]
+    heos.connected = True
+    heos.command_results = {"browse/play_stream": {"result": "success"}}
+    heos.on_update(
+        {
+            "state": "play",
+            "media_type": "station",
+            "title": "Private Title",
+            "artist": "Someone",
+            "album": None,
+            "image_url": f"http://{HOST}/art.jpg",
+            "position": 3.0,
+            "duration": None,
+            "position_at": 1000.0,
+            "repeat": "off",
+            "shuffle": False,
+        }
+    )
+    result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
+
+    media = result["media"]
+    assert media["heos_connected"] is True
+    assert media["telnet_media"] is False
+    assert media["can_play_url"] is True
+    assert media["heos_command_results"] == {"browse/play_stream": {"result": "success"}}
+    assert media["now_playing"] == {
+        "state": "play",
+        "media_type": "station",
+        "repeat": "off",
+        "shuffle": False,
+        "duration": None,
+        "has_position": True,
+        "has": ["title", "artist", "image_url"],
+    }
+    dump = json.dumps(result)
+    assert "Private Title" not in dump and HOST not in dump

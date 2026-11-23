@@ -1057,6 +1057,18 @@ class DenonAvrDevice:
         return True
 
     @property
+    def heos_connected(self) -> bool:
+        """Whether the HEOS connection is up and knows the receiver's player."""
+
+        return self._heos.connected
+
+    @property
+    def heos_command_results(self) -> dict[str, dict[str, str]]:
+        """The receiver's last answer to each HEOS command sent (for diagnostics)."""
+
+        return dict(self._heos.command_results)
+
+    @property
     def can_play_url(self) -> bool:
         """Whether a URL can be played: over HEOS, not on receivers without it."""
 

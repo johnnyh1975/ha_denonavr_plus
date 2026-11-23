@@ -89,6 +89,8 @@ class FakeHeos:
         self.host = host
         self.on_update = on_update
         self.calls: list[tuple[str, Any]] = []
+        self.connected = False
+        self.command_results: dict[str, dict[str, str]] = {}
         FakeHeos.instances.append(self)
 
     async def async_set_repeat(self, repeat: str) -> None:

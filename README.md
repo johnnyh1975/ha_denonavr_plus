@@ -465,6 +465,11 @@ answers go into the diagnostics file, with addresses replaced. A repair then
 links to a prefilled issue on GitHub; attach the diagnostics file there. Nothing
 is sent anywhere by itself.
 
+The diagnostics file also shows how now playing and playback reach the
+receiver (HEOS or telnet), which now-playing fields are filled, and the
+receiver's last answer to each HEOS command it was sent, such as playing a URL.
+Titles, artists and the cover address are left out.
+
 At setup the integration asks the receiver which of its model-dependent
 settings it has. The answers are kept: later starts do not ask again until the
 model or firmware changes, or a new release adds a setting. A capability check

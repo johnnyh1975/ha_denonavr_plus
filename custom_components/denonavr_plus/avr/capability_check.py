@@ -2,10 +2,11 @@
 
 Run from inside the integration (options, repair, or after setting up a model
 not checked before), over the integration's own telnet connection, so it does
-not need a second session. Only queries: every entry ends with "?", and the
-receiver changes nothing for them. The list is the probe script's telnet
-catalogue without its three screen-text requests (NSE, NSA, NSH);
-tests/test_avr_capability_check.py fails when the two drift apart.
+not need a second session. Only queries: the receiver changes nothing for
+them. Every entry ends with "?" except the two screen-text requests, NSE
+(now playing) and NSH (network preset names), which only read as well. The list is the probe script's telnet catalogue without
+its ASCII copy of the screen text (NSA); tests/test_avr_capability_check.py
+fails when the two drift apart.
 
 The result goes into the diagnostics file, which the user attaches to a
 device-support issue.
@@ -16,11 +17,14 @@ from __future__ import annotations
 import re
 
 #: Bump when the queries or the result format change.
-CHECK_VERSION = 1
+CHECK_VERSION = 2
 
 #: Models whose capabilities have been checked on a receiver. Others get the
 #: repair that asks for a check. Add a model once its check has been reviewed.
 KNOWN_MODELS = frozenset({"AVR-X3600H"})
+
+#: The read-only requests that do not end with "?".
+SCREEN_REQUESTS = frozenset({"NSE", "NSH"})
 
 #: (query, group) in the probe script's order.
 QUERIES: tuple[tuple[str, str], ...] = (
@@ -149,6 +153,8 @@ QUERIES: tuple[tuple[str, str], ...] = (
     ("TFHD?", "Tuner"),
     ("TPHD?", "Tuner"),
     ("HD?", "Tuner"),
+    ("NSE", "Network audio"),
+    ("NSH", "Network audio"),
     ("NSFRN ?", "Network audio"),
     ("SSINF ?", "Signal and setup"),
     ("SSINFAISSIG ?", "Signal and setup"),

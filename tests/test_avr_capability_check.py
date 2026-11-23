@@ -22,12 +22,16 @@ def _probe_catalogue() -> list[tuple[str, str]]:
 
 def test_the_check_asks_what_the_probe_asks() -> None:
     """The guard: change one list and this fails until the other follows."""
-    probe = [item for item in _probe_catalogue() if item[0] not in ("NSE", "NSA", "NSH")]
+    probe = [item for item in _probe_catalogue() if item[0] != "NSA"]
     assert list(capability_check.QUERIES) == probe
 
 
 def test_only_queries() -> None:
-    assert all(command.endswith("?") for command, _ in capability_check.QUERIES)
+    assert all(
+        command.endswith("?") or command in capability_check.SCREEN_REQUESTS
+        for command, _ in capability_check.QUERIES
+    )
+    assert capability_check.SCREEN_REQUESTS <= {command for command, _ in capability_check.QUERIES}
 
 
 def test_classify() -> None:

@@ -174,6 +174,30 @@ async def test_a_url_is_played_with_its_reserved_characters_encoded() -> None:
     ]
 
 
+def test_the_outcome_of_a_command_is_kept_without_the_url() -> None:
+    """For the diagnostics: whether the receiver took play_stream, not what was played."""
+    client, _ = _client()
+    assert not client.connected
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    client._handle_message(
+        json.dumps(
+            {
+                "heos": {
+                    "command": "browse/play_stream",
+                    "result": "fail",
+                    "message": "eid=9&text=Unknown error&pid=202&url=http://192.0.2.5/tts.mp3",
+                }
+            }
+        )
+    )
+    _feed(client, "player/set_play_mode", "pid=202&repeat=on_all&shuffle=off")
+    _feed(client, "player/get_play_state", "pid=202&state=play")
+    assert client.command_results == {
+        "browse/play_stream": {"result": "fail", "eid": "9", "text": "Unknown error"},
+        "player/set_play_mode": {"result": "success"},
+    }
+
+
 class _HeosServer:
     """A HEOS stand-in on localhost that records commands and connections."""
 

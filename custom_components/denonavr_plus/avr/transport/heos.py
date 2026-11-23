@@ -88,6 +88,15 @@ class HeosClient:
         }
         # Wall clock, replaceable in tests.
         self._clock: Callable[[], float] = time.time
+        # The receiver's last answer to each command this client sent (result,
+        # and eid and text on a failure), for the diagnostics.
+        self.command_results: dict[str, dict[str, str]] = {}
+
+    @property
+    def connected(self) -> bool:
+        """Connected, and the receiver's own player is known."""
+
+        return self._writer is not None and self._pid is not None
 
     async def async_start(self) -> None:
         """Start the background connection manager."""
@@ -277,6 +286,11 @@ class HeosClient:
         heos = message.get("heos", {})
         command = heos.get("command", "")
         attrs = _parse_message(heos.get("message", ""))
+        if command in _SENT_COMMANDS and heos.get("result"):
+            # Only the outcome: the message also repeats the URL that was played.
+            self.command_results[command] = {"result": heos["result"]} | {
+                key: attrs[key] for key in ("eid", "text") if key in attrs
+            }
 
         if command == "player/get_players":
             player = self._own_player(message.get("payload") or [])
@@ -450,6 +464,18 @@ class HeosClient:
                 changed = True
         if changed:
             self._on_update(dict(self._snapshot))
+
+
+#: The commands this client sends on the user's behalf.
+_SENT_COMMANDS = frozenset(
+    {
+        "browse/play_stream",
+        "player/set_play_state",
+        "player/set_play_mode",
+        "player/play_next",
+        "player/play_previous",
+    }
+)
 
 
 def _quote(value: str) -> str:
