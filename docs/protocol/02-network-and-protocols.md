@@ -150,11 +150,16 @@ the 2014 models AVR-X2100W and AVR-X4100W report 0300, also on port 80;
 all seven 2016-or-later units in the library's test data report 0301 on
 port 8080.
 
-This integration has port 8080 fixed in `avr/transport/goform.py`, so an
-AVR-X2000 fails at setup. A lesson from the official integration (issue
-#163759, in the maintainer's plan): choose the port by device type, not by
-falling back after a failed request on 8080, because a receiver that is
-still waking up would be stored on the wrong port.
+This integration tries 8080 first and accepts port 80 only when the
+description there reports `CommApiVers` below 0301 (or none), then stores
+the port in the config entry (`avr/transport/goform.py`). This follows a
+lesson from the official integration (issue #163759): choose the port by
+device type, not by falling back after a failed request on 8080, because a
+receiver that is still waking up would be stored on the wrong port.
+
+While its telnet link is down, this integration sends the media players'
+commands over `formiPhoneAppDirect.xml` and reads every zone's StatusLite
+page every 10 seconds, like the `denonavr` library's HTTP fallback.
 
 ## UPnP description (port 60006)
 

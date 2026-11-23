@@ -115,6 +115,19 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     # State ----------------------------------------------------------------
 
     @property
+    def available(self) -> bool:
+        """Stay usable over HTTP while the telnet link is down.
+
+        Power, volume, mute and source then come from the HTTP poll and
+        commands go over HTTP. The other entities need telnet and go
+        unavailable.
+        """
+
+        return self.coordinator.last_update_success and (
+            self.coordinator.available or self._device.http_reachable
+        )
+
+    @property
     def _zone_state(self):
         return self.coordinator.data.zone(self._zone.id)
 

@@ -24,6 +24,7 @@ from __future__ import annotations
 import logging
 import re
 import xml.etree.ElementTree as ET
+from urllib.parse import quote
 
 import aiohttp
 
@@ -34,6 +35,8 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_PORT = 8080
 LEGACY_PORT = 80
 _DEVICEINFO_PATH = "/goform/Deviceinfo.xml"
+# Takes a telnet command as its query string (docs/protocol/02, "HTTP").
+_COMMAND_PATH = "/goform/formiPhoneAppDirect.xml"
 # CommApiVers from which the receiver serves goform on port 8080 (2016 on).
 _PORT_8080_FROM = 301
 _COMMAPI_RE = re.compile(r"<CommApiVers>\s*(\d+)\s*</CommApiVers>")
@@ -97,6 +100,15 @@ class GoformClient:
         if text is None:
             return None
         return self._parse_status(text)
+
+    async def async_send_command(self, command: str) -> bool:
+        """Send a telnet command over HTTP; True when the receiver accepted it.
+
+        The fallback while the telnet link is down. Spaces are sent as %20,
+        as in the commands of the denonavr library.
+        """
+
+        return await self._get(f"{_COMMAND_PATH}?{quote(command, safe='')}") is not None
 
     async def _get(self, path: str) -> str | None:
         """Perform a GET against the goform base and return the body text."""

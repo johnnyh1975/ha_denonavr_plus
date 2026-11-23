@@ -43,8 +43,11 @@ the list.
   availability, control ranges and option labels are all read from the receiver
   at runtime. The only fixed data is the Denon wire grammar.
 - **Telnet, HTTP** Telnet (port 23) provides the full state, real time push and
-  the bulk of control; HTTP (port 8080) provides discovery and a periodic
-  reconciliation poll. A few settings that have no telnet command (graphic‑EQ
+  the bulk of control; HTTP (port 8080, or 80 on receivers before 2016)
+  provides discovery and a periodic reconciliation poll. When telnet is down,
+  the media players stay usable over HTTP: power, volume, mute and source are
+  polled every 10 seconds and commands go over HTTP; the other settings are
+  unavailable until telnet is back. A few settings that have no telnet command (graphic‑EQ
   bands, HDMI/OSD/format setup, amp assign) are read and written over the setup
   config API (HTTPS 10443); everything else is telnet.
 - **Stability** Auto reconnect with backoff, keepalive probe, teardown on
@@ -97,7 +100,7 @@ ports. Nothing needs to be opened towards the internet.
 | Port | Protocol | Purpose                                                                                                                                                                               | Ordinality |
 |------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
 | **23/tcp** | Telnet | Primary control channel and real‑time push: power, volume, mute, source, sound modes and all state updates                                                                            | **Required** |
-| **8080/tcp** | HTTP (goform) | Discovery (`Deviceinfo.xml`) and the reconciliation poll (`…StatusLite.xml`)                                                                                                          | **Required** |
+| **8080/tcp** | HTTP (goform) | Discovery (`Deviceinfo.xml`), the reconciliation poll (`…StatusLite.xml`) and, while telnet is down, the media players' commands (`formiPhoneAppDirect.xml`). Port 80 on receivers before 2016 | **Required** |
 | **60006/tcp** | HTTP (UPnP/AIOS) | Device description read once at setup for firmware version and serial number                                                                                                          | Optional (degrades gracefully) |
 | **1900/udp** | SSDP (multicast) | Automatic discovery of the receiver on the LAN                                                                                                                                        | Optional (auto‑discovery only) |
 | **1256/tcp** | Length‑framed JSON | Not currently used (reserved for future use)                                                                                                                                          | Unused |

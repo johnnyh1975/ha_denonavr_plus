@@ -10,7 +10,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.denonavr_plus.avr.transport.goform import async_detect_port
+from custom_components.denonavr_plus.avr.transport.goform import (
+    GoformClient,
+    async_detect_port,
+)
 
 from .conftest import deviceinfo
 
@@ -70,3 +73,25 @@ async def test_unreachable_receiver_raises(
     aioclient_mock.get(URL_80, exc=ClientError())
     with pytest.raises(ConnectionError):
         await async_detect_port(async_get_clientsession(hass), HOST)
+
+
+async def test_a_command_goes_over_http_with_spaces_encoded(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    url = re.compile(
+        r"^http://192\.0\.2\.10:8080/goform/formiPhoneAppDirect\.xml\?PSBAS%2050$"
+    )
+    aioclient_mock.get(url, text="")
+    client = GoformClient(async_get_clientsession(hass), HOST)
+    assert await client.async_send_command("PSBAS 50")
+    assert aioclient_mock.call_count == 1
+
+
+async def test_a_refused_command_reports_failure(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(
+        re.compile(r"formiPhoneAppDirect\.xml\?MVUP$"), exc=ClientError()
+    )
+    client = GoformClient(async_get_clientsession(hass), HOST)
+    assert not await client.async_send_command("MVUP")

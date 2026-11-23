@@ -34,9 +34,14 @@ from .transport import (
     WebConfigClient,
     async_detect_port,
     async_probe,
+    is_query,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# After a command sent over HTTP (telnet down) nothing is pushed back, so the
+# zone status is read again once the receiver has had a moment to apply it.
+_HTTP_COMMAND_SETTLE = 0.5
 
 # Debounce window for collapsing a burst of telnet lines into one notification.
 _UPDATE_DEBOUNCE = 0.1
@@ -377,13 +382,11 @@ class DenonAvrDevice:
         """HTTP reconciliation poll, used by the coordinator as a safety net.
 
         When telnet is connected this only confirms reachability. When telnet is
-        down it recovers the core zone state so entities do not go blank.
+        down it recovers the zones' power, volume, mute and source, so the media
+        players stay usable over HTTP.
         """
 
-        main_path = self._profile.zones.get(
-            "status_lite_main", "/goform/formMainZone_MainZoneXmlStatusLite.xml"
-        )
-        status = await self._goform.async_get_status(main_path)
+        status = await self._goform.async_get_status(self._zone_status_path(1))
         self._http_reachable = status is not None
         if status is None:
             # HTTP unreachable; rely on the telnet availability signal.
@@ -395,7 +398,8 @@ class DenonAvrDevice:
             self._state.volume_display = str(display)
             self._schedule_update()
         if not self._telnet.connected:
-            self._apply_http_status("main", status)
+            self._apply_http_status(self._main_zone_id(), status)
+            await self._poll_additional_zones()
             self._schedule_update()
         # Refresh the manual graphic EQ per-band values (non-disruptive; a no-op
         # unless the receiver advertises a graphic EQ this profile can drive).
@@ -500,6 +504,47 @@ class DenonAvrDevice:
         if self._update_callback is not None:
             self._update_callback()
 
+    def _zone_status_path(self, index: int) -> str:
+        """The StatusLite page of a zone (1 is the main zone)."""
+
+        zones = self._profile.zones
+        if index == 1:
+            return str(
+                zones.get(
+                    "status_lite_main", "/goform/formMainZone_MainZoneXmlStatusLite.xml"
+                )
+            )
+        template = zones.get(
+            "status_lite_additional",
+            "/goform/formZone{index}_Zone{index}XmlStatusLite.xml",
+        )
+        return str(template).format(index=index)
+
+    def _main_zone_id(self) -> str:
+        return str(self._profile.zones.get("main_zone_id", "main"))
+
+    async def _poll_additional_zones(self) -> None:
+        """Read the status of every zone but the main one over HTTP."""
+
+        for zone in self._discovery.zones:
+            if zone.is_main:
+                continue
+            status = await self._goform.async_get_status(
+                self._zone_status_path(zone.index)
+            )
+            if status is not None:
+                self._apply_http_status(zone.id, status)
+
+    async def _refresh_after_http_command(self) -> None:
+        """Read the zones again after a command sent over HTTP."""
+
+        await asyncio.sleep(_HTTP_COMMAND_SETTLE)
+        status = await self._goform.async_get_status(self._zone_status_path(1))
+        if status is not None:
+            self._apply_http_status(self._main_zone_id(), status)
+        await self._poll_additional_zones()
+        self._schedule_update()
+
     def _apply_http_status(self, zone_id: str, status: dict[str, object]) -> None:
         """Apply a parsed StatusLite snapshot to a zone (fallback path)."""
 
@@ -518,7 +563,19 @@ class DenonAvrDevice:
     # Control methods ------------------------------------------------------
 
     async def _send(self, command: str) -> None:
-        await self._telnet.async_send(command)
+        """Send over telnet, or over HTTP while the telnet link is down.
+
+        Over HTTP only commands go out; a query's answer would arrive nowhere.
+        """
+
+        if self._telnet.connected or is_query(command):
+            await self._telnet.async_send(command)
+            return
+        if not self._http_reachable:
+            _LOGGER.debug("Receiver unreachable, not sending %s", command)
+            return
+        if await self._goform.async_send_command(command):
+            self._create_task(self._refresh_after_http_command())
 
     # Network media transport, routed to the HEOS channel. No-ops when HEOS is
     # not connected or no network source is playing.

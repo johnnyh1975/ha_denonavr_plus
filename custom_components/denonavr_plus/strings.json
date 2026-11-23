@@ -319,7 +319,7 @@
   "issues": {
     "telnet_unavailable": {
       "title": "{model} does not accept a control connection",
-      "description": "The {model} answers on the network, but has not accepted a telnet connection on port 23 for several minutes. Without it, Home Assistant cannot control the receiver or receive its changes.\n\nThe receiver allows only one telnet connection at a time. Common causes:\n\n- Another integration or program holds that connection, for example the official Denon AVR integration or another home automation system. Remove or disable it for this receiver.\n- A firewall or VLAN rule blocks port 23 between Home Assistant and the receiver, while the web ports are open.\n\nThe message disappears by itself as soon as the connection works again."
+      "description": "The {model} answers on the network, but has not accepted a telnet connection on port 23 for several minutes. Until it does, the media players work over the web interface only: power, volume, mute and source, with up to 10 seconds delay. All other settings are unavailable.\n\nThe receiver allows only one telnet connection at a time. Common causes:\n\n- Another integration or program holds that connection, for example the official Denon AVR integration or another home automation system. Remove or disable it for this receiver.\n- A firewall or VLAN rule blocks port 23 between Home Assistant and the receiver, while the web ports are open.\n\nThe message disappears by itself as soon as the connection works again."
     }
   }
 }

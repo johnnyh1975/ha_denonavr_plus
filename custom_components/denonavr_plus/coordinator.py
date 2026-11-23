@@ -23,6 +23,7 @@ from .avr import AvrState, DenonAvrDevice
 from .const import (
     CONF_PORT,
     DOMAIN,
+    HTTP_FALLBACK_INTERVAL,
     RECONCILE_INTERVAL,
     TELNET_OUTAGE_GRACE,
 )
@@ -107,6 +108,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         network standby, which can be intended, so that is only logged.
         """
 
+        self._set_poll_interval()
         model = self.device.discovery.device.model_name or "Denon AVR"
         if self.device.available:
             if self._outage_reported:
@@ -147,6 +149,20 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
                 translation_key="telnet_unavailable",
                 translation_placeholders={"model": model},
             )
+
+    @callback
+    def _set_poll_interval(self) -> None:
+        """Poll more often while the media players depend on HTTP alone."""
+
+        interval = (
+            RECONCILE_INTERVAL if self.device.available else HTTP_FALLBACK_INTERVAL
+        )
+        if self.update_interval == interval:
+            return
+        self.update_interval = interval
+        if interval == HTTP_FALLBACK_INTERVAL:
+            # Read the HTTP status soon instead of at the old interval.
+            self.hass.async_create_task(self.async_request_refresh())
 
     @property
     def available(self) -> bool:

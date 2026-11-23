@@ -38,6 +38,10 @@ PLATFORMS: list[Platform] = [
 # push channel is temporarily down.
 RECONCILE_INTERVAL = timedelta(seconds=60)
 
+# While the telnet link is down the media players run on this HTTP poll alone,
+# so it runs more often to catch changes made at the receiver.
+HTTP_FALLBACK_INTERVAL = timedelta(seconds=10)
+
 # How long the telnet link may stay down before the integration says so in the
 # log and, if the receiver still answers over HTTP, as a repair. Short drops
 # (a reboot, a firmware update, a brief network hiccup) stay quiet.

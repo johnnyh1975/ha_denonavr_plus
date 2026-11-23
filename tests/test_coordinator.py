@@ -16,7 +16,11 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.denonavr_plus.avr.transport import GoformClient
-from custom_components.denonavr_plus.const import DOMAIN
+from custom_components.denonavr_plus.const import (
+    DOMAIN,
+    HTTP_FALLBACK_INTERVAL,
+    RECONCILE_INTERVAL,
+)
 
 from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
@@ -101,3 +105,27 @@ async def test_unload_removes_the_repair(
     assert await hass.config_entries.async_unload(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert _issue(hass, loaded_entry) is None
+
+
+async def test_poll_runs_more_often_while_telnet_is_down(
+    hass: HomeAssistant,
+    loaded_entry: MockConfigEntry,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    coordinator = loaded_entry.runtime_data
+    assert coordinator.update_interval == RECONCILE_INTERVAL
+    with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=HTTP_OK)):
+        telnet = _drop_link()
+        freezer.tick(timedelta(seconds=1))
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+        # The media players now depend on the HTTP poll alone.
+        assert coordinator.update_interval == HTTP_FALLBACK_INTERVAL
+
+        assert telnet._on_availability is not None
+        telnet.connected = True
+        telnet._on_availability(True)
+        freezer.tick(timedelta(seconds=1))
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+    assert coordinator.update_interval == RECONCILE_INTERVAL
