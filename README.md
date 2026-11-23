@@ -90,8 +90,10 @@ receivers Home Assistant has found on the network and that are not set up yet;
 with only one, it is added directly. The name and all capabilities are read from
 the device automatically; no other input is required.
 
-To change the address later, open the integration's menu (three dots) and choose
-**Reconfigure**. The new address must belong to the same receiver.
+When the receiver gets a new address from your router, Home Assistant notices it
+(DHCP and SSDP) and the integration follows it by itself. To change the address by
+hand, open the integration's menu (three dots) and choose **Reconfigure**. The new
+address must belong to the same receiver.
 
 ### Options
 

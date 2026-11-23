@@ -121,10 +121,15 @@ rules:
       MAC address and serial number redacted, host address not included.
   discovery:
     status: done
-    comment: SSDP for Denon AIOS devices; Marantz discovery is planned.
+    comment: >
+      SSDP for Denon and Marantz under AiosDevice, MediaRenderer and
+      MediaServer, HEOS speakers skipped; the setup dialog lists the receivers
+      SSDP has seen.
   discovery-update-info:
     status: done
-    comment: A rediscovered receiver updates the stored host.
+    comment: >
+      A receiver found again over SSDP, or seen under a new address by DHCP
+      (registered devices only), updates the stored host.
   docs-data-update:
     status: done
   docs-examples:

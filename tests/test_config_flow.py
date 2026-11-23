@@ -17,6 +17,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
@@ -592,3 +593,43 @@ async def test_connection_options_reload_the_entry(
     coordinator = loaded_entry.runtime_data
     assert coordinator.connection == {"poll_interval": 120, "heos": False, "setup_refresh": 0}
     assert coordinator.update_interval == timedelta(seconds=120)
+
+
+def _dhcp(ip: str, mac: str = "aabbccddeeff") -> DhcpServiceInfo:
+    return DhcpServiceInfo(ip=ip, hostname="denon-avr", macaddress=mac)
+
+
+async def test_dhcp_follows_a_new_address(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, unique_id=MAC, data={CONF_HOST: "192.0.2.99"}
+    )
+    entry.add_to_hass(hass)
+    identify = _identity()
+    with patch.object(DenonAvrDevice, "async_fetch_identity", identify):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_DHCP}, data=_dhcp(HOST)
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    assert entry.data[CONF_HOST] == HOST
+    # Matched by the MAC alone; nothing was asked of the receiver.
+    identify.assert_not_awaited()
+
+
+async def test_dhcp_for_an_unknown_unit_checks_it_like_ssdp(hass: HomeAssistant) -> None:
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity()):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_DHCP}, data=_dhcp(HOST)
+        )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "ssdp_confirm"
+
+
+async def test_dhcp_for_a_unit_that_does_not_answer(hass: HomeAssistant) -> None:
+    failing = AsyncMock(side_effect=ConnectionError("unreachable"))
+    with patch.object(DenonAvrDevice, "async_fetch_identity", failing):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_DHCP}, data=_dhcp(HOST)
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "cannot_connect"

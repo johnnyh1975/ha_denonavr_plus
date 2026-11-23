@@ -36,6 +36,8 @@ from homeassistant.helpers.selector import (
     TextSelector,
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import format_mac
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 
 from .avr import DenonAvrDevice
@@ -245,6 +247,29 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._host = host
         self._name = name
         # Show the friendly name in the discovered-device card and confirm step.
+        self.context["title_placeholders"] = {"name": name}
+        return await self.async_step_ssdp_confirm()
+
+    async def async_step_dhcp(self, discovery_info: DhcpServiceInfo) -> ConfigFlowResult:
+        """A receiver of this integration showed up under a new address.
+
+        The manifest asks DHCP only for devices already registered here, so
+        this follows a receiver whose address changed: the entry gets the new
+        address and reloads. Anything else is checked like an SSDP find.
+        """
+
+        host = discovery_info.ip
+        await self.async_set_unique_id(format_mac(discovery_info.macaddress))
+        self._abort_if_unique_id_configured(updates={CONF_HOST: host})
+        try:
+            mac, name = await self._async_identify(host)
+        except ConnectionError:
+            return self.async_abort(reason="cannot_connect")
+        if mac:
+            await self.async_set_unique_id(mac)
+            self._abort_if_unique_id_configured(updates=self._entry_data(host))
+        self._host = host
+        self._name = name
         self.context["title_placeholders"] = {"name": name}
         return await self.async_step_ssdp_confirm()
 
