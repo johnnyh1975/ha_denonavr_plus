@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "L'ampli-tuner n'est pas connecté. Ses sources et modes son sont lus depuis l'appareil ; réessayez lorsqu'il est allumé.",
       "no_additional_zones": "Cet ampli-tuner n'a pas de zone supplémentaire.",
-      "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son."
+      "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son.",
+      "check_not_connected": "L'ampli-tuner n'est pas connecté. La vérification l'interroge via sa connexion telnet ; réessayez quand il est allumé."
     },
     "progress": {
       "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Commande de télécommande inconnue : {command}. Commandes connues : {commands}."
+    },
+    "cannot_reach": {
+      "message": "Impossible de joindre l'ampli-tuner à {host} ({error}). La configuration est réessayée."
     }
   },
   "issues": {

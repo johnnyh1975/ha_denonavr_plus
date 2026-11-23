@@ -55,6 +55,9 @@ async def _drop_telnet(
 async def test_the_action_exists_before_an_entry_loads(hass: HomeAssistant) -> None:
     assert await async_setup_component(hass, DOMAIN, {})
     assert hass.services.has_service(DOMAIN, "send_command")
+    # The field description names the limit through a placeholder.
+    service = hass.services.async_services_for_domain(DOMAIN)["send_command"]
+    assert service.description_placeholders == {"max_length": str(MAX_COMMAND_LENGTH)}
 
 
 async def test_a_command_goes_out_as_given(

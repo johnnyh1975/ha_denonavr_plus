@@ -124,16 +124,18 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             | MediaPlayerEntityFeature.SELECT_SOURCE
         )
         # Only the main zone carries the surround / sound mode and the network
-        # transport controls (HEOS drives the whole receiver, i.e. the main zone).
+        # transport controls (HEOS drives the whole receiver, i.e. the main
+        # zone); without HEOS (a connection option) there is no transport.
         if zone.is_main:
-            features |= (
-                MediaPlayerEntityFeature.SELECT_SOUND_MODE
-                | MediaPlayerEntityFeature.PLAY
-                | MediaPlayerEntityFeature.PAUSE
-                | MediaPlayerEntityFeature.STOP
-                | MediaPlayerEntityFeature.NEXT_TRACK
-                | MediaPlayerEntityFeature.PREVIOUS_TRACK
-            )
+            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
+            if coordinator.device.heos_enabled:
+                features |= (
+                    MediaPlayerEntityFeature.PLAY
+                    | MediaPlayerEntityFeature.PAUSE
+                    | MediaPlayerEntityFeature.STOP
+                    | MediaPlayerEntityFeature.NEXT_TRACK
+                    | MediaPlayerEntityFeature.PREVIOUS_TRACK
+                )
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -153,6 +155,18 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @property
     def _reachable(self) -> bool:
         return self.coordinator.available or self._device.http_reachable
+
+    @property
+    def supported_features(self) -> MediaPlayerEntityFeature:
+        """Only on and off while the receiver does not answer.
+
+        The player is shown then only with a turn-on automation; volume, mute
+        and source could not reach the receiver.
+        """
+
+        if not self._reachable:
+            return MediaPlayerEntityFeature.TURN_ON | MediaPlayerEntityFeature.TURN_OFF
+        return self._attr_supported_features
 
     @property
     def available(self) -> bool:
@@ -346,6 +360,10 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_turn_off(self) -> None:
+        if not self._reachable:
+            # Shown as off already (only with a turn-on automation): an
+            # automation that switches everything off must not fail here.
+            return
         await self._device.async_set_power(self._zone.id, False)
 
     @receiver_action

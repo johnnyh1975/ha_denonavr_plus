@@ -175,3 +175,64 @@ def test_feed_volume_not_a_number(parser_and_state: tuple[TelnetParser, AvrState
     parser, state = parser_and_state
     assert not parser.feed("MVOFF", state)
     assert state.zone("main").volume_raw is None
+
+
+#: One reply per model-dependent ("answered") control and the value it means,
+#: in the formats the denonavr library sends and reads.
+ANSWERED_REPLIES = [
+    ("STBY2H", "auto_standby", "2H"),
+    ("TR1 ON", "trigger_1", True),
+    ("TR2 OFF", "trigger_2", False),
+    ("SPPR 2", "speaker_preset", "2"),
+    ("BTTX ON", "bluetooth_transmitter", True),
+    ("PSDEH MED", "dialog_enhancer", "MED"),
+    ("PSIMAX AUTO", "imax", "AUTO"),
+    ("PSIMAXAUD MANUAL", "imax_audio", "MANUAL"),
+    ("PSIMAXHPF 080", "imax_hpf", "080"),
+    ("PSIMAXLPF 120", "imax_lpf", "120"),
+    ("PSIMAXSWM ON", "imax_subwoofer", True),
+    ("PSIMAXSWO L+M", "imax_subwoofer_output", "L+M"),
+    ("PSAUROPR SPE", "auro_matic_preset", "SPE"),
+    ("PSAUROST 10", "auro_matic_strength", 10),
+    ("PSAUROMODE EXP", "auro_3d_mode", "EXP"),
+    ("PSDIRAC 2", "dirac_filter", "2"),
+    ("PSMDAX LOW", "mdax", "LOW"),
+    ("PSDACFIL MODE2", "dac_filter", "MODE2"),
+    ("ILB DIM", "illumination", "DIM"),
+    ("SSTTR ON", "tactile_transducer", True),
+    ("SSTTRLEV 47", "tactile_transducer_level", -3.0),
+    ("SSTTRLPF 080", "tactile_transducer_lpf", "080"),
+    ("PSSP:FH", "effect_speaker_selection", "FH"),
+]
+
+
+@pytest.mark.assumed(
+    "every format here comes from the denonavr library (const.py and its event "
+    "callbacks), none from a recording; replies from a receiver with these "
+    "features would settle it"
+)
+@pytest.mark.parametrize(("line", "control_id", "value"), ANSWERED_REPLIES)
+def test_model_dependent_controls_read_their_reply(
+    parser_and_state: tuple[TelnetParser, AvrState], line: str, control_id: str, value: object
+) -> None:
+    parser, state = parser_and_state
+    assert parser.feed(line, state)
+    assert state.values[control_id] == value
+
+
+def test_every_model_dependent_control_has_a_reply_test() -> None:
+    profile = load_profile()
+    answered = {spec.id for spec in profile.controls_by_scope("answered")}
+    assert answered == {control_id for _, control_id, _ in ANSWERED_REPLIES}
+
+
+@pytest.mark.parametrize("line", ["BTTX SP", "BTTX BT", "SSTTR END"])
+def test_a_shared_prefix_leaves_the_switch_alone(
+    parser_and_state: tuple[TelnetParser, AvrState], line: str
+) -> None:
+    """BTTX also reports the output mode; SSTTR ends its list with END."""
+    parser, state = parser_and_state
+    assert parser.feed("BTTX ON", state) and parser.feed("SSTTR ON", state)
+    assert not parser.feed(line, state)
+    assert state.values["bluetooth_transmitter"] is True
+    assert state.values["tactile_transducer"] is True

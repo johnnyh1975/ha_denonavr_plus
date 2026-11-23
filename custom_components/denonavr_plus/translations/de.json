@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "Der Receiver ist nicht verbunden. Seine Quellen und Klangmodi werden von ihm gelesen; versuche es erneut, wenn er eingeschaltet ist.",
       "no_additional_zones": "Dieser Receiver hat keine weitere Zone.",
-      "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet."
+      "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet.",
+      "check_not_connected": "Der Receiver ist nicht verbunden. Der Prüflauf fragt ihn über seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist."
     },
     "progress": {
       "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Unbekannter Fernbedienungsbefehl: {command}. Bekannte Befehle: {commands}."
+    },
+    "cannot_reach": {
+      "message": "Der Receiver unter {host} ist nicht erreichbar ({error}). Die Einrichtung wird wiederholt."
     }
   },
   "issues": {

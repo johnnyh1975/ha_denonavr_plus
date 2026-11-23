@@ -88,4 +88,5 @@ def async_setup_services(hass: HomeAssistant) -> None:
         schema=_SEND_COMMAND_SCHEMA,
         func=_async_send_command,
         supports_response=SupportsResponse.OPTIONAL,
+        description_placeholders={"max_length": str(MAX_COMMAND_LENGTH)},
     )

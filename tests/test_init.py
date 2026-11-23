@@ -55,6 +55,7 @@ class FakeTelnet:
         self.connected = False
         self.sent: list[str] = []
         self.response_time: float | None = 0.042
+        self.queued = 0
         FakeTelnet.instances.append(self)
 
     async def async_start(self) -> None:
@@ -232,6 +233,7 @@ async def test_unreachable_receiver_retries_setup(
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.error_reason_translation_key == "cannot_reach"
 
 
 async def test_setup_remembers_the_goform_port(

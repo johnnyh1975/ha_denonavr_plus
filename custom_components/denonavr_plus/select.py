@@ -1,8 +1,10 @@
 """Select platform for the Denon AVR Plus integration.
 
-One select entity is created per enum control the receiver advertises (for
-example Dynamic Compression, Dynamic Volume, MultEQ, Restorer). The option
-labels come from the receiver; the wire values come from the profile.
+One select entity is created per enum control the receiver has (for example
+Dynamic Compression, Dynamic Volume, MultEQ, Restorer). Fixed option sets come
+from the profile: the state is a key (helpers.option_key) and the name on
+screen its translation. Option sets the receiver supplies (sound modes,
+sources, quick select, crossover) are shown as it names them.
 """
 
 from __future__ import annotations

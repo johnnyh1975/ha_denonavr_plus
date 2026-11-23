@@ -98,8 +98,8 @@ address must belong to the same receiver.
 ### Options
 
 **Configure** on the integration entry opens a menu: volume, zones, sources,
-sound modes and connection. Nothing in it changes the receiver; it changes what Home
-Assistant shows and does.
+sound modes, connection, and **Check capabilities** (see Contributing). Nothing in
+it changes the receiver; it changes what Home Assistant shows and does.
 
 **Volume** (works even when the receiver is off):
 

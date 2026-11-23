@@ -9,6 +9,7 @@ import pytest
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.components import automation
 from homeassistant.components.device_automation import DeviceAutomationType
+from homeassistant.components.media_player import MediaPlayerEntityFeature
 from homeassistant.const import STATE_OFF, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import device_registry as dr, entity_registry as er
@@ -156,3 +157,21 @@ async def test_after_a_restart_without_the_receiver_the_automation_still_works(
     await hass.services.async_call("media_player", "turn_on", {"entity_id": main}, blocking=True)
     await hass.async_block_till_done()
     assert len(calls) == 1
+
+
+async def test_an_unreachable_receiver_only_offers_on_and_off(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, freezer: FrozenDateTimeFactory
+) -> None:
+    """Turning off what is shown as off is a no-op, not an error."""
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _automation(hass, _receiver_device(hass, loaded_entry).id)
+    await _receiver_gone(hass, freezer)
+    state = hass.states.get(main)
+    assert state is not None
+    assert state.attributes["supported_features"] == (
+        MediaPlayerEntityFeature.TURN_ON | MediaPlayerEntityFeature.TURN_OFF
+    )
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    assert telnet.sent == []

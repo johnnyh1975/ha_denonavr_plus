@@ -1,18 +1,16 @@
-"""Tests for capabilities.py and repairs.py: the check in Home Assistant."""
+"""Tests for capabilities.py: the check kept, its repairs, the check after setup."""
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 from unittest.mock import AsyncMock, patch
 from urllib.parse import parse_qs, urlparse
 
-from homeassistant.components.repairs import repairs_flow_manager
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import issue_registry as ir
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus import capabilities
@@ -64,60 +62,6 @@ async def test_a_known_model_gets_none(
     with patch.object(capabilities, "KNOWN_MODELS", frozenset({"AVC-X3700H"})):
         loaded_entry.runtime_data.capabilities.async_update_issues("AVC-X3700H")
     assert _issue(hass, loaded_entry, "capability_check") is None
-
-
-async def test_the_repair_runs_the_check_and_points_to_github(
-    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
-) -> None:
-    assert await async_setup_component(hass, "repairs", {})
-    manager = repairs_flow_manager(hass)
-    assert manager is not None
-    with patch.object(
-        DenonAvrDevice, "async_check_capabilities", AsyncMock(return_value=dict(RESULT))
-    ):
-        result = await manager.async_init(
-            DOMAIN, data={"issue_id": f"capability_check_{loaded_entry.entry_id}"}
-        )
-        assert result["type"] is FlowResultType.FORM
-        assert result["step_id"] == "check"
-        result = await manager.async_configure(result["flow_id"], {})
-        assert result["type"] is FlowResultType.SHOW_PROGRESS
-        await hass.async_block_till_done()
-        result = await manager.async_configure(result["flow_id"])
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "check_done"
-    placeholders = result["description_placeholders"]
-    assert placeholders["answered"] == "1" and placeholders["total"] == "2"
-    assert "template=device_support.yml" in placeholders["url"]
-    result = await manager.async_configure(result["flow_id"], {})
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-
-    # Kept, in the diagnostics, and the repairs changed.
-    key = f"{DOMAIN}.{loaded_entry.entry_id}.capabilities"
-    assert hass_storage[key]["data"]["queries"]["PW?"]["result"] == "answered"
-    assert _issue(hass, loaded_entry, "capability_check") is None
-    report = _issue(hass, loaded_entry, "capability_report")
-    assert report is not None and not report.is_fixable
-    assert report.learn_more_url == capabilities.issue_url("AVC-X3700H", "1.2.3")
-
-
-async def test_the_repair_without_a_connection(
-    hass: HomeAssistant, loaded_entry: MockConfigEntry
-) -> None:
-    assert await async_setup_component(hass, "repairs", {})
-    manager = repairs_flow_manager(hass)
-    assert manager is not None
-    failing = AsyncMock(side_effect=CommandNotSent("query_needs_telnet"))
-    with patch.object(DenonAvrDevice, "async_check_capabilities", failing):
-        result = await manager.async_init(
-            DOMAIN, data={"issue_id": f"capability_check_{loaded_entry.entry_id}"}
-        )
-        result = await manager.async_configure(result["flow_id"], {})
-        await hass.async_block_till_done()
-        result = await manager.async_configure(result["flow_id"])
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "not_connected"
-    assert _issue(hass, loaded_entry, "capability_check") is not None
 
 
 async def _setup(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
@@ -178,3 +122,56 @@ async def test_removing_the_entry_removes_the_check(
     await hass.async_block_till_done()
     assert key not in hass_storage
     assert _issue(hass, loaded_entry, "capability_report") is None
+
+
+async def test_checks_run_one_at_a_time(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    running = 0
+    most = 0
+
+    async def check(self: DenonAvrDevice, on_progress: Any = None) -> dict[str, Any]:
+        nonlocal running, most
+        running += 1
+        most = max(most, running)
+        await asyncio.sleep(0.02)
+        running -= 1
+        return dict(RESULT)
+
+    coordinator = loaded_entry.runtime_data
+    with patch.object(DenonAvrDevice, "async_check_capabilities", check):
+        await asyncio.gather(
+            coordinator.capabilities.async_run(coordinator),
+            coordinator.capabilities.async_run(coordinator),
+        )
+    assert most == 1
+
+
+async def test_a_check_ending_after_removal_keeps_nothing(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    coordinator = loaded_entry.runtime_data
+    key = f"{DOMAIN}.{loaded_entry.entry_id}.capabilities"
+
+    async def check(self: DenonAvrDevice, on_progress: Any = None) -> dict[str, Any]:
+        assert await hass.config_entries.async_remove(loaded_entry.entry_id)
+        return dict(RESULT)
+
+    with patch.object(DenonAvrDevice, "async_check_capabilities", check):
+        await coordinator.capabilities.async_run(coordinator)
+    await hass.async_block_till_done()
+    assert key not in hass_storage
+    assert _issue(hass, loaded_entry, "capability_report") is None
+
+
+async def test_the_report_repair_survives_a_reload(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    coordinator = loaded_entry.runtime_data
+    with patch.object(
+        DenonAvrDevice, "async_check_capabilities", AsyncMock(return_value=dict(RESULT))
+    ):
+        await coordinator.capabilities.async_run(coordinator)
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert _issue(hass, loaded_entry, "capability_report") is not None

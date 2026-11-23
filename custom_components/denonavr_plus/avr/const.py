@@ -27,6 +27,9 @@ REPLY_TIMEOUT_MAX: Final = 1.0
 # command come in a burst, so collecting ends once none arrived for QUIET.
 REPLY_COLLECT_FIRST: Final = 2.0
 REPLY_COLLECT_QUIET: Final = 0.3
+# A command whose replies are collected waits at most this long to leave the
+# client's queue before its reply window starts.
+QUEUE_WAIT_MAX: Final = 10.0
 # The capability check waits this long for the first reply to each query, as
 # the probe script does; many queries get none on a given model.
 CHECK_REPLY_FIRST: Final = 0.6

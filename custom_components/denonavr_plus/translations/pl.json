@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "Amplituner nie jest połączony. Jego źródła i tryby dźwięku są odczytywane z urządzenia; spróbuj ponownie, gdy będzie włączony.",
       "no_additional_zones": "Ten amplituner nie ma dodatkowych stref.",
-      "no_sound_modes": "Amplituner nie zgłosił jeszcze żadnych trybów dźwięku."
+      "no_sound_modes": "Amplituner nie zgłosił jeszcze żadnych trybów dźwięku.",
+      "check_not_connected": "Amplituner nie jest połączony. Sprawdzenie odpytuje go przez połączenie telnet; spróbuj ponownie, gdy będzie włączony."
     },
     "progress": {
       "capability_check": "Odpytywanie amplitunera. Trwa to do półtorej minuty."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Nieznane polecenie pilota: {command}. Znane polecenia: {commands}."
+    },
+    "cannot_reach": {
+      "message": "Nie można połączyć się z amplitunerem pod adresem {host} ({error}). Konfiguracja zostanie ponowiona."
     }
   },
   "issues": {

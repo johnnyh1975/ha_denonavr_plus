@@ -42,8 +42,8 @@ rules:
     status: done
     comment: README, section Actions.
   docs-configuration-parameters:
-    status: exempt
-    comment: No options flow yet.
+    status: done
+    comment: README, section Options (volume, zones, sources, sound modes, connection).
   docs-installation-instructions:
     status: done
   docs-installation-parameters:

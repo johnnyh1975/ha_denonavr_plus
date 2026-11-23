@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "De receiver is niet verbonden. De bronnen en geluidsmodi worden van de receiver gelezen; probeer het opnieuw als hij aan staat.",
       "no_additional_zones": "Deze receiver heeft geen extra zone.",
-      "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld."
+      "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld.",
+      "check_not_connected": "De receiver is niet verbonden. De controle bevraagt hem via zijn telnet-verbinding; probeer het opnieuw wanneer hij aan staat."
     },
     "progress": {
       "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Onbekende afstandsbedieningsopdracht: {command}. Bekende opdrachten: {commands}."
+    },
+    "cannot_reach": {
+      "message": "De receiver op {host} is niet bereikbaar ({error}). Het instellen wordt opnieuw geprobeerd."
     }
   },
   "issues": {

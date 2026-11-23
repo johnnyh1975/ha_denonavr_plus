@@ -38,8 +38,20 @@ def test_classify() -> None:
     assert classify("PSFOO ?", []) == "no reply"
 
 
-def test_addresses_are_replaced() -> None:
-    line = "SSINFIPA 198.51.100.7 MAC 02:00:00:00:00:7A owner someone@example.org"
-    assert capability_check.anonymise(line) == (
-        "SSINFIPA 192.0.2.10 MAC aa:bb:cc:dd:ee:ff owner user@example.com"
-    )
+def test_what_identifies_the_receiver_is_replaced() -> None:
+    lines = [
+        "NSFRN Living Room of Someone",
+        "SSINFIPA 198.51.100.7 MAC 02:00:00:00:00:7A owner someone@example.org",
+        "SSINFMAC 0200000000AB SERIAL ABC123456789",
+        "SSINFIP6 fe80::1c2b:3a4d:5e6f:7081",
+        "NSE1 Now playing on Living Room of Someone",
+    ]
+    assert capability_check.anonymise(
+        lines, macs=("02:00:00:00:00:ab",), serials=("ABC123456789",)
+    ) == [
+        "NSFRN Denon AVR",
+        "SSINFIPA 192.0.2.10 MAC aa:bb:cc:dd:ee:ff owner user@example.com",
+        "SSINFMAC aa:bb:cc:dd:ee:ff SERIAL SERIAL0000000",
+        "SSINFIP6 2001:db8::1",
+        "NSE1 Now playing on Denon AVR",
+    ]

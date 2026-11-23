@@ -49,6 +49,10 @@ async def test_accepted_eq_write_passes(
     write.assert_awaited_once()
 
 
+@pytest.mark.assumed(
+    "CVZRL is documented only in the 2015 X-series document and NSRBT only in the "
+    "denonavr library; pressing both on a receiver would settle them"
+)
 async def test_command_buttons_send_their_commands(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -62,6 +66,10 @@ async def test_command_buttons_send_their_commands(
     assert telnet.sent == ["CVZRL", "NSRBT"]
 
 
+@pytest.mark.assumed(
+    "MSQUICK<n> MEMORY comes from the denonavr library; saving a preset on a "
+    "receiver would settle it"
+)
 async def test_a_quick_select_preset_can_be_saved(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

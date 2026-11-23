@@ -199,12 +199,46 @@ def classify(command: str, lines: list[str]) -> str:
 
 _MAC = re.compile(r"(?i)(?<![0-9a-f:\-])(?:[0-9a-f]{2}[:\-]){5}[0-9a-f]{2}(?![0-9a-f:\-])")
 _IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
+_IPV6 = re.compile(r"(?i)\b(?:fe80|fd[0-9a-f]{2}|2[0-9a-f]{3}):[0-9a-f:]{2,}[0-9a-f]\b")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+_FRIENDLY_NAME = re.compile(r"^NSFRN (.+)$")
 
 
-def anonymise(line: str) -> str:
-    """Replace MACs, IPv4 addresses and e-mail addresses in a reply line."""
+def anonymise(
+    lines: list[str], *, macs: tuple[str | None, ...] = (), serials: tuple[str | None, ...] = ()
+) -> list[str]:
+    """Replace what identifies the receiver or its owner in reply lines.
 
-    line = _MAC.sub("aa:bb:cc:dd:ee:ff", line)
-    line = _IPV4.sub("192.0.2.10", line)
-    return _EMAIL.sub("user@example.com", line)
+    The receiver's MAC in every spelling (also without separators) and its
+    serial number, any other MAC, IPv4 and IPv6 addresses, e-mail addresses,
+    and the name the owner gave the receiver (NSFRN) wherever it appears,
+    as the probe script does. The diagnostics with these lines are meant to
+    be attached to a public issue.
+    """
+
+    names = sorted(
+        {match.group(1).strip() for line in lines if (match := _FRIENDLY_NAME.match(line))}
+        - {""},
+        key=len,
+        reverse=True,
+    )
+    forms: list[str] = []
+    for mac in macs:
+        plain = re.sub(r"[^0-9A-Fa-f]", "", mac or "")
+        if len(plain) == 12:
+            pairs = [plain[i : i + 2] for i in range(0, 12, 2)]
+            forms += [plain, ":".join(pairs), "-".join(pairs)]
+    result = []
+    for line in lines:
+        for form in forms:
+            line = re.sub(re.escape(form), "aa:bb:cc:dd:ee:ff", line, flags=re.IGNORECASE)
+        for serial in serials:
+            if serial:
+                line = line.replace(serial, "SERIAL0000000")
+        for name in names:
+            line = line.replace(name, "Denon AVR")
+        line = _MAC.sub("aa:bb:cc:dd:ee:ff", line)
+        line = _IPV6.sub("2001:db8::1", line)
+        line = _IPV4.sub("192.0.2.10", line)
+        result.append(_EMAIL.sub("user@example.com", line))
+    return result

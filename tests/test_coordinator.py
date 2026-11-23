@@ -13,6 +13,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
@@ -149,6 +150,8 @@ async def test_a_silent_receiver_starts_from_the_last_discovery(
     """Off without network standby at a restart: the media players still come up."""
     key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
     assert [zone["id"] for zone in hass_storage[key]["data"]["zones"]] == ["main", "zone2"]
+    # Saved after the Deviceinfo sources were filled in (no telnet introspection here).
+    assert hass_storage[key]["data"]["sources"]
     main = entity_id(hass, loaded_entry, "media_player_main")
     zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
     dynamic_eq = entity_id(hass, loaded_entry, "switch_dynamic_eq")
@@ -262,3 +265,58 @@ async def test_a_failing_setup_read_on_connect_is_only_logged(
         await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
     assert refresh.await_count == 1
+
+
+async def _start_offline(hass: HomeAssistant, entry: MockConfigEntry) -> None:
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    with (
+        patch.object(GoformClient, "async_get_device_info", AsyncMock(return_value=None)),
+        patch.object(FakeTelnet, "async_start", AsyncMock()),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    assert entry.runtime_data.started_offline
+
+
+async def test_telnet_alone_does_not_reload_in_a_loop(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A receiver still booting: telnet answers, its device description does not."""
+    await _start_offline(hass, loaded_entry)
+    coordinator = loaded_entry.runtime_data
+    with (
+        patch.object(GoformClient, "async_get_device_info", AsyncMock(return_value=None)),
+        patch.object(hass.config_entries, "async_schedule_reload") as reload,
+    ):
+        telnet = FakeTelnet.instances[-1]
+        telnet.connected = True
+        assert telnet._on_availability is not None
+        telnet._on_availability(True)
+        await _settle(hass)
+        # Pushes keep arriving; none of them starts another attempt yet.
+        for _ in range(5):
+            telnet.push("PWON")
+            await _settle(hass)
+        reload.assert_not_called()
+        assert loaded_entry.runtime_data is coordinator
+    # The next attempt waits a minute; then the description answers and
+    # the full setup follows.
+    assert coordinator._identify_after is not None
+    assert coordinator._identify_after > dt_util.utcnow() + timedelta(seconds=50)
+    coordinator._identify_after = dt_util.utcnow() - timedelta(seconds=1)
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        telnet.push("PWON")
+        await _settle(hass)
+    reload.assert_called_once_with(loaded_entry.entry_id)
+
+
+async def test_a_control_answered_once_stays(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """One late reply at a start must not drop a model-dependent control."""
+    key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
+    hass_storage[key]["data"]["answered"] = ["auto_standby"]
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert "auto_standby" in loaded_entry.runtime_data.device.discovery.answered
+    assert hass_storage[key]["data"]["answered"] == ["auto_standby"]

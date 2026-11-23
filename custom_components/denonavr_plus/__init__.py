@@ -68,7 +68,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         await coordinator.async_config_entry_first_refresh()
     except ConnectionError as err:
         await coordinator.async_shutdown()
-        raise ConfigEntryNotReady(f"Cannot reach Denon AVR at {host}: {err}") from err
+        raise ConfigEntryNotReady(
+            translation_domain=DOMAIN,
+            translation_key="cannot_reach",
+            translation_placeholders={"host": host, "error": str(err)},
+        ) from err
     except Exception:
         await coordinator.async_shutdown()
         raise
@@ -110,7 +114,9 @@ async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) ->
     """Remove the kept discovery and capability check with the entry."""
 
     await snapshot_store(hass, entry.entry_id).async_remove()
-    await CapabilityResults(hass, entry.entry_id).async_remove()
+    results = CapabilityResults(hass, entry.entry_id)
+    await results.async_remove()
+    results.async_delete_issues()
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:
@@ -187,7 +193,7 @@ def _register_main_device(
         # it is in the diagnostics. None clears what earlier versions stored.
         hw_version=None,
         serial_number=device.serial_number,
-        configuration_url=f"https://{coordinator.device.host}:10443/",
+        configuration_url=coordinator.device.setup_url,
     )
     coordinator.main_device_id = entry_device.id
 

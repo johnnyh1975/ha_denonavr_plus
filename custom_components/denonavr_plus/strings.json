@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
       "no_additional_zones": "This receiver has no additional zone.",
-      "no_sound_modes": "The receiver has not reported any sound modes yet."
+      "no_sound_modes": "The receiver has not reported any sound modes yet.",
+      "check_not_connected": "The receiver is not connected. The capability check asks it over its telnet connection; try again when it is on."
     },
     "progress": {
       "capability_check": "Asking the receiver. This takes up to a minute and a half."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Unknown remote command: {command}. Known commands: {commands}."
+    },
+    "cannot_reach": {
+      "message": "Cannot reach the receiver at {host} ({error}). Setup is retried."
     }
   },
   "issues": {

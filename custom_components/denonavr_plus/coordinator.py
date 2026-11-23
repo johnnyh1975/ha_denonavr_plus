@@ -95,6 +95,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # were built from the last discovery; the entry reloads once it answers.
         self.started_offline = False
         self._reload_scheduled = False
+        self._identify_after: datetime | None = None
         self._snapshot = snapshot_store(hass, entry.entry_id)
         # The last capability check of this receiver (see capabilities.py).
         self.capabilities = CapabilityResults(hass, entry.entry_id)
@@ -107,13 +108,13 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """
 
         await self.capabilities.async_load()
+        snapshot = await self._snapshot.async_load()
         try:
             await self.device.async_discover()
         except ConnectionError:
             # A receiver off without network standby does not answer. With the
             # last discovery the media players can still be set up (shown off,
             # see the turn-on trigger); everything else waits for a reload.
-            snapshot = await self._snapshot.async_load()
             if not snapshot:
                 raise
             self.device.restore_discovery(snapshot)
@@ -125,17 +126,22 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             )
             await self.device.async_start()
             return
-        await self._snapshot.async_save(self.device.discovery_snapshot())
+        # A model-dependent control answered once stays: one late reply at a
+        # start (or a receiver in standby) must not drop its entity.
+        self.device.discovery.answered |= set((snapshot or {}).get("answered", []))
         await self.device.async_start()
         # Give the initial resync a moment so per channel entities can be built.
         await self.device.async_await_ready()
+        # Saved after the wait, which fills the sources from Deviceinfo when
+        # the telnet introspection brought none.
+        await self._snapshot.async_save(self.device.discovery_snapshot())
 
     async def async_shutdown(self) -> None:
         """Stop the telnet transport when the entry is unloaded."""
 
         await self.device.async_stop()
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id)
-        self.capabilities.async_delete_issues()
+        self.capabilities.async_delete_check_issue()
         await super().async_shutdown()
 
     async def _async_update_data(self) -> AvrState:
@@ -192,13 +198,20 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """
 
         self._set_poll_interval()
-        if self.started_offline and not self._reload_scheduled and (
-            self.device.available or self.device.http_reachable
+        if (
+            self.started_offline
+            and not self._reload_scheduled
+            and (self.device.available or self.device.http_reachable)
+            and (self._identify_after is None or dt_util.utcnow() >= self._identify_after)
         ):
-            # The receiver answers again: set it up in full.
+            # The receiver answers again: set it up in full, but only once its
+            # device description answers too; telnet alone (a receiver still
+            # booting, HTTP blocked) would fail the setup and start it over.
             assert self.config_entry is not None
             self._reload_scheduled = True
-            self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
+            self.config_entry.async_create_background_task(
+                self.hass, self._async_reload_when_described(), "denonavr_plus full setup"
+            )
         model = self.device.discovery.device.model_name or "Denon AVR"
         if self.device.available:
             if self._outage_reported:
@@ -239,6 +252,19 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
                 translation_key="telnet_unavailable",
                 translation_placeholders={"model": model},
             )
+
+    async def _async_reload_when_described(self) -> None:
+        """Reload once Deviceinfo answers; otherwise try again a minute later."""
+
+        assert self.config_entry is not None
+        try:
+            await self.device.async_fetch_identity()
+        except Exception as err:  # noqa: BLE001 - a background task must not raise
+            _LOGGER.debug("Receiver answers, but not its device description yet: %s", err)
+            self._identify_after = dt_util.utcnow() + RECONCILE_INTERVAL
+            self._reload_scheduled = False
+            return
+        self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
 
     @callback
     def _set_poll_interval(self) -> None:

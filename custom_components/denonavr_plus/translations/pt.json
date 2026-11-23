@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "O recetor não está ligado à rede. As fontes e os modos de som são lidos do aparelho; tente novamente quando estiver ligado.",
       "no_additional_zones": "Este recetor não tem zonas adicionais.",
-      "no_sound_modes": "O recetor ainda não indicou nenhum modo de som."
+      "no_sound_modes": "O recetor ainda não indicou nenhum modo de som.",
+      "check_not_connected": "O recetor não está ligado. A verificação consulta-o pela ligação telnet; tente novamente quando estiver ligado."
     },
     "progress": {
       "capability_check": "A consultar o recetor. Demora até minuto e meio."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Comando do comando desconhecido: {command}. Comandos conhecidos: {commands}."
+    },
+    "cannot_reach": {
+      "message": "Não é possível contactar o recetor em {host} ({error}). A configuração é repetida."
     }
   },
   "issues": {

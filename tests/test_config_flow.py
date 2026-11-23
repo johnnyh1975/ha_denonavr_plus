@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from datetime import timedelta
 import re
@@ -185,6 +186,35 @@ async def test_ssdp_ignores_other_devices(
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == reason
     identify.assert_not_awaited()
+
+
+async def test_ssdp_announcements_at_the_same_moment_start_one_flow(
+    hass: HomeAssistant,
+) -> None:
+    """Announcements of one receiver arrive together; Deviceinfo is read once."""
+    started = asyncio.Event()
+
+    async def slow_identity(self: DenonAvrDevice) -> DeviceInfo:
+        started.set()
+        await asyncio.sleep(0.05)
+        return DeviceInfo(model_name=MODEL, mac_address=None)
+
+    with patch.object(DenonAvrDevice, "async_fetch_identity", slow_identity):
+        results = await asyncio.gather(
+            *(
+                hass.config_entries.flow.async_init(
+                    DOMAIN,
+                    context={"source": config_entries.SOURCE_SSDP},
+                    data=_ssdp(device_type=device_type),
+                )
+                for device_type in (AIOS, RENDERER, "urn:schemas-upnp-org:device:MediaServer:1")
+            )
+        )
+    assert sorted(result["type"] for result in results) == [
+        FlowResultType.ABORT,
+        FlowResultType.ABORT,
+        FlowResultType.FORM,
+    ]
 
 
 async def test_ssdp_one_flow_per_receiver(hass: HomeAssistant) -> None:
@@ -687,4 +717,4 @@ async def test_the_capability_check_needs_the_receiver(hass: HomeAssistant) -> N
     result = await _options_step(hass, entry, "check")
     result = await hass.config_entries.options.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "not_connected"
+    assert result["reason"] == "check_not_connected"

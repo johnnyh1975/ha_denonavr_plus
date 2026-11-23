@@ -132,12 +132,12 @@ class _HeosServer:
             writer.close()
 
 
-async def _run_client(server: _HeosServer, seconds: float) -> None:
+async def _run_client(server: _HeosServer, seconds: float, timeout: float) -> None:
     port = await server.start()
     client = HeosClient("127.0.0.1", on_update=lambda _: None, port=port)
     with (
         patch.object(heos, "HEARTBEAT_INTERVAL", 0.05),
-        patch.object(heos, "HEARTBEAT_TIMEOUT", 0.05),
+        patch.object(heos, "HEARTBEAT_TIMEOUT", timeout),
         patch.object(heos, "RECONNECT_BACKOFF_MIN", 0.01),
     ):
         await client.async_start()
@@ -149,7 +149,8 @@ async def _run_client(server: _HeosServer, seconds: float) -> None:
 @pytest.mark.usefixtures("socket_enabled")
 async def test_an_idle_link_sends_a_heartbeat_and_stays() -> None:
     server = _HeosServer(answer_heartbeat=True)
-    await _run_client(server, 0.4)
+    # A generous timeout: a busy test runner must not turn a reply into a miss.
+    await _run_client(server, 0.4, timeout=1.0)
     assert "heos://system/heart_beat" in server.received
     assert server.connections == 1
 
@@ -157,7 +158,7 @@ async def test_an_idle_link_sends_a_heartbeat_and_stays() -> None:
 @pytest.mark.usefixtures("socket_enabled")
 async def test_an_unanswered_heartbeat_opens_the_link_again() -> None:
     server = _HeosServer(answer_heartbeat=False)
-    await _run_client(server, 0.4)
+    await _run_client(server, 0.6, timeout=0.05)
     assert "heos://system/heart_beat" in server.received
     assert server.connections >= 2
 
@@ -165,11 +166,11 @@ async def test_an_unanswered_heartbeat_opens_the_link_again() -> None:
 async def test_no_heartbeat_while_messages_arrive() -> None:
     client, _ = _client()
     loop = asyncio.get_running_loop()
-    with patch.object(heos, "HEARTBEAT_INTERVAL", 0.01):
+    with patch.object(heos, "HEARTBEAT_INTERVAL", 0.2):
         task = asyncio.ensure_future(client._heartbeat_loop())
-        for _ in range(5):
+        for _ in range(25):
             client._last_received = loop.time()
-            await asyncio.sleep(0.005)
+            await asyncio.sleep(0.02)
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task

@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
       "no_additional_zones": "Este receptor no tiene zonas adicionales.",
-      "no_sound_modes": "El receptor aún no ha informado de ningún modo de sonido."
+      "no_sound_modes": "El receptor aún no ha informado de ningún modo de sonido.",
+      "check_not_connected": "El receptor no está conectado. La comprobación lo consulta por su conexión telnet; inténtalo de nuevo cuando esté encendido."
     },
     "progress": {
       "capability_check": "Consultando al receptor. Tarda hasta minuto y medio."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Orden del mando desconocida: {command}. Órdenes conocidas: {commands}."
+    },
+    "cannot_reach": {
+      "message": "No se puede contactar con el receptor en {host} ({error}). La configuración se reintenta."
     }
   },
   "issues": {

@@ -207,7 +207,8 @@
     "abort": {
       "not_connected": "Il sintoamplificatore non è connesso. Sorgenti e modalità audio vengono lette dal dispositivo; riprova quando è acceso.",
       "no_additional_zones": "Questo sintoamplificatore non ha zone aggiuntive.",
-      "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio."
+      "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio.",
+      "check_not_connected": "Il sintoamplificatore non è connesso. La verifica lo interroga tramite la connessione telnet; riprova quando è acceso."
     },
     "progress": {
       "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo."
@@ -926,6 +927,9 @@
     },
     "unknown_remote_command": {
       "message": "Comando del telecomando sconosciuto: {command}. Comandi noti: {commands}."
+    },
+    "cannot_reach": {
+      "message": "Impossibile raggiungere il sintoamplificatore a {host} ({error}). La configurazione viene ritentata."
     }
   },
   "issues": {

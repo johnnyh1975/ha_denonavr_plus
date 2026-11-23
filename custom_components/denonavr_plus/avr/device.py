@@ -34,8 +34,9 @@ from .models import (
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ProtocolProfile, load_profile
 from . import capability_check, graphic_eq, video_config
-from .const import CHECK_REPLY_FIRST, REPLY_COLLECT_FIRST, REPLY_COLLECT_QUIET
+from .const import CHECK_REPLY_FIRST, QUEUE_WAIT_MAX, REPLY_COLLECT_FIRST, REPLY_COLLECT_QUIET
 from .errors import CommandNotSent
+from .transport.webconfig import HTTP_PORT as HTTP_SETUP_PORT
 from .transport import (
     DEFAULT_PORT,
     GoformClient,
@@ -179,6 +180,20 @@ class DenonAvrDevice:
         return self._http_reachable
 
     @property
+    def setup_url(self) -> str:
+        """The receiver's setup web page: HTTP 11080 where 10443 is closed."""
+
+        if self._webconfig.port == HTTP_SETUP_PORT:
+            return f"http://{self._host}:{HTTP_SETUP_PORT}/"
+        return f"https://{self._host}:10443/"
+
+    @property
+    def heos_enabled(self) -> bool:
+        """Whether now playing over HEOS is on (a connection option)."""
+
+        return self._heos_enabled
+
+    @property
     def setup_port(self) -> int | None:
         """The port the setup interface answered on last (10443 or 11080)."""
 
@@ -229,7 +244,7 @@ class DenonAvrDevice:
 
     # Lifecycle ------------------------------------------------------------
 
-    async def async_fetch_identity(self):
+    async def async_fetch_identity(self) -> DeviceInfo:
         """Fetch just the device identity (model name, MAC) over HTTP.
 
         Used by the config flow (including SSDP discovery) to validate the
@@ -331,6 +346,7 @@ class DenonAvrDevice:
             "device": asdict(discovery.device),
             "zones": [asdict(zone) for zone in discovery.zones],
             "sources": [asdict(source) for source in discovery.sources],
+            "answered": sorted(discovery.answered),
         }
 
     def restore_discovery(self, snapshot: dict[str, Any]) -> None:
@@ -739,6 +755,12 @@ class DenonAvrDevice:
         self._reply_listeners.append(listen)
         try:
             await self._telnet.async_send(command)
+            # The client paces the queue; time the reply from when the command
+            # has left it, not from when it was queued (behind a resync, say).
+            loop = asyncio.get_running_loop()
+            until = loop.time() + QUEUE_WAIT_MAX
+            while self._telnet.queued and loop.time() < until and not replies:
+                await asyncio.sleep(0.05)
             wait = first
             while True:
                 try:
@@ -773,11 +795,21 @@ class DenonAvrDevice:
             results[command] = {
                 "group": group,
                 "result": capability_check.classify(command, lines),
-                "lines": [capability_check.anonymise(line) for line in lines],
+                "lines": lines,
             }
             if on_progress is not None:
                 on_progress((index + 1) / len(capability_check.QUERIES))
         device = self._discovery.device
+        # Anonymised together, so a name the receiver reports in one reply
+        # (NSFRN) is also replaced in every other.
+        everything = [line for item in results.values() for line in item["lines"]]
+        clean = iter(
+            capability_check.anonymise(
+                everything, macs=(device.mac_address,), serials=(device.serial_number,)
+            )
+        )
+        for item in results.values():
+            item["lines"] = [next(clean) for _ in item["lines"]]
         return {
             "check_version": capability_check.CHECK_VERSION,
             "model": device.model_name,

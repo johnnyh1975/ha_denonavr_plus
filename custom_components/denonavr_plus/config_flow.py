@@ -264,7 +264,10 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         # discoveries start at once; one is enough.
         self._async_abort_entries_match({CONF_HOST: host})
         if any(
-            flow["context"].get(CONF_HOST) == host for flow in self._async_in_progress()
+            flow["context"].get(CONF_HOST) == host
+            # Flows that have not shown a step yet count: announcements of one
+            # receiver arrive together, and each would read Deviceinfo.
+            for flow in self._async_in_progress(include_uninitialized=True)
         ):
             return self.async_abort(reason="already_in_progress")
         # Not a key Home Assistant defines; the flows of this domain read it above.
@@ -411,6 +414,8 @@ class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
         )
 
     # Capability check (steps in capabilities.CapabilityCheckSteps) ---------
+
+    _not_connected = "check_not_connected"
 
     def _check_entry(self) -> Any:
         return self.config_entry

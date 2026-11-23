@@ -67,6 +67,9 @@ class CapabilityResults:
             hass, _STORE_VERSION, f"{DOMAIN}.{entry_id}.capabilities"
         )
         self.result: dict[str, Any] | None = None
+        # One check at a time: the pending one after setup, the repair and the
+        # options step share the telnet replies.
+        self._lock = asyncio.Lock()
 
     async def async_load(self) -> None:
         self.result = await self._store.async_load()
@@ -84,8 +87,12 @@ class CapabilityResults:
         Raises CommandNotSent when the receiver is not connected over telnet.
         """
 
-        result = await coordinator.device.async_check_capabilities(on_progress)
+        async with self._lock:
+            result = await coordinator.device.async_check_capabilities(on_progress)
         result["checked_at"] = dt_util.utcnow().isoformat()
+        if self._hass.config_entries.async_get_entry(self._entry_id) is None:
+            # Removed while the check ran: keep nothing behind.
+            return result
         await self._store.async_save(result)
         self.result = result
         ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(ISSUE_CHECK))
@@ -108,6 +115,15 @@ class CapabilityResults:
             translation_placeholders={"model": model or "Denon AVR"},
             data={"entry_id": self._entry_id},
         )
+
+    def async_delete_check_issue(self) -> None:
+        """At unload: the request for a check is raised again at the next setup.
+
+        The pointer to GitHub stays until the user ignores it or the entry is
+        removed; a reload must not take it away before it was read.
+        """
+
+        ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(ISSUE_CHECK))
 
     def async_delete_issues(self) -> None:
         for issue in (ISSUE_CHECK, ISSUE_REPORT):
@@ -170,6 +186,8 @@ class CapabilityCheckSteps:
 
     _check_task: asyncio.Task[dict[str, Any] | None] | None = None
     _check_result: dict[str, Any] | None = None
+    #: The abort reason when the receiver is not connected.
+    _not_connected = "not_connected"
 
     # Provided by the flow handler this is mixed into.
     hass: HomeAssistant
@@ -192,7 +210,7 @@ class CapabilityCheckSteps:
         if self._check_task is None:
             entry = self._check_entry()
             if entry is None or entry.state is not ConfigEntryState.LOADED:
-                return self.async_abort(reason="not_connected")  # type: ignore[attr-defined, no-any-return]
+                return self.async_abort(reason=self._not_connected)  # type: ignore[attr-defined, no-any-return]
             self._check_task = self.hass.async_create_task(self._run(entry.runtime_data))
             started = True
         else:
@@ -217,11 +235,14 @@ class CapabilityCheckSteps:
             )
         except CommandNotSent:
             return None
+        except Exception:  # the flow shows "not connected"; the log has the cause
+            _LOGGER.exception("Capability check failed")
+            return None
 
     async def async_step_check_failed(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        return self.async_abort(reason="not_connected")  # type: ignore[attr-defined, no-any-return]
+        return self.async_abort(reason=self._not_connected)  # type: ignore[attr-defined, no-any-return]
 
     async def async_step_check_done(
         self, user_input: dict[str, Any] | None = None

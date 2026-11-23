@@ -220,3 +220,27 @@ async def test_a_command_that_does_not_reach_the_receiver_is_reported(
                 "media_player", "volume_up", {"entity_id": main}, blocking=True
             )
     assert err.value.translation_key == "receiver_unreachable"
+
+
+async def test_without_heos_there_is_no_transport(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+    from homeassistant.const import CONF_HOST
+
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: "192.0.2.10"},
+        options={"heos": False},
+        minor_version=CONFIG_MINOR_VERSION,
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id(hass, entry, "media_player_main"))
+    assert state is not None
+    features = MediaPlayerEntityFeature(state.attributes["supported_features"])
+    assert not features & MediaPlayerEntityFeature.PLAY
+    assert features & MediaPlayerEntityFeature.SELECT_SOUND_MODE
