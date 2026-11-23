@@ -4,6 +4,17 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 0.2.0
+
+Selects with a fixed set of options (dimmer, Dynamic Volume, MultEQ, speaker
+size, video setup and the like) now show their options in your language. Their
+state is a key, the English name in lower case with `_` for spaces and signs:
+`Medium Small` becomes `medium_small`, `-20 dB` becomes `minus_20_db`. If an
+automation or script sets or compares such an option, use the key, for example
+`option: dark` instead of `option: Dark`. Developer tools → States shows the
+keys under `options`. Selects whose options come from the receiver (sound modes,
+sources, quick select, crossover) are unchanged.
+
 ## From 0.1.0
 
 The read-only volume sensor (`sensor.<receiver>_volume`) is replaced by a

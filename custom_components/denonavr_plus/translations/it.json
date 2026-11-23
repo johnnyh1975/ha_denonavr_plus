@@ -242,100 +242,289 @@
         "name": "Quick Select"
       },
       "dynamic_compression": {
-        "name": "Compressione dinamica"
+        "name": "Compressione dinamica",
+        "state": {
+          "off": "Disattivato",
+          "low": "Basso",
+          "medium": "Medio",
+          "high": "Alto",
+          "auto": "Automatico"
+        }
       },
       "room_size": {
-        "name": "Dimensione della stanza"
+        "name": "Dimensione della stanza",
+        "state": {
+          "small": "Piccolo",
+          "medium_small": "Medio-piccolo",
+          "medium": "Medio",
+          "medium_large": "Medio-grande",
+          "large": "Grande"
+        }
       },
       "dynamic_volume": {
-        "name": "Dynamic Volume"
+        "name": "Dynamic Volume",
+        "state": {
+          "off": "Disattivato",
+          "light": "Leggero",
+          "medium": "Medio",
+          "heavy": "Forte"
+        }
       },
       "reference_level_offset": {
-        "name": "Offset del livello di riferimento"
+        "name": "Offset del livello di riferimento",
+        "state": {
+          "0_db": "0 dB",
+          "5_db": "5 dB",
+          "10_db": "10 dB",
+          "15_db": "15 dB"
+        }
       },
       "multeq": {
-        "name": "MultEQ"
+        "name": "MultEQ",
+        "state": {
+          "reference": "Riferimento",
+          "l_r_bypass": "Bypass S/D",
+          "flat": "Piatto",
+          "manual": "Manuale",
+          "off": "Disattivato"
+        }
       },
       "restorer": {
-        "name": "Restorer"
+        "name": "Restorer",
+        "state": {
+          "high": "Alto",
+          "medium": "Medio",
+          "low": "Basso",
+          "off": "Disattivato"
+        }
       },
       "volume_scale": {
-        "name": "Scala del volume"
+        "name": "Scala del volume",
+        "state": {
+          "relative": "Relativo",
+          "absolute": "Assoluto"
+        }
       },
       "volume_limit": {
-        "name": "Limite del volume"
+        "name": "Limite del volume",
+        "state": {
+          "off": "Disattivato",
+          "minus_20_db": "-20 dB",
+          "minus_10_db": "-10 dB",
+          "0_db": "0 dB"
+        }
       },
       "muting_level": {
-        "name": "Livello di silenziamento"
+        "name": "Livello di silenziamento",
+        "state": {
+          "full": "Pieno",
+          "minus_40_db": "-40 dB"
+        }
       },
       "subwoofer_mode": {
-        "name": "Modalità subwoofer"
+        "name": "Modalità subwoofer",
+        "state": {
+          "lfe": "LFE",
+          "lfe_main": "LFE + principale"
+        }
       },
       "front_speaker": {
-        "name": "Diffusori anteriori"
+        "name": "Diffusori anteriori",
+        "state": {
+          "front_a": "Front A",
+          "front_b": "Front B",
+          "a_b": "A + B"
+        }
       },
       "lpf_for_lfe": {
-        "name": "LPF per LFE"
+        "name": "LPF per LFE",
+        "state": {
+          "80_hz": "80 Hz",
+          "90_hz": "90 Hz",
+          "100_hz": "100 Hz",
+          "110_hz": "110 Hz",
+          "120_hz": "120 Hz",
+          "150_hz": "150 Hz",
+          "180_hz": "180 Hz",
+          "200_hz": "200 Hz",
+          "250_hz": "250 Hz"
+        }
       },
       "eco_mode": {
-        "name": "Modalità Eco"
+        "name": "Modalità Eco",
+        "state": {
+          "on": "Attivato",
+          "auto": "Automatico",
+          "off": "Disattivato"
+        }
       },
       "dimmer": {
-        "name": "Luminosità del display"
+        "name": "Luminosità del display",
+        "state": {
+          "bright": "Luminoso",
+          "dim": "Attenuato",
+          "dark": "Scuro",
+          "off": "Disattivato"
+        }
       },
       "video_mode": {
-        "name": "Modalità video"
+        "name": "Modalità video",
+        "state": {
+          "auto": "Automatico",
+          "game": "Gioco",
+          "movie": "Film"
+        }
       },
       "picture_mode": {
-        "name": "Modalità immagine"
+        "name": "Modalità immagine",
+        "state": {
+          "off": "Disattivato",
+          "standard": "Standard",
+          "movie": "Film",
+          "vivid": "Vivido",
+          "stream": "Streaming",
+          "custom": "Personalizzato",
+          "isf_day": "ISF Giorno",
+          "isf_night": "ISF Notte"
+        }
       },
       "noise_reduction": {
-        "name": "Riduzione del rumore"
+        "name": "Riduzione del rumore",
+        "state": {
+          "off": "Disattivato",
+          "low": "Basso",
+          "medium": "Medio",
+          "high": "Alto"
+        }
       },
       "hdmi_video_output": {
-        "name": "Uscita video HDMI"
+        "name": "Uscita video HDMI",
+        "state": {
+          "auto": "Automatico",
+          "monitor_1": "Monitor 1",
+          "monitor_2": "Monitor 2"
+        }
       },
       "aspect_ratio": {
-        "name": "Rapporto d'aspetto"
+        "name": "Rapporto d'aspetto",
+        "state": {
+          "full": "Pieno",
+          "normal": "Normale"
+        }
       },
       "hdmi_audio_out": {
-        "name": "Uscita audio HDMI"
+        "name": "Uscita audio HDMI",
+        "state": {
+          "amp": "Amplificatore",
+          "tv": "TV"
+        }
       },
       "resolution_hdmi": {
-        "name": "Risoluzione HDMI"
+        "name": "Risoluzione HDMI",
+        "state": {
+          "auto": "Automatico",
+          "480p_576p": "480p/576p",
+          "1080i": "1080i",
+          "720p": "720p",
+          "1080p": "1080p",
+          "1080p_24hz": "1080p:24Hz",
+          "4k": "4K",
+          "4k_60_50": "4K (60/50)"
+        }
       },
       "input_mode": {
-        "name": "Modalità di ingresso"
+        "name": "Modalità di ingresso",
+        "state": {
+          "none": "Nessuno",
+          "auto": "Automatico",
+          "hdmi": "HDMI",
+          "digital": "Digitale",
+          "analog": "Analogico",
+          "7_1ch_in": "Ingresso 7.1 canali",
+          "arc": "ARC",
+          "earc": "eARC"
+        }
       },
       "hdmi_power_off_control": {
-        "name": "Controllo spegnimento HDMI"
+        "name": "Controllo spegnimento HDMI",
+        "state": {
+          "all": "Tutti",
+          "video": "Video",
+          "off": "Disattivato"
+        }
       },
       "pass_through_source": {
         "name": "Sorgente pass-through"
       },
       "rc_select": {
-        "name": "Selezione telecomando"
+        "name": "Selezione telecomando",
+        "state": {
+          "power_on_source": "Accensione + sorgente",
+          "source_select_only": "Solo selezione sorgente"
+        }
       },
       "osd_volume": {
-        "name": "Volume sullo schermo"
+        "name": "Volume sullo schermo",
+        "state": {
+          "bottom": "In basso",
+          "top": "In alto",
+          "off": "Disattivato"
+        }
       },
       "osd_now_playing": {
-        "name": "Visualizzazione in riproduzione"
+        "name": "Visualizzazione in riproduzione",
+        "state": {
+          "always_on": "Sempre attivo",
+          "auto_off": "Spegnimento automatico"
+        }
       },
       "hdmi_signal_format": {
-        "name": "Formato segnale 4K"
+        "name": "Formato segnale 4K",
+        "state": {
+          "standard": "Standard",
+          "enhanced": "Avanzato",
+          "custom": "Personalizzato",
+          "8k_enhanced": "8K avanzato"
+        }
       },
       "tv_format": {
-        "name": "Formato TV"
+        "name": "Formato TV",
+        "state": {
+          "ntsc": "NTSC",
+          "pal": "PAL"
+        }
       },
       "amp_assign": {
         "name": "Assegnazione amplificatori"
       },
       "floor_layout": {
-        "name": "Disposizione dei diffusori"
+        "name": "Disposizione dei diffusori",
+        "state": {
+          "5ch": "5ch",
+          "5ch_sb": "5ch & SB",
+          "5ch_fw": "5ch & FW",
+          "5ch_sb_fw": "5ch & SB & FW"
+        }
       },
       "height_speaker": {
-        "name": "Diffusori di altezza"
+        "name": "Diffusori di altezza",
+        "state": {
+          "height_none_dolby_none": "Height Nessuno / Dolby Nessuno",
+          "height_none_dolby_2ch": "Height Nessuno / Dolby 2ch",
+          "height_none_dolby_4ch": "Height Nessuno / Dolby 4ch",
+          "height_none_dolby_6ch": "Height Nessuno / Dolby 6ch",
+          "height_2ch_dolby_none": "Height 2ch / Dolby Nessuno",
+          "height_2ch_dolby_2ch": "Height 2ch / Dolby 2ch",
+          "height_2ch_dolby_4ch": "Height 2ch / Dolby 4ch",
+          "height_4ch_dolby_none": "Height 4ch / Dolby Nessuno",
+          "height_4ch_dolby_2ch": "Height 4ch / Dolby 2ch",
+          "height_5ch_dolby_none": "Height 5ch / Dolby Nessuno",
+          "height_5ch_dolby_2ch": "Height 5ch / Dolby 2ch",
+          "height_6ch_dolby_none": "Height 6ch / Dolby Nessuno",
+          "height_6ch_dolby_2ch": "Height 6ch / Dolby 2ch",
+          "height_7ch_dolby_none": "Height 7ch / Dolby Nessuno",
+          "height_8ch_dolby_none": "Height 8ch / Dolby Nessuno"
+        }
       },
       "crossover_speaker_selection": {
         "name": "Selezione diffusori per il crossover"
@@ -344,7 +533,12 @@
         "name": "Crossover per tutti"
       },
       "subwoofer_count": {
-        "name": "Subwoofer"
+        "name": "Subwoofer",
+        "state": {
+          "none": "Nessuno",
+          "1": "1",
+          "2": "2"
+        }
       },
       "eq_speaker_selection": {
         "name": "Selezione diffusori"
@@ -356,7 +550,11 @@
         "name": "Crossover {group}"
       },
       "speaker_size": {
-        "name": "Dimensione diffusori {group}"
+        "name": "Dimensione diffusori {group}",
+        "state": {
+          "large": "Grande",
+          "small": "Piccolo"
+        }
       }
     },
     "switch": {

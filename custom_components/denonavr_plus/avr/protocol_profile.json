@@ -441,6 +441,7 @@
       "query": "PSDRC ?",
       "prefix": "PSDRC ",
       "values": ["OFF", "LOW", "MID", "HI", "AUTO"],
+      "labels": ["Off", "Low", "Medium", "High", "Auto"],
       "doc": "Dynamic range compression."
     },
     "lfe": {
@@ -529,6 +530,7 @@
       "query": "PSDYNVOL ?",
       "prefix": "PSDYNVOL ",
       "values": ["OFF", "LIT", "MED", "HEV"],
+      "labels": ["Off", "Light", "Medium", "Heavy"],
       "doc": "Dynamic Volume."
     },
     "reference_level_offset": {
@@ -539,6 +541,7 @@
       "query": "PSREFLEV ?",
       "prefix": "PSREFLEV ",
       "values": ["0", "5", "10", "15"],
+      "labels": ["0 dB", "5 dB", "10 dB", "15 dB"],
       "doc": "Reference level offset in dB."
     },
     "loudness_management": {
@@ -571,6 +574,7 @@
       "query": "PSMULTEQ: ?",
       "prefix": "PSMULTEQ:",
       "values": ["AUDYSSEY", "BYP.LR", "FLAT", "MANUAL", "OFF"],
+      "labels": ["Reference", "L/R Bypass", "Flat", "Manual", "Off"],
       "doc": "MultEQ room correction mode."
     },
     "restorer": {
@@ -581,6 +585,7 @@
       "query": "PSRSTR ?",
       "prefix": "PSRSTR ",
       "values": ["HI", "MED", "LOW", "OFF"],
+      "labels": ["High", "Medium", "Low", "Off"],
       "doc": "Restorer (compressed audio restoration)."
     },
     "subwoofer_switch": {
@@ -702,6 +707,7 @@
       "query": "ECO?",
       "prefix": "ECO",
       "values": ["ON", "AUTO", "OFF"],
+      "labels": ["On", "Auto", "Off"],
       "doc": "ECO power mode."
     },
     "speaker_virtualizer": {
@@ -820,6 +826,7 @@
       "query": "VSVPM ?",
       "prefix": "VSVPM",
       "values": ["AUTO", "GAME", "MOVI"],
+      "labels": ["Auto", "Game", "Movie"],
       "doc": "Video processing mode. Wire values verified live (AUTO/GAME/MOVI); labels come from Deviceinfo. Only changeable with an active video signal."
     },
     "picture_mode": {
@@ -914,6 +921,7 @@
       "query": "VSMONI ?",
       "prefix": "VSMONI",
       "values": ["AUTO", "1", "2"],
+      "labels": ["Auto", "Monitor 1", "Monitor 2"],
       "doc": "HDMI monitor output selection. Wire values verified live (AUTO/1/2)."
     },
     "aspect_ratio": {
@@ -924,6 +932,7 @@
       "query": "VSASP ?",
       "prefix": "VSASP",
       "values": ["FUL", "NRM"],
+      "labels": ["Full", "Normal"],
       "doc": "Video aspect ratio. Wire values verified live (FUL=16:9, NRM=4:3)."
     },
     "hdmi_audio_out": {
@@ -956,6 +965,7 @@
       "query": "SD?",
       "prefix": "SD",
       "values": ["NO", "AUTO", "HDMI", "DIGITAL", "ANALOG", "7.1IN", "ARC", "EARC"],
+      "labels": ["None", "Auto", "HDMI", "Digital", "Analog", "7.1CH In", "ARC", "eARC"],
       "doc": "Audio input mode for the current source (how audio is received). This is the eARC/ARC selector for the TV Audio source. EARC verified live (the source stayed locked to the active eARC signal, so the other values could not be cycle-verified); the rest are the documented Denon SD tokens. Order matches the Deviceinfo Input Mode list."
     },
     "channel_level": {

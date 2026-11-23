@@ -20,6 +20,7 @@ from .helpers import (
     control_enabled_by_default,
     control_sub_device,
     enum_options,
+    option_key,
     group_name,
 )
 
@@ -115,9 +116,7 @@ class DenonAvrSelect(DenonAvrEntity, SelectEntity):
         self._spec = spec
         self._attr_translation_key = spec.id
         self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
-        options, self._label_to_value, self._value_to_label = enum_options(
-            coordinator.device.discovery, spec
-        )
+        options, self._key_to_value, self._value_to_key = enum_options(spec)
         self._attr_options = options
 
     @property
@@ -125,14 +124,14 @@ class DenonAvrSelect(DenonAvrEntity, SelectEntity):
         value = self.coordinator.data.values.get(self._spec.id)
         if value is None:
             return None
-        # Map the wire value back to its display label; return None (rather than
+        # Map the wire value back to its option key; return None (rather than
         # an unknown string) when the device reports a value outside our options,
         # so Home Assistant does not log an "invalid current option" warning.
-        return self._value_to_label.get(str(value))
+        return self._value_to_key.get(str(value))
 
     @receiver_action
     async def async_select_option(self, option: str) -> None:
-        value = self._label_to_value.get(option)
+        value = self._key_to_value.get(option)
         if value is not None:
             await self.coordinator.device.async_set_control(self._spec.id, value)
 
@@ -358,9 +357,9 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
         )
         self._group = group
         sizes = coordinator.device.profile.speakers.get("sizes", {}).get("options", {})
-        self._token_to_label = dict(sizes)
-        self._label_to_token = {label: token for token, label in sizes.items()}
-        self._attr_options = list(sizes.values())
+        self._token_to_label = {token: option_key(label) for token, label in sizes.items()}
+        self._label_to_token = {key: token for token, key in self._token_to_label.items()}
+        self._attr_options = list(self._token_to_label.values())
         self._attr_translation_key = "speaker_size"
         self._attr_translation_placeholders = {
             "group": group_name(coordinator.device.discovery, channels)
@@ -394,9 +393,10 @@ class DenonAvrSubwooferCount(DenonAvrEntity, SelectEntity):
         super().__init__(coordinator, "select_subwoofer_count", sub_device="speakers")
         self._attr_translation_key = "subwoofer_count"
         # Wire tokens -> labels from the profile grammar, not hardcoded here.
-        self._labels = coordinator.device.profile.speakers.get(
+        labels = coordinator.device.profile.speakers.get(
             "subwoofer_count", {"NON": "None", "1SP": "1", "2SP": "2"}
         )
+        self._labels = {token: option_key(label) for token, label in labels.items()}
         self._attr_options = list(self._labels.values())
         self._label_to_token = {v: k for k, v in self._labels.items()}
 
@@ -542,6 +542,13 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
         self._id = control["id"]
         self._attr_translation_key = control["id"]
         self._controller_attr = controller_attr
+        # A fixed option set (in the profile grammar) is shown through
+        # translated keys; one the receiver supplies (its sources, its amp
+        # assign modes) is shown as the receiver names it.
+        self._fixed = bool(control.get("options"))
+
+    def _shown(self, label: str) -> str:
+        return option_key(label) if self._fixed else label
 
     @property
     def _ctrl(self):
@@ -554,15 +561,16 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
 
     @property
     def options(self) -> list[str]:
-        return list(self._ctrl.options(self._id).values())
+        return [self._shown(label) for label in self._ctrl.options(self._id).values()]
 
     @property
     def current_option(self) -> str | None:
-        return self._ctrl.options(self._id).get(self._ctrl.value(self._id))
+        label = self._ctrl.options(self._id).get(self._ctrl.value(self._id))
+        return None if label is None else self._shown(label)
 
     @receiver_action
     async def async_select_option(self, option: str) -> None:
         for wire, label in self._ctrl.options(self._id).items():
-            if label == option:
+            if self._shown(label) == option:
                 await self._ctrl.async_set(self._id, wire)
                 return
