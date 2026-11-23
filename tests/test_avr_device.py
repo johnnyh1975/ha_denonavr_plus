@@ -125,8 +125,9 @@ async def _probe_answering(
 
 
 @pytest.mark.assumed(
-    "the formats of STBY, TR, BTTX and SSTTR come from the denonavr library; "
-    "the answers here are what its parser expects, not a recording"
+    "the formats of TR and SSTTR come from the denonavr library and are what its "
+    "parser expects; STBY and BTTX are as an AVR-X2600H answered "
+    "(tests/fixtures/capability_check)"
 )
 async def test_controls_without_a_feature_name_appear_when_they_answer(
     hass: HomeAssistant, receiver_network: Any

@@ -285,6 +285,10 @@ def _range_from_tone(tone: ET.Element, prefix: str) -> dict[str, float] | None:
     return _to_db_range(low, high, default, step)
 
 
+#: What follows Z2/Z3 in replies that are zone settings, not a source.
+_ZONE_SETTINGS = ("QUICK", "SMART", "SLP", "STBY", "HPF", "CS", "CV", "PS", "HDA")
+
+
 class TelnetParser:
     """Stateful parser that applies telnet lines to a Discovery and AvrState."""
 
@@ -615,13 +619,11 @@ class TelnetParser:
                 return True
             return False
         # Replies that share the zone prefix but are no source: quick and
-        # smart select (Z2QUICK0 means "no quick select"), and the zone's
-        # other settings. A source is a code the receiver listed, or SOURCE
-        # (the zone follows the main zone).
-        if remainder.startswith(("QUICK", "SMART")):
-            return False
-        known = {source.code for source in self._discovery.sources}
-        if known and remainder not in known and remainder != "SOURCE":
+        # smart select (Z2QUICK0 means "no quick select") and the zone's
+        # settings (Z2SLPOFF, Z2CVFL 50 ...). A source code has no space.
+        # Not checked against the receiver's source list: zone replies can
+        # arrive before it.
+        if " " in remainder or remainder.startswith(_ZONE_SETTINGS):
             return False
         zone.source = remainder
         return True

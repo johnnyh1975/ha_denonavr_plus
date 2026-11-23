@@ -71,7 +71,8 @@ the owner's manual when it is added.
 
 - No control protocol document for any HEOS-era model after 2015.
 - No owner's manual for either reference receiver.
-- No recorded data from an AVR-X2600H.
+- One recording from an AVR-X2600H (capability check, firmware 3.139.175);
+  no telnet log over time yet.
 - The 2017, 2018 and 2020 Denon spreadsheets are not in the sources; the
   2018 one (with the AVR-X2500H) or the FY21 one would be the closest
   official reference for the AVR-X2600H. Adding either to the project

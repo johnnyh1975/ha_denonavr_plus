@@ -1,0 +1,1055 @@
+{
+  "check_version": 1,
+  "model": "AVR-X2600H",
+  "firmware": "3.139.175",
+  "hardware_type": "avr-x-2016",
+  "queries": {
+    "PW?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "PWON"
+      ]
+    },
+    "ZM?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "ZMON"
+      ]
+    },
+    "Z2?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "Z2OFF",
+        "Z2NET",
+        "Z232"
+      ]
+    },
+    "Z2MU?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "Z2MUOFF"
+      ]
+    },
+    "Z2CV?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "Z2CVFL 50",
+        "Z2CVFR 50"
+      ]
+    },
+    "Z2CS?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z2HPF?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z2PSBAS ?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z2PSTRE ?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z2HDA?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z2SLP?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "Z2SLPOFF"
+      ]
+    },
+    "Z2STBY?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "Z2STBYOFF"
+      ]
+    },
+    "Z2QUICK ?": {
+      "group": "Power and zones",
+      "result": "answered",
+      "lines": [
+        "Z2QUICK0"
+      ]
+    },
+    "Z3?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z3MU?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z3CV?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z3SLP?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z3STBY?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "Z3QUICK ?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "MNZST ?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "SR?": {
+      "group": "Power and zones",
+      "result": "no reply",
+      "lines": []
+    },
+    "MV?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "MV23",
+        "MVMAX 98"
+      ]
+    },
+    "MU?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "MUOFF"
+      ]
+    },
+    "CV?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "CVFL 50",
+        "CVFR 50",
+        "CVC 50",
+        "CVSL 50",
+        "CVSR 50",
+        "CVEND"
+      ]
+    },
+    "SI?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "SINET"
+      ]
+    },
+    "SV?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "SVOFF"
+      ]
+    },
+    "SD?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "SDAUTO"
+      ]
+    },
+    "DC?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "DCAUTO"
+      ]
+    },
+    "SLP?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "SLPOFF"
+      ]
+    },
+    "SLP ?": {
+      "group": "Volume and input",
+      "result": "no reply",
+      "lines": []
+    },
+    "STBY?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "STBY15M"
+      ]
+    },
+    "ECO?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "ECOON"
+      ]
+    },
+    "DIM ?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "DIM DIM"
+      ]
+    },
+    "TR?": {
+      "group": "Volume and input",
+      "result": "no reply",
+      "lines": []
+    },
+    "MNMEN?": {
+      "group": "Volume and input",
+      "result": "answered",
+      "lines": [
+        "MNMEN OFF"
+      ]
+    },
+    "MS?": {
+      "group": "Surround",
+      "result": "answered",
+      "lines": [
+        "MSMCH STEREO"
+      ]
+    },
+    "MSQUICK ?": {
+      "group": "Surround",
+      "result": "answered",
+      "lines": [
+        "MSQUICK0"
+      ]
+    },
+    "MSSMART ?": {
+      "group": "Surround",
+      "result": "no reply",
+      "lines": []
+    },
+    "OPSML ?": {
+      "group": "Surround",
+      "result": "answered",
+      "lines": [
+        "OPSML END"
+      ]
+    },
+    "OPSMLALL ?": {
+      "group": "Surround",
+      "result": "no reply",
+      "lines": []
+    },
+    "SSSMG ?": {
+      "group": "Surround",
+      "result": "answered",
+      "lines": [
+        "SSSMG MUS"
+      ]
+    },
+    "PSMODE: ?": {
+      "group": "Surround",
+      "result": "no reply",
+      "lines": []
+    },
+    "SYSMI ?": {
+      "group": "Surround",
+      "result": "answered",
+      "lines": [
+        "SYSMI Multi Ch Stereo"
+      ]
+    },
+    "SYSDA ?": {
+      "group": "Surround",
+      "result": "answered",
+      "lines": [
+        "SYSDA PCM                  "
+      ]
+    },
+    "PSTONE CTRL ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSTONE CTRL OFF"
+      ]
+    },
+    "PSBAS ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSBAS 50"
+      ]
+    },
+    "PSTRE ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSTRE 50"
+      ]
+    },
+    "PSDIL ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSSWL ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSSWL 38"
+      ]
+    },
+    "PSCINEMA EQ. ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSCINEMA EQ.OFF"
+      ]
+    },
+    "PSLOM ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSLOM ON"
+      ]
+    },
+    "PSSP: ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSMULTEQ: ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSMULTEQ:BYP.LR"
+      ]
+    },
+    "PSDYNEQ ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSDYNEQ OFF"
+      ]
+    },
+    "PSREFLEV ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSREFLEV 0"
+      ]
+    },
+    "PSDYNVOL ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSDYNVOL OFF"
+      ]
+    },
+    "PSDYNSET ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSLFC ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSCNTAMT ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSDSX ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSSTW ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSSTH ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSGEQ ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSGEQ ON"
+      ]
+    },
+    "PSHEQ ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSHEQ OFF"
+      ]
+    },
+    "PSDRC ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSDRC OFF"
+      ]
+    },
+    "PSDCO ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSDIC ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSDIC 00"
+      ]
+    },
+    "PSDEH ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSBSC ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSLFE ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSLFE 00"
+      ]
+    },
+    "PSLFL ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSEFF ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSEFF 00"
+      ]
+    },
+    "PSDEL ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSDEL 000"
+      ]
+    },
+    "PSPAN ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSDIM ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSCEN ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSCEI ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSCEG ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSCES ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSCES OFF"
+      ]
+    },
+    "PSNEURAL ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSNEURAL ON"
+      ]
+    },
+    "PSSWR ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSSWR ON"
+      ]
+    },
+    "PSRSZ ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSDELAY ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSDELAY 000"
+      ]
+    },
+    "PSRSTR ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSRSTR LOW"
+      ]
+    },
+    "PSFRONT?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSFRONT SPA"
+      ]
+    },
+    "PSSB: ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSATT ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSPHG ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSSPV ?": {
+      "group": "Audio",
+      "result": "answered",
+      "lines": [
+        "PSSPV ON"
+      ]
+    },
+    "PSAUROPR ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSAUROST ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSAUROMODE ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSDACFIL ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSMDAX ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSIMAX ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSIMAXAUD ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSIMAXHPF ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSIMAXLPF ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSIMAXSWM ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSIMAXSWO ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "PSDIRAC ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "SPPR ?": {
+      "group": "Audio",
+      "result": "no reply",
+      "lines": []
+    },
+    "VSASP ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "VSASPFUL"
+      ]
+    },
+    "VSMONI ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "VSMONIAUTO"
+      ]
+    },
+    "VSSC ?": {
+      "group": "Video",
+      "result": "no reply",
+      "lines": []
+    },
+    "VSSCH ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "VSSCHAUTO"
+      ]
+    },
+    "VSAUDIO ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "VSAUDIO AMP"
+      ]
+    },
+    "VSVPM ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "VSVPMAUTO"
+      ]
+    },
+    "VSVST ?": {
+      "group": "Video",
+      "result": "no reply",
+      "lines": []
+    },
+    "PV?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "PVSTM"
+      ]
+    },
+    "PVCN ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "PVCN 050"
+      ]
+    },
+    "PVBR ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "PVBR 050"
+      ]
+    },
+    "PVST ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "PVST 050"
+      ]
+    },
+    "PVHUE ?": {
+      "group": "Video",
+      "result": "no reply",
+      "lines": []
+    },
+    "PVDNR ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "PVDNR OFF"
+      ]
+    },
+    "PVENH ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "PVENH 00"
+      ]
+    },
+    "SYSDVIN ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "SYSDVIN  --- "
+      ]
+    },
+    "SYSDVOUT ?": {
+      "group": "Video",
+      "result": "answered",
+      "lines": [
+        "SYSDVOUT  --- "
+      ]
+    },
+    "TFAN?": {
+      "group": "Tuner",
+      "result": "answered",
+      "lines": [
+        "TFAN008750"
+      ]
+    },
+    "TFANNAME?": {
+      "group": "Tuner",
+      "result": "no reply",
+      "lines": []
+    },
+    "TPAN?": {
+      "group": "Tuner",
+      "result": "answered",
+      "lines": [
+        "TPAN01"
+      ]
+    },
+    "TMAN?": {
+      "group": "Tuner",
+      "result": "answered",
+      "lines": [
+        "TMANFM",
+        "TMANAUTO"
+      ]
+    },
+    "TFHD?": {
+      "group": "Tuner",
+      "result": "no reply",
+      "lines": []
+    },
+    "TPHD?": {
+      "group": "Tuner",
+      "result": "no reply",
+      "lines": []
+    },
+    "HD?": {
+      "group": "Tuner",
+      "result": "no reply",
+      "lines": []
+    },
+    "NSFRN ?": {
+      "group": "Network audio",
+      "result": "answered",
+      "lines": [
+        "NSFRN Denon AVR"
+      ]
+    },
+    "SSINF ?": {
+      "group": "Signal and setup",
+      "result": "no reply",
+      "lines": []
+    },
+    "SSINFAISSIG ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSINFAISSIG 02"
+      ]
+    },
+    "SSINFAISFSV ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSINFAISFSV 441"
+      ]
+    },
+    "SSINFAISFOR ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSINFAISFOR 2/0/.0"
+      ]
+    },
+    "SSOUTFAISFOR ?": {
+      "group": "Signal and setup",
+      "result": "no reply",
+      "lines": []
+    },
+    "SSFUN ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSFUNDVD DVD             ",
+        "SSFUNBD Blu-Ray         ",
+        "SSFUNTV TV Audio        ",
+        "SSFUNSAT/CBL CBL/SAT         ",
+        "SSFUNMPLAY Wohnen          ",
+        "SSFUNGAME Game            ",
+        "SSFUNAUX1 AUX1            ",
+        "SSFUNCD CD              ",
+        "SSFUNAUX2 Apple TV        ",
+        "SSFUNPHONO Phono           ",
+        "SSFUN END"
+      ]
+    },
+    "SSSOD ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSSODDVD USE",
+        "SSSODBD USE",
+        "SSSODTV USE",
+        "SSSODSAT/CBL USE",
+        "SSSODMPLAY USE",
+        "SSSODGAME USE",
+        "SSSODAUX1 USE",
+        "SSSODCD USE",
+        "SSSODAUX2 USE",
+        "SSSODPHONO USE",
+        "SSSODTUNER USE",
+        "SSSODNET USE",
+        "SSSOD END"
+      ]
+    },
+    "SSLEV ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSLEVFL 53",
+        "SSLEVFR 525",
+        "SSLEVC 48",
+        "SSLEVSL 525",
+        "SSLEVSR 51",
+        "SSLEVSBL 50",
+        "SSLEVSBR 50",
+        "SSLEVSB 50",
+        "SSLEVFHL 50",
+        "SSLEVFHR 50",
+        "SSLEVTFL 50",
+        "SSLEVTFR 50",
+        "SSLEVTML 50",
+        "SSLEVTMR 50",
+        "SSLEVFDL 50",
+        "SSLEVFDR 50",
+        "SSLEVSDL 50",
+        "SSLEVSDR 50",
+        "SSLEVSW 38",
+        "SSLEV END"
+      ]
+    },
+    "SSSDE ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSSDEFL 0408",
+        "SSSDEFR 0396",
+        "SSSDEC 0321",
+        "SSSDESL 0288",
+        "SSSDESR 0291",
+        "SSSDESBL 0300",
+        "SSSDESBR 0300",
+        "SSSDESB 0300",
+        "SSSDEFHL 0360",
+        "SSSDEFHR 0360",
+        "SSSDETFL 0300",
+        "SSSDETFR 0300",
+        "SSSDETML 0300",
+        "SSSDETMR 0300",
+        "SSSDEFDL 0360",
+        "SSSDEFDR 0360",
+        "SSSDESDL 0300",
+        "SSSDESDR 0300",
+        "SSSDESW 0396",
+        "SSSDESTP 01M",
+        "SSSDE END"
+      ]
+    },
+    "SSSPC ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSSPCFRO LAR",
+        "SSSPCCEN SMA",
+        "SSSPCSUA SMA",
+        "SSSPCSBK NON",
+        "SSSPCSBK 2SP",
+        "SSSPCFRH NON",
+        "SSSPCTFR NON",
+        "SSSPCTPM NON",
+        "SSSPCFRD NON",
+        "SSSPCSUD NON",
+        "SSSPCSWF YES"
+      ]
+    },
+    "SSCFR ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSCFRFRO 080",
+        "SSCFRCEN 120",
+        "SSCFRSUA 080",
+        "SSCFRSBK 080",
+        "SSCFRFRH 080",
+        "SSCFRTFR 080",
+        "SSCFRTPM 080",
+        "SSCFRFRD 080",
+        "SSCFRSUD 080",
+        "SSCFR IDV",
+        "SSCFRALL 080",
+        "SSCFR END"
+      ]
+    },
+    "SSQSNZMA ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSQSNZMAQS1 Quick Select 1  ",
+        "SSQSNZMAQS2 Quick Select 2  ",
+        "SSQSNZMAQS3 Quick Select 3  ",
+        "SSQSNZMAQS4 Quick Select 4  ",
+        "SSQSNZMA END"
+      ]
+    },
+    "SSVCTZMA ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
+    "SSSWM ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSSWM LFE"
+      ]
+    },
+    "SSLFL ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSLFL 120"
+      ]
+    },
+    "SSHOS ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSHOSCONARC OFF",
+        "SSHOSCONPSV OFF",
+        "SSHOSSMN OFF",
+        "SSHOSRSS POS",
+        "SSHOSCON ON",
+        "SSHOSCONSTS LAS",
+        "SSHOSIPS ATH",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT",
+        "SSHOSPAS OFF",
+        "SSHOSTAS ON",
+        "SSHOS END"
+      ]
+    },
+    "SSHOSALS ?": {
+      "group": "Signal and setup",
+      "result": "no reply",
+      "lines": []
+    },
+    "SSPAA ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSPAAMOD ZO2"
+      ]
+    },
+    "SSALS ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSALSSET ON",
+        "SSALSDSP OFF",
+        "SSALSVAL 000"
+      ]
+    },
+    "SSANA ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "SSANADVD OFF",
+        "SSANABD OFF",
+        "SSANATV OFF",
+        "SSANASAT/CBL OFF",
+        "SSANAMPLAY OFF",
+        "SSANAGAME OFF",
+        "SSANAAUX1 OFF",
+        "SSANACD OFF",
+        "SSANAAUX2 OFF",
+        "SSANA END"
+      ]
+    },
+    "SSAUDIO ?": {
+      "group": "Signal and setup",
+      "result": "no reply",
+      "lines": []
+    },
+    "SSTTR ?": {
+      "group": "Signal and setup",
+      "result": "no reply",
+      "lines": []
+    },
+    "BTTX ?": {
+      "group": "Signal and setup",
+      "result": "answered",
+      "lines": [
+        "BTTX OFF",
+        "BTTX SP"
+      ]
+    },
+    "ILB ?": {
+      "group": "Signal and setup",
+      "result": "no reply",
+      "lines": []
+    },
+    "RM ?": {
+      "group": "Signal and setup",
+      "result": "no reply",
+      "lines": []
+    }
+  }
+}

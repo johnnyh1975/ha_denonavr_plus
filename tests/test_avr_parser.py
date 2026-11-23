@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -170,7 +172,7 @@ def test_zone2_replies_that_are_no_source(
     """Seen on an AVR-X2600H (3.139.175): zone 2 showed the source "QUICK0"."""
     parser, state = parser_and_state
     parser.feed("Z2CD", state)
-    for line in ("Z2QUICK0", "Z2SMART1", "Z2SLP060", "Z2HPFOFF"):
+    for line in ("Z2QUICK0", "Z2SMART1", "Z2SLP060", "Z2HPFOFF", "Z2STBYOFF", "Z2CVFL 50"):
         parser.feed(line, state)
         assert state.zone("zone2").source == "CD", line
     # SOURCE: zone 2 follows the main zone.
@@ -194,11 +196,9 @@ def test_feed_volume_not_a_number(parser_and_state: tuple[TelnetParser, AvrState
 #: One reply per model-dependent ("answered") control and the value it means,
 #: in the formats the denonavr library sends and reads.
 ANSWERED_REPLIES = [
-    ("STBY2H", "auto_standby", "2H"),
     ("TR1 ON", "trigger_1", True),
     ("TR2 OFF", "trigger_2", False),
     ("SPPR 2", "speaker_preset", "2"),
-    ("BTTX ON", "bluetooth_transmitter", True),
     ("PSDEH MED", "dialog_enhancer", "MED"),
     ("PSIMAX AUTO", "imax", "AUTO"),
     ("PSIMAXAUD MANUAL", "imax_audio", "MANUAL"),
@@ -220,6 +220,30 @@ ANSWERED_REPLIES = [
 ]
 
 
+def _recording(name: str) -> dict[str, Any]:
+    path = Path(__file__).parent / "fixtures" / "capability_check" / name
+    return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
+
+
+def test_replies_recorded_on_an_avr_x2600h(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
+    """Every answer of an AVR-X2600H (3.139.175) to the capability check."""
+    parser, state = parser_and_state
+    recording = _recording("AVR-X2600H-3.139.175.json")
+    for answer in recording["queries"].values():
+        for line in answer["lines"]:
+            parser.feed(line, state)
+    assert state.values["auto_standby"] == "15M"
+    assert state.values["bluetooth_transmitter"] is False
+    assert state.values["multeq"] == "BYP.LR"
+    assert state.values["quick_select"] == 0
+    zone2 = state.zone("zone2")
+    assert (zone2.power, zone2.volume_raw, zone2.muted) == (False, 32.0, False)
+    # Z2NET, not Z2QUICK0 that comes later.
+    assert zone2.source == "NET"
+
+
 @pytest.mark.assumed(
     "every format here comes from the denonavr library (const.py and its event "
     "callbacks), none from a recording; replies from a receiver with these "
@@ -237,7 +261,9 @@ def test_model_dependent_controls_read_their_reply(
 def test_every_model_dependent_control_has_a_reply_test() -> None:
     profile = load_profile()
     answered = {spec.id for spec in profile.controls_by_scope("answered")}
-    assert answered == {control_id for _, control_id, _ in ANSWERED_REPLIES}
+    # Confirmed by the AVR-X2600H recording (test_replies_recorded_on_an_avr_x2600h).
+    recorded = {"auto_standby", "bluetooth_transmitter"}
+    assert answered == {control_id for _, control_id, _ in ANSWERED_REPLIES} | recorded
 
 
 @pytest.mark.parametrize("line", ["BTTX SP", "BTTX BT", "SSTTR END"])
