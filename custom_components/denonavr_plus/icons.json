@@ -1,6 +1,9 @@
 {
   "entity": {
     "button": {
+      "channel_level_reset": {
+        "default": "mdi:restore"
+      },
       "eq_apply": {
         "default": "mdi:content-save"
       },
@@ -9,11 +12,20 @@
       },
       "eq_default": {
         "default": "mdi:restore"
+      },
+      "network_restart": {
+        "default": "mdi:restart"
+      },
+      "quick_select_save": {
+        "default": "mdi:content-save"
       }
     },
     "number": {
       "audio_delay": {
         "default": "mdi:timer-outline"
+      },
+      "auro_matic_strength": {
+        "default": "mdi:surround-sound"
       },
       "bass": {
         "default": "mdi:music-clef-bass"
@@ -57,6 +69,9 @@
       "subwoofer_level": {
         "default": "mdi:speaker"
       },
+      "tactile_transducer_level": {
+        "default": "mdi:vibrate"
+      },
       "treble": {
         "default": "mdi:music-clef-treble"
       },
@@ -82,11 +97,29 @@
       "aspect_ratio": {
         "default": "mdi:aspect-ratio"
       },
+      "auro_3d_mode": {
+        "default": "mdi:surround-sound"
+      },
+      "auro_matic_preset": {
+        "default": "mdi:surround-sound"
+      },
+      "auto_standby": {
+        "default": "mdi:timer-sand"
+      },
       "crossover_speaker_selection": {
         "default": "mdi:speaker"
       },
+      "dac_filter": {
+        "default": "mdi:filter"
+      },
+      "dialog_enhancer": {
+        "default": "mdi:account-voice"
+      },
       "dimmer": {
         "default": "mdi:brightness-6"
+      },
+      "dirac_filter": {
+        "default": "mdi:tune-variant"
       },
       "dynamic_compression": {
         "default": "mdi:arrow-collapse-vertical"
@@ -96,6 +129,9 @@
       },
       "eco_mode": {
         "default": "mdi:leaf"
+      },
+      "effect_speaker_selection": {
+        "default": "mdi:speaker-multiple"
       },
       "eq_channel": {
         "default": "mdi:speaker"
@@ -124,11 +160,32 @@
       "height_speaker": {
         "default": "mdi:speaker"
       },
+      "illumination": {
+        "default": "mdi:lightbulb-on"
+      },
+      "imax": {
+        "default": "mdi:movie-roll"
+      },
+      "imax_audio": {
+        "default": "mdi:movie-roll"
+      },
+      "imax_hpf": {
+        "default": "mdi:sine-wave"
+      },
+      "imax_lpf": {
+        "default": "mdi:sine-wave"
+      },
+      "imax_subwoofer_output": {
+        "default": "mdi:speaker"
+      },
       "input_mode": {
         "default": "mdi:import"
       },
       "lpf_for_lfe": {
         "default": "mdi:filter"
+      },
+      "mdax": {
+        "default": "mdi:music-note-plus"
       },
       "multeq": {
         "default": "mdi:equalizer"
@@ -178,6 +235,9 @@
       "speaker_crossover": {
         "default": "mdi:sine-wave"
       },
+      "speaker_preset": {
+        "default": "mdi:speaker-multiple"
+      },
       "speaker_size": {
         "default": "mdi:speaker"
       },
@@ -186,6 +246,9 @@
       },
       "subwoofer_mode": {
         "default": "mdi:speaker"
+      },
+      "tactile_transducer_lpf": {
+        "default": "mdi:sine-wave"
       },
       "tv_format": {
         "default": "mdi:television"
@@ -236,6 +299,9 @@
       "auto_lip_sync": {
         "default": "mdi:sync"
       },
+      "bluetooth_transmitter": {
+        "default": "mdi:bluetooth-audio"
+      },
       "center_spread": {
         "default": "mdi:arrow-expand-horizontal"
       },
@@ -262,6 +328,9 @@
       },
       "headphone_eq": {
         "default": "mdi:headphones"
+      },
+      "imax_subwoofer": {
+        "default": "mdi:speaker"
       },
       "loudness_management": {
         "default": "mdi:volume-equal"
@@ -293,8 +362,17 @@
       "subwoofer_switch": {
         "default": "mdi:speaker"
       },
+      "tactile_transducer": {
+        "default": "mdi:vibrate"
+      },
       "tone_control": {
         "default": "mdi:tune-vertical"
+      },
+      "trigger_1": {
+        "default": "mdi:electric-switch"
+      },
+      "trigger_2": {
+        "default": "mdi:electric-switch"
       },
       "tv_audio_switching": {
         "default": "mdi:television"

@@ -243,6 +243,18 @@ the sub‑device its setting belongs to.
   mode info and sound mode; and per zone the selected **source**, under the
   name Home Assistant shows.
 - **Binary sensor**: telnet connectivity.
+- **Model-dependent controls**, created only when the receiver answers their
+  query at setup (they have no name in its device description): Auto Standby,
+  12 V Triggers 1 and 2, Speaker Preset, Bluetooth Transmitter, Dialogue
+  Enhancer, Effect Speakers, IMAX (mode, audio settings, high- and low-pass
+  filter, subwoofer and its output), Auro-Matic 3D (preset, strength) and
+  Auro-3D mode, Dirac Live filter slot, Tactile Transducer (on/off, level,
+  low-pass filter), and on Marantz M-DAX, DAC Filter and Illumination. Their
+  command formats come from the denonavr library and have not been tried on a
+  receiver yet.
+- **Buttons**: save a quick select preset (one per preset the receiver reports),
+  reset all channel levels, restart the network module. They start disabled.
+- **Remote**: the on-screen menu keys (see Actions).
 
 ### Enabled and disabled entities
 

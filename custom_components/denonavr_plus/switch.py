@@ -35,7 +35,7 @@ async def async_setup_entry(
         DenonAvrSwitch(coordinator, spec)
         for spec in coordinator.device.profile.controls.values()
         if spec.kind == "onoff"
-        and (spec.scope != "feature" or discovery.supports(spec.feature or ""))
+        and discovery.has_control(spec.scope, spec.feature, spec.id)
     ]
     # On/off video setup menu items (HDMI Control/CEC, ARC, TV audio switching,
     # power saving, smart menu, pass-through, OSD info), read/written over the

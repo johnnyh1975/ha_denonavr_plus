@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from freezegun.api import FrozenDateTimeFactory
+from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -16,7 +18,9 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.denonavr_plus.avr import capability_check
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.transport import GoformClient
+from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
+from .common import registry_entry
 from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
@@ -102,3 +106,61 @@ async def test_the_capability_check_needs_telnet(
     telnet.connected = False
     with pytest.raises(CommandNotSent):
         await loaded_entry.runtime_data.device.async_check_capabilities()
+
+
+ANSWERS = {
+    "STBY?": ["STBY15M"],
+    "TR?": ["TR1 ON", "TR2 OFF"],
+    "BTTX ?": ["BTTX OFF", "BTTX SP"],
+    "SSTTR ?": ["SSTTR ON", "SSTTRLEV 52", "SSTTRLPF 080", "SSTTR END"],
+}
+
+
+async def _probe_answering(
+    host: str, queries: list[str], on_line: Any, is_complete: Any, **kwargs: Any
+) -> None:
+    for query in queries:
+        for line in ANSWERS.get(query, []):
+            on_line(line)
+
+
+@pytest.mark.assumed(
+    "the formats of STBY, TR, BTTX and SSTTR come from the denonavr library; "
+    "the answers here are what its parser expects, not a recording"
+)
+async def test_controls_without_a_feature_name_appear_when_they_answer(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    with patch("custom_components.denonavr_plus.avr.device.async_probe", _probe_answering):
+        entry = MockConfigEntry(
+            domain=DOMAIN, data={CONF_HOST: "192.0.2.10"}, minor_version=CONFIG_MINOR_VERSION
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    device = entry.runtime_data.device
+    assert device.discovery.answered == {
+        "auto_standby",
+        "trigger_1",
+        "trigger_2",
+        "bluetooth_transmitter",
+        "tactile_transducer",
+        "tactile_transducer_level",
+        "tactile_transducer_lpf",
+    }
+    values = device.state.values
+    assert values["auto_standby"] == "15M"
+    assert values["trigger_1"] is True and values["trigger_2"] is False
+    # BTTX SP (the output mode) and SSTTR END do not overwrite the switches.
+    assert values["bluetooth_transmitter"] is False
+    assert values["tactile_transducer"] is True
+    assert values["tactile_transducer_level"] == 2.0  # 52: 50 is 0 dB
+    assert values["tactile_transducer_lpf"] == "080"
+    # They are asked again after every reconnect; the others are not.
+    queries = device._resync_queries()
+    assert "STBY?" in queries and "TR?" in queries
+    assert "PSIMAX ?" not in queries
+    for key in ("select_auto_standby", "switch_trigger_1", "number_tactile_transducer_level"):
+        assert registry_entry(hass, entry, key)
+    with pytest.raises(AssertionError):
+        registry_entry(hass, entry, "select_imax")

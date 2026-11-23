@@ -315,7 +315,7 @@ class TelnetParser:
                 if spec.prefix
                 and spec.kind != "channel_set"
                 and (
-                    spec.scope == "feature"
+                    spec.scope in ("feature", "answered")
                     or (
                         spec.scope == "core"
                         and spec.kind in ("enum", "onoff")
@@ -733,7 +733,12 @@ class TelnetParser:
         kind = spec.kind
         remainder = remainder.strip()
         if kind == "onoff":
-            state.values[spec.id] = remainder == spec.get("on", "ON")
+            on, off = spec.get("on", "ON"), spec.get("off", "OFF")
+            # A prefix shared with other values (BTTX reports the output mode
+            # too, SSTTR ends its list with END) claims only its own two.
+            if spec.get("exact_onoff") and remainder not in (on, off):
+                return False
+            state.values[spec.id] = remainder == on
         elif kind == "enum":
             state.values[spec.id] = remainder
         elif kind == "level":

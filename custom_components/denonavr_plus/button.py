@@ -1,14 +1,15 @@
 """Button platform for the Denon AVR Plus integration.
 
-Momentary actions that do not map to a stateful entity. Currently the manual
-graphic-EQ helper on the EQ sub-device: copy the reference (Audyssey / flat)
-curve into the manual equaliser as a starting point. Only created when the
-receiver advertises a graphic EQ this profile can drive.
+Momentary actions that do not map to a stateful entity: the graphic-EQ
+helpers on the EQ sub-device (when the receiver has a graphic EQ this
+profile can drive), saving a quick select preset (one per preset the
+receiver reports), and the profile's command buttons (channel level reset,
+network restart), which start disabled.
 """
 
 from __future__ import annotations
 
-from homeassistant.components.button import ButtonEntity
+from homeassistant.components.button import ButtonDeviceClass, ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -19,6 +20,7 @@ from .entity import DenonAvrEntity, receiver_action
 
 # The graphic EQ buttons write the setup interface one at a time.
 PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -33,7 +35,55 @@ async def async_setup_entry(
         entities.append(DenonAvrEqApply(coordinator))
         entities.append(DenonAvrEqCurveCopy(coordinator))
         entities.append(DenonAvrEqSetDefaults(coordinator))
+    device = coordinator.device
+    entities.extend(
+        DenonAvrQuickSelectSave(coordinator, number)
+        for number in sorted(device.discovery.quick_select_names)
+    )
+    entities.extend(DenonAvrCommandButton(coordinator, name) for name in device.button_commands)
     async_add_entities(entities)
+
+
+class DenonAvrQuickSelectSave(DenonAvrEntity, ButtonEntity):
+    """Store the current settings in one quick select preset (MSQUICK<n> MEMORY).
+
+    It overwrites the preset, so it is a configuration button and starts
+    disabled.
+    """
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: DenonAvrCoordinator, number: int) -> None:
+        super().__init__(coordinator, f"button_quick_select_save_{number}")
+        self._number = number
+        self._attr_translation_key = "quick_select_save"
+        self._attr_translation_placeholders = {
+            "name": coordinator.device.discovery.quick_select_names[number]
+        }
+
+    @receiver_action
+    async def async_press(self) -> None:
+        await self.coordinator.device.async_save_quick_select(self._number)
+
+
+class DenonAvrCommandButton(DenonAvrEntity, ButtonEntity):
+    """A command without state from the profile (channel level reset, network restart)."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: DenonAvrCoordinator, name: str) -> None:
+        sub_device = "speakers" if name == "channel_level_reset" else None
+        super().__init__(coordinator, f"button_{name}", sub_device=sub_device)
+        self._name = name
+        self._attr_translation_key = name
+        if name == "network_restart":
+            self._attr_device_class = ButtonDeviceClass.RESTART
+
+    @receiver_action
+    async def async_press(self) -> None:
+        await self.coordinator.device.async_press(self._name)
 
 
 class DenonAvrEqApply(DenonAvrEntity, ButtonEntity):

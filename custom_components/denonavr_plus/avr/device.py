@@ -316,6 +316,7 @@ class DenonAvrDevice:
         # dedicated telnet session, so entities are built correctly regardless of
         # the persistent connection's later timing.
         await self._async_probe_introspection()
+        await self._async_probe_answered()
         return self._discovery
 
     def discovery_snapshot(self) -> dict[str, Any]:
@@ -391,6 +392,47 @@ class DenonAvrDevice:
                 self._discovery.configured_channels and self._discovery.sources
             ),
         )
+
+    async def _async_probe_answered(self) -> None:
+        """Ask the queries of the "answered" controls; keep those that answer.
+
+        These controls (auto standby, triggers, IMAX, Auro-3D, Dirac …) have
+        no Deviceinfo name to gate them, so the receiver's answer decides.
+        """
+
+        specs = self._profile.controls_by_scope("answered")
+        queries = list(dict.fromkeys(spec.query for spec in specs if spec.query))
+        if not queries:
+            return
+        await async_probe(
+            self._host,
+            queries,
+            self._feed_quietly,
+            lambda: all(spec.id in self._state.values for spec in specs),
+            deadline=2.0,
+        )
+        self._discovery.answered = {spec.id for spec in specs if spec.id in self._state.values}
+
+    def _feed_quietly(self, line: str) -> None:
+        """Feed a line to the state without notifying (setup is not done yet)."""
+
+        self._parser.feed(line, self._state)
+
+    @property
+    def button_commands(self) -> list[str]:
+        """The command buttons of the profile (channel level reset, network restart)."""
+
+        return list(self._profile.button_commands)
+
+    async def async_press(self, name: str) -> None:
+        """Send a command button's command. Raises KeyError for an unknown name."""
+
+        await self._send(self._profile.button_commands[name])
+
+    async def async_save_quick_select(self, number: int) -> None:
+        """Store the current settings in a main zone quick select preset."""
+
+        await self._send(f"MSQUICK{int(number)} MEMORY")
 
     async def async_start(self) -> None:
         """Start the telnet transport (which triggers the first resync)."""
@@ -562,6 +604,10 @@ class DenonAvrDevice:
                 add(spec.query)
                 add(spec.get("list_query"))
                 add(spec.get("read_query"))
+        # Controls without a Deviceinfo name that answered at setup.
+        for answered in self._profile.controls_by_scope("answered"):
+            if answered.id in self._discovery.answered:
+                add(answered.query)
         return queries
 
     # Notification ---------------------------------------------------------

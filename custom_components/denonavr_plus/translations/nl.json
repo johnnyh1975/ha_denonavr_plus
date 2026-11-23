@@ -574,6 +574,167 @@
           "large": "Groot",
           "small": "Klein"
         }
+      },
+      "auto_standby": {
+        "name": "Automatische stand-by",
+        "state": {
+          "off": "Uit",
+          "15_min": "15 min",
+          "30_min": "30 min",
+          "60_min": "60 min",
+          "2_h": "2 uur",
+          "4_h": "4 uur",
+          "8_h": "8 uur"
+        }
+      },
+      "speaker_preset": {
+        "name": "Luidsprekervoorinstelling",
+        "state": {
+          "preset_1": "Voorinstelling 1",
+          "preset_2": "Voorinstelling 2"
+        }
+      },
+      "dialog_enhancer": {
+        "name": "Dialoogverbetering",
+        "state": {
+          "off": "Uit",
+          "low": "Laag",
+          "medium": "Middel",
+          "high": "Hoog"
+        }
+      },
+      "imax": {
+        "name": "IMAX",
+        "state": {
+          "auto": "Automatisch",
+          "off": "Uit"
+        }
+      },
+      "imax_audio": {
+        "name": "IMAX-audio-instellingen",
+        "state": {
+          "auto": "Automatisch",
+          "manual": "Handmatig"
+        }
+      },
+      "imax_hpf": {
+        "name": "IMAX-hoogdoorlaatfilter",
+        "state": {
+          "40_hz": "40 Hz",
+          "60_hz": "60 Hz",
+          "80_hz": "80 Hz",
+          "90_hz": "90 Hz",
+          "100_hz": "100 Hz",
+          "110_hz": "110 Hz",
+          "120_hz": "120 Hz",
+          "150_hz": "150 Hz",
+          "180_hz": "180 Hz",
+          "200_hz": "200 Hz",
+          "250_hz": "250 Hz"
+        }
+      },
+      "imax_lpf": {
+        "name": "IMAX-laagdoorlaatfilter",
+        "state": {
+          "80_hz": "80 Hz",
+          "90_hz": "90 Hz",
+          "100_hz": "100 Hz",
+          "110_hz": "110 Hz",
+          "120_hz": "120 Hz",
+          "150_hz": "150 Hz",
+          "180_hz": "180 Hz",
+          "200_hz": "200 Hz",
+          "250_hz": "250 Hz"
+        }
+      },
+      "imax_subwoofer_output": {
+        "name": "IMAX-subwooferuitgang",
+        "state": {
+          "lfe_main": "LFE + hoofd",
+          "lfe": "LFE"
+        }
+      },
+      "auro_matic_preset": {
+        "name": "Auro-Matic 3D-voorinstelling",
+        "state": {
+          "small": "Klein",
+          "medium": "Middel",
+          "large": "Groot",
+          "speech": "Spraak",
+          "movie": "Film"
+        }
+      },
+      "auro_3d_mode": {
+        "name": "Auro-3D-modus",
+        "state": {
+          "direct": "Direct",
+          "channel_expansion": "Kanaaluitbreiding"
+        }
+      },
+      "dirac_filter": {
+        "name": "Dirac Live-filter",
+        "state": {
+          "slot_1": "Plaats 1",
+          "slot_2": "Plaats 2",
+          "slot_3": "Plaats 3",
+          "off": "Uit"
+        }
+      },
+      "mdax": {
+        "name": "M-DAX",
+        "state": {
+          "off": "Uit",
+          "low": "Laag",
+          "medium": "Middel",
+          "high": "Hoog"
+        }
+      },
+      "dac_filter": {
+        "name": "DAC-filter",
+        "state": {
+          "mode_1": "Modus 1",
+          "mode_2": "Modus 2"
+        }
+      },
+      "illumination": {
+        "name": "Verlichting",
+        "state": {
+          "auto": "Automatisch",
+          "bright": "Helder",
+          "dim": "Gedimd",
+          "dark": "Donker",
+          "off": "Uit"
+        }
+      },
+      "tactile_transducer_lpf": {
+        "name": "Laagdoorlaatfilter tactiele transducer",
+        "state": {
+          "40_hz": "40 Hz",
+          "60_hz": "60 Hz",
+          "80_hz": "80 Hz",
+          "90_hz": "90 Hz",
+          "100_hz": "100 Hz",
+          "110_hz": "110 Hz",
+          "120_hz": "120 Hz",
+          "150_hz": "150 Hz",
+          "180_hz": "180 Hz",
+          "200_hz": "200 Hz",
+          "250_hz": "250 Hz"
+        }
+      },
+      "effect_speaker_selection": {
+        "name": "Effectluidsprekers",
+        "state": {
+          "floor": "Vloer",
+          "front": "Voor",
+          "front_height": "Voor hoogte",
+          "front_wide": "Voor breed",
+          "front_height_front_wide": "Voor hoogte + voor breed",
+          "height_floor": "Hoogte + vloer",
+          "surround_back": "Surround achter",
+          "surround_back_front_height": "Surround achter + voor hoogte",
+          "surround_back_front_wide": "Surround achter + voor breed"
+        }
       }
     },
     "switch": {
@@ -642,6 +803,21 @@
       },
       "osd_info": {
         "name": "Info op scherm"
+      },
+      "trigger_1": {
+        "name": "Trigger 1"
+      },
+      "trigger_2": {
+        "name": "Trigger 2"
+      },
+      "bluetooth_transmitter": {
+        "name": "Bluetooth-zender"
+      },
+      "imax_subwoofer": {
+        "name": "IMAX-subwoofer"
+      },
+      "tactile_transducer": {
+        "name": "Tactiele transducer"
       }
     },
     "number": {
@@ -698,6 +874,12 @@
       },
       "zone_volume": {
         "name": "Zone {index} volume"
+      },
+      "auro_matic_strength": {
+        "name": "Auro-Matic 3D-sterkte"
+      },
+      "tactile_transducer_level": {
+        "name": "Niveau tactiele transducer"
       }
     },
     "button": {
@@ -709,6 +891,15 @@
       },
       "eq_default": {
         "name": "Standaard"
+      },
+      "quick_select_save": {
+        "name": "Quick Select {name} opslaan"
+      },
+      "channel_level_reset": {
+        "name": "Kanaalniveaus herstellen"
+      },
+      "network_restart": {
+        "name": "Netwerk herstarten"
       }
     },
     "remote": {

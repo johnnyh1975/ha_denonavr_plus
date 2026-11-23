@@ -59,7 +59,7 @@ async def async_setup_entry(
     for spec in device.profile.controls.values():
         if spec.kind not in _NUMBER_KINDS:
             continue
-        if spec.scope == "feature" and not discovery.supports(spec.feature or ""):
+        if not discovery.has_control(spec.scope, spec.feature, spec.id):
             continue
         entities.append(DenonAvrNumber(coordinator, spec))
 

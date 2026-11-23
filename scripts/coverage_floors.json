@@ -6,9 +6,9 @@
   ],
   "floors": {
     "__init__.py": 0.8726,
-    "avr/device.py": 0.8154,
+    "avr/device.py": 0.8215,
     "avr/graphic_eq.py": 0.749,
-    "avr/parser.py": 0.5976,
+    "avr/parser.py": 0.6111,
     "avr/profile.py": 0.8494,
     "avr/transport/goform.py": 0.6215,
     "avr/transport/heos.py": 0.8935,

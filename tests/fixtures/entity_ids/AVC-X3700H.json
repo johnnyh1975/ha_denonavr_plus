@@ -4,6 +4,11 @@
     "enabled": true,
     "category": "diagnostic"
   },
+  "button_channel_level_reset": {
+    "entity_id": "button.avc_x3700h_speakers_reset_channel_levels",
+    "enabled": false,
+    "category": "config"
+  },
   "button_eq_apply": {
     "entity_id": "button.avc_x3700h_graphic_eq_apply",
     "enabled": false,
@@ -16,6 +21,11 @@
   },
   "button_eq_set_defaults": {
     "entity_id": "button.avc_x3700h_graphic_eq_default",
+    "enabled": false,
+    "category": "config"
+  },
+  "button_network_restart": {
+    "entity_id": "button.avc_x3700h_restart_network",
     "enabled": false,
     "category": "config"
   },

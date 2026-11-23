@@ -574,6 +574,167 @@
           "large": "Grand",
           "small": "Petit"
         }
+      },
+      "auto_standby": {
+        "name": "Veille automatique",
+        "state": {
+          "off": "Désactivé",
+          "15_min": "15 min",
+          "30_min": "30 min",
+          "60_min": "60 min",
+          "2_h": "2 h",
+          "4_h": "4 h",
+          "8_h": "8 h"
+        }
+      },
+      "speaker_preset": {
+        "name": "Préréglage enceintes",
+        "state": {
+          "preset_1": "Préréglage 1",
+          "preset_2": "Préréglage 2"
+        }
+      },
+      "dialog_enhancer": {
+        "name": "Amélioration des dialogues",
+        "state": {
+          "off": "Désactivé",
+          "low": "Bas",
+          "medium": "Moyen",
+          "high": "Élevé"
+        }
+      },
+      "imax": {
+        "name": "IMAX",
+        "state": {
+          "auto": "Auto",
+          "off": "Désactivé"
+        }
+      },
+      "imax_audio": {
+        "name": "Réglages audio IMAX",
+        "state": {
+          "auto": "Auto",
+          "manual": "Manuel"
+        }
+      },
+      "imax_hpf": {
+        "name": "Filtre passe-haut IMAX",
+        "state": {
+          "40_hz": "40 Hz",
+          "60_hz": "60 Hz",
+          "80_hz": "80 Hz",
+          "90_hz": "90 Hz",
+          "100_hz": "100 Hz",
+          "110_hz": "110 Hz",
+          "120_hz": "120 Hz",
+          "150_hz": "150 Hz",
+          "180_hz": "180 Hz",
+          "200_hz": "200 Hz",
+          "250_hz": "250 Hz"
+        }
+      },
+      "imax_lpf": {
+        "name": "Filtre passe-bas IMAX",
+        "state": {
+          "80_hz": "80 Hz",
+          "90_hz": "90 Hz",
+          "100_hz": "100 Hz",
+          "110_hz": "110 Hz",
+          "120_hz": "120 Hz",
+          "150_hz": "150 Hz",
+          "180_hz": "180 Hz",
+          "200_hz": "200 Hz",
+          "250_hz": "250 Hz"
+        }
+      },
+      "imax_subwoofer_output": {
+        "name": "Sortie caisson IMAX",
+        "state": {
+          "lfe_main": "LFE + principal",
+          "lfe": "LFE"
+        }
+      },
+      "auro_matic_preset": {
+        "name": "Préréglage Auro-Matic 3D",
+        "state": {
+          "small": "Petit",
+          "medium": "Moyen",
+          "large": "Grand",
+          "speech": "Parole",
+          "movie": "Film"
+        }
+      },
+      "auro_3d_mode": {
+        "name": "Mode Auro-3D",
+        "state": {
+          "direct": "Direct",
+          "channel_expansion": "Extension des canaux"
+        }
+      },
+      "dirac_filter": {
+        "name": "Filtre Dirac Live",
+        "state": {
+          "slot_1": "Emplacement 1",
+          "slot_2": "Emplacement 2",
+          "slot_3": "Emplacement 3",
+          "off": "Désactivé"
+        }
+      },
+      "mdax": {
+        "name": "M-DAX",
+        "state": {
+          "off": "Désactivé",
+          "low": "Bas",
+          "medium": "Moyen",
+          "high": "Élevé"
+        }
+      },
+      "dac_filter": {
+        "name": "Filtre DAC",
+        "state": {
+          "mode_1": "Mode 1",
+          "mode_2": "Mode 2"
+        }
+      },
+      "illumination": {
+        "name": "Éclairage",
+        "state": {
+          "auto": "Auto",
+          "bright": "Lumineux",
+          "dim": "Atténué",
+          "dark": "Sombre",
+          "off": "Désactivé"
+        }
+      },
+      "tactile_transducer_lpf": {
+        "name": "Filtre passe-bas du transducteur tactile",
+        "state": {
+          "40_hz": "40 Hz",
+          "60_hz": "60 Hz",
+          "80_hz": "80 Hz",
+          "90_hz": "90 Hz",
+          "100_hz": "100 Hz",
+          "110_hz": "110 Hz",
+          "120_hz": "120 Hz",
+          "150_hz": "150 Hz",
+          "180_hz": "180 Hz",
+          "200_hz": "200 Hz",
+          "250_hz": "250 Hz"
+        }
+      },
+      "effect_speaker_selection": {
+        "name": "Enceintes d'effets",
+        "state": {
+          "floor": "Sol",
+          "front": "Avant",
+          "front_height": "Avant hauteur",
+          "front_wide": "Avant large",
+          "front_height_front_wide": "Avant hauteur + avant large",
+          "height_floor": "Hauteur + sol",
+          "surround_back": "Surround arrière",
+          "surround_back_front_height": "Surround arrière + avant hauteur",
+          "surround_back_front_wide": "Surround arrière + avant large"
+        }
       }
     },
     "switch": {
@@ -642,6 +803,21 @@
       },
       "osd_info": {
         "name": "Infos à l'écran"
+      },
+      "trigger_1": {
+        "name": "Déclencheur 1"
+      },
+      "trigger_2": {
+        "name": "Déclencheur 2"
+      },
+      "bluetooth_transmitter": {
+        "name": "Émetteur Bluetooth"
+      },
+      "imax_subwoofer": {
+        "name": "Caisson IMAX"
+      },
+      "tactile_transducer": {
+        "name": "Transducteur tactile"
       }
     },
     "number": {
@@ -698,6 +874,12 @@
       },
       "zone_volume": {
         "name": "Volume zone {index}"
+      },
+      "auro_matic_strength": {
+        "name": "Intensité Auro-Matic 3D"
+      },
+      "tactile_transducer_level": {
+        "name": "Niveau du transducteur tactile"
       }
     },
     "button": {
@@ -709,6 +891,15 @@
       },
       "eq_default": {
         "name": "Par défaut"
+      },
+      "quick_select_save": {
+        "name": "Enregistrer Quick Select {name}"
+      },
+      "channel_level_reset": {
+        "name": "Réinitialiser les niveaux des canaux"
+      },
+      "network_restart": {
+        "name": "Redémarrer le réseau"
       }
     },
     "remote": {

@@ -41,7 +41,7 @@ async def async_setup_entry(
         DenonAvrSelect(coordinator, spec)
         for spec in coordinator.device.profile.controls.values()
         if spec.kind == "enum"
-        and (spec.scope != "feature" or discovery.supports(spec.feature or ""))
+        and discovery.has_control(spec.scope, spec.feature, spec.id)
     ]
     # Two coupled sound mode selects: one picks the genre group (Movie/Music/
     # Game/Pure), the other lists the modes within the selected group. Both are

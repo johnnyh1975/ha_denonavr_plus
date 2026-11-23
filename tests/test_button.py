@@ -10,10 +10,11 @@ from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.avr.transport import WebConfigClient
+from custom_components.denonavr_plus.button import DenonAvrQuickSelectSave
 from custom_components.denonavr_plus.const import DOMAIN
 
 from .common import async_enable, entity_id
-from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
+from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
 
@@ -46,3 +47,30 @@ async def test_accepted_eq_write_passes(
             "button", "press", {"entity_id": button}, blocking=True
         )
     write.assert_awaited_once()
+
+
+async def test_command_buttons_send_their_commands(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await async_enable(hass, loaded_entry, "button_channel_level_reset", "button_network_restart")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    for key in ("button_channel_level_reset", "button_network_restart"):
+        await hass.services.async_call(
+            "button", "press", {"entity_id": entity_id(hass, loaded_entry, key)}, blocking=True
+        )
+    assert telnet.sent == ["CVZRL", "NSRBT"]
+
+
+async def test_a_quick_select_preset_can_be_saved(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    coordinator = loaded_entry.runtime_data
+    coordinator.device.discovery.quick_select_names[2] = "Movie night"
+    button = DenonAvrQuickSelectSave(coordinator, 2)
+    assert button.translation_placeholders == {"name": "Movie night"}
+    assert button.entity_registry_enabled_default is False
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await button.async_press()
+    assert telnet.sent == ["MSQUICK2 MEMORY"]
