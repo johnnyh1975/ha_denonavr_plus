@@ -260,11 +260,11 @@
       },
       "tests_done": {
         "title": "Tutto ripristinato",
-        "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
+        "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n- Non eseguite, il ricevitore non rispondeva più: {interrupted}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
       },
       "tests_done_check": {
         "title": "Controlla il ricevitore",
-        "description": "Non tutte le impostazioni sono tornate: {not_restored_list}. Reimpostale sul ricevitore com'erano.\n\n{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
+        "description": "Non tutte le impostazioni sono tornate: {not_restored_list}. Reimpostale sul ricevitore com'erano.\n\n{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n- Non eseguite, il ricevitore non rispondeva più: {interrupted}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
       }
     },
     "error": {
@@ -1136,11 +1136,11 @@
           },
           "tests_done": {
             "title": "Tutto ripristinato",
-            "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
+            "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n- Non eseguite, il ricevitore non rispondeva più: {interrupted}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
           },
           "tests_done_check": {
             "title": "Controlla il ricevitore",
-            "description": "Non tutte le impostazioni sono tornate: {not_restored_list}. Reimpostale sul ricevitore com'erano.\n\n{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
+            "description": "Non tutte le impostazioni sono tornate: {not_restored_list}. Reimpostale sul ricevitore com'erano.\n\n{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n- Non eseguite, il ricevitore non rispondeva più: {interrupted}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
           }
         },
         "progress": {
@@ -1194,7 +1194,9 @@
         "signal_and_setup": "Segnale e configurazione",
         "speakers": "Diffusori",
         "receiver": "Ricevitore",
-        "zone2": "Zona 2"
+        "zone2": "Zona 2",
+        "setup_menu": "Menu di configurazione sul televisore",
+        "zone2_follow_main": "La Zona 2 segue la zona principale"
       }
     }
   },

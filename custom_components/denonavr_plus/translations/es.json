@@ -260,11 +260,11 @@
       },
       "tests_done": {
         "title": "Todo restablecido",
-        "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
+        "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n- No ejecutadas, el receptor dejó de responder: {interrupted}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
       },
       "tests_done_check": {
         "title": "Comprueba el receptor",
-        "description": "No todos los ajustes volvieron: {not_restored_list}. Ajústalos en el receptor como estaban.\n\n{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
+        "description": "No todos los ajustes volvieron: {not_restored_list}. Ajústalos en el receptor como estaban.\n\n{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n- No ejecutadas, el receptor dejó de responder: {interrupted}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
       }
     },
     "error": {
@@ -1136,11 +1136,11 @@
           },
           "tests_done": {
             "title": "Todo restablecido",
-            "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
+            "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n- No ejecutadas, el receptor dejó de responder: {interrupted}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
           },
           "tests_done_check": {
             "title": "Comprueba el receptor",
-            "description": "No todos los ajustes volvieron: {not_restored_list}. Ajústalos en el receptor como estaban.\n\n{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
+            "description": "No todos los ajustes volvieron: {not_restored_list}. Ajústalos en el receptor como estaban.\n\n{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n- No ejecutadas, el receptor dejó de responder: {interrupted}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
           }
         },
         "progress": {
@@ -1194,7 +1194,9 @@
         "signal_and_setup": "Señal y configuración",
         "speakers": "Altavoces",
         "receiver": "Receptor",
-        "zone2": "Zona 2"
+        "zone2": "Zona 2",
+        "setup_menu": "Menú de configuración en el televisor",
+        "zone2_follow_main": "La Zona 2 sigue a la zona principal"
       }
     }
   },

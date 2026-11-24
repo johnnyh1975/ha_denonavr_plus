@@ -36,6 +36,8 @@ class Receiver:
 
     settings: reply prefix -> value. queries: query -> the prefixes it answers.
     A write is the longest prefix it starts with, followed by the new value.
+    It answers its power query; `stop_after` (a command) makes it take that
+    command and then answer nothing, until `wake` is called.
     """
 
     def __init__(
@@ -50,6 +52,7 @@ class Receiver:
         echo_only: tuple[str, ...] = (),
         once: tuple[str, ...] = (),
         links: dict[str, dict[str, str]] | None = None,
+        stop_after: str | None = None,
     ) -> None:
         self.hass = hass
         self.telnet = FakeTelnet.instances[-1]
@@ -59,9 +62,21 @@ class Receiver:
         self.echo_only, self.once = echo_only, once
         self.links = links or {}
         self.written: set[str] = set()
+        self.stop_after = stop_after
+        self.asleep = False
+
+    def wake(self) -> None:
+        self.asleep = False
 
     async def send(self, command: str) -> None:
         self.telnet.sent.append(command)
+        if self.asleep:
+            return
+        if command == self.stop_after:
+            self.asleep = True
+        if command == "PW?":
+            self._push("PWON")
+            return
         if command in self.queries:
             lines = [
                 f"{prefix}{self.settings[prefix]}"
@@ -100,6 +115,8 @@ def fast() -> Iterator[None]:
         patch.object(command_test, "ZONE_SETTLE", 0.3),
         patch.object(command_test, "POWER_WAIT", 0.2),
         patch.object(command_test, "POWER_SETTLE", 0.01),
+        patch.object(command_test, "RECOVER_WAIT", 2.0),
+        patch.object(command_test, "RECOVER_POLL", 0.05),
         patch("custom_components.denonavr_plus.avr.device.REPLY_COLLECT_QUIET", 0.02),
     ):
         yield
@@ -216,7 +233,9 @@ async def test_the_tests_go_through_the_receiver_part_by_part(
     assert areas["subwoofer_level"] == "speakers"
     assert areas["picture_mode"] == "video"
     assert areas["dimmer"] == areas["main_volume"] == areas["setup_menu"] == "receiver"
-    assert areas["zone2_follow_main"] == "zone2"
+    # All Zone Stereo switches Zone 2 on; an AVR-X2600H stopped answering
+    # when it came right after MultEQ.
+    assert areas["zone2_follow_main"] == areas["all_zone_stereo"] == "zone2"
     assert areas["tuner_preset"] == "tuner"
     # Within each group the parts come one after the other, in their order,
     # so the progress names each part once.
@@ -436,6 +455,62 @@ async def test_a_cancelled_test_puts_the_value_back(
             await task
     assert receiver.telnet.sent[-1] == "DIM BRI"
     assert receiver.settings["DIM "] == "BRI"
+
+
+# A receiver that stops answering ----------------------------------------
+
+
+async def test_nothing_is_written_while_the_receiver_does_not_answer(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    """From an AVR-X2600H run: after All Zone Stereo it answered nothing."""
+    receiver = Receiver(
+        hass,
+        {"ZM": "ON", "DIM ": "BRI", "MV": "50"},
+        {"ZM?": ["ZM"], "DIM ?": ["DIM "], "MV?": ["MV"]},
+        stop_after="DIM DIM",
+    )
+    receiver.telnet.push("ZMON")
+    hass.loop.call_later(0.5, receiver.wake)
+    result = await _run(hass, loaded_entry, receiver, "dimmer", "main_volume")
+    tests = result["tests"]
+    # The volume was not tested: nothing went out while nobody listened.
+    assert tests["main_volume"] == {
+        "group": QUIET,
+        "result": "interrupted",
+        "reason": command_test.SILENT,
+    }
+    assert [command for command in receiver.telnet.sent if command.startswith("MV")] in ([], ["MV?"])
+    # Once it answered again, the dimmer was written back.
+    assert tests["dimmer"]["restored"] is True
+    assert tests["dimmer"]["restored_later"] is True
+    assert receiver.settings["DIM "] == "BRI"
+
+
+async def test_a_receiver_that_does_not_come_back_leaves_it_to_the_user(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    receiver = Receiver(
+        hass, {"ZM": "ON", "DIM ": "BRI"}, {"ZM?": ["ZM"], "DIM ?": ["DIM "]}, stop_after="DIM DIM"
+    )
+    receiver.telnet.push("ZMON")
+    with patch.object(command_test, "RECOVER_WAIT", 0.2):
+        result = await _run(hass, loaded_entry, receiver, "dimmer")
+    assert result["tests"]["dimmer"]["restored"] is False
+    assert "restored_later" not in result["tests"]["dimmer"]
+
+
+async def test_a_value_the_receiver_does_not_report_now_is_not_written(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    """What it said earlier may be stale: no write without a fresh answer."""
+    receiver = Receiver(hass, {"ZM": "ON", "DIM ": "BRI"}, {"ZM?": ["ZM"], "DIM ?": []})
+    receiver.telnet.push("ZMON", "DIM BRI")
+    result = await _run(hass, loaded_entry, receiver, "dimmer", "main_volume")
+    assert result["tests"]["dimmer"]["result"] == "no_value"
+    assert "DIM DIM" not in receiver.telnet.sent
+    # It still answers its power query: the next test runs.
+    assert result["tests"]["main_volume"]["result"] != "interrupted"
 
 
 # The tests that are not a profile control -------------------------------

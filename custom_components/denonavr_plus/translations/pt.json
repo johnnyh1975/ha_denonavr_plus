@@ -260,11 +260,11 @@
       },
       "tests_done": {
         "title": "Tudo reposto",
-        "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
+        "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n- Não executados, o recetor deixou de responder: {interrupted}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
       },
       "tests_done_check": {
         "title": "Verifique o recetor",
-        "description": "Nem todas as definições voltaram: {not_restored_list}. Reponha-as no recetor como estavam.\n\n{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
+        "description": "Nem todas as definições voltaram: {not_restored_list}. Reponha-as no recetor como estavam.\n\n{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n- Não executados, o recetor deixou de responder: {interrupted}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
       }
     },
     "error": {
@@ -1136,11 +1136,11 @@
           },
           "tests_done": {
             "title": "Tudo reposto",
-            "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
+            "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n- Não executados, o recetor deixou de responder: {interrupted}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
           },
           "tests_done_check": {
             "title": "Verifique o recetor",
-            "description": "Nem todas as definições voltaram: {not_restored_list}. Reponha-as no recetor como estavam.\n\n{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
+            "description": "Nem todas as definições voltaram: {not_restored_list}. Reponha-as no recetor como estavam.\n\n{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n- Não executados, o recetor deixou de responder: {interrupted}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
           }
         },
         "progress": {
@@ -1194,7 +1194,9 @@
         "signal_and_setup": "Sinal e configuração",
         "speakers": "Altifalantes",
         "receiver": "Recetor",
-        "zone2": "Zona 2"
+        "zone2": "Zona 2",
+        "setup_menu": "Menu de configuração na televisão",
+        "zone2_follow_main": "A Zona 2 segue a zona principal"
       }
     }
   },

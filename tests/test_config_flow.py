@@ -725,10 +725,12 @@ def _command_test(groups: list[str]) -> dict[str, Any]:
             "treble": {"group": "quiet", "result": "query_only", "restored": True},
             "dimmer": {"group": "quiet", "result": "no_effect", "restored": False},
             "lfe": {"group": "quiet", "result": "no_value"},
+            "zone2_channel_level_fl": {"group": "quiet", "result": "confirmed", "restored": False},
         },
         "audible": {
             "main_mute": {"group": "audible", "result": "confirmed", "restored": True},
             "setup_menu": {"group": "audible", "result": "skipped", "reason": "no_alternative"},
+            "volume_limit": {"group": "audible", "result": "interrupted", "reason": "receiver_silent"},
         },
     }
     found: dict[str, Any] = {}
@@ -791,14 +793,16 @@ async def test_the_receiver_test_runs_its_parts_in_sequence(
     assert result["step_id"] == "tests_done_check"
     placeholders = result["description_placeholders"]
     assert (placeholders["answered"], placeholders["total"]) == ("1", "2")
-    expected = ("3", "1", "2", "1") if audible else ("2", "1", "1", "1")
+    expected = ("4", "1", "2", "1", "2") if audible else ("3", "1", "1", "0", "2")
     assert (
         placeholders["confirmed"],
         placeholders["no_effect"],
         placeholders["skipped"],
+        placeholders["interrupted"],
         placeholders["not_restored"],
     ) == expected
-    assert placeholders["not_restored_list"] == "dimmer"
+    # Named as their entities are, with the device where the name says little.
+    assert placeholders["not_restored_list"] == "Dimmer, Zone 2: Front Left Level"
     assert "template=device_support.yml" in placeholders["url"]
     result = await hass.config_entries.options.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY

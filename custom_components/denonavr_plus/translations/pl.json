@@ -260,11 +260,11 @@
       },
       "tests_done": {
         "title": "Wszystko przywrócone",
-        "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
+        "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n- Nie wykonano, amplituner przestał odpowiadać: {interrupted}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
       },
       "tests_done_check": {
         "title": "Sprawdź amplituner",
-        "description": "Nie wszystkie ustawienia wróciły: {not_restored_list}. Ustaw je na amplitunerze tak, jak były.\n\n{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
+        "description": "Nie wszystkie ustawienia wróciły: {not_restored_list}. Ustaw je na amplitunerze tak, jak były.\n\n{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n- Nie wykonano, amplituner przestał odpowiadać: {interrupted}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
       }
     },
     "error": {
@@ -1136,11 +1136,11 @@
           },
           "tests_done": {
             "title": "Wszystko przywrócone",
-            "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
+            "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n- Nie wykonano, amplituner przestał odpowiadać: {interrupted}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
           },
           "tests_done_check": {
             "title": "Sprawdź amplituner",
-            "description": "Nie wszystkie ustawienia wróciły: {not_restored_list}. Ustaw je na amplitunerze tak, jak były.\n\n{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
+            "description": "Nie wszystkie ustawienia wróciły: {not_restored_list}. Ustaw je na amplitunerze tak, jak były.\n\n{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n- Nie wykonano, amplituner przestał odpowiadać: {interrupted}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
           }
         },
         "progress": {
@@ -1194,7 +1194,9 @@
         "signal_and_setup": "Sygnał i konfiguracja",
         "speakers": "Głośniki",
         "receiver": "Amplituner",
-        "zone2": "Strefa 2"
+        "zone2": "Strefa 2",
+        "setup_menu": "Menu konfiguracji na telewizorze",
+        "zone2_follow_main": "Strefa 2 podąża za strefą główną"
       }
     }
   },

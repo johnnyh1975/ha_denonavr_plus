@@ -57,6 +57,10 @@ ZONE_SETTLE = 3.0
 #: settings while it starts up).
 POWER_WAIT = 15.0
 POWER_SETTLE = 3.0
+#: How long to wait for a receiver that stopped answering, before the
+#: settings it did not take back are written again (seconds).
+RECOVER_WAIT = 30.0
+RECOVER_POLL = 1.0
 
 #: Controls that are never written by the test.
 NEVER = frozenset(
@@ -174,6 +178,10 @@ _AREA_OF_GROUP = {
     "video": "video",
     "zone": "zone2",
 }
+#: Controls that belong to another part than their command group: All Zone
+#: Stereo switches Zone 2 on, and right after a MultEQ change an AVR-X2600H
+#: took it and then stopped answering.
+_AREA_OF_CONTROL = {"all_zone_stereo": "zone2"}
 
 #: FM band in the tuner's unit (MHz x 100) and its step.
 _FM_LOW, _FM_HIGH, _FM_STEP = 8750, 10800, 5
@@ -308,7 +316,7 @@ def _control_probe(device: DenonAvrDevice, spec: ControlSpec) -> Probe:
     return Probe(
         key=spec.id,
         group=AUDIBLE if spec.id in AUDIBLE_CONTROLS else QUIET,
-        area=_AREA_OF_GROUP.get(spec.group or "", "receiver"),
+        area=_AREA_OF_CONTROL.get(spec.id) or _AREA_OF_GROUP.get(spec.group or "", "receiver"),
         query=query,
         prefixes=prefixes,
         read=read,
@@ -584,23 +592,88 @@ async def async_run(
 
     When the telnet connection drops, the remaining tests are marked
     interrupted; the one that ran is still put back (over HTTP if need be).
+    When the receiver stops answering, no further setting is written: the
+    remaining tests are marked interrupted, and once it answers again, what
+    did not come back is written again.
     """
 
     probes = probes_for(device, groups)
     results: dict[str, dict[str, Any]] = {}
+    undo: dict[str, tuple[Probe, Any, dict[str, Any]]] = {}
+    silent = False
     for index, probe in enumerate(probes):
         if on_current is not None and probe.area != (probes[index - 1].area if index else None):
             on_current(probe.area)
-        if not device.telnet_connected:
+        if silent:
+            results[probe.key] = {"group": probe.group, "result": "interrupted", "reason": SILENT}
+        elif not device.telnet_connected:
             results[probe.key] = {"group": probe.group, "result": "interrupted"}
         else:
-            results[probe.key] = await _run_probe(device, probe)
+            entry = await _run_probe(device, probe, undo)
+            if _unanswered(entry) and not await _answers(device):
+                silent = True
+                if entry["result"] == "no_value":
+                    entry = {"group": probe.group, "result": "interrupted", "reason": SILENT}
+            results[probe.key] = entry
         if on_progress is not None:
             on_progress((index + 1) / len(probes))
+    if undo:
+        await _recover(device, results, undo)
     return results
 
 
-async def _run_probe(device: DenonAvrDevice, probe: Probe) -> dict[str, Any]:
+#: Why tests did not run: the receiver no longer answered.
+SILENT = "receiver_silent"
+
+
+def _unanswered(entry: dict[str, Any]) -> bool:
+    """Nothing came back where something should have: is the receiver there?"""
+
+    if entry.get("restored") is False:
+        return True
+    return entry["result"] == "no_value" and not entry.get("lines")
+
+
+async def _answers(device: DenonAvrDevice) -> bool:
+    """Whether the receiver answers its power query, which it always does."""
+
+    try:
+        lines = await device.async_collect(
+            lambda line: line.startswith("PW"),
+            lambda: device.async_send_command("PW?"),
+            QUERY_WAIT,
+        )
+    except CommandNotSent:
+        return False
+    return bool(lines)
+
+
+async def _recover(
+    device: DenonAvrDevice,
+    results: dict[str, dict[str, Any]],
+    undo: dict[str, tuple[Probe, Any, dict[str, Any]]],
+) -> None:
+    """Write what did not come back again, once the receiver answers."""
+
+    loop = asyncio.get_running_loop()
+    until = loop.time() + RECOVER_WAIT
+    while not await _answers(device):
+        if loop.time() >= until:
+            return
+        await asyncio.sleep(RECOVER_POLL)
+    for key, (probe, before, snapshots) in undo.items():
+        log: list[str] = []
+        with contextlib.suppress(CommandNotSent):
+            if await _restore(device, probe, before, snapshots, log):
+                results[key] |= {"restored": True, "restored_later": True}
+        results[key]["lines"] = [*results[key].get("lines", []), *log]
+
+
+async def _run_probe(
+    device: DenonAvrDevice,
+    probe: Probe,
+    undo: dict[str, tuple[Probe, Any, dict[str, Any]]] | None = None,
+) -> dict[str, Any]:
     entry: dict[str, Any] = {"group": probe.group}
     reason = probe.condition()
     if reason is not None:
@@ -615,7 +688,7 @@ async def _run_probe(device: DenonAvrDevice, probe: Probe) -> dict[str, Any]:
             return entry | {"result": "precondition", "reason": reason}
         if changed:
             entry["requires"] = dict(probe.requires)
-        return await _test(device, probe, entry)
+        return await _test(device, probe, entry, {} if undo is None else undo)
     finally:
         # Also when the test is stopped: the setting it needed goes back.
         with contextlib.suppress(CommandNotSent):
@@ -650,7 +723,14 @@ async def _set(device: DenonAvrDevice, control_id: str, value: Any) -> None:
     )
 
 
-async def _test(device: DenonAvrDevice, probe: Probe, entry: dict[str, Any]) -> dict[str, Any]:
+async def _test(
+    device: DenonAvrDevice,
+    probe: Probe,
+    entry: dict[str, Any],
+    undo: dict[str, tuple[Probe, Any, dict[str, Any]]],
+) -> dict[str, Any]:
+    """Write, confirm, put back. What did not come back goes into `undo`."""
+
     snapshots: dict[str, Any] = {}
     log: list[str] = []
     written = False
@@ -660,7 +740,9 @@ async def _test(device: DenonAvrDevice, probe: Probe, entry: dict[str, Any]) -> 
         log += lines
         # After the query, so the zones are as fresh as the value.
         snapshots = {zone: device.zone_snapshot(zone) for zone in probe.zones}
-        before = probe.read(lines)
+        # Nothing is written blind: a setting the receiver does not report
+        # now is not taken from what it said earlier.
+        before = probe.read(lines) if lines else None
         if before is None:
             before = probe.default
         if before is None:
@@ -694,6 +776,8 @@ async def _test(device: DenonAvrDevice, probe: Probe, entry: dict[str, Any]) -> 
             entry["restored"] = await _restore(device, probe, before, snapshots, log)
         except CommandNotSent:
             entry["restored"] = False
+    if entry.get("restored") is False:
+        undo[probe.key] = (probe, before, snapshots)
     return entry
 
 

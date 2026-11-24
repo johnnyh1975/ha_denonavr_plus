@@ -34,6 +34,8 @@ from .avr.errors import CommandNotSent
 from .capabilities import issue_url
 from .capabilities import summary as check_summary
 from .const import DOMAIN
+from .entity import SUB_DEVICE_NAMES
+from .helpers import control_sub_device
 
 if TYPE_CHECKING:
     from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -55,6 +57,10 @@ Run = Callable[
 #: reloads the page, not every setting. Translated under
 #: selector.receiver_test_item.
 ITEM_SELECTOR = "receiver_test_item"
+#: A test whose entity has another translation key.
+_ENTITY_KEY = {"main_volume": "volume"}
+#: Sub-devices whose settings are named with their device ("Zone 2: ...").
+_NAMED_BY_DEVICE = frozenset({"eq", "zone2", "zone3"})
 #: When to send the percentage again after the page was reloaded (seconds).
 PROGRESS_AGAIN = 0.5
 
@@ -149,7 +155,7 @@ class ReceiverTestSteps:
 
         if user_input is not None:
             return cast(FlowResult, self._check_finished())
-        placeholders = self._summary()
+        placeholders = self._summary(await self._setting_names())
         step_id = "tests_done_check" if placeholders["not_restored"] != "0" else "tests_done"
         return self.async_show_form(  # type: ignore[attr-defined, no-any-return]
             step_id=step_id, description_placeholders=placeholders
@@ -162,7 +168,7 @@ class ReceiverTestSteps:
 
     # Helpers -------------------------------------------------------------
 
-    def _summary(self) -> dict[str, str]:
+    def _summary(self, names: dict[str, str]) -> dict[str, str]:
         check = self._results().get("tests_check", {})
         answers = check_summary(check)
         tests: dict[str, Any] = {}
@@ -173,18 +179,22 @@ class ReceiverTestSteps:
         counts = summary(tests)
         confirmed = counts.get("confirmed", 0) + counts.get("query_only", 0)
         precondition = counts.get("precondition", 0)
-        skipped = sum(
-            counts.get(result, 0) for result in ("skipped", "no_value", "interrupted")
+        skipped = counts.get("skipped", 0) + counts.get("no_value", 0)
+        interrupted = counts.get("interrupted", 0)
+        not_restored = sorted(
+            names.get(key) or _readable(key)
+            for key, item in tests.items()
+            if item.get("restored") is False
         )
-        not_restored = sorted(key for key, item in tests.items() if item.get("restored") is False)
         return {
             "model": check.get("model") or "Denon AVR",
             "answered": str(answers.get("answered", 0)),
             "total": str(sum(answers.values())),
             "confirmed": str(confirmed),
             "precondition": str(precondition),
-            "no_effect": str(len(tests) - confirmed - precondition - skipped),
+            "no_effect": str(len(tests) - confirmed - precondition - skipped - interrupted),
             "skipped": str(skipped),
+            "interrupted": str(interrupted),
             "not_restored": str(len(not_restored)),
             "not_restored_list": ", ".join(not_restored) or "-",
             "url": issue_url(check.get("model"), check.get("firmware")),
@@ -204,6 +214,29 @@ class ReceiverTestSteps:
                     names[group] = names[_slug(group)]
             self._test_names = names
         return self._test_names
+
+    async def _setting_names(self) -> dict[str, str]:
+        """The settings by test key, named as their entities are.
+
+        A setting on the Graphic EQ or a zone has a name that says little
+        alone ("Front left level"): its device comes first.
+        """
+
+        texts = await translation.async_get_translations(
+            self.hass, self.hass.config.language, "entity", {DOMAIN}
+        )
+        names: dict[str, str] = {}
+        for key, text in texts.items():
+            if key.startswith(f"component.{DOMAIN}.entity.") and key.endswith(".name"):
+                names.setdefault(key.split(".")[-2], text)
+        names |= {test: names[entity] for test, entity in _ENTITY_KEY.items() if entity in names}
+        entry = self._check_entry()
+        if entry is not None and entry.state is ConfigEntryState.LOADED:
+            for spec in entry.runtime_data.device.profile.controls.values():
+                sub = control_sub_device(spec)
+                if sub in _NAMED_BY_DEVICE and spec.id in names:
+                    names[spec.id] = f"{SUB_DEVICE_NAMES[sub]}: {names[spec.id]}"
+        return names | await self._names()
 
     def _results(self) -> dict[str, dict[str, Any]]:
         if not hasattr(self, "_test_results"):
