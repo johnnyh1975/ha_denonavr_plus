@@ -34,6 +34,8 @@ from .avr.errors import CommandNotSent
 from .capabilities import issue_url
 from .capabilities import summary as check_summary
 from .const import DOMAIN
+from .entity import SUB_DEVICE_NAMES
+from .helpers import control_sub_device
 
 if TYPE_CHECKING:
     from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -55,6 +57,11 @@ Run = Callable[
 ITEM_SELECTOR = "receiver_test_item"
 #: A test whose entity has another translation key.
 _ENTITY_KEY = {"main_volume": "volume"}
+
+#: Sub-devices whose settings are named by their device in the progress.
+_NAMED_BY_DEVICE = frozenset({"eq", "zone2", "zone3"})
+#: When to send the percentage again after the page was reloaded (seconds).
+PROGRESS_AGAIN = 0.5
 
 #: The share of the whole test each part covers, so the progress runs once
 #: from 0 to 100 % instead of starting again for every part.
@@ -188,8 +195,12 @@ class ReceiverTestSteps:
             "url": issue_url(check.get("model"), check.get("firmware")),
         }
 
-    async def _names(self) -> dict[str, str]:
-        """What runs, by key, in the language of Home Assistant."""
+    async def _names(self, coordinator: DenonAvrCoordinator) -> dict[str, str]:
+        """What runs, by key, in the language of Home Assistant.
+
+        A setting on the Graphic EQ or a zone has a name that says little
+        alone ("Enabled", "Front left level"): its device comes first.
+        """
 
         if self._test_names is None:
             texts = await translation.async_get_translations(
@@ -212,6 +223,10 @@ class ReceiverTestSteps:
                 slug = _slug(group)
                 if slug in names:
                     names[group] = names[slug]
+            for spec in coordinator.device.profile.controls.values():
+                sub = control_sub_device(spec)
+                if sub in _NAMED_BY_DEVICE and spec.id in names:
+                    names[spec.id] = f"{SUB_DEVICE_NAMES[sub]}: {names[spec.id]}"
             self._test_names = names
         return self._test_names
 
@@ -239,17 +254,27 @@ class ReceiverTestSteps:
                 return self.async_abort(reason=NOT_CONNECTED)  # type: ignore[attr-defined, no-any-return]
             low, high = SHARES[step_id]
 
+            shown = [low]
+
             def progress(share: float) -> None:
-                self.async_update_progress(low + (high - low) * share)  # type: ignore[attr-defined]
+                shown[0] = low + (high - low) * share
+                self.async_update_progress(shown[0])  # type: ignore[attr-defined]
 
             progress(0.0)
-            names = await self._names()
+            names = await self._names(entry.runtime_data)
             self._test_current = ""
 
             def current(key: str) -> None:
-                # The frontend reloads the step and shows the new name.
+                # The frontend reloads the step and shows the new name. The
+                # reloaded page starts without a percentage: send it again
+                # once the page is there, so the circle does not jump to an
+                # endless spinner until the next test ends.
                 self._test_current = names.get(key) or _readable(key)
                 self.async_notify_flow_changed()  # type: ignore[attr-defined]
+                self.hass.loop.call_later(
+                    PROGRESS_AGAIN,
+                    lambda: self.async_update_progress(shown[0]),  # type: ignore[attr-defined]
+                )
 
             task = self.hass.async_create_task(
                 self._run(entry.runtime_data, run, progress, current)

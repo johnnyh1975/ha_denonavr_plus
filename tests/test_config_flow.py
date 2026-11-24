@@ -23,7 +23,7 @@ from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.denonavr_plus import config_flow
+from custom_components.denonavr_plus import config_flow, receiver_test
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.models import DeviceInfo
@@ -864,7 +864,8 @@ async def test_the_progress_names_what_runs(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """The step is reloaded with the name of each test as it starts."""
-    gates = {key: asyncio.Event() for key in ("check", "bass", "main_volume", "something_new")}
+    keys = ("bass", "graphic_eq", "zone2_channel_level_fl", "main_volume", "something_new")
+    gates = {key: asyncio.Event() for key in ("check", *keys)}
 
     async def check(self: Any, on_progress: Any = None, on_current: Any = None) -> Any:
         on_current("Signal and setup")
@@ -874,9 +875,10 @@ async def test_the_progress_names_what_runs(
     async def command_test(
         self: Any, groups: list[str], on_progress: Any = None, on_current: Any = None
     ) -> Any:
-        for key in ("bass", "main_volume", "something_new"):
+        for index, key in enumerate(keys):
             on_current(key)
             await gates[key].wait()
+            on_progress((index + 1) / len(keys))
         return _command_test(groups)
 
     changed: list[Any] = []
@@ -890,9 +892,15 @@ async def test_the_progress_names_what_runs(
         return str(result["description_placeholders"]["current"])
 
     names: list[str] = []
+    sent: list[float] = []
     with (
         patch.object(DenonAvrDevice, "async_check_capabilities", check),
         patch.object(DenonAvrDevice, "async_command_test", command_test),
+        patch.object(receiver_test, "PROGRESS_AGAIN", 0),
+        patch(
+            "homeassistant.config_entries.OptionsFlow.async_update_progress",
+            lambda self, progress: sent.append(round(progress, 2)),
+        ),
     ):
         result = await _options_step(hass, loaded_entry, "tests_start")
         result = await hass.config_entries.options.async_configure(result["flow_id"], {})
@@ -902,9 +910,20 @@ async def test_the_progress_names_what_runs(
         await hass.async_block_till_done()
         result = await hass.config_entries.options.async_configure(flow_id)
         assert result["step_id"] == "tests_quiet"
-        for key in ("bass", "main_volume", "something_new"):
+        for key in keys:
             names.append(await shown(flow_id))
             gates[key].set()
-    # Entity names, a name of its own, and a readable key for anything new.
-    assert names == ["Signal and setup", "Bass", "Volume", "Something new"]
+    # Entity names, the device for a name that says little alone, a name of
+    # its own, and a readable key for anything new.
+    assert names == [
+        "Signal and setup",
+        "Bass",
+        "Graphic EQ: Enabled",
+        "Zone 2: Front Left Level",
+        "Volume",
+        "Something new",
+    ]
+    # After each reload the percentage comes again, so the circle keeps it.
+    assert sent[:3] == [0.0, 0.0, 0.25]
+    assert sent.count(0.35) == 2
     assert changed and all(event.data["refresh"] for event in changed)
