@@ -140,6 +140,10 @@ The goform interface serves XML status pages and accepts commands:
 | `/goform/formiPhoneAppDirect.xml?<telnet command>` | Send a telnet command over HTTP |
 | `/goform/formNetAudio_StatusXml.xml`, `formTuner_TunerXml.xml` | Network audio and tuner status (older models; HEOS-era firmware answers 403 for the now-playing pages) |
 
+The commands of `AppCommand.xml` and `AppCommand0300.xml`, the legacy
+pages and the content of `Deviceinfo.xml` per generation are on the
+[HTTP control](11-http-control.md) page.
+
 ### Which port
 
 The `denonavr` library tries port 80 first and treats the receiver as a
@@ -166,6 +170,13 @@ page every 10 seconds, like the `denonavr` library's HTTP fallback.
 firmware version and serial number, which `Deviceinfo.xml` omits. The
 AVR-X2000 generation has a plain UPnP description at `/description.xml` on
 port 8080 instead.
+
+The same description lists the service
+`urn:schemas-denon-com:service:ACT`, through which the HEOS app reads and
+sets the audio configuration, the zone status and the speaker setup
+(`GetAudioConfig`, `GetAvrZoneStatus`, `GetSurroundSpeakerConfig`;
+**App**, see [manufacturer apps](12-manufacturer-apps.md#heos-generation-upnp-service-act)).
+This integration does not use it.
 
 ## SSDP (UDP 1900)
 

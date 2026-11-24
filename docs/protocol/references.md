@@ -22,6 +22,20 @@ actually sent; community sources are leads, never the only evidence.
 | FY21 AVR control protocol, Ver.02, last update 12 May 2020 | AVR-X2700H, X3700H, X4700H, X6700H and S960H: commands, values and per-model availability; the newest Denon document known and the closest to the AVR-X2600H (2019) | <https://assets.denon.com/documentmaster/us/fy21avr_denon_protocol_v02.xlsx>; read from a downloaded copy, sheet "COMMAND and RESPONSE list" |
 | CY2022 AVR control protocol, Ver.02, last update 13 October 2022 | AVR-X2800H, X3800H, X4800H, A1H and S970H | A PDF print of the spreadsheet, attached to an AVS Forum thread ("Denon IP and RS232 Commands"); read from a downloaded copy |
 
+## Manufacturer apps
+
+Decompiled; only wire facts are taken (endpoints, commands, parameter and
+element names, values), no text or image. The code shows what an app
+sends, not what a receiver accepts, so a finding counts as **App** until a
+receiver confirms it ([manufacturer apps](12-manufacturer-apps.md)).
+
+| App | Version | Trusted for |
+|---|---|---|
+| Denon AVR Remote (`com.dmholdings.DenonAVRRemote`) | 3.13.4 | HTTP commands and parameter names (`AppCommand.xml`, `AppCommand0300.xml`), how the app tells interface levels, brands and product categories apart, the telnet tokens it sends, the 481 element names of `Deviceinfo.xml` |
+| Marantz AVR Remote (`com.dmholdings.MarantzAVRRemote`) | 3.13.4 | The same; native library and assets identical to the Denon app |
+| HEOS (`com.dnm.heos.phone`) | 3.139.353 | The UPnP service ACT, the Protobuf channel, the sound mode model |
+| Denon Remote App and Marantz Remote App (`com.dmholdings.denonremoteapp`, `com.dmholdings.marantzremoteapp`) | 1.1.9 | Description files of 13 receivers from 2010–2012, their input tokens and sound mode names ([before 2013](models/before-2013.md)); app data, with two visible errors |
+
 ## Manufacturer: product information
 
 | Document | Covers |
@@ -72,13 +86,14 @@ the owner's manual when it is added.
 
 ## Gaps in the sources
 
-- No control protocol document for any HEOS-era model after 2015.
 - No owner's manual for either reference receiver.
 - One recording each from an AVR-X2600H (firmware 3.139.175) and an
   AVR-X2000 (capability checks); no telnet log over time yet.
-- The 2017, 2018 and 2020 Denon spreadsheets are not in the sources; the
-  2018 one (with the AVR-X2500H) or the FY21 one would be the closest
-  official reference for the AVR-X2600H. Adding either to the project
-  sources would settle many "To test" entries for that model.
+- No Denon document for the 2019 model year (AVR-X2600H, X3600H). Denon's
+  2020 and 2022 tables and Marantz's 2019 table are in the sources; the
+  2016, 2017 and 2018 Denon spreadsheets are not.
+- No document for a model year after 2022.
+- The apps cover the HTTP interface, not the telnet command set; for that
+  the documents and tests on a receiver remain the sources.
 - The 2014 document was read through a text extract; check the PDF before
   code depends on a detail from it.

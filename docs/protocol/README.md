@@ -24,8 +24,11 @@ receiver. A setting that appears in the receiver's menu proves nothing.
 | [Network media and services](08-network-media-and-services.md) | `NS…` transport, on-screen text, presets, tuner |
 | [Status, diagnostics, discovery](09-status-diagnostics-and-discovery.md) | Identification, discovery, and the test procedure for both receivers |
 | [Home Assistant](10-home-assistant.md) | Official integrations, this integration, gaps and next steps |
+| [HTTP control](11-http-control.md) | The goform interface per generation: `AppCommand.xml`, `AppCommand0300.xml`, legacy pages, `Deviceinfo.xml` with value ranges and lists |
+| [Manufacturer apps](12-manufacturer-apps.md) | What Denon's, Marantz's and the HEOS app use: interfaces, receiver detection, telnet tokens, the UPnP service ACT |
 | [Capability matrix](models/capability-matrix.md) | The central model comparison |
 | [AVR-X2000](models/AVR-X2000.md) · [AVR-X2600H](models/AVR-X2600H.md) | Model pages |
+| [Receivers before 2013](models/before-2013.md) | 2010–2012 receivers without `Deviceinfo.xml`: zones, inputs, sound modes from the older app's data |
 | [References](references.md) | All sources, with what each one is trusted for |
 
 For the full token list with implementation coverage, see the
@@ -42,6 +45,7 @@ Every capability carries one of these labels.
 | **Tested** | Confirmed on a named receiver, with model and firmware |
 | **Sourced** | Stated in a manufacturer document or the official Home Assistant documentation |
 | **Documented** | Described in a control protocol document or visible in a recorded receiver response |
+| **App** | Found in the code of Denon's, Marantz's or the HEOS app: the app sends or reads it, no document here describes it ([manufacturer apps](12-manufacturer-apps.md)) |
 | **To test** | Expected, but not yet checked on the target receiver |
 | **Unverified** | No reliable statement possible |
 | **Absent** | Excluded by a reliable source |
@@ -85,6 +89,20 @@ AVR-X2600H").
    `/ajax/control` return the video signal and the sound modes offered for
    the current input; community projects use them on port 11080
    ([details](02-network-and-protocols.md#setup-config-api-https-10443-http-11080)).
+
+8. **The manufacturer's apps control the receiver over HTTP, not telnet.**
+   Denon's app opens port 23 for three queries; every setup function goes
+   through `AppCommand0300.xml`, which receivers have from interface level
+   0300 (2014) on. The apps confirm the generation steps by `CommApiVers`
+   and name commands no document lists
+   ([HTTP control](11-http-control.md), [apps](12-manufacturer-apps.md)).
+9. **Receivers publish their own value ranges and value lists** in
+   `Deviceinfo.xml`, and they differ by model: audio delay up to 200 or
+   500 ms, Video Mode Bypass on two of the recorded units only, eARC
+   missing on two ([details](11-http-control.md#deviceinfoxml)).
+10. **Receivers from 2010–2012 have no `Deviceinfo.xml`**; what is known
+   about them comes from their documents and the older app's data
+   ([before 2013](models/before-2013.md)).
 
 ## Not here
 

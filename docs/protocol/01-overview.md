@@ -23,19 +23,23 @@ Sources for each row are on the [network page](02-network-and-protocols.md).
 
 Within the two generations, `Deviceinfo.xml` reports an interface level in
 `CommApiVers`. Denon's AVR Remote app (3.13.4, read from its code) decides by
-it which functions it offers; the recorded `Deviceinfo.xml` files in
-`tests/fixtures/denonavr/` show the same steps.
+it which functions it offers ([manufacturer apps](12-manufacturer-apps.md));
+the recorded `Deviceinfo.xml` files in `tests/fixtures/denonavr/` show the
+same steps. What each level offers over HTTP is on the
+[HTTP control](11-http-control.md#interfaces-by-generation) page.
 
 | `CommApiVers` | Receivers recorded | Setup functions in `Deviceinfo.xml` | Web interface |
 |---|---|---|---|
-| none (2010–2012) | AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810 | none | port 80 |
+| none (2010–2012) | AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810 | no `Deviceinfo.xml` at all: these units answer with an error page ([before 2013](models/before-2013.md)) | port 80 |
 | 0210 (2013) | AVR-X2000, AVR-X4000, AVR-1713, AVR-3313, NR1604, SR5008 | a few (restorer, sleep, tone) | port 80 |
 | 0220 | Marantz M-CR510, M-CR610 (systems) | few | port 80 |
 | 0250 (2014 entry models) | AVR-X1100W | as 0210 | port 80 |
-| 0300 (2014–2015) | AVR-X2100W, AVR-X4100W, SR6011, DRA-N4 | full setup, through `AppCommand0300.xml` | port 80 |
+| 0300 (2014 to 2016, receivers without HEOS) | AVR-X2100W, AVR-X4100W, SR6011, DRA-N4 | full setup, through `AppCommand0300.xml` | port 80 |
 | 0301 (2016 on) | AVR-X4500H, AVC-X3700H, AVC-X8500H, AVC-A10H, NR1609, SR6012, AV7703 | full setup | port 8080 |
 
-The app no longer supports receivers without a level. Below 0300 a receiver
+The app no longer supports receivers without a level, and this
+integration cannot set them up, because it reads port and functions from
+`Deviceinfo.xml`. Below 0300 a receiver
 names few of its functions in `Deviceinfo.xml`, which is why the AVR-X2000
 lists far fewer than its telnet protocol has.
 

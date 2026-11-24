@@ -48,9 +48,10 @@ check on an AVR-X2600H with that firmware
 | Telnet, port 23 | Documented | Tested (3.139.175) |
 | Concurrent telnet sessions | To test | To test |
 | goform HTTP | Port 80 (Documented, recorded responses) | Port 8080 (Tested on AVR-X3600H) |
-| `AppCommand.xml` | Documented (recorded responses) | Documented (library) |
-| `AppCommand0300.xml` (Audyssey) | To test, expected absent | Documented (library) |
+| `AppCommand.xml` | Documented (recorded responses) | Documented (library); zone status of Denon's app (App) |
+| `AppCommand0300.xml` (setup functions) | Expected absent: Denon's app uses it from interface level 0300, the AVR-X2000 reports 0210 (App); to test | Documented (library); every setup function of Denon's app (App) |
 | UPnP/AIOS description, port 60006 | Absent | Tested on AVR-X3600H |
+| UPnP service ACT (audio configuration, zone status, speakers) | Absent | Used by the HEOS app (App); to test |
 | HEOS CLI, port 1255 | Absent | Sourced; Tested on AVR-X3600H |
 | Setup config API, 10443 | Absent | Tested (3.139.175) |
 | Calibration, port 1256 | Absent | To test |
