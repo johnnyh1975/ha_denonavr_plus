@@ -279,9 +279,9 @@
       "no_hidden_entities": "Questo ricevitore non ha entità nascoste."
     },
     "progress": {
-      "test_part_1": "**Leggi funzioni**\n\nOra: {current}\n\n- → Leggi funzioni\n- ○ Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nSolo lettura; nulla cambia.",
-      "test_part_2": "**Prova in silenzio**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- → Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nToni, immagine, timer e display cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto.",
-      "test_part_3": "**Prova ciò che si sente e si vede**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- ✓ Prova in silenzio\n- → Prova ciò che si sente e si vede\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto."
+      "test_part_1": "**Leggi funzioni**\n\nOra: {current}\n\n→ Leggi funzioni  \n○ Prova in silenzio  \n○ Prova ciò che si sente e si vede\n\nSolo lettura; nulla cambia.",
+      "test_part_2": "**Prova in silenzio**\n\nOra: {current}\n\n✓ Leggi funzioni  \n→ Prova in silenzio  \n○ Prova ciò che si sente e si vede\n\nToni, immagine, timer e display cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto.",
+      "test_part_3": "**Prova ciò che si sente e si vede**\n\nOra: {current}\n\n✓ Leggi funzioni  \n✓ Prova in silenzio  \n→ Prova ciò che si sente e si vede\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto."
     }
   },
   "entity": {
@@ -1144,9 +1144,9 @@
           }
         },
         "progress": {
-          "test_part_1": "**Leggi funzioni**\n\nOra: {current}\n\n- → Leggi funzioni\n- ○ Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nSolo lettura; nulla cambia.",
-          "test_part_2": "**Prova in silenzio**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- → Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nToni, immagine, timer e display cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto.",
-          "test_part_3": "**Prova ciò che si sente e si vede**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- ✓ Prova in silenzio\n- → Prova ciò che si sente e si vede\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto."
+          "test_part_1": "**Leggi funzioni**\n\nOra: {current}\n\n→ Leggi funzioni  \n○ Prova in silenzio  \n○ Prova ciò che si sente e si vede\n\nSolo lettura; nulla cambia.",
+          "test_part_2": "**Prova in silenzio**\n\nOra: {current}\n\n✓ Leggi funzioni  \n→ Prova in silenzio  \n○ Prova ciò che si sente e si vede\n\nToni, immagine, timer e display cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto.",
+          "test_part_3": "**Prova ciò che si sente e si vede**\n\nOra: {current}\n\n✓ Leggi funzioni  \n✓ Prova in silenzio  \n→ Prova ciò che si sente e si vede\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto."
         },
         "abort": {
           "test_not_connected": "Il ricevitore non è connesso. La prova dei comandi richiede la sua connessione telnet; riprova quando è acceso."

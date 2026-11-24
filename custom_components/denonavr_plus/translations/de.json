@@ -279,9 +279,9 @@
       "no_hidden_entities": "Dieser Receiver hat keine ausgeblendeten Entitäten."
     },
     "progress": {
-      "test_part_1": "**Fähigkeiten lesen**\n\nGerade: {current}\n\n- → Fähigkeiten lesen\n- ○ Leise testen\n- ○ Hörbar und sichtbar testen\n\nLiest nur; nichts ändert sich.",
-      "test_part_2": "**Leise testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- → Leise testen\n- ○ Hörbar und sichtbar testen\n\nKlang, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück.",
-      "test_part_3": "**Hörbar und sichtbar testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- ✓ Leise testen\n- → Hörbar und sichtbar testen\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück."
+      "test_part_1": "**Fähigkeiten lesen**\n\nGerade: {current}\n\n→ Fähigkeiten lesen  \n○ Leise testen  \n○ Hörbar und sichtbar testen\n\nLiest nur; nichts ändert sich.",
+      "test_part_2": "**Leise testen**\n\nGerade: {current}\n\n✓ Fähigkeiten lesen  \n→ Leise testen  \n○ Hörbar und sichtbar testen\n\nKlang, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück.",
+      "test_part_3": "**Hörbar und sichtbar testen**\n\nGerade: {current}\n\n✓ Fähigkeiten lesen  \n✓ Leise testen  \n→ Hörbar und sichtbar testen\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück."
     }
   },
   "entity": {
@@ -1144,9 +1144,9 @@
           }
         },
         "progress": {
-          "test_part_1": "**Fähigkeiten lesen**\n\nGerade: {current}\n\n- → Fähigkeiten lesen\n- ○ Leise testen\n- ○ Hörbar und sichtbar testen\n\nLiest nur; nichts ändert sich.",
-          "test_part_2": "**Leise testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- → Leise testen\n- ○ Hörbar und sichtbar testen\n\nKlang, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück.",
-          "test_part_3": "**Hörbar und sichtbar testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- ✓ Leise testen\n- → Hörbar und sichtbar testen\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück."
+          "test_part_1": "**Fähigkeiten lesen**\n\nGerade: {current}\n\n→ Fähigkeiten lesen  \n○ Leise testen  \n○ Hörbar und sichtbar testen\n\nLiest nur; nichts ändert sich.",
+          "test_part_2": "**Leise testen**\n\nGerade: {current}\n\n✓ Fähigkeiten lesen  \n→ Leise testen  \n○ Hörbar und sichtbar testen\n\nKlang, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück.",
+          "test_part_3": "**Hörbar und sichtbar testen**\n\nGerade: {current}\n\n✓ Fähigkeiten lesen  \n✓ Leise testen  \n→ Hörbar und sichtbar testen\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück."
         },
         "abort": {
           "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist."

@@ -279,9 +279,9 @@
       "no_hidden_entities": "Ce récepteur n'a pas d'entités masquées."
     },
     "progress": {
-      "test_part_1": "**Lire les fonctions**\n\nEn cours : {current}\n\n- → Lire les fonctions\n- ○ Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nLecture seule ; rien ne change.",
-      "test_part_2": "**Tester discrètement**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- → Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nTonalité, image, minuteries et afficheur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout.",
-      "test_part_3": "**Tester ce qui s'entend et se voit**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- ✓ Tester discrètement\n- → Tester ce qui s'entend et se voit\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout."
+      "test_part_1": "**Lire les fonctions**\n\nEn cours : {current}\n\n→ Lire les fonctions  \n○ Tester discrètement  \n○ Tester ce qui s'entend et se voit\n\nLecture seule ; rien ne change.",
+      "test_part_2": "**Tester discrètement**\n\nEn cours : {current}\n\n✓ Lire les fonctions  \n→ Tester discrètement  \n○ Tester ce qui s'entend et se voit\n\nTonalité, image, minuteries et afficheur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout.",
+      "test_part_3": "**Tester ce qui s'entend et se voit**\n\nEn cours : {current}\n\n✓ Lire les fonctions  \n✓ Tester discrètement  \n→ Tester ce qui s'entend et se voit\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout."
     }
   },
   "entity": {
@@ -1144,9 +1144,9 @@
           }
         },
         "progress": {
-          "test_part_1": "**Lire les fonctions**\n\nEn cours : {current}\n\n- → Lire les fonctions\n- ○ Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nLecture seule ; rien ne change.",
-          "test_part_2": "**Tester discrètement**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- → Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nTonalité, image, minuteries et afficheur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout.",
-          "test_part_3": "**Tester ce qui s'entend et se voit**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- ✓ Tester discrètement\n- → Tester ce qui s'entend et se voit\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout."
+          "test_part_1": "**Lire les fonctions**\n\nEn cours : {current}\n\n→ Lire les fonctions  \n○ Tester discrètement  \n○ Tester ce qui s'entend et se voit\n\nLecture seule ; rien ne change.",
+          "test_part_2": "**Tester discrètement**\n\nEn cours : {current}\n\n✓ Lire les fonctions  \n→ Tester discrètement  \n○ Tester ce qui s'entend et se voit\n\nTonalité, image, minuteries et afficheur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout.",
+          "test_part_3": "**Tester ce qui s'entend et se voit**\n\nEn cours : {current}\n\n✓ Lire les fonctions  \n✓ Tester discrètement  \n→ Tester ce qui s'entend et se voit\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout."
         },
         "abort": {
           "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé."

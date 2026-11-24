@@ -279,9 +279,9 @@
       "no_hidden_entities": "Este recetor não tem entidades ocultas."
     },
     "progress": {
-      "test_part_1": "**Ler funções**\n\nAgora: {current}\n\n- → Ler funções\n- ○ Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nSó lê; nada muda.",
-      "test_part_2": "**Testar em silêncio**\n\nAgora: {current}\n\n- ✓ Ler funções\n- → Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nTom, imagem, temporizadores e visor mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo.",
-      "test_part_3": "**Testar o que se ouve e vê**\n\nAgora: {current}\n\n- ✓ Ler funções\n- ✓ Testar em silêncio\n- → Testar o que se ouve e vê\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo."
+      "test_part_1": "**Ler funções**\n\nAgora: {current}\n\n→ Ler funções  \n○ Testar em silêncio  \n○ Testar o que se ouve e vê\n\nSó lê; nada muda.",
+      "test_part_2": "**Testar em silêncio**\n\nAgora: {current}\n\n✓ Ler funções  \n→ Testar em silêncio  \n○ Testar o que se ouve e vê\n\nTom, imagem, temporizadores e visor mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo.",
+      "test_part_3": "**Testar o que se ouve e vê**\n\nAgora: {current}\n\n✓ Ler funções  \n✓ Testar em silêncio  \n→ Testar o que se ouve e vê\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo."
     }
   },
   "entity": {
@@ -1144,9 +1144,9 @@
           }
         },
         "progress": {
-          "test_part_1": "**Ler funções**\n\nAgora: {current}\n\n- → Ler funções\n- ○ Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nSó lê; nada muda.",
-          "test_part_2": "**Testar em silêncio**\n\nAgora: {current}\n\n- ✓ Ler funções\n- → Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nTom, imagem, temporizadores e visor mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo.",
-          "test_part_3": "**Testar o que se ouve e vê**\n\nAgora: {current}\n\n- ✓ Ler funções\n- ✓ Testar em silêncio\n- → Testar o que se ouve e vê\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo."
+          "test_part_1": "**Ler funções**\n\nAgora: {current}\n\n→ Ler funções  \n○ Testar em silêncio  \n○ Testar o que se ouve e vê\n\nSó lê; nada muda.",
+          "test_part_2": "**Testar em silêncio**\n\nAgora: {current}\n\n✓ Ler funções  \n→ Testar em silêncio  \n○ Testar o que se ouve e vê\n\nTom, imagem, temporizadores e visor mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo.",
+          "test_part_3": "**Testar o que se ouve e vê**\n\nAgora: {current}\n\n✓ Ler funções  \n✓ Testar em silêncio  \n→ Testar o que se ouve e vê\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo."
         },
         "abort": {
           "test_not_connected": "O recetor não está ligado. O teste de comandos precisa da sua ligação telnet; tente novamente quando estiver ligado."

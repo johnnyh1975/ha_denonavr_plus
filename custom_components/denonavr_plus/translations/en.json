@@ -279,9 +279,9 @@
       "no_hidden_entities": "This receiver has no hidden entities."
     },
     "progress": {
-      "test_part_1": "**Read capabilities**\n\nNow: {current}\n\n- → Read capabilities\n- ○ Test quietly\n- ○ Test what you hear and see\n\nOnly reads; nothing changes.",
-      "test_part_2": "**Test quietly**\n\nNow: {current}\n\n- ✓ Read capabilities\n- → Test quietly\n- ○ Test what you hear and see\n\nTone, picture, timers and the display change for a moment and are put back. Closing the window stops the test and puts everything back.",
-      "test_part_3": "**Test what you hear and see**\n\nNow: {current}\n\n- ✓ Read capabilities\n- ✓ Test quietly\n- → Test what you hear and see\n\nMute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back. Closing the window stops the test and puts everything back."
+      "test_part_1": "**Read capabilities**\n\nNow: {current}\n\n→ Read capabilities  \n○ Test quietly  \n○ Test what you hear and see\n\nOnly reads; nothing changes.",
+      "test_part_2": "**Test quietly**\n\nNow: {current}\n\n✓ Read capabilities  \n→ Test quietly  \n○ Test what you hear and see\n\nTone, picture, timers and the display change for a moment and are put back. Closing the window stops the test and puts everything back.",
+      "test_part_3": "**Test what you hear and see**\n\nNow: {current}\n\n✓ Read capabilities  \n✓ Test quietly  \n→ Test what you hear and see\n\nMute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back. Closing the window stops the test and puts everything back."
     }
   },
   "entity": {
@@ -1144,9 +1144,9 @@
           }
         },
         "progress": {
-          "test_part_1": "**Read capabilities**\n\nNow: {current}\n\n- → Read capabilities\n- ○ Test quietly\n- ○ Test what you hear and see\n\nOnly reads; nothing changes.",
-          "test_part_2": "**Test quietly**\n\nNow: {current}\n\n- ✓ Read capabilities\n- → Test quietly\n- ○ Test what you hear and see\n\nTone, picture, timers and the display change for a moment and are put back. Closing the window stops the test and puts everything back.",
-          "test_part_3": "**Test what you hear and see**\n\nNow: {current}\n\n- ✓ Read capabilities\n- ✓ Test quietly\n- → Test what you hear and see\n\nMute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back. Closing the window stops the test and puts everything back."
+          "test_part_1": "**Read capabilities**\n\nNow: {current}\n\n→ Read capabilities  \n○ Test quietly  \n○ Test what you hear and see\n\nOnly reads; nothing changes.",
+          "test_part_2": "**Test quietly**\n\nNow: {current}\n\n✓ Read capabilities  \n→ Test quietly  \n○ Test what you hear and see\n\nTone, picture, timers and the display change for a moment and are put back. Closing the window stops the test and puts everything back.",
+          "test_part_3": "**Test what you hear and see**\n\nNow: {current}\n\n✓ Read capabilities  \n✓ Test quietly  \n→ Test what you hear and see\n\nMute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back. Closing the window stops the test and puts everything back."
         },
         "abort": {
           "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on."

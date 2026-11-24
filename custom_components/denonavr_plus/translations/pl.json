@@ -279,9 +279,9 @@
       "no_hidden_entities": "Ten amplituner nie ma ukrytych encji."
     },
     "progress": {
-      "test_part_1": "**Odczytaj funkcje**\n\nTeraz: {current}\n\n- → Odczytaj funkcje\n- ○ Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nTylko odczyt; nic się nie zmienia.",
-      "test_part_2": "**Testuj po cichu**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- → Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nBarwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko.",
-      "test_part_3": "**Testuj to, co słychać i widać**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- ✓ Testuj po cichu\n- → Testuj to, co słychać i widać\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko."
+      "test_part_1": "**Odczytaj funkcje**\n\nTeraz: {current}\n\n→ Odczytaj funkcje  \n○ Testuj po cichu  \n○ Testuj to, co słychać i widać\n\nTylko odczyt; nic się nie zmienia.",
+      "test_part_2": "**Testuj po cichu**\n\nTeraz: {current}\n\n✓ Odczytaj funkcje  \n→ Testuj po cichu  \n○ Testuj to, co słychać i widać\n\nBarwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko.",
+      "test_part_3": "**Testuj to, co słychać i widać**\n\nTeraz: {current}\n\n✓ Odczytaj funkcje  \n✓ Testuj po cichu  \n→ Testuj to, co słychać i widać\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko."
     }
   },
   "entity": {
@@ -1144,9 +1144,9 @@
           }
         },
         "progress": {
-          "test_part_1": "**Odczytaj funkcje**\n\nTeraz: {current}\n\n- → Odczytaj funkcje\n- ○ Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nTylko odczyt; nic się nie zmienia.",
-          "test_part_2": "**Testuj po cichu**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- → Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nBarwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko.",
-          "test_part_3": "**Testuj to, co słychać i widać**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- ✓ Testuj po cichu\n- → Testuj to, co słychać i widać\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko."
+          "test_part_1": "**Odczytaj funkcje**\n\nTeraz: {current}\n\n→ Odczytaj funkcje  \n○ Testuj po cichu  \n○ Testuj to, co słychać i widać\n\nTylko odczyt; nic się nie zmienia.",
+          "test_part_2": "**Testuj po cichu**\n\nTeraz: {current}\n\n✓ Odczytaj funkcje  \n→ Testuj po cichu  \n○ Testuj to, co słychać i widać\n\nBarwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko.",
+          "test_part_3": "**Testuj to, co słychać i widać**\n\nTeraz: {current}\n\n✓ Odczytaj funkcje  \n✓ Testuj po cichu  \n→ Testuj to, co słychać i widać\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko."
         },
         "abort": {
           "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony."

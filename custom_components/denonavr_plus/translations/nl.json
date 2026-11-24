@@ -279,9 +279,9 @@
       "no_hidden_entities": "Deze receiver heeft geen verborgen entiteiten."
     },
     "progress": {
-      "test_part_1": "**Functies lezen**\n\nNu: {current}\n\n- → Functies lezen\n- ○ Stil testen\n- ○ Testen wat je hoort en ziet\n\nLeest alleen; er verandert niets.",
-      "test_part_2": "**Stil testen**\n\nNu: {current}\n\n- ✓ Functies lezen\n- → Stil testen\n- ○ Testen wat je hoort en ziet\n\nKlank, beeld, timers en display veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug.",
-      "test_part_3": "**Testen wat je hoort en ziet**\n\nNu: {current}\n\n- ✓ Functies lezen\n- ✓ Stil testen\n- → Testen wat je hoort en ziet\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug."
+      "test_part_1": "**Functies lezen**\n\nNu: {current}\n\n→ Functies lezen  \n○ Stil testen  \n○ Testen wat je hoort en ziet\n\nLeest alleen; er verandert niets.",
+      "test_part_2": "**Stil testen**\n\nNu: {current}\n\n✓ Functies lezen  \n→ Stil testen  \n○ Testen wat je hoort en ziet\n\nKlank, beeld, timers en display veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug.",
+      "test_part_3": "**Testen wat je hoort en ziet**\n\nNu: {current}\n\n✓ Functies lezen  \n✓ Stil testen  \n→ Testen wat je hoort en ziet\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug."
     }
   },
   "entity": {
@@ -1144,9 +1144,9 @@
           }
         },
         "progress": {
-          "test_part_1": "**Functies lezen**\n\nNu: {current}\n\n- → Functies lezen\n- ○ Stil testen\n- ○ Testen wat je hoort en ziet\n\nLeest alleen; er verandert niets.",
-          "test_part_2": "**Stil testen**\n\nNu: {current}\n\n- ✓ Functies lezen\n- → Stil testen\n- ○ Testen wat je hoort en ziet\n\nKlank, beeld, timers en display veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug.",
-          "test_part_3": "**Testen wat je hoort en ziet**\n\nNu: {current}\n\n- ✓ Functies lezen\n- ✓ Stil testen\n- → Testen wat je hoort en ziet\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug."
+          "test_part_1": "**Functies lezen**\n\nNu: {current}\n\n→ Functies lezen  \n○ Stil testen  \n○ Testen wat je hoort en ziet\n\nLeest alleen; er verandert niets.",
+          "test_part_2": "**Stil testen**\n\nNu: {current}\n\n✓ Functies lezen  \n→ Stil testen  \n○ Testen wat je hoort en ziet\n\nKlank, beeld, timers en display veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug.",
+          "test_part_3": "**Testen wat je hoort en ziet**\n\nNu: {current}\n\n✓ Functies lezen  \n✓ Stil testen  \n→ Testen wat je hoort en ziet\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug."
         },
         "abort": {
           "test_not_connected": "De receiver is niet verbonden. De commandotest heeft zijn telnetverbinding nodig; probeer het opnieuw als hij aan staat."
