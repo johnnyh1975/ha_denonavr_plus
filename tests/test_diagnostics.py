@@ -134,3 +134,13 @@ async def test_diagnostics_hold_the_telnet_lines_and_refused_sources(
     result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
     assert result["communication_log"] == ["12:00:00.000 > MS?", "12:00:00.060 < MSSTEREO"]
     assert result["refused_sources"] == {"main": [], "zone2": []}
+
+
+async def test_diagnostics_hold_the_heos_lines(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    loaded_entry: MockConfigEntry,
+) -> None:
+    FakeHeos.instances[-1].log = ["12:00:00.000 < event/player_state_changed pid=202&state=play"]
+    result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
+    assert result["heos_log"] == ["12:00:00.000 < event/player_state_changed pid=202&state=play"]

@@ -2,7 +2,8 @@
 
 This guide walks through Denon AVR Plus the way you use it: getting the
 receiver in, finding your way around, daily use, tailoring it, automations,
-testing a model, moving over from another Denon integration, and what to do
+testing a model, moving over from another Denon integration, voice assistants
+and Apple Home, and what to do
 when something does not work. Each section starts with what you get from it
 and ends with the recommended setting.
 
@@ -26,7 +27,8 @@ Denon AVR Plus with the official integration.
 7. [Test a receiver model](#7-test-a-receiver-model)
 8. [Move over from another Denon integration](#8-move-over-from-another-denon-integration)
 9. [With Music Assistant](#9-with-music-assistant)
-10. [Troubleshooting](#10-troubleshooting)
+10. [Voice assistants and Apple Home](#10-voice-assistants-and-apple-home)
+11. [Troubleshooting](#11-troubleshooting)
 
 ---
 
@@ -360,7 +362,26 @@ input, volume, sound mode, zones).
 Who does what, including the HEOS integration, is in the
 [reference](REFERENCE.md#with-music-assistant-and-the-heos-integration).
 
-## 10. Troubleshooting
+## 10. Voice assistants and Apple Home
+
+Each zone is a media player of the device class *receiver*. Assistants and
+Apple Home show it as a receiver: on and off, volume and mute, and the inputs
+of its source list. What they understand depends on the names you give.
+
+| Assistant | What works | Names |
+|---|---|---|
+| **Assist** (Home Assistant) | On, off, volume, mute, pause and resume by the built-in sentences | Give the zone an alias you say easily ("Wohnzimmer Receiver"). For an input, expose a script that calls *Select media player source* and say the script's name. |
+| **Google Assistant** | On, off, volume, input by name ("set the input on … to Apple TV") | Any input name; keep them short and distinct. |
+| **Alexa** | On, off, volume, input | Alexa knows only a fixed set of input names, such as HDMI 1 to HDMI 10, TV, CD, Phono, Tuner, Game, Blu-ray, DVD, Media Player, Satellite and AUX 1 to AUX 7. Give inputs such names under **Sources** if Alexa should switch them. |
+| **Apple Home** (HomeKit Bridge) | On, off and the input in the Home app and by Siri; volume through the Remote in Control Center | Add each zone in **accessory mode**, one HomeKit Bridge entry per media player; in a shared bridge it shows as a plain switch. |
+
+> **Recommended:** hide the inputs nobody uses and rename the rest to what you
+> say out loud (**Configure → Sources**); every assistant reads the same list.
+> Expose the main zone and the zones you really speak to, not all of them.
+> Settings such as Dynamic EQ are switches and selects of their own; expose
+> only the few you change by voice.
+
+## 11. Troubleshooting
 
 | What you see | Likely cause | What to do |
 |---|---|---|

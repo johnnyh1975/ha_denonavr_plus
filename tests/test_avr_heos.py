@@ -606,3 +606,33 @@ async def test_the_update_check() -> None:
     finally:
         await client.async_stop()
         await server.stop()
+
+
+def test_the_log_leaves_out_payloads_account_and_urls() -> None:
+    """For the diagnostics: what HEOS answered, not who signed in or what played."""
+    client, _ = _client()
+    _feed(client, "system/sign_in", "signed_in&un=user@example.com")
+    _feed(
+        client,
+        "player/get_now_playing_media",
+        "pid=202",
+        payload={"song": "Private Title", "image_url": "http://192.0.2.5/art.jpg"},
+    )
+    client._handle_message(
+        json.dumps(
+            {
+                "heos": {
+                    "command": "browse/play_stream",
+                    "result": "fail",
+                    "message": "eid=9&pid=202&url=http://192.0.2.5/tts.mp3",
+                }
+            }
+        )
+    )
+    lines = [entry.split(" ", 1)[1] for entry in client.log]
+    assert lines == [
+        "< system/sign_in success signed_in&un=…",
+        "< player/get_now_playing_media success pid=202",
+        "< browse/play_stream fail eid=9&pid=202&url=…",
+    ]
+    assert "Private Title" not in str(client.log)

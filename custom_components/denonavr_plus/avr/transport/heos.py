@@ -29,6 +29,7 @@ import json
 import logging
 import time
 from collections import deque
+from datetime import UTC, datetime
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -53,6 +54,10 @@ _COMMAND_SPACING = 0.05
 HEARTBEAT_INTERVAL = 10.0
 HEARTBEAT_TIMEOUT = 5.0
 _HEARTBEAT = "heos://system/heart_beat"
+#: How many HEOS lines the communication log keeps.
+LOG_LINES = 100
+#: Values left out of the log: the account, its password and played URLs.
+_SECRET_KEYS = frozenset({"un", "pw", "url"})
 # A progress report this far from where the position should be (seconds) is
 # a jump worth reporting: a seek, a new track, a stall.
 _POSITION_JUMP = 2.0
@@ -152,6 +157,19 @@ class HeosClient:
         # Music source names by source id, for the now-playing service.
         self._source_names: dict[int, str] = {}
         self._favorites_task: asyncio.Task[None] | None = None
+        # The last commands sent (">") and answers and events received ("<"),
+        # without payloads and without account, password or URLs.
+        self._log: deque[str] = deque(maxlen=LOG_LINES)
+
+    @property
+    def log(self) -> list[str]:
+        """The last HEOS lines sent and received, oldest first, with UTC times."""
+
+        return list(self._log)
+
+    def _record(self, direction: str, text: str) -> None:
+        stamp = datetime.now(UTC).strftime("%H:%M:%S.%f")[:-3]
+        self._log.append(f"{stamp} {direction} {text}")
 
     @property
     def connected(self) -> bool:
@@ -531,6 +549,8 @@ class HeosClient:
         while True:
             command = await self._queue.get()
             self._writer.write(command.encode("utf-8") + _TERMINATOR)
+            path, _, query = command.partition("?")
+            self._record(">", f"{path}?{_redact(query)}" if query else path)
             await self._writer.drain()
             await asyncio.sleep(_COMMAND_SPACING)
 
@@ -560,6 +580,8 @@ class HeosClient:
         heos = message.get("heos", {})
         command = str(heos.get("command", "")).strip()
         attrs = _parse_message(heos.get("message", ""))
+        result = f" {heos['result']}" if heos.get("result") else ""
+        self._record("<", f"{command}{result} {_redact(str(heos.get('message', '')))}".rstrip())
         if not command.startswith("event/"):
             self._answer(command, heos, message)
         if command in _SENT_COMMANDS and heos.get("result"):
@@ -796,3 +818,13 @@ def _parse_message(message: str) -> dict[str, str]:
     if not message:
         return {}
     return {key: values[0] for key, values in parse_qs(message).items() if values}
+
+
+def _redact(message: str) -> str:
+    """A HEOS attribute string with the account, password and URLs left out."""
+
+    parts = []
+    for part in message.split("&") if message else []:
+        key, sep, _value = part.partition("=")
+        parts.append(f"{key}=…" if sep and key in _SECRET_KEYS else part)
+    return "&".join(parts)

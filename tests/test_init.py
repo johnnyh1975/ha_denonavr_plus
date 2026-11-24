@@ -95,6 +95,7 @@ class FakeHeos:
         self.command_results: dict[str, dict[str, str]] = {}
         self.favorites: list[str] = []
         self.update: bool | None = None
+        self.log: list[str] = []
         FakeHeos.instances.append(self)
 
     async def async_set_repeat(self, repeat: str) -> None:

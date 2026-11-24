@@ -61,6 +61,8 @@ async def async_get_config_entry_diagnostics(
         },
         # The last telnet lines, "<" received, ">" sent: what the receiver said.
         "communication_log": device.communication_log,
+        # The same for HEOS, without payloads, account, password or URLs.
+        "heos_log": device.heos_log,
         "state": {
             "system_power": state.system_power,
             "zones": {zone_id: asdict(zone) for zone_id, zone in state.zones.items()},

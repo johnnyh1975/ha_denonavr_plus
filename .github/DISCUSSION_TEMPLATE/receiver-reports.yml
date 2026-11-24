@@ -1,0 +1,53 @@
+title: "[Receiver] "
+labels: ["receiver report"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for telling how Denon AVR Plus works on your receiver. The list
+        of working models in CONTRIBUTING.md is built from these reports.
+        Do not paste addresses, MACs or serial numbers; the diagnostics file
+        replaces them already.
+  - type: input
+    id: model
+    attributes:
+      label: Receiver model
+      placeholder: Denon AVR-X2600H
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Receiver firmware
+      description: Settings → Devices & services → Denon AVR Plus → the receiver's device page.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Denon AVR Plus version
+      placeholder: 0.9.3
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: How well does it work?
+      options:
+        - Works
+        - Works, with limits (say which below)
+        - Does not work
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: What works, what does not
+      description: Zones, sound modes, now playing, settings that are missing or wrong.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics (optional, very welcome)
+      description: >
+        Run the receiver test (Configure → Test the receiver), then ⋮ →
+        Download diagnostics and drag the file here.

@@ -1605,6 +1605,12 @@ class DenonAvrDevice:
 
         return self._telnet.log
 
+    @property
+    def heos_log(self) -> list[str]:
+        """The last HEOS lines sent and received, for the diagnostics."""
+
+        return self._heos.log
+
     def refused_sources(self, zone_id: str) -> frozenset[str]:
         """The sources a zone did not switch to since Home Assistant started."""
 

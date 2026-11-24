@@ -3,7 +3,7 @@
 Bug reports, receiver tests and pull requests are welcome. Back to the
 [README](README.md).
 
-- **Something does not work?** See [troubleshooting](docs/USER_GUIDE.md#10-troubleshooting)
+- **Something does not work?** See [troubleshooting](docs/USER_GUIDE.md#11-troubleshooting)
   first, then [open an issue](https://github.com/johnnyh1975/ha_denonavr_plus/issues)
   with the diagnostics file (Settings → Devices & services → Denon AVR Plus →
   ⋮ → Download diagnostics; addresses are replaced).
@@ -13,17 +13,22 @@ Bug reports, receiver tests and pull requests are welcome. Back to the
   (`bash scripts/check_all.sh`) and the rules for tests, private data and
   protocol facts.
 
-## Receivers the integration was tested on
+## Working models
 
-| Receiver | Firmware | How |
-|---|---|---|
-| Denon AVR-X3600H | 3.88.614 | Protocol verified live by the original author (Home Assistant 2026.7) |
-| Denon AVR-X2600H | 3.139.175 | Capability check and receiver test ([recording](tests/fixtures/command_test/AVR-X2600H.json)) |
-| Denon AVR-X2000 | | Tested by the maintainer; capability check ([recording](tests/fixtures/capability_check/AVR-X2000.json)). Most settings stay hidden on receivers before 2016 for now |
+| Receiver | Firmware | Status | How we know |
+|---|---|---|---|
+| Denon AVR-X3600H | 3.88.614 | Works | Protocol verified live by the original author (Home Assistant 2026.7) |
+| Denon AVR-X2600H | 3.139.175 | Works | Capability check and receiver tests with PCM and Dolby Digital ([recording](tests/fixtures/command_test/AVR-X2600H.json)) |
+| Denon AVR-X2000 | | Works, with limits | Capability check ([recording](tests/fixtures/capability_check/AVR-X2000.json)). Most settings stay hidden, as on receivers before 2016 in general |
 
-Other receivers of the HEOS generation should work, as the integration adapts
-to what the device reports. A run of the receiver test on your model is the
-most useful contribution there is.
+Receivers of the HEOS generation (2016 on) should work, as the integration
+adapts to what the device reports. Receivers from before 2016 work with fewer
+settings. A receiver without a network port cannot be reached at all.
+
+**Report your receiver** in the Discussions category
+[Receiver reports](https://github.com/johnnyh1975/ha_denonavr_plus/discussions/categories/receiver-reports):
+model, firmware and how well it works, with the diagnostics of a receiver
+test if you can. Each report goes into this list.
 
 ## Test the receiver
 

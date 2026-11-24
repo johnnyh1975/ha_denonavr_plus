@@ -3,3 +3,6 @@ contact_links:
   - name: Documentation
     url: https://github.com/johnnyh1975/ha_denonavr_plus#readme
     about: Setup, supported receivers and troubleshooting.
+  - name: Receiver report
+    url: https://github.com/johnnyh1975/ha_denonavr_plus/discussions/categories/receiver-reports
+    about: Your receiver works (or does not)? Tell it here for the list of working models.

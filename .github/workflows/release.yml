@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # Every tag, for the comparison with the previous release in the
           # release body (scripts/build_release_body.py).
@@ -64,7 +64,7 @@ jobs:
       # Release gate: the full suite on the supported minimum must pass
       # before anything is packaged. Same suite as validate.yml.
       - name: Set up Python 3.14
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.14"
 
@@ -130,7 +130,7 @@ jobs:
           zip -r "${GITHUB_WORKSPACE}/ha_denonavr_plus-${{ steps.version.outputs.tag }}-full.zip" .
 
       - name: Create GitHub Release with assets
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           # The commit this run built, not the default branch.

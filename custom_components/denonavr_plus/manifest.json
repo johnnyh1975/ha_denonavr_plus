@@ -4,6 +4,9 @@
   "after_dependencies": [
     "media_source"
   ],
+  "categories": [
+    "media_entertainment.speakers_audio"
+  ],
   "codeowners": [
     "@johnnyh1975"
   ],
