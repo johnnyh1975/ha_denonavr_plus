@@ -73,7 +73,7 @@ and Denon AVR Plus is disabled. Enable or delete it afterwards.
 What looks different afterwards:
 
 - **Many entities start disabled.** Only the everyday controls are enabled
-  (see "Enabled and disabled entities" in the README). Speaker, video and
+  (see [Enabled and disabled entities](REFERENCE.md#enabled-and-disabled-entities)). Speaker, video and
   picture setup, the graphic EQ, volume limits and the fast-changing signal
   sensors are there but off. An entity taken over keeps its state (an
   enabled one stays enabled).

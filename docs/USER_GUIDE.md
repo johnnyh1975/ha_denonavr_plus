@@ -6,8 +6,9 @@ testing a model, moving over from another Denon integration, and what to do
 when something does not work. Each section starts with what you get from it
 and ends with the recommended setting.
 
-The reference for every entity, option and action is the
-[README](../README.md); this guide links to it where details matter.
+The [reference](REFERENCE.md) lists every entity, option and action; this
+guide links to it where details matter. The [README](../README.md) compares
+Denon AVR Plus with the official integration.
 
 > The screenshots come from Home Assistant 2026.10 talking to a simulated
 > AVC-X3700H ([tools/simulate_receiver.py](../tools/simulate_receiver.py)),
@@ -39,7 +40,7 @@ the receiver and on your network:
 | **Network standby on** | Only then does a receiver in standby answer on the network, so Home Assistant can turn it on. | Receiver menu: Setup → Network → **Network Control** (older models: **IP Control**), set to *Always On*. |
 | **A fixed address** | Home Assistant follows a new address by itself, but a fixed one avoids gaps. | Your router: a DHCP reservation for the receiver. |
 | **One integration at a time** | Many receivers accept only one control connection (telnet). Two integrations on the same receiver disturb each other. | Coming from another Denon integration? Let Denon AVR Plus [take it over](#8-move-over-from-another-denon-integration). |
-| **Ports 23 and 8080 open** | Telnet (23) carries control and live updates, HTTP (8080, or 80 before 2016) discovery. | Only if Home Assistant and the receiver are in different VLANs: allow these from Home Assistant to the receiver. The optional ports are in the [README](../README.md#network-ports-and-protocols). |
+| **Ports 23 and 8080 open** | Telnet (23) carries control and live updates, HTTP (8080, or 80 before 2016) discovery. | Only if Home Assistant and the receiver are in different VLANs: allow these from Home Assistant to the receiver. The optional ports are in the [reference](REFERENCE.md#network-ports-and-protocols). |
 
 Then install Denon AVR Plus through HACS and restart Home Assistant (see
 [Installation](../README.md#installation)).
@@ -105,7 +106,7 @@ the graphic EQ, volume limits and the fast-changing signal sensors are
 there but hidden. Show a single one from its device page (*+N disabled
 entities*), or a whole group at once from the options (see
 [Entities](#entities)). The full list is under
-[Enabled and disabled entities](../README.md#enabled-and-disabled-entities).
+[Enabled and disabled entities](REFERENCE.md#enabled-and-disabled-entities).
 
 Two things work differently from what you might expect:
 
@@ -249,7 +250,7 @@ Good practice for your own:
 - **Receiver without network standby?** Build an automation on the device
   trigger **Turn on requested while the receiver does not answer** that
   switches it on by infrared or HDMI-CEC (see
-  [Device trigger](../README.md#device-trigger-turn-on-requested)).
+  [Device trigger](REFERENCE.md#device-trigger-turn-on-requested)).
 
 ## 7. Test a receiver model
 
@@ -348,7 +349,7 @@ input, volume, sound mode, zones).
 > integration.
 
 Who does what, including the HEOS integration, is in the
-[README](../README.md#with-music-assistant-and-the-heos-integration).
+[reference](REFERENCE.md#with-music-assistant-and-the-heos-integration).
 
 ## 10. Troubleshooting
 

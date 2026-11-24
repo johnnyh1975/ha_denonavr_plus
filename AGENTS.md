@@ -20,6 +20,8 @@ without a telnet command, and HEOS (port 1255) for now playing.
 | Repository checks | `scripts/check_*.py` |
 | Read-only probe of a receiver's capabilities | `tools/probe_receiver.py` |
 | Release notes, one file per version | `release-notes/` |
+| User guide (with screenshots) and reference | `docs/USER_GUIDE.md`, `docs/REFERENCE.md` |
+| How to contribute and test a receiver | `CONTRIBUTING.md` |
 | Upgrade notes | `docs/UPGRADING.md` |
 
 ## Before you open a pull request

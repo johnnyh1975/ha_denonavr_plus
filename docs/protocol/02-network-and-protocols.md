@@ -110,8 +110,7 @@ Sources disagree, and the answer probably depends on the model:
 | marantz-denon-mqtt (Cinema 70s) | One connection; the second fails silently |
 | denon2mqtt (AVR-X2500H) | One connection at a time |
 | ha-denon-marantz-avr | Receivers "only reliably support one Telnet client"; runs everything over one session |
-| This repository's README, "Network ports and protocols" | Several connections, events sent to all |
-| This repository's README, introduction | Many receivers accept only one session |
+| This repository's [reference](../REFERENCE.md#network-ports-and-protocols) | Plan for one connection until tested |
 
 Until the [test](09-status-diagnostics-and-discovery.md#test-concurrent-telnet-sessions)
 has been run on both receivers, treat port 23 as single-client: only one of

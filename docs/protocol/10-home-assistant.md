@@ -94,7 +94,6 @@ The open findings of this analysis, with the roadmap item they belong to.
 | HEOS `play_stream?url=` documented since CLI 1.9 | Basis for `play_media` and announcements | 14, 21 (To test) |
 | HEOS `check_update` documented since CLI 1.10 | Basis for the `update` entity | 31 (To test) |
 | HEOS `player_now_playing_progress` ignored | Position and duration missing | 23 |
-| README says both "one telnet session" and "several sessions" | Users get contradictory advice | 34, after the concurrency test |
 | Official entity unique ids `{model}-{serial}-{zone}` | Key for taking over entity ids | 18 |
 | Quick Select numbers beyond the advertised count | A Marantz became unstable after an out-of-range recall | 13, 30 |
 | Live sound mode list and video signal via `/ajax/control` and `/ajax/info` | Better sound mode handling, video sensors | 30, 39 (To test on 10443) |
