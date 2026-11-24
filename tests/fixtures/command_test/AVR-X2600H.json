@@ -9,7 +9,7 @@
   "main_zone_on": true,
   "turned_on_for_test": false,
   "context": {
-    "sound_mode": "MCH STEREO",
+    "sound_mode": "M CH IN+DSUR",
     "multeq": "AUDYSSEY",
     "tone_control": false,
     "picture_mode": "OFF",
@@ -358,17 +358,17 @@
       "group": "quiet",
       "result": "no_value",
       "lines": [
-        "SSHOSIPS OFF",
-        "SSHOSCONPOF ALL",
-        "SSHOSIPM AUT",
-        "SSHOSPAS OFF",
-        "SSHOSTAS ON",
         "SSHOSCONARC OFF",
         "SSHOSCONPSV OFF",
         "SSHOSSMN OFF",
         "SSHOSRSS POS",
         "SSHOSCON ON",
         "SSHOSCONSTS LAS",
+        "SSHOSIPS OFF",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT",
+        "SSHOSPAS OFF",
+        "SSHOSTAS ON",
         "SSHOS END"
       ]
     },
@@ -470,6 +470,7 @@
         "PVENH 00",
         "PVENH 01",
         "PVENH 01",
+        "PVENH 01",
         "PVENH 00",
         "PVENH 00"
       ]
@@ -544,10 +545,10 @@
         "SSVCTZMALIM OFF",
         "SSVCTZMAPON LAS",
         "SSVCTZMAMLV 040",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS",
         "SSVCTZMADIS ABS",
         "SSVCTZMAMLV 040",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
         "SSVCTZMAMLV MUT",
         "SSVCTZMADIS ABS",
         "SSVCTZMAMLV MUT",
@@ -617,22 +618,22 @@
     },
     "main_volume": {
       "group": "quiet",
-      "before": 32.5,
-      "written": 32.0,
-      "after": 32.0,
+      "before": 46.0,
+      "written": 45.5,
+      "after": 45.5,
       "result": "confirmed",
       "restored": true,
       "lines": [
-        "MV325",
-        "MVMAX 615",
-        "MV32",
-        "MVMAX 615",
-        "MV32",
-        "MVMAX 615",
-        "MV325",
-        "MVMAX 615",
-        "MV325",
-        "MVMAX 615"
+        "MV46",
+        "MVMAX 73",
+        "MV455",
+        "MVMAX 73",
+        "MV455",
+        "MVMAX 73",
+        "MV46",
+        "MVMAX 73",
+        "MV46",
+        "MVMAX 73"
       ]
     },
     "zone2_sleep_timer": {
@@ -801,13 +802,14 @@
       "result": "confirmed",
       "restored": true,
       "lines": [
-        "MSMCH STEREO",
+        "MSM CH IN+DSUR",
         "MNZST ON",
         "MSALL ZONE STEREO",
         "MSALL ZONE STEREO",
+        "MSM CH IN+DSUR",
         "MNZST OFF",
-        "MSMCH STEREO",
-        "MSMCH STEREO"
+        "MSM CH IN+DSUR",
+        "MSM CH IN+DSUR"
       ]
     },
     "zone2_quick_select": {
@@ -817,22 +819,25 @@
     },
     "zone2_follow_main": {
       "group": "audible",
-      "before": "SOURCE",
-      "written": "AUX2",
+      "before": "NET",
+      "written": "SOURCE",
       "after": "SOURCE",
-      "result": "no_effect",
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "Z2OFF",
-        "Z2SOURCE",
-        "Z232",
-        "Z2OFF",
-        "Z2SOURCE",
+        "Z2NET",
         "Z232",
         "Z2ON",
-        "Z2SLPOFF",
-        "Z2OFF",
         "Z2SOURCE",
+        "Z2SLPOFF",
+        "Z2ON",
+        "Z2SOURCE",
+        "Z232",
+        "Z2SLPOFF",
+        "Z2NET",
+        "Z2OFF",
+        "Z2NET",
         "Z232"
       ]
     },
@@ -847,5 +852,5 @@
       "reason": "tuner_not_playing"
     }
   },
-  "tested_at": "2026-11-24T16:38:42.276910+00:00"
+  "tested_at": "2026-11-24T16:55:42.288700+00:00"
 }

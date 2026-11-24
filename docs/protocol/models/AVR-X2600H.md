@@ -76,7 +76,8 @@ What the answers show:
 - **`STBY` and `BTTX`** answer in the forms the integration expects
   (`STBY15M`; `BTTX OFF` and `BTTX SP`). `TR` (triggers) and `SSTTR`
   (tactile transducer) got no reply.
-- **`MNZST ?`** (All Zone Stereo) got no reply, unlike on the AVR-X3600H.
+- **`MNZST ?`** (All Zone Stereo) got no reply, unlike on the AVR-X3600H;
+  switching it works and is reported.
 - **Video mode.** The receiver lists Auto, Game, Movie and Bypass;
   `VSVPM` answered `AUTO`. The token for Bypass is not known yet.
 
@@ -119,6 +120,14 @@ effect, as the documents lead one to expect:
 - Front speaker B cannot be chosen while amp assign is Zone 2.
 - Digital input mode does not exist on an HDMI-only input; the command test
   now chooses Auto.
+- A second run in Multi In + Dolby Surround with 5.1 PCM gave the same
+  results. Center Spread stayed without effect there too: it acts when two
+  channels are upmixed. Neural:X acts in its own mode.
+- The HDMI resolution was not taken; the receiver reported the i/p scaler
+  off (`SSHOSIPS OFF`), which probably leaves the resolution unused.
+- Zone 2 following the main zone (`Z2SOURCE`) was taken while the main zone
+  played an HDMI input. All Zone Stereo was taken and reported as
+  `MNZST ON` and `MSALL ZONE STEREO`, although `MNZST ?` gets no reply.
 
 ## Open points
 
@@ -129,7 +138,8 @@ effect, as the documents lead one to expect:
 | `SW2` with two subwoofers configured | To test |
 | `VSMONI` values other than `AUTO` | To test |
 | Independent `NET` playback in Zone 2 | Confirmed: Zone 2 played Amazon Music through HEOS while the main zone played an HDMI source |
-| Zone 2 playing an HDMI source | To test |
+| Zone 2 playing an HDMI source (`Z2SOURCE` is taken; is there sound?) | To test |
+| HDMI resolution with the i/p scaler on | To test |
 | `PSDIL`, `PSRSZ` (documented for all four 2015 models, no reply) | To test in a surround mode |
 | `TFANNAME?` while the tuner plays | To test |
 | Writing `SSALSSET ON` and `OFF` | To test |
