@@ -124,7 +124,9 @@ source sensor, and the zone's sleep timer, front left and right level, quick
 select and auto standby where the receiver answers them, so you can put it in the room where it
 plays. A zone that is
 switched off loses its device and entities; switching it on again brings them
-back.
+back. **Main zone off puts the receiver in standby**: turning the main zone off
+from Home Assistant then puts the whole receiver in standby (`PWSTANDBY`), so
+no other zone keeps playing; without it, only the main zone turns off.
 
 **Sources** (needs the receiver connected, it reads its sources): per zone,
 which sources the media player offers, then a name for each in Home
@@ -218,8 +220,11 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   and older) show title, artist, album and cover from their on-screen list and
   take play, pause, stop and skip over telnet. The tuner shows its station or
   frequency and the recalled preset; skip steps through the presets. On any
-  other input the player shows the input's name, with the sound mode below it,
+  other input the player shows the input's name, with the sound mode and the
+  signal (decoder and sample rate, such as `DOLBY TRUEHD · 48 kHz`) below it,
   and a source‑aware **input icon** (TV, disc, tuner, Bluetooth, USB, cast, …).
+  The main zone's **quick selects** follow the inputs in the source menu, by
+  their names; picking one recalls it.
   Play, pause and skip show only while a network source plays (on the tuner,
   skip only). Zone 2 on the main zone's source (or on a network source) shows
   what plays there and takes play, pause and skip too.

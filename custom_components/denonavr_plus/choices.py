@@ -26,6 +26,9 @@ OPT_SOURCE_NAMES = "source_names"
 OPT_SOUND_MODES = "sound_modes"
 OPT_SOUND_MODE_NAMES = "sound_mode_names"
 OPT_ZONES = "zones"
+#: Turning the main zone off puts the whole receiver in standby (PWSTANDBY),
+#: so no other zone keeps playing.
+OPT_MAIN_OFF_STANDBY = "main_off_standby"
 
 MAIN_ZONE = "main"
 

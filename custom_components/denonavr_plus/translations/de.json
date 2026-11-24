@@ -126,10 +126,12 @@
         "title": "Zonen",
         "description": "Welche weiteren Zonen in Home Assistant Entitäten bekommen. Am Receiver ändert sich nichts.",
         "data": {
-          "zones": "Angezeigte Zonen"
+          "zones": "Angezeigte Zonen",
+          "main_off_standby": "Hauptzone aus schaltet den Receiver in Standby"
         },
         "data_description": {
-          "zones": "Eine nicht gewählte Zone hat keinen Media Player, keine Lautstärke und keinen Quellen-Sensor; ihre Entitäten werden entfernt."
+          "zones": "Eine nicht gewählte Zone hat keinen Media Player, keine Lautstärke und keinen Quellen-Sensor; ihre Entitäten werden entfernt.",
+          "main_off_standby": "Schaltet Home Assistant die Hauptzone aus, geht der ganze Receiver in Standby, und keine andere Zone spielt weiter. Ohne diese Option schaltet nur die Hauptzone aus."
         }
       },
       "sources": {

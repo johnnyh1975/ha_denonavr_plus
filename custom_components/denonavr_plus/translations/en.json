@@ -126,10 +126,12 @@
         "title": "Zones",
         "description": "Which additional zones get entities in Home Assistant. The receiver is not changed.",
         "data": {
-          "zones": "Zones shown"
+          "zones": "Zones shown",
+          "main_off_standby": "Main zone off puts the receiver in standby"
         },
         "data_description": {
-          "zones": "A zone that is not selected has no media player, volume or source sensor; its entities are removed."
+          "zones": "A zone that is not selected has no media player, volume or source sensor; its entities are removed.",
+          "main_off_standby": "Turning the main zone off from Home Assistant puts the whole receiver in standby, so no other zone keeps playing. Without it, only the main zone turns off."
         }
       },
       "sources": {

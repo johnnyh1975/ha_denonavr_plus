@@ -126,10 +126,12 @@
         "title": "Zones",
         "description": "Welke extra zones entiteiten in Home Assistant krijgen. De receiver wordt niet gewijzigd.",
         "data": {
-          "zones": "Getoonde zones"
+          "zones": "Getoonde zones",
+          "main_off_standby": "Hoofdzone uit zet de receiver op stand-by"
         },
         "data_description": {
-          "zones": "Een niet gekozen zone heeft geen mediaspeler, volume of bronsensor; de entiteiten ervan worden verwijderd."
+          "zones": "Een niet gekozen zone heeft geen mediaspeler, volume of bronsensor; de entiteiten ervan worden verwijderd.",
+          "main_off_standby": "Zet Home Assistant de hoofdzone uit, dan gaat de hele receiver op stand-by en speelt geen andere zone door. Zonder deze optie gaat alleen de hoofdzone uit."
         }
       },
       "sources": {

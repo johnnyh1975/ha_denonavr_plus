@@ -835,3 +835,55 @@ async def test_choosing_a_source_turns_the_zone_on_first(
             "media_player", "select_source", {"entity_id": main, "source": "CD"}, blocking=True
         )
     assert telnet.sent[0] == "ZMON" and telnet.sent[-1] == "SICD"
+
+
+async def test_quick_selects_sit_in_the_source_menu(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """As the HEOS integration lists its favorites: pick "Kino" from the source menu."""
+    device = loaded_entry.runtime_data.device
+    device.discovery.quick_select_names = {1: "Kino", 2: "CD", 3: "Radio"}
+    await _push(hass, "PWON", "ZMON", "SICD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    sources = hass.states.get(main).attributes["source_list"]
+    # A quick select named like an input stays out: the input wins.
+    assert sources[-2:] == ["Kino", "Radio"] and sources.count("CD") == 1
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    assert "Kino" not in hass.states.get(zone2).attributes["source_list"]
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player", "select_source", {"entity_id": main, "source": "Radio"}, blocking=True
+    )
+    assert telnet.sent == ["MSQUICK3"]
+
+
+async def test_an_input_shows_its_signal_below(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "SIDVD", "SYSDA DOLBY TRUEHD   ", "SSINFAISFSV48K")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD · 48 kHz"
+    await _push(hass, "SSINFAISFSVNON")
+    assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD"
+
+
+async def test_main_off_can_put_the_whole_receiver_in_standby(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "Z2ON")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    assert telnet.sent == ["ZMOFF"]
+
+    hass.config_entries.async_update_entry(loaded_entry, options={"main_off_standby": True})
+    await hass.async_block_till_done()
+    await _push(hass, "PWON", "ZMON", "Z2ON")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    assert telnet.sent == ["PWSTANDBY"]

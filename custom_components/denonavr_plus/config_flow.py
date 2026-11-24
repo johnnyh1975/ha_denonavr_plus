@@ -56,6 +56,7 @@ from .capabilities import OPT_CHECK_PENDING, CapabilityCheckSteps, known_model
 from .coordinator import connection_options
 from . import choices
 from .choices import (
+    OPT_MAIN_OFF_STANDBY,
     OPT_SOUND_MODE_NAMES,
     OPT_SOUND_MODES,
     OPT_SOURCE_NAMES,
@@ -535,8 +536,14 @@ class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
         if not additional:
             return self.async_abort(reason="no_additional_zones")
         if user_input is not None:
-            return self._save({OPT_ZONES: list(user_input[OPT_ZONES])})
+            return self._save(
+                {
+                    OPT_ZONES: list(user_input[OPT_ZONES]),
+                    OPT_MAIN_OFF_STANDBY: bool(user_input.get(OPT_MAIN_OFF_STANDBY, False)),
+                }
+            )
         current = stored if stored is not None else additional
+        standby = bool(self.config_entry.options.get(OPT_MAIN_OFF_STANDBY, False))
         return self.async_show_form(
             step_id="zones",
             data_schema=vol.Schema(
@@ -548,7 +555,8 @@ class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
                             mode=SelectSelectorMode.LIST,
                             translation_key="zone",
                         )
-                    )
+                    ),
+                    vol.Required(OPT_MAIN_OFF_STANDBY, default=standby): BooleanSelector(),
                 }
             ),
         )

@@ -126,10 +126,12 @@
         "title": "Strefy",
         "description": "Które dodatkowe strefy mają encje w Home Assistant. Amplituner nie jest zmieniany.",
         "data": {
-          "zones": "Wyświetlane strefy"
+          "zones": "Wyświetlane strefy",
+          "main_off_standby": "Wyłączenie strefy głównej przełącza amplituner w czuwanie"
         },
         "data_description": {
-          "zones": "Strefa, która nie jest wybrana, nie ma odtwarzacza, głośności ani czujnika źródła; jej encje są usuwane."
+          "zones": "Strefa, która nie jest wybrana, nie ma odtwarzacza, głośności ani czujnika źródła; jej encje są usuwane.",
+          "main_off_standby": "Wyłączenie strefy głównej z Home Assistant przełącza cały amplituner w tryb czuwania, więc żadna inna strefa nie gra dalej. Bez tej opcji wyłącza się tylko strefa główna."
         }
       },
       "sources": {

@@ -126,10 +126,12 @@
         "title": "Zones",
         "description": "Quelles zones supplémentaires ont des entités dans Home Assistant. L'ampli-tuner n'est pas modifié.",
         "data": {
-          "zones": "Zones affichées"
+          "zones": "Zones affichées",
+          "main_off_standby": "Éteindre la zone principale met l'ampli-tuner en veille"
         },
         "data_description": {
-          "zones": "Une zone non sélectionnée n'a ni lecteur multimédia, ni volume, ni capteur de source ; ses entités sont supprimées."
+          "zones": "Une zone non sélectionnée n'a ni lecteur multimédia, ni volume, ni capteur de source ; ses entités sont supprimées.",
+          "main_off_standby": "Éteindre la zone principale depuis Home Assistant met tout l'ampli-tuner en veille, aucune autre zone ne continue de jouer. Sans cette option, seule la zone principale s'éteint."
         }
       },
       "sources": {

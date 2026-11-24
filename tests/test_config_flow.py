@@ -607,9 +607,12 @@ async def test_zones_can_be_switched_off(
 ) -> None:
     result = await _options_step(hass, loaded_entry, "zones")
     assert result["step_id"] == "zones"
-    result = await hass.config_entries.options.async_configure(result["flow_id"], {"zones": []})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"zones": [], "main_off_standby": True}
+    )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert loaded_entry.options["zones"] == []
+    assert loaded_entry.options["main_off_standby"] is True
     # A change of zones reloads the entry; let it finish inside the test, or
     # it runs during teardown without the fake receiver.
     await hass.async_block_till_done()

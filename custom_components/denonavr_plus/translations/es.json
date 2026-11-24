@@ -126,10 +126,12 @@
         "title": "Zonas",
         "description": "Qué zonas adicionales tienen entidades en Home Assistant. El receptor no se modifica.",
         "data": {
-          "zones": "Zonas mostradas"
+          "zones": "Zonas mostradas",
+          "main_off_standby": "Apagar la zona principal pone el receptor en espera"
         },
         "data_description": {
-          "zones": "Una zona no seleccionada no tiene reproductor multimedia, volumen ni sensor de fuente; sus entidades se eliminan."
+          "zones": "Una zona no seleccionada no tiene reproductor multimedia, volumen ni sensor de fuente; sus entidades se eliminan.",
+          "main_off_standby": "Al apagar la zona principal desde Home Assistant, todo el receptor pasa a espera y ninguna otra zona sigue sonando. Sin esta opción solo se apaga la zona principal."
         }
       },
       "sources": {

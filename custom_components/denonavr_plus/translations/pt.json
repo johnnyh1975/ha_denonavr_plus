@@ -126,10 +126,12 @@
         "title": "Zonas",
         "description": "Que zonas adicionais têm entidades no Home Assistant. O recetor não é alterado.",
         "data": {
-          "zones": "Zonas mostradas"
+          "zones": "Zonas mostradas",
+          "main_off_standby": "Desligar a zona principal põe o recetor em espera"
         },
         "data_description": {
-          "zones": "Uma zona não selecionada não tem leitor multimédia, volume nem sensor de fonte; as suas entidades são removidas."
+          "zones": "Uma zona não selecionada não tem leitor multimédia, volume nem sensor de fonte; as suas entidades são removidas.",
+          "main_off_standby": "Ao desligar a zona principal a partir do Home Assistant, todo o recetor entra em espera e nenhuma outra zona continua a tocar. Sem esta opção só a zona principal se desliga."
         }
       },
       "sources": {

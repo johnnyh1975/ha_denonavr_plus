@@ -126,10 +126,12 @@
         "title": "Zone",
         "description": "Quali zone aggiuntive hanno entità in Home Assistant. Il sintoamplificatore non viene modificato.",
         "data": {
-          "zones": "Zone mostrate"
+          "zones": "Zone mostrate",
+          "main_off_standby": "Spegnere la zona principale mette il sintoamplificatore in standby"
         },
         "data_description": {
-          "zones": "Una zona non selezionata non ha lettore multimediale, volume né sensore della sorgente; le sue entità vengono rimosse."
+          "zones": "Una zona non selezionata non ha lettore multimediale, volume né sensore della sorgente; le sue entità vengono rimosse.",
+          "main_off_standby": "Spegnendo la zona principale da Home Assistant, tutto il sintoamplificatore va in standby e nessun'altra zona continua a suonare. Senza questa opzione si spegne solo la zona principale."
         }
       },
       "sources": {

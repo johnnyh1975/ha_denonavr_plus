@@ -334,7 +334,26 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def source_list(self) -> list[str]:
-        return choices.source_list(self._device.discovery, self._entry_options, self._zone.id)
+        """The zone's inputs, then the main zone's quick selects by name.
+
+        Picking a quick select from the source menu recalls it, as the HEOS
+        integration does with its favorites.
+        """
+
+        sources = choices.source_list(self._device.discovery, self._entry_options, self._zone.id)
+        return sources + [name for name in self._quick_select_sources() if name not in sources]
+
+    def _quick_select_sources(self) -> dict[str, int]:
+        """Quick select name -> number, for the main zone's source menu."""
+
+        if not self._zone.is_main:
+            return {}
+        sources = set(choices.source_list(self._device.discovery, self._entry_options, self._zone.id))
+        named: dict[str, int] = {}
+        for number, name in sorted(self._device.discovery.quick_select_names.items()):
+            if name and name not in sources:
+                named.setdefault(name, number)
+        return named
 
     @property
     def sound_mode(self) -> str | None:
@@ -444,15 +463,30 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         return self.sound_mode
 
     @property
+    def media_album_name(self) -> str | None:
+        """The album, or else the signal of an input: decoder and sample rate.
+
+        Only for inputs: on a network source the album is the album.
+        """
+
+        now = self._now_playing
+        if now and now.active:
+            return now.album
+        if not self._zone.is_main or not self._zone_state.power or self._tuner_title:
+            return None
+        readonly = self.coordinator.data.readonly
+        parts = [
+            str(value).strip()
+            for value in (readonly.get("decoder"), _sample_rate(readonly.get("sample_rate")))
+            if value
+        ]
+        return " · ".join(parts) or None
+
+    @property
     def media_channel(self) -> str | None:
         """The station (or frequency) while the tuner plays."""
 
         return self._tuner_title
-
-    @property
-    def media_album_name(self) -> str | None:
-        now = self._now_playing
-        return now.album if now and now.active else None
 
     @property
     def media_position(self) -> int | None:
@@ -531,6 +565,10 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             # Shown as off already (only with a turn-on automation): an
             # automation that switches everything off must not fail here.
             return
+        if self._zone.is_main and self._entry_options.get(choices.OPT_MAIN_OFF_STANDBY):
+            # The whole receiver: no other zone keeps playing.
+            await self._device.async_set_system_power(False)
+            return
         await self._device.async_set_power(self._zone.id, False)
 
     @receiver_action
@@ -594,6 +632,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     async def async_select_source(self, source: str) -> None:
         code = choices.source_code_for(self._device.discovery, self._entry_options, source)
         await self._ensure_on()
+        if code is None and (number := self._quick_select_sources().get(source)):
+            await self._device.async_select_quick_select(number)
+            return
         await self._device.async_select_source(self._zone.id, code or source)
 
     @receiver_action
@@ -940,3 +981,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @receiver_action
     async def async_set_shuffle(self, shuffle: bool) -> None:
         await self._device.async_media_shuffle(shuffle)
+
+
+def _sample_rate(token: object) -> str | None:
+    """'48K' -> '48 kHz', '44.1K' -> '44.1 kHz'; other tokens as they are."""
+
+    if not isinstance(token, str) or not token.strip():
+        return None
+    token = token.strip()
+    if token.upper().endswith("K") and token[:-1].replace(".", "", 1).isdigit():
+        return f"{token[:-1]} kHz"
+    return token
