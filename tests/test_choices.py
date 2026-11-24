@@ -35,6 +35,18 @@ def test_a_renamed_source_maps_back_to_its_code() -> None:
     assert choices.source_code_for(discovery, options, "Kino") == "BD"
     # The receiver's name still works, for older automations.
     assert choices.source_code_for(discovery, {}, "Blu-ray") == "BD"
+    # Case, spaces and the code itself do not matter; an unknown name is None.
+    assert choices.source_code_for(discovery, options, "  kino ") == "BD"
+    assert choices.source_code_for(discovery, options, "bd") == "BD"
+    assert choices.source_code_for(discovery, options, "Kinoo") is None
+
+
+def test_a_sound_mode_is_found_in_any_case() -> None:
+    options = {choices.OPT_SOUND_MODE_NAMES: {"Dolby Surround": "Film"}}
+    known = ["Stereo", "Dolby Surround"]
+    assert choices.sound_mode_match(options, "film", known) == "Dolby Surround"
+    assert choices.sound_mode_match(options, "STEREO", known) == "Stereo"
+    assert choices.sound_mode_match(options, "Stero", known) is None
 
 
 def test_sound_modes_are_filtered_renamed_and_keep_the_current_one() -> None:

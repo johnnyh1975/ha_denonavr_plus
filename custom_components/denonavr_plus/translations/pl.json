@@ -1060,8 +1060,14 @@
     }
   },
   "exceptions": {
+    "unknown_source": {
+      "message": "{model} nie ma źródła o nazwie {source}. Wybierz jedno z: {options}."
+    },
+    "unknown_sound_mode": {
+      "message": "{model} nie oferuje teraz trybu dźwięku o nazwie {sound_mode}. Wybierz jeden z: {options}."
+    },
     "source_not_taken": {
-      "message": "{model} nie przełączył tej strefy na {source}. W wielu amplitunerach strefa 2 nie odtwarza wejść HDMI. {source} nie pojawi się na liście tej strefy do ponownego uruchomienia Home Assistant; ukryj je na stałe w opcjach integracji, w sekcji Źródła."
+      "message": "{model} nie przełączył tej strefy na {source}. W wielu amplitunerach strefa 2 nie odtwarza wejść HDMI. {source} nie jest już na liście tej strefy; przywróć je w opcjach integracji, w sekcji Źródła."
     },
     "setup_write_failed": {
       "message": "{model} nie przyjął ustawienia. Zamknij menu konfiguracji na telewizorze, jeśli jest otwarte, sprawdź, czy blokada konfiguracji amplitunera jest wyłączona, i spróbuj ponownie."

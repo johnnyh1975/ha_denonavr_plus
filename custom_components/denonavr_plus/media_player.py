@@ -44,7 +44,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import artwork, choices, heos_media
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
-from .avr.errors import CommandNotSent
+from .avr.errors import CommandNotSent, SourceNotTaken
 from .avr.transport.heos import HeosClient, HeosCommandError
 from .const import DOMAIN
 from .avr.models import NowPlaying, ZoneDescriptor, ZoneSnapshot, ZoneState
@@ -728,22 +728,96 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @receiver_action
     async def async_select_source(self, source: str) -> None:
         code = choices.source_code_for(self._device.discovery, self._entry_options, source)
-        await self._ensure_on()
-        if code is None and (number := self._quick_select_sources().get(source)):
-            await self._device.async_select_quick_select(number)
-            return
+        key = choices.normalized(source)
+        if code is None and not self._zone.is_main and key == choices.normalized(FOLLOW_MAIN):
+            code = FOLLOW_MAIN
+        quick = _named(self._quick_select_sources(), key) if code is None else None
         heos = self._device.heos
-        if code is None and heos is not None and (favorite := self._favorite_sources().get(source)):
+        favorite = (
+            _named(self._favorite_sources(), key) if code is None and quick is None else None
+        )
+        if code is None and quick is None and (favorite is None or heos is None):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_source",
+                translation_placeholders={
+                    "model": self._model_name,
+                    "source": source,
+                    "options": ", ".join(self.source_list),
+                },
+            )
+        await self._ensure_on()
+        if quick is not None:
+            await self._device.async_select_quick_select(quick)
+            return
+        if favorite is not None and heos is not None:
             await heos_media.async_play(heos, f"heos_favorite/{favorite}", None)
             return
-        await self._device.async_choose_source(self._zone.id, code or source)
+        assert code is not None
+        try:
+            await self._device.async_choose_source(self._zone.id, code)
+        except SourceNotTaken:
+            self._hide_source(code)
+            raise
+
+    @property
+    def _model_name(self) -> str:
+        return self._device.discovery.device.model_name or "Denon AVR"
+
+    def _hide_source(self, code: str) -> None:
+        """Take a source the zone refused out of its list, for good.
+
+        Under Configure → Sources, where it can be put back.
+        """
+
+        entry = self.coordinator.config_entry
+        if entry is None:
+            return
+        options = dict(entry.options)
+        selection = dict(options.get(choices.OPT_SOURCES) or {})
+        chosen = selection.get(self._zone.id) or [
+            source.code for source in self._device.discovery.visible_sources()
+        ]
+        selection[self._zone.id] = [item for item in chosen if item != code]
+        options[choices.OPT_SOURCES] = selection
+        self.hass.config_entries.async_update_entry(entry, options=options)
 
     @receiver_action
     async def async_select_sound_mode(self, sound_mode: str) -> None:
+        mode = choices.sound_mode_match(self._entry_options, sound_mode, self._known_sound_modes())
+        if mode is None and sound_mode.isupper():
+            # In capitals: the receiver's own token (MSDOLBY ATMOS), as before.
+            mode = sound_mode
+        if mode is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_sound_mode",
+                translation_placeholders={
+                    "model": self._model_name,
+                    "sound_mode": sound_mode,
+                    "options": ", ".join(self.sound_mode_list or []),
+                },
+            )
         await self._ensure_on()
-        await self._device.async_select_sound_mode(
-            choices.sound_mode_for(self._entry_options, sound_mode)
-        )
+        await self._device.async_select_sound_mode(mode)
+
+    def _known_sound_modes(self) -> list[str]:
+        """Every mode name and token a sound mode may be chosen by.
+
+        The lists the receiver gave and the modes the profile knows, whose
+        tokens older automations may use; the lists depend on the signal.
+        """
+
+        discovery, profile = self._device.discovery, self._device.profile
+        return [
+            *discovery.all_sound_modes,
+            *discovery.current_sound_modes,
+            *self._device.fallback_sound_modes,
+            *profile.listed_sound_modes,
+            *profile.listed_sound_modes.values(),
+            *profile.sound_mode_wire_overrides,
+            *profile.sound_mode_wire_overrides.values(),
+        ]
 
     @receiver_action
     async def async_media_play(self) -> None:
@@ -1375,3 +1449,9 @@ def _sample_rate(token: object) -> str | None:
     if token in _BARE_RATES:
         return f"{_BARE_RATES[token]} kHz"
     return token
+
+
+def _named(named: dict[str, int], key: str) -> int | None:
+    """The number of the entry whose name matches `key` (normalized)."""
+
+    return next((number for name, number in named.items() if choices.normalized(name) == key), None)

@@ -1060,8 +1060,14 @@
     }
   },
   "exceptions": {
+    "unknown_source": {
+      "message": "Le {model} n'a pas de source nommée {source}. Choisissez parmi : {options}."
+    },
+    "unknown_sound_mode": {
+      "message": "Le {model} ne propose pas de mode sonore nommé {sound_mode} pour l'instant. Choisissez parmi : {options}."
+    },
     "source_not_taken": {
-      "message": "Le {model} n'a pas basculé cette zone sur {source}. Sur de nombreux amplificateurs, la zone 2 ne lit aucune entrée HDMI. {source} est retiré de la liste de cette zone jusqu'au redémarrage de Home Assistant ; masquez-le définitivement dans les options de l'intégration, sous Sources."
+      "message": "Le {model} n'a pas basculé cette zone sur {source}. Sur de nombreux amplificateurs, la zone 2 ne lit aucune entrée HDMI. {source} ne figure donc plus dans la liste de cette zone ; rétablissez-le dans les options de l'intégration, sous Sources."
     },
     "setup_write_failed": {
       "message": "Le {model} n'a pas accepté le réglage. Fermez le menu de configuration sur le téléviseur s'il est ouvert, vérifiez que le verrouillage de la configuration de l'ampli-tuner est désactivé, puis réessayez."

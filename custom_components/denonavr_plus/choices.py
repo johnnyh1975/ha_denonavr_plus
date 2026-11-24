@@ -78,13 +78,24 @@ def source_list(discovery: Discovery, options: dict[str, Any], zone_id: str) -> 
     return [source_display(discovery, options, c) for c in source_codes(discovery, options, zone_id)]
 
 
-def source_code_for(discovery: Discovery, options: dict[str, Any], display: str) -> str | None:
-    """The source code behind a name Home Assistant showed."""
+def normalized(text: str) -> str:
+    """A name compared without regard to case or repeated spaces."""
 
+    return " ".join(text.split()).casefold()
+
+
+def source_code_for(discovery: Discovery, options: dict[str, Any], display: str) -> str | None:
+    """The source code behind a name: shown, the receiver's own, or the code.
+
+    Case and spaces do not matter, so "apple tv" finds "Apple TV".
+    """
+
+    key = normalized(display)
     for source in discovery.sources:
-        if source_display(discovery, options, source.code) == display:
+        names = (source_display(discovery, options, source.code), source.name, source.code)
+        if any(name and normalized(name) == key for name in names):
             return source.code
-    return discovery.source_code(display)
+    return None
 
 
 # Sound modes ---------------------------------------------------------------
@@ -114,3 +125,13 @@ def sound_mode_for(options: dict[str, Any], display: str) -> str:
         if name == display:
             return mode
     return display
+
+
+def sound_mode_match(options: dict[str, Any], value: str, known: list[str]) -> str | None:
+    """The sound mode a name stands for: renamed or known, in any case."""
+
+    key = normalized(value)
+    for mode, name in _mapping(options, OPT_SOUND_MODE_NAMES).items():
+        if normalized(name) == key:
+            return mode
+    return next((mode for mode in known if normalized(mode) == key), None)

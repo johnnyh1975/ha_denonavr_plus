@@ -1060,8 +1060,14 @@
     }
   },
   "exceptions": {
+    "unknown_source": {
+      "message": "Il {model} non ha una sorgente chiamata {source}. Scegli tra: {options}."
+    },
+    "unknown_sound_mode": {
+      "message": "Il {model} al momento non offre una modalità audio chiamata {sound_mode}. Scegli tra: {options}."
+    },
     "source_not_taken": {
-      "message": "Il {model} non ha commutato questa zona su {source}. Su molti sintoamplificatori la zona 2 non riproduce gli ingressi HDMI. {source} resta escluso dall'elenco di questa zona fino al riavvio di Home Assistant; nascondilo in modo permanente nelle opzioni dell'integrazione, in Sorgenti."
+      "message": "Il {model} non ha commutato questa zona su {source}. Su molti sintoamplificatori la zona 2 non riproduce gli ingressi HDMI. {source} non è più nell'elenco di questa zona; ripristinalo nelle opzioni dell'integrazione, in Sorgenti."
     },
     "setup_write_failed": {
       "message": "Il {model} non ha accettato l'impostazione. Chiudi il menu di configurazione sul televisore se è aperto, verifica che il blocco della configurazione del sintoamplificatore sia disattivato e riprova."

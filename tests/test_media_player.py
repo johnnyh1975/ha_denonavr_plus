@@ -1621,3 +1621,44 @@ async def test_a_source_zone_2_does_not_take_leaves_its_list(
     assert err.value.translation_placeholders["source"] == source
     await _push(hass)
     assert source not in hass.states.get(zone2).attributes["source_list"]
+    # For good: out of the zone's list in the options, where it can come back.
+    chosen = loaded_entry.options["sources"]["zone2"]
+    assert "DVD" not in chosen and "AUX1" in chosen
+
+
+async def test_a_source_or_sound_mode_is_found_in_any_case(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A typo gets an error that names the choices, instead of a silent no."""
+    from homeassistant.exceptions import ServiceValidationError
+
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player", "select_source", {"entity_id": main, "source": " cd "}, blocking=True
+    )
+    assert "SICD" in telnet.sent
+    with pytest.raises(ServiceValidationError) as err:
+        await hass.services.async_call(
+            "media_player", "select_source", {"entity_id": main, "source": "Kassette"}, blocking=True
+        )
+    assert err.value.translation_key == "unknown_source"
+    assert "CD" in err.value.translation_placeholders["options"]
+
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player", "select_sound_mode", {"entity_id": main, "sound_mode": "stereo"}, blocking=True
+    )
+    assert "MSSTEREO" in telnet.sent
+    # In capitals it is the receiver's own token, as automations sent it before.
+    await hass.services.async_call(
+        "media_player", "select_sound_mode", {"entity_id": main, "sound_mode": "DOLBY ATMOS"}, blocking=True
+    )
+    assert "MSDOLBY ATMOS" in telnet.sent
+    with pytest.raises(ServiceValidationError) as err:
+        await hass.services.async_call(
+            "media_player", "select_sound_mode", {"entity_id": main, "sound_mode": "Stero"}, blocking=True
+        )
+    assert err.value.translation_key == "unknown_sound_mode"

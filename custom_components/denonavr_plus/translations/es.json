@@ -1060,8 +1060,14 @@
     }
   },
   "exceptions": {
+    "unknown_source": {
+      "message": "El {model} no tiene ninguna fuente llamada {source}. Elige una de: {options}."
+    },
+    "unknown_sound_mode": {
+      "message": "El {model} no ofrece ahora ningún modo de sonido llamado {sound_mode}. Elige uno de: {options}."
+    },
     "source_not_taken": {
-      "message": "El {model} no cambió esta zona a {source}. En muchos receptores la zona 2 no reproduce entradas HDMI. {source} queda fuera de la lista de esta zona hasta que se reinicie Home Assistant; ocúltalo de forma permanente en las opciones de la integración, en Fuentes."
+      "message": "El {model} no cambió esta zona a {source}. En muchos receptores la zona 2 no reproduce entradas HDMI. {source} ya no aparece en la lista de esta zona; recupéralo en las opciones de la integración, en Fuentes."
     },
     "setup_write_failed": {
       "message": "El {model} no aceptó el ajuste. Cierra el menú de configuración en el televisor si está abierto, comprueba que el bloqueo de configuración del receptor esté desactivado e inténtalo de nuevo."

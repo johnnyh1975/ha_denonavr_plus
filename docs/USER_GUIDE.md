@@ -195,14 +195,15 @@ receiver are taken over already.
 > **Recommended:** hide the inputs nobody uses. Rename on the **receiver**
 > when you want the same names on its display; rename here when only Home
 > Assistant should show them. Automations keep working with the receiver's
-> names either way.
+> names either way. Upper or lower case does not matter, and an input can also
+> be chosen by its code (`AUX2`). A name that matches nothing gets an error
+> that lists the choices.
 >
 > **Zone 2:** smaller receivers play no HDMI input in Zone 2 (an
 > AVR-X2600H stays silent), only analog inputs, the tuner and network
 > sources. When Zone 2 does not switch to an input, Home Assistant says so
-> and leaves that input out of the Zone 2 list until it restarts. Take the
-> HDMI inputs out of the Zone 2 list here to hide them for good; which inputs
-> those are depends on how they are assigned on the receiver.
+> and takes that input out of the Zone 2 list here, where you can put it back.
+> Which inputs are HDMI depends on how they are assigned on the receiver.
 
 ### Entities
 
