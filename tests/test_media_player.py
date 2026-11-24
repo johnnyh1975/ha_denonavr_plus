@@ -658,14 +658,14 @@ async def test_the_browser_recalls_a_tuner_preset(
         )
 
 
-@pytest.mark.assumed(
-    "Z2SOURCE (zone 2 follows the main zone) is in the X-series documents and "
-    "answered nowhere yet; a join on an AVR-X2600H would settle it"
-)
 async def test_zone_2_joins_the_main_zone_as_a_group(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    """join puts zone 2 on the main zone's source (Z2SOURCE), unjoin keeps the input."""
+    """join puts zone 2 on the main zone's source (Z2SOURCE), unjoin keeps the input.
+
+    Z2SOURCE is confirmed on an AVR-X2600H, which turned zone 2 on with it
+    (tests/fixtures/command_test).
+    """
     from homeassistant.components.media_player import MediaPlayerEntityFeature
     from homeassistant.exceptions import ServiceValidationError
 
