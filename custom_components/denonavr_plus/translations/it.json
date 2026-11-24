@@ -35,9 +35,19 @@
       },
       "unknown_model": {
         "title": "Modello non ancora verificato",
-        "description": "Il {model} non è ancora stato verificato con questa integrazione. Le sue entità vengono create da ciò che comunica, ma alcune impostazioni potrebbero mancare o essere lette in modo errato.\n\nLa verifica delle funzioni pone al sintoamplificatore circa 150 domande di sola lettura (non viene modificato nulla) una volta connesso, e mette le risposte nel file di diagnostica. Puoi poi allegare quel file a una segnalazione precompilata su GitHub, così il modello può essere supportato correttamente. Non viene inviato nulla automaticamente.",
+        "description": "Il {model} non è ancora stato verificato con questa integrazione. Le sue entità vengono create da ciò che comunica, ma alcune impostazioni potrebbero mancare o essere lette in modo errato.\n\nLa verifica delle funzioni pone al sintoamplificatore circa 150 domande di sola lettura (non viene modificato nulla) una volta connesso, e mette le risposte nel file di diagnostica. Puoi poi allegare quel file a una segnalazione precompilata su GitHub, così il modello può essere supportato correttamente. Non viene inviato nulla automaticamente.\n\nFacoltativo: la prova dei comandi verifica quali comandi accetta; scrive impostazioni e le ripristina (dettagli nelle opzioni).",
         "data": {
-          "check": "Avvia la verifica dopo la configurazione"
+          "check": "Avvia la verifica dopo la configurazione",
+          "quiet": "Test silenziosi",
+          "audible": "Test udibili e visibili"
+        }
+      },
+      "command_test": {
+        "title": "Prova comandi",
+        "description": "Facoltativo: prova quali comandi accetta il {model} una volta connesso. Ogni test scrive un'impostazione, attende la conferma del ricevitore e ripristina il valore precedente. I test silenziosi cambiano impostazioni che si notano appena (toni, Audyssey, immagine, timer, display, volume di 0,5 dB). I test udibili si sentono o si vedono (muto, diffusori e uscita HDMI, MultEQ, sintonizzatore, Zona 2, il menu di configurazione sul televisore). L'accensione, i trigger e tutto ciò che salva o azzera un'impostazione non vengono mai toccati. I risultati finiscono nel file di diagnostica.\n\nLascia entrambi disattivati per saltare; il test è anche nelle opzioni.",
+        "data": {
+          "quiet": "Test silenziosi",
+          "audible": "Test udibili e visibili"
         }
       }
     },
@@ -65,7 +75,8 @@
           "sources": "Sorgenti",
           "sound_modes": "Modalità audio",
           "connection": "Connessione",
-          "check": "Verifica funzioni"
+          "check": "Verifica funzioni",
+          "command_test": "Prova comandi"
         }
       },
       "volume": {
@@ -214,20 +225,35 @@
       "check_done": {
         "title": "Verifica completata",
         "description": "Il {model} ha risposto a {answered} domande su {total}. Le risposte sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica).\n\nPer aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file di diagnostica. Leggi il file prima di allegarlo; gli indirizzi sono già sostituiti."
+      },
+      "command_test": {
+        "title": "Prova comandi",
+        "description": "Ogni test scrive un'impostazione, attende la conferma del ricevitore e ripristina il valore precedente. I test silenziosi cambiano impostazioni che si notano appena (toni, Audyssey, immagine, timer, display, volume di 0,5 dB). I test udibili si sentono o si vedono (muto, diffusori e uscita HDMI, MultEQ, sintonizzatore, Zona 2, il menu di configurazione sul televisore). L'accensione, i trigger e tutto ciò che salva o azzera un'impostazione non vengono mai toccati. I risultati finiscono nel file di diagnostica.\n\nAccendi prima la zona principale; le sue impostazioni vengono saltate finché è spenta. Richiede alcuni minuti; nel frattempo non cambiare impostazioni sul ricevitore.",
+        "data": {
+          "quiet": "Test silenziosi",
+          "audible": "Test udibili e visibili"
+        }
+      },
+      "command_test_done": {
+        "title": "Prova dei comandi terminata",
+        "description": "Il {model} ha confermato {confirmed} comandi su {total}; {skipped} sono stati saltati. Impostazioni non ripristinate: {not_restored}; controllale sul ricevitore se non è 0. I dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica).\n\nPer aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file di diagnostica."
       }
     },
     "error": {
       "turn_on_above_max": "Il volume all'accensione supera il volume massimo.",
-      "duplicate_name": "Due voci avrebbero lo stesso nome."
+      "duplicate_name": "Due voci avrebbero lo stesso nome.",
+      "no_group": "Scegli almeno un gruppo."
     },
     "abort": {
       "not_connected": "Il sintoamplificatore non è connesso. Sorgenti e modalità audio vengono lette dal dispositivo; riprova quando è acceso.",
       "no_additional_zones": "Questo sintoamplificatore non ha zone aggiuntive.",
       "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio.",
-      "check_not_connected": "Il sintoamplificatore non è connesso. La verifica lo interroga tramite la connessione telnet; riprova quando è acceso."
+      "check_not_connected": "Il sintoamplificatore non è connesso. La verifica lo interroga tramite la connessione telnet; riprova quando è acceso.",
+      "test_not_connected": "Il ricevitore non è connesso. La prova dei comandi richiede la sua connessione telnet; riprova quando è acceso."
     },
     "progress": {
-      "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo."
+      "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo.",
+      "command_test": "Prova dei comandi in corso. Richiede alcuni minuti."
     }
   },
   "entity": {
@@ -1082,6 +1108,10 @@
     "heos_playback_error": {
       "title": "Il {model} non è riuscito a riprodurlo",
       "description": "HEOS sul {model} ha segnalato un errore di riproduzione: {error}\n\nCause frequenti: un indirizzo che il sintoamplificatore non raggiunge, un formato che non riproduce o un servizio che richiede l'accesso nell'app HEOS. Il messaggio scompare da solo appena si riproduce di nuovo qualcosa."
+    },
+    "command_test_done": {
+      "title": "Prova dei comandi del {model} terminata",
+      "description": "Il {model} ha confermato {confirmed} comandi su {total}. Impostazioni non ripristinate: {not_restored}; controllale sul ricevitore se non è 0. I dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Apri la segnalazione precompilata con \"Ulteriori informazioni\" e allega lì il file. Ignora questo messaggio se non vuoi condividerlo."
     }
   },
   "selector": {

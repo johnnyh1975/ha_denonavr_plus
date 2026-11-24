@@ -1,6 +1,6 @@
 # Denon AVR Plus
 
-[![Version](https://img.shields.io/badge/Version-0.6.0-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
+[![Version](https://img.shields.io/badge/Version-0.6.1-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
 [![HA Version](https://img.shields.io/badge/HA-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
 [![Local Push](https://img.shields.io/badge/IoT%20Class-Local%20Push-green.svg)](https://www.home-assistant.io/blog/2016/02/12/classifying-the-internet-of-things/)
@@ -98,8 +98,9 @@ address must belong to the same receiver.
 ### Options
 
 **Configure** on the integration entry opens a menu: volume, zones, sources,
-sound modes, connection, and **Check capabilities** (see Contributing). Nothing in
-it changes the receiver; it changes what Home Assistant shows and does.
+sound modes, connection, **Check capabilities** and **Test commands** (both
+under Contributing). Apart from the command test, nothing in it changes the
+receiver; it changes what Home Assistant shows and does.
 
 **Volume** (works even when the receiver is off):
 
@@ -627,6 +628,35 @@ from Home Assistant still go first) and takes up to a minute and a half. The
 answers go into the diagnostics file, with addresses replaced. A repair then
 links to a prefilled issue on GitHub; attach the diagnostics file there. Nothing
 is sent anywhere by itself.
+
+**Command test.** The capability check only asks; the command test writes. Each
+test reads a setting, writes a different valid value, waits up to 2 seconds for
+the receiver to confirm it, asks again, then writes the old value back and
+checks that it is back. Choose it under Configure → **Test commands**, or when
+adding the receiver (skippable: both groups are off unless you choose them; it
+then runs once the receiver is connected, after the capability check).
+
+- **Quiet tests**: settings you hardly notice for a few seconds: tone,
+  Audyssey, surround and picture settings, timers, the display, ECO, Zone 2
+  levels, and the main zone's volume 0.5 dB down and back.
+- **Audible and visible tests**: mute, MultEQ and Dirac, front speakers,
+  speaker preset, HDMI output and audio output, output resolution, input mode,
+  volume limit, All Zone Stereo, Zone 2 following the main zone, a Zone 2 quick
+  select, the tuner's frequency and preset (only while a zone plays the tuner),
+  and the setup menu opened and closed on the TV.
+
+Never tested: power, the 12 V triggers, the Bluetooth transmitter, the input,
+the sound mode, and anything that stores or resets (tuner preset and quick
+select memory, channel level reset, network restart). The main zone's settings
+are only tested while it is on; turn it on first. A test that is stopped (the
+connection drops, Home Assistant stops) still puts its setting back. The result
+per command is *confirmed* (echo and answer agree), *query_only* (no echo, but
+the receiver reports the new value), *echo_only*, *no_effect*, *rejected*,
+*no_value* (the receiver did not report the setting), *skipped* or
+*interrupted*, with whether the old value came back. It goes into the
+diagnostics file; attach it to the device-support issue as for the capability
+check. Leave the receiver alone while it runs (a few minutes): a change made
+on it at the same time can read as a failure.
 
 The diagnostics file also shows how now playing and playback reach the
 receiver (HEOS or telnet), which now-playing fields are filled, and the

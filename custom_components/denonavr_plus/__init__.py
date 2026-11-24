@@ -20,7 +20,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.typing import ConfigType
 
-from . import choices
+from . import choices, command_test
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import (
@@ -30,6 +30,7 @@ from .coordinator import (
     snapshot_store,
 )
 from .capabilities import OPT_CHECK_PENDING, CapabilityResults, async_run_pending
+from .command_test import OPT_TEST_PENDING
 from .entity import ZONE_DEVICES
 from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
 from .services import async_setup_services
@@ -94,12 +95,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     _apply_channel_defaults(hass, entry, coordinator)
     _sub_devices_follow_room(hass, entry, coordinator)
     coordinator.capabilities.async_update_issues(coordinator.device.discovery.device.model_name)
-    if entry.options.get(OPT_CHECK_PENDING) and not coordinator.started_offline:
+    pending = entry.options.get(OPT_CHECK_PENDING) or entry.options.get(OPT_TEST_PENDING)
+    if pending and not coordinator.started_offline:
         entry.async_create_background_task(
-            hass, async_run_pending(hass, entry), "denonavr_plus capability check"
+            hass, _async_run_pending(hass, entry), "denonavr_plus capability check"
         )
     entry.async_on_unload(entry.add_update_listener(_async_entry_updated))
     return True
+
+
+async def _async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
+    """What was chosen when the receiver was added: the check, then the command test."""
+
+    if entry.options.get(OPT_CHECK_PENDING):
+        await async_run_pending(hass, entry)
+    if entry.options.get(OPT_TEST_PENDING) and not entry.options.get(OPT_CHECK_PENDING):
+        await command_test.async_run_pending(hass, entry)
 
 
 def _platforms(coordinator: DenonAvrCoordinator) -> list[Platform]:
@@ -113,12 +124,15 @@ def _platforms(coordinator: DenonAvrCoordinator) -> list[Platform]:
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
-    """Remove the kept discovery and capability check with the entry."""
+    """Remove the kept discovery, capability check and command test with the entry."""
 
     await snapshot_store(hass, entry.entry_id).async_remove()
     results = CapabilityResults(hass, entry.entry_id)
     await results.async_remove()
     results.async_delete_issues()
+    tested = command_test.CommandTestResults(hass, entry.entry_id, results.lock)
+    await tested.async_remove()
+    tested.async_delete_issues()
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:

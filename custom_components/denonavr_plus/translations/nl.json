@@ -35,9 +35,19 @@
       },
       "unknown_model": {
         "title": "Model nog niet gecontroleerd",
-        "description": "De {model} is nog niet met deze integratie gecontroleerd. De entiteiten worden opgebouwd uit wat hij meldt, maar sommige instellingen kunnen ontbreken of verkeerd gelezen worden.\n\nDe functiecontrole stelt de receiver na het verbinden ongeveer 150 vragen die alleen lezen (er wordt niets veranderd) en zet de antwoorden in het diagnosebestand. Dat bestand kun je daarna bij een vooraf ingevulde issue op GitHub voegen, zodat het model goed ondersteund kan worden. Er wordt niets vanzelf verstuurd.",
+        "description": "De {model} is nog niet met deze integratie gecontroleerd. De entiteiten worden opgebouwd uit wat hij meldt, maar sommige instellingen kunnen ontbreken of verkeerd gelezen worden.\n\nDe functiecontrole stelt de receiver na het verbinden ongeveer 150 vragen die alleen lezen (er wordt niets veranderd) en zet de antwoorden in het diagnosebestand. Dat bestand kun je daarna bij een vooraf ingevulde issue op GitHub voegen, zodat het model goed ondersteund kan worden. Er wordt niets vanzelf verstuurd.\n\nDesgewenst controleert de commandotest welke commando's hij aanneemt; die schrijft instellingen en zet ze terug (details in de opties).",
         "data": {
-          "check": "Functiecontrole na het instellen uitvoeren"
+          "check": "Functiecontrole na het instellen uitvoeren",
+          "quiet": "Stille tests",
+          "audible": "Hoorbare en zichtbare tests"
+        }
+      },
+      "command_test": {
+        "title": "Commando's testen",
+        "description": "Test desgewenst welke commando's de {model} aanneemt zodra hij verbonden is. Elke test schrijft een instelling, wacht tot de receiver die bevestigt en zet de oude waarde terug. Stille tests veranderen instellingen die nauwelijks opvallen (klank, Audyssey, beeld, timers, display, volume met 0,5 dB). Hoorbare tests hoor of zie je (dempen, luidsprekers en HDMI-uitgang, MultEQ, tuner, Zone 2, het instelmenu op de tv). Inschakelen, de triggers en alles wat een instelling opslaat of terugzet worden nooit aangeraakt. De resultaten komen in het diagnosebestand.\n\nLaat beide uit om over te slaan; de test staat ook in de opties.",
+        "data": {
+          "quiet": "Stille tests",
+          "audible": "Hoorbare en zichtbare tests"
         }
       }
     },
@@ -65,7 +75,8 @@
           "sources": "Bronnen",
           "sound_modes": "Geluidsmodi",
           "connection": "Verbinding",
-          "check": "Functies controleren"
+          "check": "Functies controleren",
+          "command_test": "Commando's testen"
         }
       },
       "volume": {
@@ -214,20 +225,35 @@
       "check_done": {
         "title": "Controle voltooid",
         "description": "De {model} beantwoordde {answered} van {total} vragen. De antwoorden staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden).\n\nOm dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het diagnosebestand toe. Lees het bestand voordat je het toevoegt; adressen zijn al vervangen."
+      },
+      "command_test": {
+        "title": "Commando's testen",
+        "description": "Elke test schrijft een instelling, wacht tot de receiver die bevestigt en zet de oude waarde terug. Stille tests veranderen instellingen die nauwelijks opvallen (klank, Audyssey, beeld, timers, display, volume met 0,5 dB). Hoorbare tests hoor of zie je (dempen, luidsprekers en HDMI-uitgang, MultEQ, tuner, Zone 2, het instelmenu op de tv). Inschakelen, de triggers en alles wat een instelling opslaat of terugzet worden nooit aangeraakt. De resultaten komen in het diagnosebestand.\n\nZet eerst de hoofdzone aan; haar instellingen worden overgeslagen zolang ze uit staat. Het duurt enkele minuten; verander intussen geen instellingen op de receiver.",
+        "data": {
+          "quiet": "Stille tests",
+          "audible": "Hoorbare en zichtbare tests"
+        }
+      },
+      "command_test_done": {
+        "title": "Commandotest voltooid",
+        "description": "De {model} bevestigde {confirmed} van {total} commando's; {skipped} werden overgeslagen. Niet teruggezette instellingen: {not_restored}; controleer ze op de receiver als dit niet 0 is. De details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden).\n\nOm dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het diagnosebestand toe."
       }
     },
     "error": {
       "turn_on_above_max": "Het volume bij inschakelen ligt boven het maximale volume.",
-      "duplicate_name": "Twee items zouden dezelfde naam krijgen."
+      "duplicate_name": "Twee items zouden dezelfde naam krijgen.",
+      "no_group": "Kies minstens één groep."
     },
     "abort": {
       "not_connected": "De receiver is niet verbonden. De bronnen en geluidsmodi worden van de receiver gelezen; probeer het opnieuw als hij aan staat.",
       "no_additional_zones": "Deze receiver heeft geen extra zone.",
       "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld.",
-      "check_not_connected": "De receiver is niet verbonden. De controle bevraagt hem via zijn telnet-verbinding; probeer het opnieuw wanneer hij aan staat."
+      "check_not_connected": "De receiver is niet verbonden. De controle bevraagt hem via zijn telnet-verbinding; probeer het opnieuw wanneer hij aan staat.",
+      "test_not_connected": "De receiver is niet verbonden. De commandotest heeft zijn telnetverbinding nodig; probeer het opnieuw als hij aan staat."
     },
     "progress": {
-      "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut."
+      "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut.",
+      "command_test": "Commando's worden getest. Dit duurt enkele minuten."
     }
   },
   "entity": {
@@ -1082,6 +1108,10 @@
     "heos_playback_error": {
       "title": "De {model} kon het niet afspelen",
       "description": "HEOS op de {model} meldde een afspeelfout: {error}\n\nVeelvoorkomende oorzaken zijn een adres dat de receiver niet bereikt, een formaat dat hij niet afspeelt of een dienst die een aanmelding in de HEOS-app vraagt. De melding verdwijnt vanzelf zodra er weer iets speelt."
+    },
+    "command_test_done": {
+      "title": "Commandotest van de {model} voltooid",
+      "description": "De {model} bevestigde {confirmed} van {total} commando's. Niet teruggezette instellingen: {not_restored}; controleer ze op de receiver als dit niet 0 is. De details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Open de vooraf ingevulde issue via \"Meer informatie\" en voeg het bestand daar toe. Negeer dit bericht als je het niet wilt delen."
     }
   },
   "selector": {

@@ -24,6 +24,7 @@ from homeassistant.util import dt as dt_util
 from .avr import AvrState, DenonAvrDevice
 from .avr.models import KnownAnswers
 from .capabilities import CapabilityResults
+from .command_test import CommandTestResults
 from .const import (
     CONF_PORT,
     DEFAULT_SETUP_REFRESH,
@@ -101,6 +102,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._snapshot = snapshot_store(hass, entry.entry_id)
         # The last capability check of this receiver (see capabilities.py).
         self.capabilities = CapabilityResults(hass, entry.entry_id)
+        # The last command test (see command_test.py); one at a time with the check.
+        self.command_test = CommandTestResults(hass, entry.entry_id, self.capabilities.lock)
 
     async def async_setup(self) -> None:
         """Discover the receiver and start the telnet transport.
@@ -110,6 +113,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """
 
         await self.capabilities.async_load()
+        await self.command_test.async_load()
         snapshot = await self._snapshot.async_load()
         # What the receiver answered before: the capability check asks one
         # query at a time, so it comes first; otherwise the last probe.

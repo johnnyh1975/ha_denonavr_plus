@@ -35,9 +35,19 @@
       },
       "unknown_model": {
         "title": "Modelo ainda não verificado",
-        "description": "O {model} ainda não foi verificado com esta integração. As suas entidades são criadas a partir do que comunica, mas algumas definições podem faltar ou ser lidas incorretamente.\n\nA verificação de funções faz ao recetor cerca de 150 perguntas só de leitura (nada é alterado) depois de ligado, e guarda as respostas no ficheiro de diagnóstico. Pode depois anexar esse ficheiro a um problema pré-preenchido no GitHub, para que o modelo seja bem suportado. Nada é enviado automaticamente.",
+        "description": "O {model} ainda não foi verificado com esta integração. As suas entidades são criadas a partir do que comunica, mas algumas definições podem faltar ou ser lidas incorretamente.\n\nA verificação de funções faz ao recetor cerca de 150 perguntas só de leitura (nada é alterado) depois de ligado, e guarda as respostas no ficheiro de diagnóstico. Pode depois anexar esse ficheiro a um problema pré-preenchido no GitHub, para que o modelo seja bem suportado. Nada é enviado automaticamente.\n\nOpcionalmente, o teste de comandos verifica que comandos aceita; escreve definições e repõe-nas (detalhes nas opções).",
         "data": {
-          "check": "Executar a verificação após a configuração"
+          "check": "Executar a verificação após a configuração",
+          "quiet": "Testes silenciosos",
+          "audible": "Testes audíveis e visíveis"
+        }
+      },
+      "command_test": {
+        "title": "Testar comandos",
+        "description": "Opcionalmente, teste que comandos o {model} aceita depois de ligado. Cada teste escreve uma definição, espera que o recetor a confirme e repõe o valor anterior. Os testes silenciosos alteram definições que mal se notam (tom, Audyssey, imagem, temporizadores, visor, volume em 0,5 dB). Os testes audíveis ouvem-se ou veem-se (silêncio, altifalantes e saída HDMI, MultEQ, sintonizador, Zona 2, o menu de configuração na televisão). A alimentação, os disparadores e tudo o que guarda ou repõe uma definição nunca são tocados. Os resultados vão para o ficheiro de diagnóstico.\n\nDeixe ambos desligados para saltar; o teste também está nas opções.",
+        "data": {
+          "quiet": "Testes silenciosos",
+          "audible": "Testes audíveis e visíveis"
         }
       }
     },
@@ -65,7 +75,8 @@
           "sources": "Fontes",
           "sound_modes": "Modos de som",
           "connection": "Ligação",
-          "check": "Verificar funções"
+          "check": "Verificar funções",
+          "command_test": "Testar comandos"
         }
       },
       "volume": {
@@ -214,20 +225,35 @@
       "check_done": {
         "title": "Verificação concluída",
         "description": "O {model} respondeu a {answered} de {total} perguntas. As respostas estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos).\n\nPara ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro de diagnóstico. Leia o ficheiro antes de o anexar; os endereços já estão substituídos."
+      },
+      "command_test": {
+        "title": "Testar comandos",
+        "description": "Cada teste escreve uma definição, espera que o recetor a confirme e repõe o valor anterior. Os testes silenciosos alteram definições que mal se notam (tom, Audyssey, imagem, temporizadores, visor, volume em 0,5 dB). Os testes audíveis ouvem-se ou veem-se (silêncio, altifalantes e saída HDMI, MultEQ, sintonizador, Zona 2, o menu de configuração na televisão). A alimentação, os disparadores e tudo o que guarda ou repõe uma definição nunca são tocados. Os resultados vão para o ficheiro de diagnóstico.\n\nLigue primeiro a zona principal; as suas definições são saltadas enquanto estiver desligada. Demora alguns minutos; entretanto não altere definições no recetor.",
+        "data": {
+          "quiet": "Testes silenciosos",
+          "audible": "Testes audíveis e visíveis"
+        }
+      },
+      "command_test_done": {
+        "title": "Teste de comandos concluído",
+        "description": "O {model} confirmou {confirmed} de {total} comandos; {skipped} foram saltados. Definições não repostas: {not_restored}; verifique-as no recetor se não for 0. Os detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos).\n\nPara ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro de diagnóstico."
       }
     },
     "error": {
       "turn_on_above_max": "O volume ao ligar está acima do volume máximo.",
-      "duplicate_name": "Duas entradas ficariam com o mesmo nome."
+      "duplicate_name": "Duas entradas ficariam com o mesmo nome.",
+      "no_group": "Escolha pelo menos um grupo."
     },
     "abort": {
       "not_connected": "O recetor não está ligado à rede. As fontes e os modos de som são lidos do aparelho; tente novamente quando estiver ligado.",
       "no_additional_zones": "Este recetor não tem zonas adicionais.",
       "no_sound_modes": "O recetor ainda não indicou nenhum modo de som.",
-      "check_not_connected": "O recetor não está ligado. A verificação consulta-o pela ligação telnet; tente novamente quando estiver ligado."
+      "check_not_connected": "O recetor não está ligado. A verificação consulta-o pela ligação telnet; tente novamente quando estiver ligado.",
+      "test_not_connected": "O recetor não está ligado. O teste de comandos precisa da sua ligação telnet; tente novamente quando estiver ligado."
     },
     "progress": {
-      "capability_check": "A consultar o recetor. Demora até minuto e meio."
+      "capability_check": "A consultar o recetor. Demora até minuto e meio.",
+      "command_test": "A testar comandos. Isto demora alguns minutos."
     }
   },
   "entity": {
@@ -1082,6 +1108,10 @@
     "heos_playback_error": {
       "title": "O {model} não conseguiu reproduzi-lo",
       "description": "O HEOS no {model} comunicou um erro de reprodução: {error}\n\nCausas comuns: um endereço que o recetor não alcança, um formato que não reproduz ou um serviço que exige sessão iniciada na app HEOS. A mensagem desaparece sozinha assim que algo voltar a tocar."
+    },
+    "command_test_done": {
+      "title": "Teste de comandos do {model} concluído",
+      "description": "O {model} confirmou {confirmed} de {total} comandos. Definições não repostas: {not_restored}; verifique-as no recetor se não for 0. Os detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Abra o problema pré-preenchido com \"Saber mais\" e anexe lá o ficheiro. Ignore esta mensagem se não o quiser partilhar."
     }
   },
   "selector": {

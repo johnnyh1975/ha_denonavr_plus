@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict, fields, replace
 from typing import Any
 
@@ -35,7 +35,7 @@ from .models import (
 )
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ControlSpec, ProtocolProfile, load_profile, profile_variant
-from . import capability_check, graphic_eq, signal_info, video_config
+from . import capability_check, command_test, graphic_eq, signal_info, video_config
 from .const import (
     CHECK_REPLY_FIRST,
     QUEUE_WAIT_MAX,
@@ -214,6 +214,10 @@ class DenonAvrDevice:
     @property
     def available(self) -> bool:
         return self._available
+
+    @property
+    def telnet_connected(self) -> bool:
+        return self._telnet.connected
 
     @property
     def http_reachable(self) -> bool:
@@ -1155,6 +1159,21 @@ class DenonAvrDevice:
         REPLY_COLLECT_QUIET; the replies of one command come in a burst.
         """
 
+        return await self.async_collect(wanted, lambda: self._telnet.async_send(command), first)
+
+    async def async_collect(
+        self,
+        wanted: Callable[[str], bool],
+        action: Callable[[], Awaitable[Any]],
+        first: float,
+    ) -> list[str]:
+        """Run `action` (which sends something) and return the wanted lines after it.
+
+        Up to `first` seconds for the first line, then until none came for
+        REPLY_COLLECT_QUIET; the replies of one command come in a burst. The
+        state is already updated from each line when this returns.
+        """
+
         replies: list[str] = []
         arrived = asyncio.Event()
 
@@ -1165,7 +1184,7 @@ class DenonAvrDevice:
 
         self._reply_listeners.append(listen)
         try:
-            await self._telnet.async_send(command)
+            await action()
             # The client paces the queue; time the reply from when the command
             # has left it, not from when it was queued (behind a resync, say).
             loop = asyncio.get_running_loop()
@@ -1227,6 +1246,30 @@ class DenonAvrDevice:
             "firmware": device.firmware_version,
             "hardware_type": device.hardware_type,
             "queries": results,
+        }
+
+    async def async_command_test(
+        self, groups: Sequence[str], on_progress: Callable[[float], None] | None = None
+    ) -> dict[str, Any]:
+        """Write settings, check the receiver confirms them, put them back.
+
+        See avr/command_test.py. Raises CommandNotSent when telnet is down:
+        the confirmations only come that way.
+        """
+
+        if not self._telnet.connected:
+            raise CommandNotSent("query_needs_telnet")
+        main = self._state.zone("main")
+        main_on = bool(main.power)
+        results = await command_test.async_run(self, list(groups), on_progress)
+        device = self._discovery.device
+        return {
+            "test_version": command_test.TEST_VERSION,
+            "model": device.model_name,
+            "firmware": device.firmware_version,
+            "groups": [group for group in command_test.GROUPS if group in groups],
+            "main_zone_on": main_on,
+            "tests": results,
         }
 
     async def _send(self, command: str) -> None:

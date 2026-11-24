@@ -35,9 +35,19 @@
       },
       "unknown_model": {
         "title": "Modèle pas encore vérifié",
-        "description": "Le {model} n'a pas encore été vérifié avec cette intégration. Ses entités sont créées à partir de ce qu'il annonce, mais certains réglages peuvent manquer ou être mal lus.\n\nLa vérification des fonctions pose à l'ampli-tuner environ 150 questions en lecture seule (rien n'est modifié) une fois connecté, et place les réponses dans le fichier de diagnostic. Vous pouvez ensuite joindre ce fichier à un ticket prérempli sur GitHub afin que le modèle soit bien pris en charge. Rien n'est envoyé automatiquement.",
+        "description": "Le {model} n'a pas encore été vérifié avec cette intégration. Ses entités sont créées à partir de ce qu'il annonce, mais certains réglages peuvent manquer ou être mal lus.\n\nLa vérification des fonctions pose à l'ampli-tuner environ 150 questions en lecture seule (rien n'est modifié) une fois connecté, et place les réponses dans le fichier de diagnostic. Vous pouvez ensuite joindre ce fichier à un ticket prérempli sur GitHub afin que le modèle soit bien pris en charge. Rien n'est envoyé automatiquement.\n\nSi vous le souhaitez, le test des commandes vérifie quelles commandes il accepte ; il écrit des réglages et les rétablit (détails dans les options).",
         "data": {
-          "check": "Lancer la vérification après la configuration"
+          "check": "Lancer la vérification après la configuration",
+          "quiet": "Tests discrets",
+          "audible": "Tests audibles et visibles"
+        }
+      },
+      "command_test": {
+        "title": "Tester les commandes",
+        "description": "Si vous le souhaitez, testez quelles commandes le {model} accepte une fois connecté. Chaque test écrit un réglage, attend la confirmation du récepteur et rétablit l'ancienne valeur. Les tests discrets modifient des réglages qui se remarquent à peine (tonalité, Audyssey, image, minuteries, afficheur, volume de 0,5 dB). Les tests audibles s'entendent ou se voient (sourdine, enceintes et sortie HDMI, MultEQ, tuner, Zone 2, le menu de configuration sur le téléviseur). L'alimentation, les déclencheurs et tout ce qui enregistre ou réinitialise un réglage ne sont jamais touchés. Les résultats vont dans le fichier de diagnostic.\n\nLaissez les deux désactivés pour passer ; le test se trouve aussi dans les options.",
+        "data": {
+          "quiet": "Tests discrets",
+          "audible": "Tests audibles et visibles"
         }
       }
     },
@@ -65,7 +75,8 @@
           "sources": "Sources",
           "sound_modes": "Modes son",
           "connection": "Connexion",
-          "check": "Vérifier les fonctions"
+          "check": "Vérifier les fonctions",
+          "command_test": "Tester les commandes"
         }
       },
       "volume": {
@@ -214,20 +225,35 @@
       "check_done": {
         "title": "Vérification terminée",
         "description": "Le {model} a répondu à {answered} questions sur {total}. Les réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic. Lisez le fichier avant de le joindre ; les adresses sont déjà remplacées."
+      },
+      "command_test": {
+        "title": "Tester les commandes",
+        "description": "Chaque test écrit un réglage, attend la confirmation du récepteur et rétablit l'ancienne valeur. Les tests discrets modifient des réglages qui se remarquent à peine (tonalité, Audyssey, image, minuteries, afficheur, volume de 0,5 dB). Les tests audibles s'entendent ou se voient (sourdine, enceintes et sortie HDMI, MultEQ, tuner, Zone 2, le menu de configuration sur le téléviseur). L'alimentation, les déclencheurs et tout ce qui enregistre ou réinitialise un réglage ne sont jamais touchés. Les résultats vont dans le fichier de diagnostic.\n\nAllumez d'abord la zone principale ; ses réglages sont ignorés tant qu'elle est éteinte. Cela prend quelques minutes ; ne modifiez pas de réglages sur le récepteur pendant ce temps.",
+        "data": {
+          "quiet": "Tests discrets",
+          "audible": "Tests audibles et visibles"
+        }
+      },
+      "command_test_done": {
+        "title": "Test des commandes terminé",
+        "description": "Le {model} a confirmé {confirmed} commandes sur {total} ; {skipped} ont été ignorées. Réglages non rétablis : {not_restored} ; vérifiez-les sur le récepteur si ce n'est pas 0. Les détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic."
       }
     },
     "error": {
       "turn_on_above_max": "Le volume à l'allumage dépasse le volume maximal.",
-      "duplicate_name": "Deux entrées auraient le même nom."
+      "duplicate_name": "Deux entrées auraient le même nom.",
+      "no_group": "Choisissez au moins un groupe."
     },
     "abort": {
       "not_connected": "L'ampli-tuner n'est pas connecté. Ses sources et modes son sont lus depuis l'appareil ; réessayez lorsqu'il est allumé.",
       "no_additional_zones": "Cet ampli-tuner n'a pas de zone supplémentaire.",
       "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son.",
-      "check_not_connected": "L'ampli-tuner n'est pas connecté. La vérification l'interroge via sa connexion telnet ; réessayez quand il est allumé."
+      "check_not_connected": "L'ampli-tuner n'est pas connecté. La vérification l'interroge via sa connexion telnet ; réessayez quand il est allumé.",
+      "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé."
     },
     "progress": {
-      "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie."
+      "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie.",
+      "command_test": "Test des commandes en cours. Cela prend quelques minutes."
     }
   },
   "entity": {
@@ -1082,6 +1108,10 @@
     "heos_playback_error": {
       "title": "Le {model} n'a pas pu le lire",
       "description": "HEOS sur le {model} a signalé une erreur de lecture : {error}\n\nCauses fréquentes : une adresse que l'ampli-tuner n'atteint pas, un format qu'il ne lit pas ou un service qui demande une connexion dans l'app HEOS. Le message disparaît de lui-même dès que la lecture reprend."
+    },
+    "command_test_done": {
+      "title": "Test des commandes du {model} terminé",
+      "description": "Le {model} a confirmé {confirmed} commandes sur {total}. Réglages non rétablis : {not_restored} ; vérifiez-les sur le récepteur si ce n'est pas 0. Les détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le ticket prérempli avec « En savoir plus » et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager."
     }
   },
   "selector": {

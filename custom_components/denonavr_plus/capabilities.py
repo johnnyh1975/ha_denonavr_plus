@@ -69,7 +69,7 @@ class CapabilityResults:
         self.result: dict[str, Any] | None = None
         # One check at a time: the pending one after setup, the repair and the
         # options step share the telnet replies.
-        self._lock = asyncio.Lock()
+        self.lock = asyncio.Lock()
 
     async def async_load(self) -> None:
         self.result = await self._store.async_load()
@@ -87,7 +87,7 @@ class CapabilityResults:
         Raises CommandNotSent when the receiver is not connected over telnet.
         """
 
-        async with self._lock:
+        async with self.lock:
             result = await coordinator.device.async_check_capabilities(on_progress)
         result["checked_at"] = dt_util.utcnow().isoformat()
         if self._hass.config_entries.async_get_entry(self._entry_id) is None:

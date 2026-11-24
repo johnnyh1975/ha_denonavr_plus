@@ -53,6 +53,7 @@ from .const import (
     OPT_SETUP_REFRESH,
 )
 from .capabilities import OPT_CHECK_PENDING, CapabilityCheckSteps, known_model
+from .command_test import OPT_TEST_PENDING, CommandTestSteps, chosen, groups_schema
 from .coordinator import connection_options
 from . import choices
 from .choices import (
@@ -207,19 +208,50 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         return self._async_create(name, self._entry_data(host))
 
     def _async_create(self, title: str, data: dict[str, Any]) -> ConfigFlowResult:
-        """Create the entry; for a model not checked before, offer the check first."""
+        """Offer the tests before the entry is created; all can be skipped.
 
-        if known_model(title):
-            return self.async_create_entry(title=title, data=data)
+        A model not checked before gets the capability check too (chosen by
+        default); the command test is chosen by nobody by default.
+        """
+
         self._new_entry = (title, data)
+        if known_model(title):
+            return self._command_test_form()
         return self._unknown_model_form()
 
     def _unknown_model_form(self) -> ConfigFlowResult:
         return self.async_show_form(
             step_id="unknown_model",
-            data_schema=vol.Schema({vol.Required(CONF_CHECK, default=True): BooleanSelector()}),
+            data_schema=vol.Schema(
+                {vol.Required(CONF_CHECK, default=True): BooleanSelector(), **groups_schema()}
+            ),
             description_placeholders={"model": self._new_entry[0]},
         )
+
+    def _command_test_form(self) -> ConfigFlowResult:
+        return self.async_show_form(
+            step_id="command_test",
+            data_schema=vol.Schema(groups_schema()),
+            description_placeholders={"model": self._new_entry[0]},
+        )
+
+    def _create_with_tests(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+        title, data = self._new_entry
+        options: dict[str, Any] = {}
+        if user_input.get(CONF_CHECK):
+            options[OPT_CHECK_PENDING] = True
+        if groups := chosen(user_input):
+            options[OPT_TEST_PENDING] = groups
+        return self.async_create_entry(title=title, data=data, options=options)
+
+    async def async_step_command_test(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Test commands after setup? Writes settings and puts them back."""
+
+        if user_input is None:
+            return self._command_test_form()
+        return self._create_with_tests(user_input)
 
     async def async_step_unknown_model(
         self, user_input: dict[str, Any] | None = None
@@ -233,9 +265,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is None:
             return self._unknown_model_form()
-        title, data = self._new_entry
-        options = {OPT_CHECK_PENDING: True} if user_input[CONF_CHECK] else {}
-        return self.async_create_entry(title=title, data=data, options=options)
+        return self._create_with_tests(user_input)
 
     async def _async_discovered_receivers(self) -> dict[str, str]:
         """Receivers Home Assistant has seen over SSDP and that are not set up.
@@ -396,7 +426,7 @@ def _zones(hass: Any, entry: ConfigEntry) -> list[str]:
     return [zone for zone in _ZONE_ORDER if zone in found] or ["main"]
 
 
-class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
+class DenonAvrOptionsFlow(CommandTestSteps, CapabilityCheckSteps, OptionsFlow):
     """Options: volume, zones, and which sources and sound modes appear, and how."""
 
     def __init__(self) -> None:
@@ -423,7 +453,15 @@ class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
     ) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["volume", "zones", "sources", "sound_modes", "connection", "check"],
+            menu_options=[
+                "volume",
+                "zones",
+                "sources",
+                "sound_modes",
+                "connection",
+                "check",
+                "command_test",
+            ],
         )
 
     # Capability check (steps in capabilities.CapabilityCheckSteps) ---------

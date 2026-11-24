@@ -35,9 +35,19 @@
       },
       "unknown_model": {
         "title": "Model not checked yet",
-        "description": "The {model} has not been checked with this integration yet. Its entities are built from what it reports, but some settings may be missing or read wrongly.\n\nThe capability check asks the receiver about 150 read-only questions (nothing is changed) once it is connected, and puts the answers into the diagnostics file. You can then attach that file to a prefilled issue on GitHub, so the model can be supported properly. Nothing is sent anywhere by itself.",
+        "description": "The {model} has not been checked with this integration yet. Its entities are built from what it reports, but some settings may be missing or read wrongly.\n\nThe capability check asks the receiver about 150 read-only questions (nothing is changed) once it is connected, and puts the answers into the diagnostics file. You can then attach that file to a prefilled issue on GitHub, so the model can be supported properly. Nothing is sent anywhere by itself.\n\nOptionally, the command test checks which commands it takes; it writes settings and puts them back (see the options for details).",
         "data": {
-          "check": "Run the capability check after setup"
+          "check": "Run the capability check after setup",
+          "quiet": "Quiet tests",
+          "audible": "Audible and visible tests"
+        }
+      },
+      "command_test": {
+        "title": "Test commands",
+        "description": "Optionally, test which commands the {model} takes once it is connected. Each test writes a setting, waits for the receiver to confirm it, and puts the old value back. Quiet tests change settings you will hardly notice (tone, Audyssey, picture, timers, display, volume by 0.5 dB). Audible tests are heard or seen (mute, speakers and HDMI output, MultEQ, tuner, Zone 2, the setup menu on the TV). Power, the triggers and anything that stores or resets a setting are never touched. The results go into the diagnostics file.\n\nLeave both off to skip; the test is also in the options.",
+        "data": {
+          "quiet": "Quiet tests",
+          "audible": "Audible and visible tests"
         }
       }
     },
@@ -65,7 +75,8 @@
           "sources": "Sources",
           "sound_modes": "Sound modes",
           "connection": "Connection",
-          "check": "Check capabilities"
+          "check": "Check capabilities",
+          "command_test": "Test commands"
         }
       },
       "volume": {
@@ -214,20 +225,35 @@
       "check_done": {
         "title": "Check finished",
         "description": "The {model} answered {answered} of {total} questions. The answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file. Read the file before you attach it; addresses are already replaced."
+      },
+      "command_test": {
+        "title": "Test commands",
+        "description": "Each test writes a setting, waits for the receiver to confirm it, and puts the old value back. Quiet tests change settings you will hardly notice (tone, Audyssey, picture, timers, display, volume by 0.5 dB). Audible tests are heard or seen (mute, speakers and HDMI output, MultEQ, tuner, Zone 2, the setup menu on the TV). Power, the triggers and anything that stores or resets a setting are never touched. The results go into the diagnostics file.\n\nTurn the main zone on first; its settings are skipped while it is off. It takes a few minutes; do not change settings on the receiver meanwhile.",
+        "data": {
+          "quiet": "Quiet tests",
+          "audible": "Audible and visible tests"
+        }
+      },
+      "command_test_done": {
+        "title": "Command test finished",
+        "description": "The {model} confirmed {confirmed} of {total} commands; {skipped} were skipped. Settings not put back: {not_restored}; check them on the receiver if this is not 0. The details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file."
       }
     },
     "error": {
       "turn_on_above_max": "The turn-on volume is above the maximum volume.",
-      "duplicate_name": "Two entries would get the same name."
+      "duplicate_name": "Two entries would get the same name.",
+      "no_group": "Choose at least one group."
     },
     "abort": {
       "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
       "no_additional_zones": "This receiver has no additional zone.",
       "no_sound_modes": "The receiver has not reported any sound modes yet.",
-      "check_not_connected": "The receiver is not connected. The capability check asks it over its telnet connection; try again when it is on."
+      "check_not_connected": "The receiver is not connected. The capability check asks it over its telnet connection; try again when it is on.",
+      "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on."
     },
     "progress": {
-      "capability_check": "Asking the receiver. This takes up to a minute and a half."
+      "capability_check": "Asking the receiver. This takes up to a minute and a half.",
+      "command_test": "Testing commands. This takes a few minutes."
     }
   },
   "entity": {
@@ -1082,6 +1108,10 @@
     "heos_playback_error": {
       "title": "{model} could not play it",
       "description": "HEOS on the {model} reported a playback error: {error}\n\nCommon causes are an address the receiver cannot reach, a format it does not play, or a service that needs a sign-in in the HEOS app. The message disappears by itself as soon as something plays again."
+    },
+    "command_test_done": {
+      "title": "Command test of the {model} finished",
+      "description": "The {model} confirmed {confirmed} of {total} commands. Settings not put back: {not_restored}; check them on the receiver if this is not 0. The details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it."
     }
   },
   "selector": {

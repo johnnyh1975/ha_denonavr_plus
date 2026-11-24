@@ -35,9 +35,19 @@
       },
       "unknown_model": {
         "title": "Modelo aún no comprobado",
-        "description": "El {model} aún no se ha comprobado con esta integración. Sus entidades se crean a partir de lo que informa, pero algunos ajustes pueden faltar o leerse mal.\n\nLa comprobación de funciones hace al receptor unas 150 preguntas de solo lectura (no se cambia nada) una vez conectado, y guarda las respuestas en el archivo de diagnóstico. Después puedes adjuntar ese archivo a una incidencia prerrellenada en GitHub, para que el modelo pueda tener buen soporte. No se envía nada automáticamente.",
+        "description": "El {model} aún no se ha comprobado con esta integración. Sus entidades se crean a partir de lo que informa, pero algunos ajustes pueden faltar o leerse mal.\n\nLa comprobación de funciones hace al receptor unas 150 preguntas de solo lectura (no se cambia nada) una vez conectado, y guarda las respuestas en el archivo de diagnóstico. Después puedes adjuntar ese archivo a una incidencia prerrellenada en GitHub, para que el modelo pueda tener buen soporte. No se envía nada automáticamente.\n\nOpcionalmente, la prueba de comandos comprueba qué comandos acepta; escribe ajustes y los restablece (detalles en las opciones).",
         "data": {
-          "check": "Ejecutar la comprobación tras la configuración"
+          "check": "Ejecutar la comprobación tras la configuración",
+          "quiet": "Pruebas silenciosas",
+          "audible": "Pruebas audibles y visibles"
+        }
+      },
+      "command_test": {
+        "title": "Probar comandos",
+        "description": "Opcionalmente, prueba qué comandos acepta el {model} una vez conectado. Cada prueba escribe un ajuste, espera a que el receptor lo confirme y restablece el valor anterior. Las pruebas silenciosas cambian ajustes que apenas se notan (tono, Audyssey, imagen, temporizadores, pantalla, volumen en 0,5 dB). Las pruebas audibles se oyen o se ven (silencio, altavoces y salida HDMI, MultEQ, sintonizador, Zona 2, el menú de configuración en el televisor). El encendido, los disparadores y todo lo que guarda o restablece un ajuste nunca se tocan. Los resultados van al archivo de diagnóstico.\n\nDeja ambas desactivadas para omitirla; la prueba también está en las opciones.",
+        "data": {
+          "quiet": "Pruebas silenciosas",
+          "audible": "Pruebas audibles y visibles"
         }
       }
     },
@@ -65,7 +75,8 @@
           "sources": "Fuentes",
           "sound_modes": "Modos de sonido",
           "connection": "Conexión",
-          "check": "Comprobar funciones"
+          "check": "Comprobar funciones",
+          "command_test": "Probar comandos"
         }
       },
       "volume": {
@@ -214,20 +225,35 @@
       "check_done": {
         "title": "Comprobación terminada",
         "description": "El {model} respondió {answered} de {total} preguntas. Las respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico. Lee el archivo antes de adjuntarlo; las direcciones ya están sustituidas."
+      },
+      "command_test": {
+        "title": "Probar comandos",
+        "description": "Cada prueba escribe un ajuste, espera a que el receptor lo confirme y restablece el valor anterior. Las pruebas silenciosas cambian ajustes que apenas se notan (tono, Audyssey, imagen, temporizadores, pantalla, volumen en 0,5 dB). Las pruebas audibles se oyen o se ven (silencio, altavoces y salida HDMI, MultEQ, sintonizador, Zona 2, el menú de configuración en el televisor). El encendido, los disparadores y todo lo que guarda o restablece un ajuste nunca se tocan. Los resultados van al archivo de diagnóstico.\n\nEnciende primero la zona principal; sus ajustes se omiten mientras está apagada. Tarda unos minutos; no cambies ajustes en el receptor mientras tanto.",
+        "data": {
+          "quiet": "Pruebas silenciosas",
+          "audible": "Pruebas audibles y visibles"
+        }
+      },
+      "command_test_done": {
+        "title": "Prueba de comandos terminada",
+        "description": "El {model} confirmó {confirmed} de {total} comandos; se omitieron {skipped}. Ajustes no restablecidos: {not_restored}; compruébalos en el receptor si no es 0. Los detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico."
       }
     },
     "error": {
       "turn_on_above_max": "El volumen al encender supera el volumen máximo.",
-      "duplicate_name": "Dos entradas tendrían el mismo nombre."
+      "duplicate_name": "Dos entradas tendrían el mismo nombre.",
+      "no_group": "Elige al menos un grupo."
     },
     "abort": {
       "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
       "no_additional_zones": "Este receptor no tiene zonas adicionales.",
       "no_sound_modes": "El receptor aún no ha informado de ningún modo de sonido.",
-      "check_not_connected": "El receptor no está conectado. La comprobación lo consulta por su conexión telnet; inténtalo de nuevo cuando esté encendido."
+      "check_not_connected": "El receptor no está conectado. La comprobación lo consulta por su conexión telnet; inténtalo de nuevo cuando esté encendido.",
+      "test_not_connected": "El receptor no está conectado. La prueba de comandos necesita su conexión telnet; inténtalo de nuevo cuando esté encendido."
     },
     "progress": {
-      "capability_check": "Consultando al receptor. Tarda hasta minuto y medio."
+      "capability_check": "Consultando al receptor. Tarda hasta minuto y medio.",
+      "command_test": "Probando comandos. Esto tarda unos minutos."
     }
   },
   "entity": {
@@ -1082,6 +1108,10 @@
     "heos_playback_error": {
       "title": "El {model} no pudo reproducirlo",
       "description": "HEOS en el {model} informó de un error de reproducción: {error}\n\nCausas habituales: una dirección que el receptor no alcanza, un formato que no reproduce o un servicio que requiere iniciar sesión en la app HEOS. El mensaje desaparece solo en cuanto algo vuelve a sonar."
+    },
+    "command_test_done": {
+      "title": "Prueba de comandos del {model} terminada",
+      "description": "El {model} confirmó {confirmed} de {total} comandos. Ajustes no restablecidos: {not_restored}; compruébalos en el receptor si no es 0. Los detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Abre la incidencia prerrellenada con «Más información» y adjunta el archivo allí. Ignora este mensaje si no quieres compartirlo."
     }
   },
   "selector": {
