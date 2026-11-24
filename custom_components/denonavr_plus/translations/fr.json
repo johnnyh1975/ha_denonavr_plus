@@ -843,6 +843,9 @@
       },
       "tactile_transducer": {
         "name": "Transducteur tactile"
+      },
+      "music": {
+        "name": "Musique"
       }
     },
     "number": {

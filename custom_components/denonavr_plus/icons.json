@@ -391,6 +391,12 @@
       },
       "tv_audio_switching": {
         "default": "mdi:television"
+      },
+      "music": {
+        "default": "mdi:music",
+        "state": {
+          "off": "mdi:music-off"
+        }
       }
     }
   },

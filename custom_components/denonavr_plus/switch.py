@@ -2,6 +2,10 @@
 
 One switch is created per on/off feature control the receiver advertises (for
 example Tone Control, Dynamic EQ, Loudness Management, Cinema EQ).
+
+Each zone also gets a Music switch for Music Assistant and automations: on
+switches the zone on and to the network input, off switches the zone off only
+while it still plays the network, so it never ends a film.
 """
 
 from __future__ import annotations
@@ -13,9 +17,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from . import choices
+from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action
+from .entity import DenonAvrEntity, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device
 
 
@@ -47,7 +53,46 @@ async def async_setup_entry(
             for control in video.controls()
             if control.get("kind") == "switch" and video.present(control["id"])
         )
+    if coordinator.device.network_source is not None:
+        entities.extend(
+            DenonAvrMusicSwitch(coordinator, zone)
+            for zone in discovery.zones
+            if choices.zone_enabled(dict(entry.options), zone.id)
+        )
     async_add_entities(entities)
+
+
+class DenonAvrMusicSwitch(DenonAvrEntity, SwitchEntity):
+    """Music from the network on a zone (package 20).
+
+    On: the zone on and on the network input. Off: the zone off, but only
+    while it plays the network; on another input (someone watches TV) it is
+    left alone. Meant as the power control of a Music Assistant player.
+    """
+
+    def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
+        super().__init__(coordinator, f"switch_music_{zone.id}", sub_device=zone_device(zone))
+        self._zone = zone
+        self._attr_translation_key = "music"
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.device.plays_network(self._zone.id)
+
+    @receiver_action
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        device = self.coordinator.device
+        if not device.state.zone(self._zone.id).power:
+            await device.async_set_power(self._zone.id, True)
+        source = device.network_source
+        if source and device.zone_source(self._zone.id) != source:
+            await device.async_select_source(self._zone.id, source)
+
+    @receiver_action
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        device = self.coordinator.device
+        if device.plays_network(self._zone.id):
+            await device.async_set_power(self._zone.id, False)
 
 
 class DenonAvrSwitch(DenonAvrEntity, SwitchEntity):

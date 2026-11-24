@@ -243,6 +243,12 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   zone. Receivers without HEOS take quick selects, sources and presets only.
   A zone in standby is turned on first, also when a source or a sound mode is
   picked.
+- **Voice**: "play Kino on the living room receiver" works with Assist. The
+  player searches its quick selects, inputs and HEOS favorites by name
+  (`media_player.search_media`) and Assist plays the first match.
+- **Artwork for inputs**: an input without cover art (TV, Blu-ray, game,
+  tuner, …) gets its own picture, a colour and a pictogram per kind of input,
+  which the media control card paints as its background.
 - **Announcements** on receivers with HEOS (main zone): text to speech and
   other media played with `announce` (as voice assistants and `tts.speak`
   do) plays over HEOS at the announcement volume (the call's
@@ -308,6 +314,10 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
 - **Buttons**: save a quick select preset (one per preset the receiver reports),
   reset all channel levels, restart the network module. They start disabled.
 - **Remote**: the on-screen menu keys (see Actions).
+- **Music** per zone, a switch for Music Assistant and automations: on turns
+  the zone on and to the network input; off turns the zone off only while it
+  still plays the network, so it never ends a film. It is on while the zone
+  plays the network.
 - **Tuner**: the preset (a select, 01–56 or A1–G8) and the FM frequency in
   MHz (a number, to tune directly). Both are available while a zone that is on
   plays the tuner; the receiver takes tuner commands only then. Recalling and

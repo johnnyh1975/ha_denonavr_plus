@@ -44,3 +44,44 @@ async def test_a_switch_the_receiver_has_not_reported_shows_off(
     loaded_entry.runtime_data.async_update_listeners()
     await hass.async_block_till_done()
     assert hass.states.get(switch).state == "off"
+
+
+async def test_the_music_switch_never_ends_a_film(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """On: zone on and on the network. Off: only while it plays the network."""
+    import asyncio
+
+    telnet = FakeTelnet.instances[-1]
+    music = entity_id(hass, loaded_entry, "switch_music_main")
+    zone2_music = entity_id(hass, loaded_entry, "switch_music_zone2")
+    assert zone2_music != music
+
+    telnet.push("PWON", "ZMOFF")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert hass.states.get(music).state == "off"
+    telnet.sent.clear()
+    await hass.services.async_call("switch", "turn_on", {"entity_id": music}, blocking=True)
+    assert telnet.sent == ["ZMON", "SINET"]
+
+    telnet.push("ZMON", "SINET")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert hass.states.get(music).state == "on"
+    telnet.sent.clear()
+    await hass.services.async_call("switch", "turn_on", {"entity_id": music}, blocking=True)
+    assert telnet.sent == []
+
+    # Someone watches TV: off leaves the zone alone.
+    telnet.push("SITV")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert hass.states.get(music).state == "off"
+    await hass.services.async_call("switch", "turn_off", {"entity_id": music}, blocking=True)
+    assert telnet.sent == []
+    telnet.push("SINET")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    await hass.services.async_call("switch", "turn_off", {"entity_id": music}, blocking=True)
+    assert telnet.sent == ["ZMOFF"]

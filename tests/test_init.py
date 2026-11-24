@@ -297,7 +297,7 @@ async def test_a_zone_switched_off_loses_its_entities(
             if item.unique_id.endswith("_zone2")
         ]
 
-    assert len(zone2_entities()) == 3  # media player, volume, source sensor
+    assert len(zone2_entities()) == 4  # media player, volume, source sensor, music
     # Switching zone 2 off reloads the entry and removes its entities.
     hass.config_entries.async_update_entry(loaded_entry, options={"zones": []})
     await hass.async_block_till_done()
@@ -306,7 +306,7 @@ async def test_a_zone_switched_off_loses_its_entities(
     # Switching it on again brings them back.
     hass.config_entries.async_update_entry(loaded_entry, options={"zones": ["zone2"]})
     await hass.async_block_till_done()
-    assert len(zone2_entities()) == 3
+    assert len(zone2_entities()) == 4
 
 
 async def test_the_device_shows_no_protocol_family_as_hardware(

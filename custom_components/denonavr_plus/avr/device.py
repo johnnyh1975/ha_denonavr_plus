@@ -638,6 +638,26 @@ class DenonAvrDevice:
         if self.telnet_media and network:
             await self._telnet.async_send(grammar["query"])
 
+    @property
+    def network_source(self) -> str | None:
+        """The receiver's network input (HEOS Music, NET), if it lists one."""
+
+        codes = {source.code for source in self._discovery.sources}
+        listed = next(
+            (code for code in self._profile.netaudio.get("sources", []) if code in codes), None
+        )
+        if listed is None and "NETWORK" in codes:
+            # The Deviceinfo list names it NETWORK; on the wire it is NET.
+            return "NET"
+        return listed
+
+    def plays_network(self, zone_id: str) -> bool:
+        """Whether a zone is on and plays the network input."""
+
+        zone = self._state.zone(zone_id)
+        sources = self._profile.netaudio.get("sources", [])
+        return bool(zone.power) and self.zone_source(zone_id) in sources
+
     def zone_source(self, zone_id: str) -> str | None:
         """The source a zone plays: the main zone's when it follows it (SOURCE)."""
 

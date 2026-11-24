@@ -15,8 +15,7 @@
     "avr/transport/telnet.py": 0.891,
     "avr/transport/upnp.py": 0.583,
     "avr/video_config.py": 0.495,
-    "media_player.py": 0.944,
     "select.py": 0.730,
-    "switch.py": 0.8283
+    "switch.py": 0.882
   }
 }

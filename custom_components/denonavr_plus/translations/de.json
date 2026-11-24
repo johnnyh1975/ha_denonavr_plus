@@ -843,6 +843,9 @@
       },
       "tactile_transducer": {
         "name": "Körperschallwandler"
+      },
+      "music": {
+        "name": "Musik"
       }
     },
     "number": {

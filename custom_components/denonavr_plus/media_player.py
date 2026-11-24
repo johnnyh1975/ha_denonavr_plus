@@ -19,6 +19,8 @@ from homeassistant.components.media_player import (
     ATTR_MEDIA_EXTRA,
     BrowseError,
     BrowseMedia,
+    SearchMedia,
+    SearchMediaQuery,
     MediaClass,
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
@@ -37,7 +39,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import choices, heos_media
+from . import artwork, choices, heos_media
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent
@@ -174,7 +176,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         # Every zone browses its quick selects, sources and tuner presets;
         # only the main zone carries the surround / sound mode. Transport is
         # added while a network source plays (see supported_features).
-        features |= MediaPlayerEntityFeature.BROWSE_MEDIA | MediaPlayerEntityFeature.PLAY_MEDIA
+        features |= (
+            MediaPlayerEntityFeature.BROWSE_MEDIA
+            | MediaPlayerEntityFeature.PLAY_MEDIA
+            | MediaPlayerEntityFeature.SEARCH_MEDIA
+        )
         if zone.is_main:
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
             if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
@@ -479,6 +485,27 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if now and now.active and now.image_url:
             return now.image_url
         return self._device.media_art_url() if now is not None else None
+
+    @property
+    def _artwork_kind(self) -> str | None:
+        """The kind of artwork to show for an input without cover art."""
+
+        if not self._zone_state.power or self.media_image_url:
+            return None
+        return artwork.kind_for_icon(self.icon)
+
+    @property
+    def media_image_hash(self) -> str | None:
+        if kind := self._artwork_kind:
+            return f"artwork-{kind}-{artwork.VERSION}"
+        return super().media_image_hash
+
+    async def async_get_media_image(self) -> tuple[bytes | None, str | None]:
+        """The cover, or else the artwork of the input (served by the image proxy)."""
+
+        if kind := self._artwork_kind:
+            return artwork.svg(kind).encode(), "image/svg+xml"
+        return await super().async_get_media_image()
 
     @property
     def media_title(self) -> str | None:
@@ -891,6 +918,47 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             )
             for code in self._device.tuner_preset_codes
         ]
+
+    async def async_search_media(self, query: SearchMediaQuery) -> SearchMedia:
+        """Find quick selects, inputs and HEOS favorites by name (voice: "play Kino").
+
+        Exact names first, then names that start with the query, then names
+        that contain it. Assist plays the first.
+        """
+
+        wanted = query.search_query.casefold().strip()
+        candidates = [*self._quick_select_items(), *self._source_items()]
+        heos = self._device.heos
+        if self._zone.is_main and heos is not None:
+            candidates += [
+                BrowseMedia(
+                    media_class=MediaClass.CHANNEL,
+                    media_content_id=f"heos_favorite/{number}",
+                    media_content_type=MediaType.CHANNEL,
+                    title=name,
+                    can_play=True,
+                    can_expand=False,
+                )
+                for number, name in enumerate(heos.favorites, start=1)
+            ]
+        if query.media_filter_classes:
+            candidates = [
+                item for item in candidates if item.media_class in query.media_filter_classes
+            ]
+
+        def rank(item: BrowseMedia) -> int | None:
+            title = item.title.casefold()
+            if not wanted:
+                return None
+            if title == wanted:
+                return 0
+            if title.startswith(wanted):
+                return 1
+            return 2 if wanted in title else None
+
+        ranked = [(rank(item), index, item) for index, item in enumerate(candidates)]
+        found = sorted((r, i, item) for r, i, item in ranked if r is not None)
+        return SearchMedia(result=[item for _, _, item in found])
 
     @receiver_action
     async def async_play_media(

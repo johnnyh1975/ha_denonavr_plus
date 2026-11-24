@@ -624,6 +624,16 @@
     "enabled": false,
     "category": "config"
   },
+  "switch_music_main": {
+    "entity_id": "switch.avc_x3700h_music",
+    "enabled": true,
+    "category": null
+  },
+  "switch_music_zone2": {
+    "entity_id": "switch.avc_x3700h_zone_2_music",
+    "enabled": true,
+    "category": null
+  },
   "switch_speaker_virtualizer": {
     "entity_id": "switch.avc_x3700h_audio_speaker_virtualizer",
     "enabled": false,

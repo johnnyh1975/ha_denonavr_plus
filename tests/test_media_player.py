@@ -1110,3 +1110,48 @@ async def test_an_announcement_that_never_starts_still_puts_the_zone_back(
     ):
         await hass.services.async_call(DOMAIN, "restore", {"entity_id": main}, blocking=True)
 
+
+
+async def test_search_finds_by_name_for_voice(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Assist's "play Kino on the receiver": search, then the first result plays."""
+    from homeassistant.components.media_player import MediaClass, SearchMediaQuery
+
+    from .test_init import FakeHeos
+
+    device = loaded_entry.runtime_data.device
+    device.discovery.quick_select_names = {1: "Kino", 2: "Kinoabend Spezial"}
+    heos = FakeHeos.instances[-1]
+    heos.connected = True
+    heos.favorites = ["Radio Kino"]
+    entity = _player(hass, entity_id(hass, loaded_entry, "media_player_main"))
+    found = await entity.async_search_media(SearchMediaQuery(search_query=" kino "))
+    assert [item.media_content_id for item in found.result] == [
+        "quick_select/1", "quick_select/2", "heos_favorite/1"
+    ]
+    found = await entity.async_search_media(
+        SearchMediaQuery(search_query="kino", media_filter_classes=[MediaClass.CHANNEL])
+    )
+    assert [item.title for item in found.result] == ["Radio Kino"]
+    found = await entity.async_search_media(SearchMediaQuery(search_query="cd"))
+    assert [item.media_content_id for item in found.result] == ["source/CD"]
+    assert (await entity.async_search_media(SearchMediaQuery(search_query=""))).result == []
+
+
+async def test_an_input_gets_its_own_artwork(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_client: Any
+) -> None:
+    """The media control card paints the picture as background: a TV input gets one too."""
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _push(hass, "PWON", "ZMOFF")
+    assert "entity_picture" not in hass.states.get(main).attributes
+    await _push(hass, "ZMON", "SITV")
+    picture = hass.states.get(main).attributes["entity_picture"]
+    client = await hass_client()
+    response = await client.get(picture)
+    assert response.status == 200
+    assert response.headers["Content-Type"].startswith("image/svg+xml")
+    assert (await response.text()).startswith("<svg")
+    await _push(hass, "SICD")
+    assert hass.states.get(main).attributes["entity_picture"] != picture
