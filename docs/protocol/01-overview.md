@@ -58,7 +58,10 @@ Denon AVR Plus reads the device description on the port that fits the
 receiver (8080, or 80 for receivers before 2016) and keeps the port in the
 entry. It gates entities on the function names in the description, and on
 receivers that name few functions (the AVR-X2000) it also creates a control
-when the receiver answers its telnet query at setup. The
+when the receiver answers its telnet query at setup. Value encodings
+follow the generation: receivers on port 80 (until 2015) read dialog level
+as `PSDIL`, and those below 0250 also take picture levels in two digits
+and tuner presets as `A1`–`G8`. The
 [AVR-X2000 page](models/AVR-X2000.md) lists what works there.
 
 ## Architecture rules

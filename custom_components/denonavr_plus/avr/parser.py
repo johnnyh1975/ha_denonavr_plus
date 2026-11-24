@@ -111,6 +111,8 @@ def parse_device_info(
     # the official integration does, so the model reads cleanly.
     device.model_name = (root.findtext("ModelName") or "").strip().replace("*", "") or None
     device.mac_address = _format_mac(root.findtext("MacAddress"))
+    comm_api = (root.findtext("CommApiVers") or "").strip()
+    device.comm_api_version = int(comm_api) if comm_api.isdigit() else None
     # Classify the receiver type (the device's hardware version) the way the
     # official library does: an AVR-X family device reached over the 8080
     # interface is "avr-x-2016", otherwise "avr". A device is AVR-X when its

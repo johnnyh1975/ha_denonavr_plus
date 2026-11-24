@@ -26,7 +26,11 @@ from custom_components.denonavr_plus.avr.command_test import (
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.models import AvrState, Discovery
 from custom_components.denonavr_plus.avr.parser import TelnetParser
-from custom_components.denonavr_plus.avr.profile import ControlSpec, load_profile, profile_variant
+from custom_components.denonavr_plus.avr.profile import (
+    ControlSpec,
+    load_profile,
+    profile_for_receiver,
+)
 
 from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
@@ -936,7 +940,7 @@ async def test_what_receivers_confirmed_is_what_the_integration_sends(
     run = json.loads((RECORDED / f"{model}.json").read_text(encoding="utf-8"))
     device = loaded_entry.runtime_data.device
     # The AVR-X2000 answers on port 80 and speaks the older variant.
-    profile = profile_variant(load_profile(), "older") if model == "AVR-X2000" else load_profile()
+    profile = profile_for_receiver(load_profile(), 80, 210) if model == "AVR-X2000" else load_profile()
     parser, state = TelnetParser(profile, Discovery()), AvrState()
     checked = []
     for key, item in run["tests"].items():

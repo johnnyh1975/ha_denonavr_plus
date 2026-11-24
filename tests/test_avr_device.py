@@ -398,6 +398,52 @@ async def test_an_older_receiver_gets_its_own_picture_scale(
     assert "PVBR 07" in telnet.sent
 
 
+async def test_a_2014_receiver_on_port_80_keeps_the_newer_picture_scale(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """AVR-X2100W (CommApiVers 0300, port 80): the 2014 and 2015 documents give
+    picture levels as 000-100 like the newer receivers, not the AVR-X2000 scale."""
+    from homeassistant.const import CONF_PORT
+    from homeassistant.helpers import entity_registry as er
+
+    from .conftest import deviceinfo
+
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _x2000_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVR-X2100W-2-Deviceinfo.xml")),
+        ),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.12", CONF_PORT: 80},
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        registry = er.async_get(hass)
+        brightness = registry.async_get_entity_id(
+            "number", DOMAIN, f"{item_id(entry)}_number_brightness"
+        )
+        assert brightness is not None
+        registry.async_update_entity(brightness, disabled_by=None)
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+    state = hass.states.get(brightness)
+    assert state is not None
+    assert (state.attributes["min"], state.attributes["max"]) == (-50, 50)
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": brightness, "value": 7}, blocking=True
+    )
+    assert "PVBR 057" in telnet.sent
+    assert entry.runtime_data.device.profile.control("dialog_level").query == "PSDIL ?"
+
+
 async def _x2000_entry(hass: HomeAssistant) -> MockConfigEntry:
     from homeassistant.const import CONF_PORT
 

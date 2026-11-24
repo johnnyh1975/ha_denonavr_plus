@@ -96,15 +96,27 @@ def test_every_query_is_in_the_protocol_docs() -> None:
     assert not missing, f"queries not described in docs/protocol: {missing}"
 
 
-def test_the_older_variant_replaces_a_controls_own_entries() -> None:
-    from custom_components.denonavr_plus.avr.profile import profile_variant
+def test_the_variants_follow_the_receivers_generation() -> None:
+    """2013 (AVR-X2000), 2014-2015 (port 80) and 2016 on, as the documents give them.
+
+    The 2015 X-series document has three-digit picture levels and presets
+    01-56, like the newer receivers, but dialog level as PSDIL.
+    """
+    from custom_components.denonavr_plus.avr.profile import profile_for_receiver
 
     profile = load_profile()
-    older = profile_variant(profile, "older")
-    assert older.variant == "older"
-    assert older.control("brightness").get("width") == 2
-    assert older.control("brightness").get("max") == 12
-    assert older.control("brightness").get("older") is None
+    x2000 = profile_for_receiver(profile, 80, 210)
+    x2100w = profile_for_receiver(profile, 80, 300)
+    x2600h = profile_for_receiver(profile, 8080, 301)
+    assert (x2000.variant, x2100w.variant, x2600h.variant) == ("older", "older", None)
+    assert x2000.control("brightness").get("width") == 2
+    assert x2000.control("brightness").get("max") == 12
+    assert x2000.control("brightness").get("2013") is None
+    assert x2100w.control("brightness").get("width") == 3
+    assert x2100w.control("dialog_level").query == "PSDIL ?"
+    assert x2600h.control("dialog_level").query == "PSCLV ?"
+    # Without a CommApiVers (2010-2012) the 2013 encodings apply too.
+    assert profile_for_receiver(profile, 80, None).control("contrast").get("width") == 2
     # The cached profile stays as it is for other receivers.
     assert profile.control("brightness").get("width") == 3
 
@@ -114,13 +126,15 @@ def test_the_older_variant_replaces_a_controls_own_entries() -> None:
     "answered TPANOFF, so its own form is unconfirmed: a TPAN reply while a "
     "preset plays would settle it"
 )
-def test_the_older_variant_replaces_the_network_audio_entries() -> None:
-    from custom_components.denonavr_plus.avr.profile import profile_variant
+def test_the_2013_variant_replaces_the_network_audio_entries() -> None:
+    from custom_components.denonavr_plus.avr.profile import profile_for_receiver
 
     profile = load_profile()
-    older = profile_variant(profile, "older")
-    assert older.netaudio["tuner_presets"]["format"] == "letter"
-    assert "older" not in older.netaudio
+    x2000 = profile_for_receiver(profile, 80, 210)
+    assert x2000.netaudio["tuner_presets"]["format"] == "letter"
+    assert "2013" not in x2000.netaudio
+    # 2015 X-series document: TPAN01-56.
+    assert profile_for_receiver(profile, 80, 300).netaudio["tuner_presets"]["format"] == "number"
     assert profile.netaudio["tuner_presets"]["format"] == "number"
 
 

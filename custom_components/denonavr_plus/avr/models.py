@@ -33,6 +33,9 @@ class DeviceInfo:
     serial_number: str | None = None
     firmware_version: str | None = None
     hardware_type: str | None = None
+    # CommApiVers from Deviceinfo.xml (e.g. 210 for 2013, 300 for 2014-2015,
+    # 301 from 2016); None when the receiver reports none (2010-2012).
+    comm_api_version: int | None = None
     # HEOS/AIOS network module identifiers, surfaced in diagnostics rather than
     # on the device card (they describe the streaming module, not the AVR).
     network_module_version: str | None = None

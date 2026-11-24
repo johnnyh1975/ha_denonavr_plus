@@ -64,7 +64,7 @@
     "tuner_sources": ["TUNER"],
     "tuner_queries": ["TFAN?", "TFANNAME?", "TPAN?"],
     "tuner_presets": {"doc": "TPAN? gives the recalled preset (TPAN01, TPANOFF when none); TPAN<code> recalls one, TPANUP and TPANDOWN step through them, only while the source is the tuner. 56 presets, numbered 01-56 in the 2015 X-series document and confirmed by an AVR-X2600H (TPAN01).", "prefix": "TPAN", "up": "TPANUP", "down": "TPANDOWN", "format": "number", "count": 56},
-    "older": {"tuner_presets": {"doc": "The AVR-X2000/E400 (v03) and AVR-1912/2112CI documents name the 56 presets A1-G8 (eight per letter).", "prefix": "TPAN", "up": "TPANUP", "down": "TPANDOWN", "format": "letter", "count": 56}}
+    "2013": {"tuner_presets": {"doc": "The AVR-X2000/E400 (v03) and AVR-1912/2112CI documents name the 56 presets A1-G8 (eight per letter); the 2113CI document (v04, May 2013) and the 2015 X-series document use 01-56.", "prefix": "TPAN", "up": "TPANUP", "down": "TPANDOWN", "format": "letter", "count": 56}}
   },
   "grammar": {
     "line_terminator": "\r",
@@ -959,7 +959,7 @@
       "doc": "Picture mode (Denon protocol PV<mode>). Tokens from the official protocol doc. The 'PV' prefix is shared with the video-adjust settings (PVBR/PVCN/...), so exact_enum makes this control claim only the picture-mode value tokens. Device reports PVSTM (Stream)."
     },
     "contrast": {
-      "older": {"width": 2, "min": -6, "max": 6, "doc": "AVR-X2000/E400 protocol v03: two digits, 44-56, 50 == 0 (-6..+6)."},
+      "2013": {"width": 2, "min": -6, "max": 6, "doc": "AVR-X2000/E400 protocol v03 (2013): two digits, 44-56, 50 == 0 (-6..+6); three digits from the 2014 documents on."},
       "group": "video",
       "subdevice": "picture",
       "scope": "feature",
@@ -975,7 +975,7 @@
       "doc": "Picture contrast (Denon PVCN). 3-digit wire, 050 == 0, range -50..+50. Availability comes from the /ajax PictureAdjust menu (feature injected at discovery); writes require an active HDMI video signal."
     },
     "brightness": {
-      "older": {"center": 0, "width": 2, "min": 0, "max": 12, "doc": "AVR-X2000/E400 protocol v03: two digits, 00-12, 00 == 0."},
+      "2013": {"center": 0, "width": 2, "min": 0, "max": 12, "doc": "AVR-X2000/E400 protocol v03 (2013): two digits, 00-12, 00 == 0; three digits from the 2014 documents on."},
       "group": "video",
       "subdevice": "picture",
       "scope": "feature",
@@ -991,7 +991,7 @@
       "doc": "Picture brightness (Denon PVBR). 3-digit wire, 050 == 0, range -50..+50."
     },
     "saturation": {
-      "older": {"width": 2, "min": -6, "max": 6, "doc": "AVR-X2000/E400 protocol v03: two digits, 44-56, 50 == 0 (-6..+6)."},
+      "2013": {"width": 2, "min": -6, "max": 6, "doc": "AVR-X2000/E400 protocol v03 (2013): two digits, 44-56, 50 == 0 (-6..+6); three digits from the 2014 documents on."},
       "group": "video",
       "subdevice": "picture",
       "scope": "feature",

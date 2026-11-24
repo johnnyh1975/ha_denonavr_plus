@@ -67,6 +67,13 @@ def test_parse_device_info_classifies_avr_x() -> None:
     assert _parse("AVC-X3700H-Deviceinfo-8080.xml").device.hardware_type == "avr-x-2016"
 
 
+def test_parse_device_info_reads_the_interface_level() -> None:
+    assert _parse("AVR-X2000-Deviceinfo.xml").device.comm_api_version == 210
+    assert _parse("AVR-X2100W-2-Deviceinfo.xml").device.comm_api_version == 300
+    assert _parse("AVC-X3700H-Deviceinfo-8080.xml").device.comm_api_version == 301
+    assert _parse("AVR-1912-Deviceinfo.xml").device.comm_api_version is None
+
+
 def test_parse_device_info_reads_volume_scale() -> None:
     volume = _parse("AVC-X3700H-Deviceinfo-8080.xml").volume
     assert volume["absolute_max"] > 0

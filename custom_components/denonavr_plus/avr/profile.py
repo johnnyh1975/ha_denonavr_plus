@@ -245,7 +245,30 @@ def profile_variant(profile: ProtocolProfile, variant: str) -> ProtocolProfile:
     if isinstance(override, dict):
         netaudio.update(override)
     result = ProtocolProfile(raw)
-    result.variant = variant
+    # Applied on top of another variant, the profile keeps naming the first.
+    result.variant = profile.variant or variant
+    return result
+
+
+#: Variants by receiver generation. "older": the web interface on port 80
+#: (receivers until 2015). "2013" on top of it: receivers before the 2014
+#: encodings (picture levels in two digits, tuner presets A1-G8), which
+#: report a CommApiVers below 0250 or none at all.
+OLDER = "older"
+BEFORE_2014 = "2013"
+COMM_API_2014: int = 250
+
+
+def profile_for_receiver(
+    profile: ProtocolProfile, http_port: int, comm_api_version: int | None
+) -> ProtocolProfile:
+    """The profile with the variants that fit the receiver's generation."""
+
+    if http_port != 80:
+        return profile
+    result = profile_variant(profile, OLDER)
+    if comm_api_version is None or comm_api_version < COMM_API_2014:
+        result = profile_variant(result, BEFORE_2014)
     return result
 
 

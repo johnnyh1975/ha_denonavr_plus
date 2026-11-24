@@ -34,7 +34,7 @@ from .models import (
     ZoneSnapshot,
 )
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
-from .profile import ControlSpec, ProtocolProfile, load_profile, profile_variant
+from .profile import OLDER, ControlSpec, ProtocolProfile, load_profile, profile_for_receiver
 from . import capability_check, command_test, graphic_eq, signal_info, video_config
 from .video_config import VideoConfigController
 from .const import (
@@ -66,7 +66,6 @@ _LOGGER = logging.getLogger(__name__)
 POWER_QUERY = "PW?"
 CHANNEL_TRIMS_QUERY = "CV?"
 #: The profile variant of receivers on port 80 (AVR-X2000 and its time).
-OLDER = "older"
 #: How often the now playing list and the tuner are asked while they play.
 MEDIA_POLL_INTERVAL = 5.0
 #: Telnet lines after which the live signal information may have changed:
@@ -353,9 +352,12 @@ class DenonAvrDevice:
             receiver_type=self._profile.receiver_type,
         )
         if self._http_port == 80 and self._profile.variant != OLDER:
-            # The older generation encodes some values differently (picture
-            # levels in two digits); the profile's "older" entries say how.
-            self._profile = profile_variant(self._profile, OLDER)
+            # Older receivers encode some values differently; the profile's
+            # variants say how, by generation (port 80 until 2015, and the
+            # 2013 encodings below CommApiVers 0250).
+            self._profile = profile_for_receiver(
+                self._profile, self._http_port, discovered.device.comm_api_version
+            )
             self._parser = TelnetParser(self._profile, self._discovery)
         # Copy discovered data into our shared discovery object so the parser and
         # entities keep referencing a single instance.
