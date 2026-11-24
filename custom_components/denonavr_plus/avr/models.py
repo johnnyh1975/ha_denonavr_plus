@@ -249,6 +249,20 @@ class ZoneState:
     source: str | None = None
 
 
+@dataclass(frozen=True)
+class ZoneSnapshot:
+    """What a zone was doing, to put it back after an announcement.
+
+    The sound mode is not kept: the receiver remembers it per input, so
+    restoring the input restores it.
+    """
+
+    power: bool | None
+    source: str | None
+    volume_raw: float | None
+    muted: bool | None
+
+
 @dataclass
 class NowPlaying:
     """Now-playing media on the receiver's network player, from the HEOS CLI.

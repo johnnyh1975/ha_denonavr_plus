@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Volumen máximo",
               "turn_on_volume": "Volumen al encender",
-              "volume_step": "Paso de volumen"
+              "volume_step": "Paso de volumen",
+              "announce_volume": "Volumen de los avisos"
             },
             "data_description": {
               "max_volume": "Home Assistant nunca sube el volumen de esta zona por encima, en dB tal como lo muestra el receptor (0 dB es la referencia). Los botones del receptor no se limitan.",
               "turn_on_volume": "Se aplica cuando Home Assistant enciende esta zona, en dB.",
-              "volume_step": "dB por cada subida o bajada de volumen desde Home Assistant. Vacío: el paso propio del receptor (0,5 dB)."
+              "volume_step": "dB por cada subida o bajada de volumen desde Home Assistant. Vacío: el paso propio del receptor (0,5 dB).",
+              "announce_volume": "Volumen de los avisos (texto a voz con announce), en dB. Vacío: el volumen actual. Tras el aviso se restauran el volumen, la entrada y el encendido."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "HEOS no lo ha reproducido: {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} aún no tiene instantánea: haz una primero con denonavr_plus.snapshot."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "De 1 a 56 (en receptores antiguos de A1 a G8, contados igual)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Instantánea",
+      "description": "Guarda lo que hace la zona ahora: encendido, entrada, volumen y silencio. El modo de sonido sigue a la entrada."
+    },
+    "restore": {
+      "name": "Restaurar",
+      "description": "Devuelve la zona al estado de la última instantánea."
     }
   },
   "device_automation": {

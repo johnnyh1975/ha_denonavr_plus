@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Volume maximal",
               "turn_on_volume": "Volume à l'allumage",
-              "volume_step": "Pas du volume"
+              "volume_step": "Pas du volume",
+              "announce_volume": "Volume des annonces"
             },
             "data_description": {
               "max_volume": "Home Assistant ne règle jamais le volume de cette zone plus haut, en dB comme l'affiche l'ampli-tuner (0 dB est la référence). Les touches de l'ampli-tuner ne sont pas limitées.",
               "turn_on_volume": "Appliqué lorsque Home Assistant allume cette zone, en dB.",
-              "volume_step": "dB par hausse ou baisse du volume depuis Home Assistant. Vide : le pas de l'ampli-tuner (0,5 dB)."
+              "volume_step": "dB par hausse ou baisse du volume depuis Home Assistant. Vide : le pas de l'ampli-tuner (0,5 dB).",
+              "announce_volume": "Volume des annonces (synthèse vocale avec announce), en dB. Vide : le volume tel quel. Après l'annonce, le volume, l'entrée et l'alimentation sont rétablis."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "HEOS ne l'a pas lu : {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} n'a pas encore d'instantané : faites-en un d'abord avec denonavr_plus.snapshot."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "De 1 à 56 (sur les anciens modèles de A1 à G8, comptées de la même façon)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Instantané",
+      "description": "Mémorise ce que fait la zone : alimentation, entrée, volume et sourdine. Le mode son suit l'entrée."
+    },
+    "restore": {
+      "name": "Restaurer",
+      "description": "Remet la zone dans l'état du dernier instantané."
     }
   },
   "device_automation": {

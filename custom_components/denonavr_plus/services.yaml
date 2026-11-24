@@ -23,3 +23,13 @@ store_tuner_preset:
           min: 1
           max: 56
           mode: box
+snapshot:
+  target:
+    entity:
+      integration: denonavr_plus
+      domain: media_player
+restore:
+  target:
+    entity:
+      integration: denonavr_plus
+      domain: media_player

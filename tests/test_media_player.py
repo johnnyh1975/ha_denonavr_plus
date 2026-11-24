@@ -9,9 +9,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from freezegun.api import FrozenDateTimeFactory
+from homeassistant.components.media_player import BrowseError
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.components.media_player import BrowseError
 from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -19,6 +19,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.denonavr_plus import volume
+from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.transport import GoformClient
 
 from .common import entity_id
@@ -867,6 +868,8 @@ async def test_an_input_shows_its_signal_below(
     assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD · 48 kHz"
     await _push(hass, "SSINFAISFSVNON")
     assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD"
+    await _push(hass, "SSINFAISFSV2.8M")
+    assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD · 2.8M"
 
 
 async def test_main_off_can_put_the_whole_receiver_in_standby(
@@ -947,3 +950,163 @@ async def test_heos_music_and_favorites_on_a_heos_receiver(
             {"entity_id": main, "media_content_type": "music", "media_content_id": "heos_favorite/1"},
             blocking=True,
         )
+
+
+def _heos_state(state: str | None) -> dict[str, Any]:
+    return {
+        "state": state,
+        "media_type": "station" if state else None,
+        "title": "Announcement" if state else None,
+        "artist": None,
+        "album": None,
+        "image_url": None,
+        "position": None,
+        "duration": None,
+        "position_at": None,
+        "repeat": None,
+        "shuffle": None,
+    }
+
+
+async def test_an_announcement_puts_the_zone_back(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Input, volume and mute are kept, the announcement plays loud enough, then all is back."""
+    from .test_init import FakeHeos
+
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"main": {volume.OPT_ANNOUNCE_VOLUME: -10.0}}
+    )
+    await hass.async_block_till_done()
+    await _push(hass, "PWON", "ZMON", "SITV", "MV50", "MUON")
+    heos = FakeHeos.instances[-1]
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.media_player.ANNOUNCE_MIN_LENGTH", 0):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/tts.mp3",
+                "announce": True,
+            },
+            blocking=True,
+        )
+        assert telnet.sent == ["MV70"]
+        assert heos.calls[-1] == ("url", "http://example.com/tts.mp3")
+        # HEOS takes the receiver to its network input and plays.
+        await _push(hass, "SINET", "MV70", "MUOFF")
+        heos.on_update(_heos_state("play"))
+        await asyncio.sleep(0.4)
+        # A second announcement while the first plays keeps the first snapshot.
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/tts2.mp3",
+                "announce": True,
+                "extra": {"volume": 0.5},
+            },
+            blocking=True,
+        )
+        heos.on_update(_heos_state("play"))
+        await asyncio.sleep(0.4)
+        telnet.sent.clear()
+        heos.on_update(_heos_state("stop"))
+        await asyncio.sleep(0.6)
+        await hass.async_block_till_done()
+    # The receiver's own queries may run in between (a resync after the input change).
+    assert [c for c in telnet.sent if c[:2] in ("SI", "MV", "MU", "ZM", "PW")] == [
+        "SITV", "MV50", "MUON"
+    ]
+
+
+async def test_snapshot_and_restore_actions(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.exceptions import ServiceValidationError
+
+    from custom_components.denonavr_plus.const import DOMAIN
+
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(DOMAIN, "restore", {"entity_id": zone2}, blocking=True)
+    await _push(hass, "PWON", "Z2OFF")
+    await hass.services.async_call(DOMAIN, "snapshot", {"entity_id": zone2}, blocking=True)
+    await _push(hass, "Z2ON", "Z2CD", "Z240")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(DOMAIN, "restore", {"entity_id": zone2}, blocking=True)
+    assert telnet.sent == ["Z2OFF"]
+
+    await hass.services.async_call(DOMAIN, "snapshot", {"entity_id": zone2}, blocking=True)
+    await _push(hass, "Z2OFF")
+    telnet.sent.clear()
+    await hass.services.async_call(DOMAIN, "restore", {"entity_id": zone2}, blocking=True)
+    assert telnet.sent == ["Z2ON"]
+
+
+async def test_an_announcement_that_never_starts_still_puts_the_zone_back(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """No volume option: the volume stays; HEOS never reports playing; a failing restore is logged."""
+    await _push(hass, "PWON", "ZMON", "SITV", "MV50")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    device = loaded_entry.runtime_data.device
+    with (
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_MIN_LENGTH", 0),
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_START_WAIT", 0.05),
+    ):
+        telnet.sent.clear()
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/tts.mp3",
+                "announce": True,
+            },
+            blocking=True,
+        )
+        assert telnet.sent == []
+        await _push(hass, "SINET")
+        await asyncio.sleep(0.3)
+        await hass.async_block_till_done()
+        assert "SITV" in telnet.sent
+
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/tts.mp3",
+                "announce": True,
+            },
+            blocking=True,
+        )
+        with patch.object(
+            type(device), "async_restore", AsyncMock(side_effect=CommandNotSent("gone"))
+        ) as restore:
+            await asyncio.sleep(0.3)
+            await hass.async_block_till_done()
+        assert restore.await_count == 1
+
+    from homeassistant.exceptions import HomeAssistantError as _Error
+
+    from custom_components.denonavr_plus.const import DOMAIN
+
+    await hass.services.async_call(DOMAIN, "snapshot", {"entity_id": main}, blocking=True)
+    with (
+        patch.object(type(device), "async_restore", AsyncMock(side_effect=CommandNotSent("gone"))),
+        pytest.raises(_Error),
+    ):
+        await hass.services.async_call(DOMAIN, "restore", {"entity_id": main}, blocking=True)
+

@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Volume máximo",
               "turn_on_volume": "Volume ao ligar",
-              "volume_step": "Passo do volume"
+              "volume_step": "Passo do volume",
+              "announce_volume": "Volume dos anúncios"
             },
             "data_description": {
               "max_volume": "O Home Assistant nunca define o volume desta zona acima disto, em dB como o recetor o mostra (0 dB é a referência). Os botões do recetor não são limitados.",
               "turn_on_volume": "Definido quando o Home Assistant liga esta zona, em dB.",
-              "volume_step": "dB por cada subida ou descida do volume a partir do Home Assistant. Vazio: o passo do recetor (0,5 dB)."
+              "volume_step": "dB por cada subida ou descida do volume a partir do Home Assistant. Vazio: o passo do recetor (0,5 dB).",
+              "announce_volume": "Volume dos anúncios (texto para voz com announce), em dB. Vazio: o volume atual. Depois do anúncio, o volume, a entrada e a ligação são repostos."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "O HEOS não o reproduziu: {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} ainda não tem instantâneo: crie primeiro um com denonavr_plus.snapshot."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "De 1 a 56 (em recetores mais antigos de A1 a G8, contadas da mesma forma)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Instantâneo",
+      "description": "Guarda o que a zona faz agora: ligação, entrada, volume e silêncio. O modo de som segue a entrada."
+    },
+    "restore": {
+      "name": "Restaurar",
+      "description": "Repõe a zona como o último instantâneo a encontrou."
     }
   },
   "device_automation": {

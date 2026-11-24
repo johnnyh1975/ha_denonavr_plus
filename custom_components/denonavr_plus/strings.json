@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Maximum volume",
               "turn_on_volume": "Turn-on volume",
-              "volume_step": "Volume step"
+              "volume_step": "Volume step",
+              "announce_volume": "Announcement volume"
             },
             "data_description": {
               "max_volume": "Home Assistant never sets the volume of this zone higher, in dB as the receiver shows it (0 dB is the reference). The receiver's own buttons are not limited.",
               "turn_on_volume": "Set when Home Assistant switches this zone on, in dB.",
-              "volume_step": "dB per volume up or down from Home Assistant. Empty: the receiver's own step (0.5 dB)."
+              "volume_step": "dB per volume up or down from Home Assistant. Empty: the receiver's own step (0.5 dB).",
+              "announce_volume": "Volume of announcements (text to speech with announce), in dB. Empty: the volume as it is. After the announcement the volume, input and power are put back."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "HEOS did not play it: {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} has no snapshot yet: take one with denonavr_plus.snapshot first."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "1 to 56 (on older receivers A1 to G8, counted the same way)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Snapshot",
+      "description": "Keeps what the zone does now: power, input, volume and mute. The sound mode follows the input."
+    },
+    "restore": {
+      "name": "Restore",
+      "description": "Puts the zone back as the last snapshot found it."
     }
   },
   "device_automation": {

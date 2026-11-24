@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Maximale Lautstärke",
               "turn_on_volume": "Einschaltlautstärke",
-              "volume_step": "Lautstärke-Schritt"
+              "volume_step": "Lautstärke-Schritt",
+              "announce_volume": "Lautstärke für Durchsagen"
             },
             "data_description": {
               "max_volume": "Höher stellt Home Assistant die Lautstärke dieser Zone nie, in dB wie am Receiver angezeigt (0 dB ist der Referenzpegel). Die Tasten am Receiver werden nicht begrenzt.",
               "turn_on_volume": "Wird gesetzt, wenn Home Assistant diese Zone einschaltet, in dB.",
-              "volume_step": "dB pro Lauter oder Leiser aus Home Assistant. Leer: der Schritt des Receivers (0,5 dB)."
+              "volume_step": "dB pro Lauter oder Leiser aus Home Assistant. Leer: der Schritt des Receivers (0,5 dB).",
+              "announce_volume": "Lautstärke von Durchsagen (Sprachausgabe mit announce), in dB. Leer: die Lautstärke, wie sie ist. Nach der Durchsage werden Lautstärke, Eingang und Ein/Aus zurückgestellt."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "HEOS hat es nicht abgespielt: {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} hat noch keinen Schnappschuss: zuerst denonavr_plus.snapshot ausführen."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "1 bis 56 (bei älteren Receivern A1 bis G8, gleich gezählt)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Schnappschuss",
+      "description": "Merkt sich, was die Zone gerade macht: Ein/Aus, Eingang, Lautstärke und Stumm. Der Klangmodus folgt dem Eingang."
+    },
+    "restore": {
+      "name": "Wiederherstellen",
+      "description": "Stellt die Zone so zurück, wie der letzte Schnappschuss sie vorfand."
     }
   },
   "device_automation": {

@@ -117,6 +117,8 @@ it changes the receiver; it changes what Home Assistant shows and does.
   - **Volume step**: dB per volume up or down from Home Assistant (the
     buttons of the media player card), 0.5 to 5 dB. Empty: the receiver's own
     step of 0.5 dB.
+  - **Announcement volume** (main zone): the volume announcements play at.
+    Empty: the volume as it is.
 
 **Zones**: which additional zones (zone 2, zone 3) get entities. Each such zone
 is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume and
@@ -241,6 +243,12 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   zone. Receivers without HEOS take quick selects, sources and presets only.
   A zone in standby is turned on first, also when a source or a sound mode is
   picked.
+- **Announcements** on receivers with HEOS (main zone): text to speech and
+  other media played with `announce` (as voice assistants and `tts.speak`
+  do) plays over HEOS at the announcement volume (the call's
+  `extra: {volume: 0.5}`, or the option). Power, input, volume and mute are
+  kept before and put back once it has played; the sound mode follows the
+  input. Music that played over HEOS before does not resume: HEOS replaces it.
 - **HEOS music** on receivers with HEOS (main zone): the browser's HEOS folder
   holds the receiver's music sources (HEOS favorites, local media servers and
   USB, TuneIn, playlists, history, signed-in services), in pages of 50.
@@ -402,6 +410,21 @@ media players do; a query cannot, because its answer only comes back over
 telnet, so the action reports an error. It also reports one when the receiver
 cannot be reached. This replaces `denonavr.get_command` of the official
 integration.
+
+### Snapshot and restore (`denonavr_plus.snapshot`, `denonavr_plus.restore`)
+
+`snapshot` keeps what a zone does now (power, input, volume, mute);
+`restore` puts it back, sending only what differs. Announcements do this on
+their own; the actions are for your own sequences, such as a doorbell that
+switches the receiver to a camera input for a while. `restore` without a
+snapshot reports that instead of doing nothing. The snapshot lives until
+Home Assistant restarts.
+
+```yaml
+action: denonavr_plus.snapshot
+target:
+  entity_id: media_player.avr_x2600h
+```
 
 ### Store tuner preset (`denonavr_plus.store_tuner_preset`)
 

@@ -63,7 +63,13 @@ from .choices import (
     OPT_SOURCES,
     OPT_ZONES,
 )
-from .volume import OPT_MAX_VOLUME, OPT_OFFICIAL_SCALE, OPT_TURN_ON_VOLUME, OPT_VOLUME_STEP
+from .volume import (
+    OPT_ANNOUNCE_VOLUME,
+    OPT_MAX_VOLUME,
+    OPT_OFFICIAL_SCALE,
+    OPT_TURN_ON_VOLUME,
+    OPT_VOLUME_STEP,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -512,6 +518,14 @@ class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
                     description={"suggested_value": current.get(OPT_VOLUME_STEP)},
                 ): _STEP_SELECTOR,
             }
+            if zone == "main":
+                # Announcements play on the main zone (over HEOS).
+                zone_fields[
+                    vol.Optional(
+                        OPT_ANNOUNCE_VOLUME,
+                        description={"suggested_value": current.get(OPT_ANNOUNCE_VOLUME)},
+                    )
+                ] = _DB_SELECTOR
             fields[vol.Required(zone)] = section(
                 vol.Schema(zone_fields), {"collapsed": zone != "main"}
             )

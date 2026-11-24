@@ -31,6 +31,7 @@ from .models import (
     NowPlaying,
     SourceDescriptor,
     ZoneDescriptor,
+    ZoneSnapshot,
 )
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ControlSpec, ProtocolProfile, load_profile, profile_variant
@@ -1239,6 +1240,31 @@ class DenonAvrDevice:
         """
 
         await self._send(self._profile.remote_commands[name])
+
+    def zone_snapshot(self, zone_id: str) -> ZoneSnapshot:
+        """What the zone is doing now: power, input, volume, mute."""
+
+        zone = self._state.zone(zone_id)
+        return ZoneSnapshot(
+            power=zone.power, source=zone.source, volume_raw=zone.volume_raw, muted=zone.muted
+        )
+
+    async def async_restore(self, zone_id: str, snapshot: ZoneSnapshot) -> None:
+        """Put a zone back as the snapshot found it; only what differs is sent."""
+
+        zone = self._state.zone(zone_id)
+        if snapshot.power is False:
+            if zone.power is not False:
+                await self.async_set_power(zone_id, False)
+            return
+        if snapshot.power and not zone.power:
+            await self.async_set_power(zone_id, True)
+        if snapshot.source and snapshot.source != zone.source:
+            await self.async_select_source(zone_id, snapshot.source)
+        if snapshot.volume_raw is not None and snapshot.volume_raw != zone.volume_raw:
+            await self.async_set_volume_raw(zone_id, snapshot.volume_raw)
+        if snapshot.muted is not None and snapshot.muted != zone.muted:
+            await self.async_set_mute(zone_id, snapshot.muted)
 
     async def async_set_power(self, zone_id: str, on: bool) -> None:
         """Turn a zone on or off using that zone's power control."""

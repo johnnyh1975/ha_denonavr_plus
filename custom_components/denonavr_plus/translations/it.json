@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Volume massimo",
               "turn_on_volume": "Volume all'accensione",
-              "volume_step": "Passo del volume"
+              "volume_step": "Passo del volume",
+              "announce_volume": "Volume degli annunci"
             },
             "data_description": {
               "max_volume": "Home Assistant non imposta mai il volume di questa zona più in alto, in dB come lo mostra il sintoamplificatore (0 dB è il riferimento). I tasti del sintoamplificatore non sono limitati.",
               "turn_on_volume": "Impostato quando Home Assistant accende questa zona, in dB.",
-              "volume_step": "dB per ogni aumento o riduzione del volume da Home Assistant. Vuoto: il passo del sintoamplificatore (0,5 dB)."
+              "volume_step": "dB per ogni aumento o riduzione del volume da Home Assistant. Vuoto: il passo del sintoamplificatore (0,5 dB).",
+              "announce_volume": "Volume degli annunci (sintesi vocale con announce), in dB. Vuoto: il volume attuale. Dopo l'annuncio vengono ripristinati volume, ingresso e accensione."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "HEOS non l'ha riprodotto: {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} non ha ancora un'istantanea: creane prima una con denonavr_plus.snapshot."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "Da 1 a 56 (sui modelli più vecchi da A1 a G8, contate allo stesso modo)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Istantanea",
+      "description": "Memorizza cosa fa ora la zona: accensione, ingresso, volume e muto. La modalità audio segue l'ingresso."
+    },
+    "restore": {
+      "name": "Ripristina",
+      "description": "Riporta la zona allo stato dell'ultima istantanea."
     }
   },
   "device_automation": {

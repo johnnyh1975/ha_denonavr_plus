@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Maximaal volume",
               "turn_on_volume": "Volume bij inschakelen",
-              "volume_step": "Volumestap"
+              "volume_step": "Volumestap",
+              "announce_volume": "Volume van meldingen"
             },
             "data_description": {
               "max_volume": "Home Assistant zet het volume van deze zone nooit hoger, in dB zoals de receiver het toont (0 dB is de referentie). De knoppen van de receiver worden niet begrensd.",
               "turn_on_volume": "Ingesteld wanneer Home Assistant deze zone inschakelt, in dB.",
-              "volume_step": "dB per keer harder of zachter vanuit Home Assistant. Leeg: de eigen stap van de receiver (0,5 dB)."
+              "volume_step": "dB per keer harder of zachter vanuit Home Assistant. Leeg: de eigen stap van de receiver (0,5 dB).",
+              "announce_volume": "Volume van meldingen (tekst-naar-spraak met announce), in dB. Leeg: het volume zoals het is. Na de melding worden volume, ingang en aan/uit teruggezet."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "HEOS heeft het niet afgespeeld: {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} heeft nog geen momentopname: maak er eerst een met denonavr_plus.snapshot."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "1 tot 56 (op oudere receivers A1 tot G8, op dezelfde manier geteld)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Momentopname",
+      "description": "Onthoudt wat de zone nu doet: aan/uit, ingang, volume en demping. De geluidsmodus volgt de ingang."
+    },
+    "restore": {
+      "name": "Herstellen",
+      "description": "Zet de zone terug zoals de laatste momentopname haar aantrof."
     }
   },
   "device_automation": {

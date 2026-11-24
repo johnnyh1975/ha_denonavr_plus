@@ -14,7 +14,9 @@ from typing import Any
 
 from homeassistant.components import media_source
 from homeassistant.components.media_player import (
+    ATTR_MEDIA_ANNOUNCE,
     ATTR_MEDIA_ENQUEUE,
+    ATTR_MEDIA_EXTRA,
     BrowseError,
     BrowseMedia,
     MediaClass,
@@ -40,7 +42,7 @@ from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent
 from .const import DOMAIN
-from .avr.models import NowPlaying, ZoneDescriptor
+from .avr.models import NowPlaying, ZoneDescriptor, ZoneSnapshot
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .device_trigger import turn_on_trigger
 from .entity import DenonAvrEntity, receiver_action, zone_device
@@ -70,6 +72,12 @@ _REPEAT_TO_HEOS = {mode: heos for heos, mode in _REPEAT_FROM_HEOS.items()}
 # (docs/protocol/02, "Timing": 1 s after PWON, 3 to 5 s for a full boot).
 TURN_ON_WAIT = 15.0
 TURN_ON_SETTLE = 1.0
+#: An announcement: how long until HEOS reports it playing, the least it is
+#: given (the previous stream may report a stop while HEOS switches), and the
+#: longest it may play before the zone is put back.
+ANNOUNCE_START_WAIT = 10.0
+ANNOUNCE_MIN_LENGTH = 2.0
+ANNOUNCE_MAX_LENGTH = 300.0
 
 # An icon-style picture of the selected input, shown when there is no album art
 # to display. Keyed by the receiver's wire source code (what the state holds);
@@ -148,6 +156,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         super().__init__(coordinator, f"media_player_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
         self._players = players
+        self._announce_task: asyncio.Task[None] | None = None
+        self._announce_snapshot: ZoneSnapshot | None = None
+        self._snapshot: ZoneSnapshot | None = None
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
         self._attr_name = None
@@ -167,8 +178,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if zone.is_main:
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
             if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
-                # HEOS queues albums and playlists now, next or at the end.
-                features |= MediaPlayerEntityFeature.MEDIA_ENQUEUE
+                # HEOS queues albums and playlists now, next or at the end,
+                # and plays announcements, after which the zone is put back.
+                features |= (
+                    MediaPlayerEntityFeature.MEDIA_ENQUEUE
+                    | MediaPlayerEntityFeature.MEDIA_ANNOUNCE
+                )
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -182,6 +197,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                     self.hass, turn_on_trigger(entry.device_id)
                 )
             )
+        self.async_on_remove(self._cancel_announcement)
+
+    def _cancel_announcement(self) -> None:
+        if self._announce_task is not None:
+            self._announce_task.cancel()
 
     # State ----------------------------------------------------------------
 
@@ -878,6 +898,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     ) -> None:
         """A quick select, a source, or a URL (also from Home Assistant's media, TTS)."""
 
+        if (
+            kwargs.get(ATTR_MEDIA_ANNOUNCE)
+            and self._zone.is_main
+            and self._device.can_play_url
+            and not media_id.startswith((_QUICK_SELECT, _SOURCE, _TUNER_PRESET, *heos_media.PREFIXES))
+        ):
+            await self._async_announce(media_id, kwargs.get(ATTR_MEDIA_EXTRA) or {})
+            return
         await self._ensure_on()
         if media_id.startswith(heos_media.PREFIXES):
             heos = self._device.heos if self._zone.is_main else None
@@ -935,6 +963,96 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @property
     def _model(self) -> str:
         return self._device.discovery.device.model_name or "receiver"
+
+    # Snapshot and restore (actions) -------------------------------------------
+
+    def take_snapshot(self) -> None:
+        """Keep what the zone does now (denonavr_plus.snapshot)."""
+
+        self._snapshot = self._device.zone_snapshot(self._zone.id)
+
+    async def async_restore_snapshot(self) -> None:
+        """Put the zone back as the last snapshot found it (denonavr_plus.restore)."""
+
+        if self._snapshot is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="no_snapshot",
+                translation_placeholders={"entity": self.entity_id or self._zone.id},
+            )
+        try:
+            await self._device.async_restore(self._zone.id, self._snapshot)
+        except CommandNotSent as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="receiver_unreachable",
+                translation_placeholders={"model": self._model},
+            ) from err
+
+    # Announcements -----------------------------------------------------------
+
+    async def _async_announce(self, media_id: str, extra: dict[str, Any]) -> None:
+        """Play an announcement, then put the zone back as it was.
+
+        The zone's power, input, volume and mute are kept before; the
+        announcement plays over HEOS at the announcement volume (the
+        `volume` of the call's extra data, 0 to 1, or the option), and once
+        it has played they are restored in the background. A second
+        announcement before then keeps the first snapshot.
+        """
+
+        if self._announce_task is not None and not self._announce_task.done():
+            self._announce_task.cancel()
+        else:
+            self._announce_snapshot = self._device.zone_snapshot(self._zone.id)
+        await self._ensure_on()
+        raw = self._announce_volume(extra)
+        if raw is not None:
+            await self._device.async_set_volume_raw(self._zone.id, raw)
+        if media_source.is_media_source_id(media_id):
+            item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
+            media_id = item.url
+        await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
+        self._announce_task = self.hass.async_create_background_task(
+            self._async_restore_after_announcement(),
+            f"{DOMAIN} restore after announcement",
+        )
+
+    def _announce_volume(self, extra: dict[str, Any]) -> float | None:
+        level = extra.get("volume")
+        if isinstance(level, (int, float)) and 0 <= level <= 1:
+            return _volume.raw_from_level(self._device, self._zone.id, float(level), self._entry_options)
+        announce_db = _volume.zone_options(self._entry_options, self._zone.id).announce_db
+        if announce_db is None:
+            return None
+        return _volume.clamp_raw(
+            self._device,
+            self._zone.id,
+            self._device.volume_reference + announce_db,
+            self._entry_options,
+        )
+
+    async def _async_restore_after_announcement(self) -> None:
+        """Wait for the announcement to start and to end, then restore. Never raises."""
+
+        snapshot = self._announce_snapshot
+        await asyncio.sleep(ANNOUNCE_MIN_LENGTH)
+        try:
+            async with asyncio.timeout(ANNOUNCE_START_WAIT):
+                while self.coordinator.data.now_playing.state != "play":
+                    await asyncio.sleep(0.25)
+            async with asyncio.timeout(ANNOUNCE_MAX_LENGTH):
+                while self.coordinator.data.now_playing.state == "play":
+                    await asyncio.sleep(0.25)
+        except TimeoutError:
+            _LOGGER.debug("Announcement on %s: no clear end, restoring", self._zone.id)
+        if snapshot is None:
+            return
+        self._announce_snapshot = None
+        try:
+            await self._device.async_restore(self._zone.id, snapshot)
+        except CommandNotSent as err:
+            _LOGGER.debug("Restoring %s after an announcement failed: %s", self._zone.id, err)
 
     async def _ensure_on(self) -> None:
         """Turn the zone on and wait until it reports so.

@@ -7,6 +7,10 @@ Asked for a response, it returns the receiver's replies.
 
 `denonavr_plus.store_tuner_preset` stores the station that plays as a tuner
 preset (TPANMEM), as yamaha_ynca's store_preset does.
+
+`denonavr_plus.snapshot` keeps what a zone does (power, input, volume,
+mute) and `denonavr_plus.restore` puts it back, as announcements do on their
+own.
 """
 
 from __future__ import annotations
@@ -31,6 +35,8 @@ if TYPE_CHECKING:
 SERVICE_SEND_COMMAND = "send_command"
 ATTR_COMMAND = "command"
 SERVICE_STORE_TUNER_PRESET = "store_tuner_preset"
+SERVICE_SNAPSHOT = "snapshot"
+SERVICE_RESTORE = "restore"
 ATTR_PRESET = "preset"
 #: Presets 1-56, as the receivers count them (A1-G8 on older ones).
 TUNER_PRESETS = 56
@@ -114,6 +120,14 @@ async def _async_store_tuner_preset(entity: DenonAvrEntity, call: ServiceCall) -
         ) from err
 
 
+async def _async_snapshot(entity: DenonAvrEntity, call: ServiceCall) -> None:
+    entity.take_snapshot()  # type: ignore[attr-defined]
+
+
+async def _async_restore(entity: DenonAvrEntity, call: ServiceCall) -> None:
+    await entity.async_restore_snapshot()  # type: ignore[attr-defined]
+
+
 def async_setup_services(hass: HomeAssistant) -> None:
     """Register the actions; called once from async_setup."""
 
@@ -135,3 +149,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
         schema=_STORE_TUNER_PRESET_SCHEMA,
         func=_async_store_tuner_preset,
     )
+    for name, func in ((SERVICE_SNAPSHOT, _async_snapshot), (SERVICE_RESTORE, _async_restore)):
+        service.async_register_platform_entity_service(
+            hass,
+            DOMAIN,
+            name,
+            entity_domain=MEDIA_PLAYER_DOMAIN,
+            schema=None,
+            func=func,
+        )

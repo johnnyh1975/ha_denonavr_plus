@@ -84,12 +84,14 @@
             "data": {
               "max_volume": "Maksymalna głośność",
               "turn_on_volume": "Głośność po włączeniu",
-              "volume_step": "Krok głośności"
+              "volume_step": "Krok głośności",
+              "announce_volume": "Głośność komunikatów"
             },
             "data_description": {
               "max_volume": "Home Assistant nigdy nie ustawi głośności tej strefy wyżej, w dB tak, jak pokazuje amplituner (0 dB to poziom odniesienia). Przyciski amplitunera nie są ograniczane.",
               "turn_on_volume": "Ustawiana, gdy Home Assistant włącza tę strefę, w dB.",
-              "volume_step": "dB na każde zwiększenie lub zmniejszenie głośności z Home Assistant. Puste: własny krok amplitunera (0,5 dB)."
+              "volume_step": "dB na każde zwiększenie lub zmniejszenie głośności z Home Assistant. Puste: własny krok amplitunera (0,5 dB).",
+              "announce_volume": "Głośność komunikatów (zamiana tekstu na mowę z announce), w dB. Puste: bieżąca głośność. Po komunikacie głośność, wejście i zasilanie są przywracane."
             }
           },
           "zone2": {
@@ -994,6 +996,9 @@
     },
     "heos_failed": {
       "message": "HEOS tego nie odtworzył: {error}"
+    },
+    "no_snapshot": {
+      "message": "{entity} nie ma jeszcze migawki: najpierw wykonaj denonavr_plus.snapshot."
     }
   },
   "issues": {
@@ -1063,6 +1068,14 @@
           "description": "Od 1 do 56 (w starszych amplitunerach od A1 do G8, liczone tak samo)."
         }
       }
+    },
+    "snapshot": {
+      "name": "Migawka",
+      "description": "Zapamiętuje, co strefa teraz robi: zasilanie, wejście, głośność i wyciszenie. Tryb dźwięku podąża za wejściem."
+    },
+    "restore": {
+      "name": "Przywróć",
+      "description": "Przywraca strefę do stanu z ostatniej migawki."
     }
   },
   "device_automation": {
