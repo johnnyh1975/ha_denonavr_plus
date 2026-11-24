@@ -55,7 +55,7 @@ its table pairs the labels one row off. Use the token names, not the labels.
 |---|---|---|---|---|---|
 | `PSDRC` | Dynamic range compression | `AUTO`, `LOW`, `MID`, `HI`, `OFF` | yes | yes | yes |
 | `PSLFE` | LFE level | `00` to `10` = 0 to −10 dB | yes | yes | yes |
-| `PSDELAY` | Audio delay | 0–200 ms | yes | yes | yes |
+| `PSDELAY` | Audio delay | 0–200 ms; 0–500 ms from 2016 (FY21 table) | yes | yes | yes |
 | `PSDEL` | Effect delay | 0–300 ms | yes | yes | yes |
 | `PSEFF` | Effect level | 1–15 | yes | yes | yes |
 | `PSRSTR` | Audio restorer | `OFF`, `LOW`, `MED`, `HI` | yes | yes | yes |

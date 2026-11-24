@@ -259,6 +259,7 @@ def test_replies_recorded_on_an_avr_x2600h(
     assert state.values["zone2_quick_select"] == "0"  # none recalled
     assert state.values["zone2_channel_level_fl"] == 0.0
     assert state.values["zone2_channel_level_fr"] == 0.0
+    assert state.values["headphone_eq"] is False
     # Z2NET, not Z2QUICK0 that comes later.
     assert zone2.source == "NET"
 
@@ -368,6 +369,7 @@ def test_every_model_dependent_control_has_a_reply_test() -> None:
         "zone2_quick_select",
         "zone2_channel_level_fl",
         "zone2_channel_level_fr",
+        "headphone_eq",
     }
     assert answered == {control_id for _, control_id, _ in ANSWERED_REPLIES} | recorded
 

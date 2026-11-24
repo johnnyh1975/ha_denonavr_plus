@@ -51,9 +51,6 @@ GATES_NOT_IN_RECORDINGS = {
     # Set by video_config.feature_flags() from the setup API's menu
     # availability, never read from Deviceinfo.
     "PictureAdjust",
-    # Taken over from denon_avr 1.1.2; none of the 28 recordings has it.
-    # A Deviceinfo from a receiver with a headphone EQ would confirm it.
-    "HeadphoneEq",
 }
 
 
@@ -174,3 +171,18 @@ def test_values_from_the_2020_table() -> None:
     profile = load_profile()
     assert profile.control("imax").get("values") == ["AUTO", "ON", "OFF"]
     assert profile.control("containment_amount").get("min") == 1
+
+
+def test_audio_delay_and_zone_2_levels_follow_denons_tables() -> None:
+    from custom_components.denonavr_plus.avr.profile import profile_variant
+
+    def field(profile: object, control_id: str, key: str) -> object:
+        spec = profile.control(control_id)  # type: ignore[attr-defined]
+        assert spec is not None
+        return spec.get(key)
+
+    profile = load_profile()
+    assert (field(profile, "audio_delay", "max"), field(profile, "audio_delay", "step")) == (500, 1)
+    assert field(profile_variant(profile, "older"), "audio_delay", "max") == 200
+    assert field(profile, "zone2_channel_level_fl", "step") == 1
+    assert field(profile, "zone2_channel_level_fr", "step") == 1

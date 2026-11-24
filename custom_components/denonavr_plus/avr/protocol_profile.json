@@ -557,14 +557,13 @@
     },
     "headphone_eq": {
       "group": "audio",
-      "scope": "feature",
-      "feature": "HeadphoneEq",
+      "scope": "answered",
       "kind": "onoff",
       "query": "PSHEQ ?",
       "prefix": "PSHEQ ",
       "on": "ON",
       "off": "OFF",
-      "doc": "Headphone EQ on/off. PSHEQ verified live (responds 'OFF'), but the X3600H does not advertise a HeadphoneEq FuncName, so this stays dormant on it and activates on models that do advertise it. A telnet-response gate (create when the device answers the query) would let telnet-only capabilities like this populate; noted as a future enhancement."
+      "doc": "Headphone EQ on/off (PSHEQ, in Denon's FY21 table and the 2015 X-series document). No recorded Deviceinfo and no Denon app names a HeadphoneEq function, so it is shown when the receiver answers the query at setup: the AVR-X2600H answers OFF, the AVR-X2000 does not answer."
     },
     "auto_lip_sync": {
       "group": "video",
@@ -787,8 +786,8 @@
       "prefix": "Z2CVFL ",
       "min": -12,
       "max": 12,
-      "step": 0.5,
-      "doc": "Zone 2 front left level (Z2CVFL, 38-62, 50 == 0 dB). AVR-X2000/E400 protocol v03 and the 2015 X-series document; answered by an AVR-X2000 and an AVR-X2600H."
+      "step": 1,
+      "doc": "Zone 2 front left level (Z2CVFL, 38-62, 50 == 0 dB; whole dB only, as Denon's FY21 table gives it). AVR-X2000/E400 protocol v03 and the 2015 X-series document; answered by an AVR-X2000 and an AVR-X2600H."
     },
     "zone2_channel_level_fr": {
       "group": "zone",
@@ -799,7 +798,7 @@
       "prefix": "Z2CVFR ",
       "min": -12,
       "max": 12,
-      "step": 0.5,
+      "step": 1,
       "doc": "Zone 2 front right level (Z2CVFR), as the front left."
     },
     "sleep_timer": {
@@ -906,9 +905,10 @@
       "width": 3,
       "unit": "ms",
       "min": 0,
-      "max": 200,
-      "step": 10,
-      "doc": "Audio delay in milliseconds. The receiver does not publish a range, so the protocol range (0-200 ms) is used as a fallback."
+      "max": 500,
+      "step": 1,
+      "older": {"max": 200, "doc": "0-200 ms in the AVR-X2000/E400 (v03) and 2015 X-series documents."},
+      "doc": "Audio delay in milliseconds. Denon's FY21 table gives 0-500 ms for receivers from 2016 on; the older documents give 0-200 ms (older variant). The receiver does not publish the range over telnet."
     },
     "dialog_control": {
       "group": "surround",
