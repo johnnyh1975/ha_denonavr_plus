@@ -79,12 +79,12 @@ and back without losing entity IDs or history.
 
 | Brand | Series | Status |
 |---|---|---|
-| Denon | AVR-X | Tested: AVR-X3600H, AVR-X2600H |
+| Denon | AVR-X | Tested: AVR-X3600H, AVR-X2600H, AVR-X2000 |
 | Denon | AVR-S, AVC-X | Expected, not yet confirmed |
 | Marantz | SR, NR, Cinema, AV | Expected, not yet confirmed |
 
-Receivers from before 2016, such as the AVR-X2000, can be set up but report
-few of their functions, so most settings stay hidden. Own an unconfirmed
+Receivers from before 2016, such as the AVR-X2000, work but report few of
+their functions, so most of their settings stay hidden for now. Own an unconfirmed
 model? [Test it](CONTRIBUTING.md#test-the-receiver) and share the result.
 
 ## Installation

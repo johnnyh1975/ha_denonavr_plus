@@ -19,7 +19,7 @@ Bug reports, receiver tests and pull requests are welcome. Back to the
 |---|---|---|
 | Denon AVR-X3600H | 3.88.614 | Protocol verified live by the original author (Home Assistant 2026.7) |
 | Denon AVR-X2600H | 3.139.175 | Capability check and receiver test ([recording](tests/fixtures/command_test/AVR-X2600H.json)) |
-| Denon AVR-X2000 | | Capability check only ([recording](tests/fixtures/capability_check/AVR-X2000.json)); older receivers are not fully supported yet |
+| Denon AVR-X2000 | | Tested by the maintainer; capability check ([recording](tests/fixtures/capability_check/AVR-X2000.json)). Most settings stay hidden on receivers before 2016 for now |
 
 Other receivers of the HEOS generation should work, as the integration adapts
 to what the device reports. A run of the receiver test on your model is the
