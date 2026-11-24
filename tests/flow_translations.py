@@ -76,6 +76,7 @@ def problems(flow: Any, result: dict[str, Any]) -> list[str]:
     step = result.get("step_id")
     provided = set(result.get("description_placeholders") or {})
     needed: list[tuple[tuple[str, ...], bool]] = []  # (key path, required)
+    titles: list[str] = []
     if kind is FlowResultType.FORM:
         needed.append(((*category, "step", step, "description"), False))
         if (*category, step) not in NAMED_BY_RECEIVER:
@@ -84,6 +85,14 @@ def problems(flow: Any, result: dict[str, Any]) -> list[str]:
             needed.append(((*category, "error", code), True))
     elif kind is FlowResultType.MENU:
         needed.append(((*category, "step", step, "description"), False))
+        # The frontend shows a menu's title without its placeholders: the
+        # Home Assistant 2026.10 frontend printed "Translation [formatjs
+        # Error: MISSING_VALUE]" for "Take over from {integration}?".
+        title = (*category, "step", step, "title")
+        for language, tree in _languages().items():
+            text = _get(tree, title)
+            if isinstance(text, str) and _placeholders(text):
+                titles.append(f"{language}: {'.'.join(title)} has placeholders in a menu title")
         options = result.get("menu_options") or []
         names = options if isinstance(options, list) else list(options)
         for name in names:
@@ -93,7 +102,7 @@ def problems(flow: Any, result: dict[str, Any]) -> list[str]:
         needed.append(((*category, "progress", result.get("progress_action")), True))
     elif kind is FlowResultType.ABORT:
         needed.append(((*category, "abort", result.get("reason")), True))
-    found: list[str] = []
+    found: list[str] = list(titles)
     for language, tree in _languages().items():
         for path, required in needed:
             text = _get(tree, path)

@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "Overnemen van {integration}?",
+        "title": "Overnemen van een andere integratie?",
         "description": "{model} is al ingesteld in {integration} als ‘{title}’. Denon AVR Plus kan hem overnemen: die invoer wordt uitgeschakeld (hij blijft en kan weer worden ingeschakeld), en zijn entiteiten verhuizen hierheen met hun entiteit-ID's, namen, ruimtes en geschiedenis, zodat automatiseringen en dashboards blijven werken. Wat ze gebruiken en hier anders werkt, staat daarna in een reparatie. De verhuizing kan in de opties ongedaan worden gemaakt.",
         "menu_options": {
           "move_yes": "Overnemen",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Overnemen van {integration}",
+            "title": "De receiver overnemen",
             "description": "Beide integraties verbinden met de receiver, die één verbinding aanneemt: ze storen elkaar. De invoer ‘{title}’ in {integration} wordt uitgeschakeld (hij blijft en kan weer worden ingeschakeld), en zijn entiteiten verhuizen naar Denon AVR Plus met hun entiteit-ID's, namen, ruimtes en geschiedenis. De verhuizing kan in de opties ongedaan worden gemaakt."
           }
         },

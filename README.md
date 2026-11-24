@@ -85,6 +85,9 @@ Copy the `denonavr_plus` folder into `<config>/custom_components/` and restart H
 
 ## Configuration
 
+New here? The [user guide](docs/USER_GUIDE.md) walks through setup, daily
+use, the options, automations and troubleshooting, with screenshots.
+
 Receivers on the network usually show up by themselves under Settings → Devices &
 Services → Discovered.
 

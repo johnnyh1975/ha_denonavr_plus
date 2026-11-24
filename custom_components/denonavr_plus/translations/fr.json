@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "Reprendre depuis {integration} ?",
+        "title": "Reprendre depuis une autre intégration ?",
         "description": "{model} est déjà configuré dans {integration} sous le nom « {title} ». Denon AVR Plus peut le reprendre : cette entrée est désactivée (elle reste et peut être réactivée) et ses entités passent ici avec leurs ID d'entité, noms, pièces et historique, si bien que les automatisations et les tableaux de bord continuent de fonctionner. Ce qu'ils utilisent et qui fonctionne autrement ici est ensuite listé dans une réparation. Le transfert peut être annulé dans les options.",
         "menu_options": {
           "move_yes": "Reprendre",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Reprendre depuis {integration}",
+            "title": "Reprendre le récepteur",
             "description": "Les deux intégrations se connectent au récepteur, qui n'accepte qu'une connexion : elles se gênent. L'entrée « {title} » de {integration} est désactivée (elle reste et peut être réactivée) et ses entités passent à Denon AVR Plus avec leurs ID d'entité, noms, pièces et historique. Le transfert peut être annulé dans les options."
           }
         },

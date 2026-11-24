@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "Take over from {integration}?",
+        "title": "Take over from another integration?",
         "description": "{model} is already set up in {integration} as \"{title}\". Denon AVR Plus can take it over: that entry is disabled (it stays and can be enabled again), and its entities move here with their entity IDs, names, areas and history, so automations and dashboards keep working. Anything they use that works differently here is listed in a repair afterwards. The move can be undone in the options.",
         "menu_options": {
           "move_yes": "Take over",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Take over from {integration}",
+            "title": "Take over the receiver",
             "description": "Both integrations connect to the receiver, which takes one connection: they disturb each other. The {integration} entry \"{title}\" is disabled (it stays and can be enabled again), and its entities move to Denon AVR Plus with their entity IDs, names, areas and history. The move can be undone in the options."
           }
         },

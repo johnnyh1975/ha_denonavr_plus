@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "Von {integration} übernehmen?",
+        "title": "Von einer anderen Integration übernehmen?",
         "description": "{model} ist schon in {integration} eingerichtet, als „{title}“. Denon AVR Plus kann ihn übernehmen: Dieser Eintrag wird deaktiviert (er bleibt und lässt sich wieder einschalten), und seine Entitäten ziehen mit Entitäts-IDs, Namen, Bereichen und Verlauf hierher um. Automationen und Dashboards laufen also weiter. Was sie nutzen und hier anders geht, steht danach in einer Reparaturmeldung. Der Umzug lässt sich in den Optionen rückgängig machen.",
         "menu_options": {
           "move_yes": "Übernehmen",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Von {integration} übernehmen",
+            "title": "Receiver übernehmen",
             "description": "Beide Integrationen verbinden sich mit dem Receiver, der nur eine Verbindung annimmt: Sie stören sich. Der Eintrag „{title}“ in {integration} wird deaktiviert (er bleibt und lässt sich wieder einschalten), und seine Entitäten ziehen mit Entitäts-IDs, Namen, Bereichen und Verlauf zu Denon AVR Plus um. Der Umzug lässt sich in den Optionen rückgängig machen."
           }
         },

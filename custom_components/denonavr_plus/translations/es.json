@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "¿Tomar el control desde {integration}?",
+        "title": "¿Tomar el control desde otra integración?",
         "description": "{model} ya está configurado en {integration} como «{title}». Denon AVR Plus puede tomarlo: esa entrada se desactiva (se conserva y se puede volver a activar) y sus entidades pasan aquí con sus ID de entidad, nombres, áreas e historial, así que las automatizaciones y los paneles siguen funcionando. Lo que usen y aquí funcione de otra forma se muestra después en una reparación. El traslado se puede deshacer en las opciones.",
         "menu_options": {
           "move_yes": "Tomar el control",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Tomar el control desde {integration}",
+            "title": "Tomar el control del receptor",
             "description": "Ambas integraciones se conectan al receptor, que acepta una sola conexión: se molestan entre sí. La entrada «{title}» de {integration} se desactiva (se conserva y se puede volver a activar) y sus entidades pasan a Denon AVR Plus con sus ID de entidad, nombres, áreas e historial. El traslado se puede deshacer en las opciones."
           }
         },

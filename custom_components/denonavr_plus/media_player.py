@@ -1352,12 +1352,19 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         await self._device.async_media_shuffle(shuffle)
 
 
+#: Sample rates some receivers report as bare digits (an AVR-X2600H sends
+#: SSINFAISFSV 441 for 44.1 kHz).
+_BARE_RATES = {"32": "32", "441": "44.1", "48": "48", "882": "88.2", "96": "96", "1764": "176.4", "192": "192"}
+
+
 def _sample_rate(token: object) -> str | None:
-    """'48K' -> '48 kHz', '44.1K' -> '44.1 kHz'; other tokens as they are."""
+    """'48K' -> '48 kHz', '44.1K' or '441' -> '44.1 kHz'; other tokens as they are."""
 
     if not isinstance(token, str) or not token.strip():
         return None
     token = token.strip()
     if token.upper().endswith("K") and token[:-1].replace(".", "", 1).isdigit():
         return f"{token[:-1]} kHz"
+    if token in _BARE_RATES:
+        return f"{_BARE_RATES[token]} kHz"
     return token

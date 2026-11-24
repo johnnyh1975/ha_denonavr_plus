@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "Assumir a partir de {integration}?",
+        "title": "Assumir a partir de outra integração?",
         "description": "{model} já está configurado em {integration} como «{title}». O Denon AVR Plus pode assumi-lo: essa entrada é desativada (mantém-se e pode voltar a ser ativada) e as suas entidades passam para aqui com os ID de entidade, nomes, áreas e histórico, pelo que as automatizações e os painéis continuam a funcionar. O que usarem e aqui funcione de outra forma aparece depois numa reparação. A mudança pode ser anulada nas opções.",
         "menu_options": {
           "move_yes": "Assumir",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Assumir a partir de {integration}",
+            "title": "Assumir o recetor",
             "description": "Ambas as integrações ligam-se ao recetor, que aceita uma só ligação: perturbam-se. A entrada «{title}» em {integration} é desativada (mantém-se e pode voltar a ser ativada) e as suas entidades passam para o Denon AVR Plus com os ID de entidade, nomes, áreas e histórico. A mudança pode ser anulada nas opções."
           }
         },

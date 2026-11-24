@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "Rilevare da {integration}?",
+        "title": "Rilevare da un'altra integrazione?",
         "description": "{model} è già configurato in {integration} come «{title}». Denon AVR Plus può rilevarlo: quella voce viene disattivata (rimane e si può riattivare) e le sue entità passano qui con ID entità, nomi, aree e cronologia, così automazioni e dashboard continuano a funzionare. Quello che usano e qui funziona diversamente viene poi elencato in una riparazione. Il trasferimento si può annullare nelle opzioni.",
         "menu_options": {
           "move_yes": "Rileva",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Rilevare da {integration}",
+            "title": "Rilevare il ricevitore",
             "description": "Entrambe le integrazioni si collegano al ricevitore, che accetta una sola connessione: si disturbano. La voce «{title}» di {integration} viene disattivata (rimane e si può riattivare) e le sue entità passano a Denon AVR Plus con ID entità, nomi, aree e cronologia. Il trasferimento si può annullare nelle opzioni."
           }
         },

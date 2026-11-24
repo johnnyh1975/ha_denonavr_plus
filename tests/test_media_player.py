@@ -983,6 +983,18 @@ async def test_an_input_shows_its_signal_below(
 
 
 @pytest.mark.assumed(
+    "an AVR-X2600H answered SSINFAISFSV 441 to a PCM signal; that bare digits are "
+    "the rate (44.1 kHz) is read from marantz-denon-mqtt, settled by a 48 kHz signal"
+)
+async def test_a_sample_rate_in_bare_digits(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "SIDVD", "SYSDA PCM   ", "SSINFAISFSV 441")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    assert hass.states.get(main).attributes["media_album_name"] == "PCM · 44.1 kHz"
+
+
+@pytest.mark.assumed(
     "PWSTANDBY puts the whole receiver in standby per the documents; not yet sent "
     "from the option on a receiver"
 )

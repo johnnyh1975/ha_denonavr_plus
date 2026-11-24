@@ -7,7 +7,8 @@
 #   input) as its background;
 # - tile cards with the media player features (source, sound mode, volume,
 #   playback) and select options as buttons for the quick selects;
-# - the tuner, whose entities are available while the tuner plays.
+# - the tuner, shown only while it plays (its entities are unavailable
+#   otherwise, which would show warnings).
 title: Receiver
 path: receiver
 icon: mdi:audio-video
@@ -43,6 +44,10 @@ sections:
         entity: switch.avr_x2600h_music
         name: Music
   - type: grid
+    visibility:
+      - condition: state
+        entity: select.avr_x2600h_tuner_preset
+        state_not: unavailable
     cards:
       - type: heading
         heading: Tuner

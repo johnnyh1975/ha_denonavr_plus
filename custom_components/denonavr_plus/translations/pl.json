@@ -44,7 +44,7 @@
         }
       },
       "move_offer": {
-        "title": "Przejąć z {integration}?",
+        "title": "Przejąć z innej integracji?",
         "description": "{model} jest już skonfigurowany w {integration} jako „{title}”. Denon AVR Plus może go przejąć: ten wpis zostanie wyłączony (pozostaje i można go ponownie włączyć), a jego encje przejdą tutaj z identyfikatorami encji, nazwami, obszarami i historią, więc automatyzacje i pulpity nadal działają. To, czego używają, a co tutaj działa inaczej, pojawi się potem w naprawie. Przeniesienie można cofnąć w opcjach.",
         "menu_options": {
           "move_yes": "Przejmij",
@@ -1190,7 +1190,7 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Przejmij z {integration}",
+            "title": "Przejmij amplituner",
             "description": "Obie integracje łączą się z amplitunerem, który przyjmuje jedno połączenie: przeszkadzają sobie. Wpis „{title}” w {integration} zostanie wyłączony (pozostaje i można go ponownie włączyć), a jego encje przejdą do Denon AVR Plus z identyfikatorami encji, nazwami, obszarami i historią. Przeniesienie można cofnąć w opcjach."
           }
         },
