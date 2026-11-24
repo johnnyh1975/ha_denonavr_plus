@@ -207,3 +207,23 @@ def test_mdax_sends_the_values_of_marantzs_table() -> None:
     spec = load_profile().control("mdax")
     assert spec is not None
     assert spec.values == ["OFF", "LOW", "MID", "HI"]
+
+
+def test_marantz_receivers_get_smart_select() -> None:
+    """Marantz FY20 AVR control protocol (2019): MSSMART, Z2SMART; BrandCode 1."""
+    from custom_components.denonavr_plus.avr.profile import profile_for_receiver
+
+    profile = load_profile()
+    marantz = profile_for_receiver(profile, 8080, 301, 1)
+    assert marantz.introspection["quick_select"]["query"] == "MSSMART ?"
+    assert marantz.introspection["quick_select"]["prefix"] == "MSSMART"
+    zone2 = marantz.control("zone2_quick_select")
+    assert zone2 is not None and (zone2.query, zone2.prefix) == ("Z2SMART ?", "Z2SMART")
+    # A Marantz on port 80 (SR6011) gets both variants and stays "older".
+    sr6011 = profile_for_receiver(profile, 80, 300, 1)
+    assert sr6011.variant == "older" and sr6011.variants == ("older", "marantz")
+    assert sr6011.introspection["quick_select"]["prefix"] == "MSSMART"
+    # Denon keeps Quick Select.
+    denon = profile_for_receiver(profile, 8080, 301, 0)
+    assert denon is profile
+    assert denon.introspection["quick_select"]["prefix"] == "MSQUICK"

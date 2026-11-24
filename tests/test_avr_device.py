@@ -744,3 +744,39 @@ async def test_a_repeated_signal_line_starts_no_new_query(
     telnet.push("SSINFAISSIG 17", "SYSDA PCM")
     await asyncio.sleep(1.1)
     assert "OPSMLALL ?" not in telnet.sent
+
+
+async def test_a_marantz_recalls_and_stores_smart_select(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """SR6012 (BrandCode 1): MSSMART<n> and Z2SMART<n>, as Marantz's 2019 document gives them."""
+    from homeassistant.const import CONF_PORT
+
+    from .conftest import deviceinfo
+
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _x2000_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("SR6012-Deviceinfo-8080.xml")),
+        ),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.13", CONF_PORT: 8080},
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    device = entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await device.async_select_quick_select(2)
+    await device.async_select_quick_select(3, "zone2")
+    await device.async_save_quick_select(4)
+    assert "MSSMART2" in telnet.sent
+    assert "Z2SMART3" in telnet.sent
+    assert "MSSMART4 MEMORY" in telnet.sent
+    assert not any(line.startswith(("MSQUICK", "Z2QUICK")) for line in telnet.sent)

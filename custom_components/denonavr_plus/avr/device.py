@@ -351,14 +351,20 @@ class DenonAvrDevice:
             enum_features,
             receiver_type=self._profile.receiver_type,
         )
-        if self._http_port == 80 and self._profile.variant != OLDER:
-            # Older receivers encode some values differently; the profile's
-            # variants say how, by generation (port 80 until 2015, and the
-            # 2013 encodings below CommApiVers 0250).
-            self._profile = profile_for_receiver(
-                self._profile, self._http_port, discovered.device.comm_api_version
+        if not self._profile.variants:
+            # Older receivers encode some values differently, and Marantz
+            # names a few commands its own way; the profile's variants say
+            # how, by generation (port 80 until 2015, the 2013 encodings
+            # below CommApiVers 0250) and by brand.
+            fitted = profile_for_receiver(
+                self._profile,
+                self._http_port,
+                discovered.device.comm_api_version,
+                discovered.device.brand_code,
             )
-            self._parser = TelnetParser(self._profile, self._discovery)
+            if fitted is not self._profile:
+                self._profile = fitted
+                self._parser = TelnetParser(self._profile, self._discovery)
         # Copy discovered data into our shared discovery object so the parser and
         # entities keep referencing a single instance.
         self._discovery.device = discovered.device
@@ -597,10 +603,16 @@ class DenonAvrDevice:
 
         await self._send(self._profile.button_commands[name])
 
+    @property
+    def _quick_select_prefix(self) -> str:
+        """MSQUICK, or MSSMART on a Marantz receiver."""
+
+        return str(self._profile.introspection.get("quick_select", {}).get("prefix", "MSQUICK"))
+
     async def async_save_quick_select(self, number: int) -> None:
         """Store the current settings in a main zone quick select preset."""
 
-        await self._send(f"MSQUICK{int(number)} MEMORY")
+        await self._send(f"{self._quick_select_prefix}{int(number)} MEMORY")
 
     @property
     def telnet_media(self) -> bool:
@@ -1756,7 +1768,7 @@ class DenonAvrDevice:
         """Recall a quick select preset of a zone by its number (MSQUICK, Z2QUICK)."""
 
         spec = None if zone_id == "main" else self._profile.control(f"{zone_id}_quick_select")
-        prefix = spec.prefix if spec is not None else "MSQUICK"
+        prefix = spec.prefix if spec is not None else self._quick_select_prefix
         await self._send(f"{prefix}{int(number)}")
 
     async def async_select_sound_mode_group(self, code: str) -> None:

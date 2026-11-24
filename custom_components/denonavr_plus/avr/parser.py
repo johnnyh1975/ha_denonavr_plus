@@ -113,6 +113,8 @@ def parse_device_info(
     device.mac_address = _format_mac(root.findtext("MacAddress"))
     comm_api = (root.findtext("CommApiVers") or "").strip()
     device.comm_api_version = int(comm_api) if comm_api.isdigit() else None
+    brand = (root.findtext("BrandCode") or "").strip()
+    device.brand_code = int(brand) if brand.isdigit() else None
     # Classify the receiver type (the device's hardware version) the way the
     # official library does: an AVR-X family device reached over the 8080
     # interface is "avr-x-2016", otherwise "avr". A device is AVR-X when its
@@ -300,6 +302,9 @@ class TelnetParser:
 
     def __init__(self, profile: ProtocolProfile, discovery: Discovery) -> None:
         self._profile = profile
+        self._quick_select_prefix = str(
+            profile.introspection.get("quick_select", {}).get("prefix", "MSQUICK")
+        )
         self._discovery = discovery
         # Accumulators for the OPSML (current context) and OPSMLALL (all groups)
         # responses; each is swapped into discovery when its 'END' line arrives,
@@ -376,9 +381,11 @@ class TelnetParser:
             # Mirror into values so the (optional) main-mute switch reads state.
             state.values["main_mute"] = on
             return True
-        if line.startswith("MSQUICK"):
-            # Current main zone quick select preset number (0 = none).
-            token = line[7:].strip()
+        quick = self._quick_select_prefix
+        if line.startswith(quick):
+            # Current main zone quick select preset number (0 = none);
+            # MSSMART on Marantz receivers.
+            token = line[len(quick):].strip()
             if token.isdigit():
                 state.values["quick_select"] = int(token)
                 return True

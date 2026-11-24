@@ -90,6 +90,8 @@ class ProtocolProfile:
     def __init__(self, raw: dict[str, Any]) -> None:
         self._raw = raw
         self.variant: str | None = None
+        # Every variant applied, in order (e.g. ("older", "marantz")).
+        self.variants: tuple[str, ...] = ()
         self.grammar: dict[str, Any] = raw.get("grammar", {})
         self.zones: dict[str, Any] = raw.get("zones", {})
         self.speakers: dict[str, Any] = raw.get("speakers", {})
@@ -244,9 +246,15 @@ def profile_variant(profile: ProtocolProfile, variant: str) -> ProtocolProfile:
     override = netaudio.pop(variant, None)
     if isinstance(override, dict):
         netaudio.update(override)
+    for entry in raw.get("introspection", {}).values():
+        override = entry.pop(variant, None) if isinstance(entry, dict) else None
+        if isinstance(override, dict):
+            override.pop("doc", None)
+            entry.update(override)
     result = ProtocolProfile(raw)
     # Applied on top of another variant, the profile keeps naming the first.
     result.variant = profile.variant or variant
+    result.variants = (*profile.variants, variant)
     return result
 
 
@@ -257,18 +265,27 @@ def profile_variant(profile: ProtocolProfile, variant: str) -> ProtocolProfile:
 OLDER = "older"
 BEFORE_2014 = "2013"
 COMM_API_2014: int = 250
+#: Marantz names some commands differently (Smart Select: MSSMART, Z2SMART);
+#: the receiver tells its brand in Deviceinfo.xml (BrandCode 1).
+MARANTZ = "marantz"
+BRAND_MARANTZ: int = 1
 
 
 def profile_for_receiver(
-    profile: ProtocolProfile, http_port: int, comm_api_version: int | None
+    profile: ProtocolProfile,
+    http_port: int | None,
+    comm_api_version: int | None,
+    brand_code: int | None = None,
 ) -> ProtocolProfile:
-    """The profile with the variants that fit the receiver's generation."""
+    """The profile with the variants that fit the receiver's generation and brand."""
 
-    if http_port != 80:
-        return profile
-    result = profile_variant(profile, OLDER)
-    if comm_api_version is None or comm_api_version < COMM_API_2014:
-        result = profile_variant(result, BEFORE_2014)
+    result = profile
+    if http_port == 80:
+        result = profile_variant(result, OLDER)
+        if comm_api_version is None or comm_api_version < COMM_API_2014:
+            result = profile_variant(result, BEFORE_2014)
+    if brand_code == BRAND_MARANTZ:
+        result = profile_variant(result, MARANTZ)
     return result
 
 

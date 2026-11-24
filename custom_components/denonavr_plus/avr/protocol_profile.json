@@ -289,6 +289,7 @@
     "quick_select": {
       "query": "MSQUICK ?",
       "prefix": "MSQUICK",
+      "marantz": {"query": "MSSMART ?", "prefix": "MSSMART", "doc": "Marantz FY20 AVR control protocol (2019): Smart Select MSSMART1-5, MSSMART<n> MEMORY, MSSMART0, MSSMART ?; recorded Marantz Deviceinfo files from SR6011 on name it Smart Select."},
       "doc": "Currently recalled main zone quick select preset number (0 = none/modified)."
     },
     "sound_mode_list": {
@@ -772,6 +773,7 @@
       "kind": "enum",
       "query": "Z2QUICK ?",
       "prefix": "Z2QUICK",
+      "marantz": {"query": "Z2SMART ?", "prefix": "Z2SMART", "doc": "Marantz FY20 AVR control protocol (2019): Z2SMART1-5, Z2SMART0, Z2SMART ?."},
       "values": ["1", "2", "3", "4", "5"],
       "labels": ["Quick Select 1", "Quick Select 2", "Quick Select 3", "Quick Select 4", "Quick Select 5"],
       "count_from": "quick_select_names",

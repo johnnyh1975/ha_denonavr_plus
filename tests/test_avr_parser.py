@@ -74,6 +74,24 @@ def test_parse_device_info_reads_the_interface_level() -> None:
     assert _parse("AVR-1912-Deviceinfo.xml").device.comm_api_version is None
 
 
+def test_parse_device_info_reads_the_brand() -> None:
+    assert _parse("SR6012-Deviceinfo-8080.xml").device.brand_code == 1
+    assert _parse("AVR-X2000-Deviceinfo.xml").device.brand_code == 0
+
+
+def test_a_marantz_reports_its_smart_select() -> None:
+    from custom_components.denonavr_plus.avr.profile import profile_for_receiver
+
+    parser = TelnetParser(profile_for_receiver(load_profile(), 8080, 301, 1), Discovery())
+    state = AvrState()
+    assert parser.feed("MSSMART2", state)
+    assert state.values["quick_select"] == 2
+    # MSSMART without a number is a surround mode on some Marantz models,
+    # not a preset and not a sound mode this integration lists.
+    assert not parser.feed("MSSMART", state)
+    assert state.values["quick_select"] == 2
+
+
 def test_parse_device_info_reads_volume_scale() -> None:
     volume = _parse("AVC-X3700H-Deviceinfo-8080.xml").volume
     assert volume["absolute_max"] > 0

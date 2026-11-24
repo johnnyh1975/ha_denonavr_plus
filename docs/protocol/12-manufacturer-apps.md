@@ -109,7 +109,8 @@ Confirmed by the apps and already used here: `PWON`, `PWSTANDBY`, `ZM?`,
 - **Smart Select** goes over HTTP with the same command as Quick Select
   (`SetQuickSelect`). Over telnet Marantz's 2019 document gives `MSSMART1`–`5`,
   `MSSMART<n> MEMORY`, `MSSMART0` (cancel) and `MSSMART ?`, and `Z2SMART…`
-  for Zone 2 ([Quick Select and Smart Select](03-command-reference.md#quick-select-and-smart-select)).
+  for Zone 2; this integration follows it on receivers that report
+  `BrandCode` 1 ([Quick Select and Smart Select](03-command-reference.md#quick-select-and-smart-select)).
 - **M-DAX** is Marantz's counterpart of the restorer, with the same steps.
   The app sends it on a path of its own, and the zone status reports
   `RestorerMode` and `MDAX` separately. Marantz's 2019 document gives
