@@ -957,9 +957,15 @@ class DenonAvrDevice:
 
         for listener in tuple(self._reply_listeners):
             listener(line)
+        before = self._signal_context()
+        # The receiver repeats signal lines (an AVR-X2600H after every OPSML
+        # query); only a change is worth reading again, or the re-query that
+        # brings the repeat starts the next one.
+        changed = False
         if self._parser.feed(line, self._state):
             self._schedule_update()
-            if line.startswith(SIGNAL_TRIGGERS):
+            changed = self._signal_context() != before
+            if changed and line.startswith(SIGNAL_TRIGGERS):
                 self._schedule_signal_refresh()
         # The receiver pushes OPSMLALL (all groups) when the sound mode context
         # changes, e.g. after a genre group switch, but never pushes OPSML (the
@@ -974,10 +980,24 @@ class DenonAvrDevice:
         # re-push on every change in sync - the signal dependent sound mode
         # lists on an audio format change, and the audio information and
         # channel/speaker layout on a sound mode (MS) or source (SI) change.
+        if not changed:
+            return
         for group_id, group in self._refresh_groups.items():
             on = group.get("on")
             if on and line.startswith(tuple(on)):
                 self._schedule_refresh(group_id)
+
+    def _signal_context(self) -> tuple[Any, ...]:
+        """What the signal and the sound mode lists depend on, to spot a change."""
+
+        state = self._state
+        return (
+            state.system_power,
+            tuple((zone_id, zone.power, zone.source) for zone_id, zone in state.zones.items()),
+            state.values.get("sound_mode"),
+            state.values.get("video_select"),
+            tuple(sorted(state.readonly.items())),
+        )
 
     def _handle_now_playing(self, snapshot: dict[str, Any]) -> None:
         """Apply a HEOS now-playing snapshot and notify listeners."""

@@ -680,3 +680,21 @@ async def test_a_source_zone_2_does_not_take(
         await device.async_choose_source("zone2", "DVD")
     assert device.refused_sources("zone2") == frozenset()
     assert device.zone_source("zone2") == "DVD"
+
+
+async def test_a_repeated_signal_line_starts_no_new_query(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """An AVR-X2600H repeats its signal lines after every OPSML query.
+
+    Re-reading the sound mode lists on each repeat brought the next repeat:
+    two queries every 3.6 s for as long as the receiver was on.
+    """
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("SSINFAISSIG 17", "SYSDA PCM")
+    await asyncio.sleep(1.1)
+    assert "OPSMLALL ?" in telnet.sent
+    telnet.sent.clear()
+    telnet.push("SSINFAISSIG 17", "SYSDA PCM")
+    await asyncio.sleep(1.1)
+    assert "OPSMLALL ?" not in telnet.sent

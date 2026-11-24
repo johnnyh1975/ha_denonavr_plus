@@ -149,11 +149,8 @@ def test_controls_by_scope_and_group() -> None:
     assert profile.controls_by_group("tone")
 
 
-@pytest.mark.assumed(
-    "Denon's FY21 AVR protocol table (2020) gives PSCLV for center level adjust on "
-    "the AVR-X2700H to X4700H; an AVR-X2600H answering PSCLV ? would settle it"
-)
 def test_center_level_by_receiver_generation() -> None:
+    """An AVR-X2600H on 0.9.2 reported center level -2 dB, through PSCLV only."""
     from custom_components.denonavr_plus.avr.profile import profile_variant
 
     profile = load_profile()

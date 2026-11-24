@@ -135,6 +135,14 @@ effect, as the documents lead one to expect:
   in Zone 2 while the main zone plays HDMI. All Zone Stereo was taken and reported as
   `MNZST ON` and `MSALL ZONE STEREO`, although `MNZST ?` gets no reply.
 
+## Repeated signal lines
+
+After each `OPSML ?` this receiver sends its signal lines again
+(`SYSDV`, `SSINFSIG…`, `SYSMI`, `SSINFAISSIG`, `OPINF…`, `SYSDA`), unchanged.
+Up to 0.9.2 the integration re-read the sound mode lists on every such line,
+which brought the next repeat: two queries every 3.6 seconds while the
+receiver was on. It now re-reads only when a line changes something.
+
 ## Compared with Denon's 2020 table
 
 Denon's FY21 AVR control protocol (Ver.02, May 2020) covers the AVR-X2700H,
@@ -143,7 +151,8 @@ results above:
 
 - **Center level adjust** is `PSCLV` (38 to 62, 50 = 0 dB) on the AVR-X2700H
   to X4700H; `PSDIL` is not in the table. The receiver's own Deviceinfo calls
-  the function Center Level Adjust. The integration now asks `PSCLV ?`.
+  the function Center Level Adjust. The integration now asks `PSCLV ?`, and
+  the receiver answers it.
 - **All Zone Stereo** is asked as `MNZST?`, without a space; `MNZST ?` got
   no answer. The integration now asks `MNZST?`.
 - **Front speaker A/B** needs amp assign set to Front B; this receiver is set
@@ -173,7 +182,7 @@ center level (`PSCLV`) and IMAX `ON` for none of its models.
 | Independent `NET` playback in Zone 2 | Confirmed: Zone 2 played Amazon Music through HEOS while the main zone played an HDMI source |
 | Zone 2 playing an HDMI source | No: silent when following the main zone, not taken by name |
 | HDMI resolution with the i/p scaler on | To test |
-| Center level adjust as `PSCLV ?` | To test |
+| Center level adjust as `PSCLV ?` | Answered: the integration read −2 dB on 0.9.2; setting it is to test |
 | All Zone Stereo as `MNZST?` | To test |
 | `PSRSZ` (documented in 2015 and 2020, no reply) | To test in a DSP mode such as Rock Arena |
 | `TFANNAME?` while the tuner plays | To test |
