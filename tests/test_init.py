@@ -93,6 +93,7 @@ class FakeHeos:
         self.connected = True
         self.command_results: dict[str, dict[str, str]] = {}
         self.favorites: list[str] = []
+        self.update: bool | None = None
         FakeHeos.instances.append(self)
 
     async def async_set_repeat(self, repeat: str) -> None:
@@ -103,6 +104,9 @@ class FakeHeos:
 
     async def async_play(self) -> None:
         self.calls.append(("play", None))
+
+    async def async_check_update(self) -> bool | None:
+        return self.update
 
     async def async_play_preset(self, number: int) -> None:
         self.calls.append(("play_preset", number))

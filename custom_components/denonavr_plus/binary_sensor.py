@@ -27,9 +27,13 @@ async def async_setup_entry(
     entry: DenonAvrConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create the connectivity binary sensor."""
+    """Create the connectivity binary sensor, and the firmware one on HEOS receivers."""
 
-    async_add_entities([DenonAvrConnectivitySensor(entry.runtime_data)])
+    coordinator = entry.runtime_data
+    entities: list[BinarySensorEntity] = [DenonAvrConnectivitySensor(coordinator)]
+    if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
+        entities.append(DenonAvrFirmwareSensor(coordinator))
+    async_add_entities(entities)
 
 
 class DenonAvrConnectivitySensor(DenonAvrEntity, BinarySensorEntity):
@@ -50,3 +54,25 @@ class DenonAvrConnectivitySensor(DenonAvrEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         return self.coordinator.available
+
+
+class DenonAvrFirmwareSensor(DenonAvrEntity, BinarySensorEntity):
+    """Whether HEOS has a firmware update for the receiver (package 31).
+
+    HEOS tells only that there is one (player/check_update), not its
+    version, and installs it from the receiver's menu or the HEOS app; a
+    binary sensor says that honestly, where an update entity would invent a
+    version. Asked every 12 hours while HEOS answers.
+    """
+
+    _attr_device_class = BinarySensorDeviceClass.UPDATE
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
+        super().__init__(coordinator, "binary_sensor_firmware_update")
+        self._attr_translation_key = "firmware_update"
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.coordinator.device.firmware_update
+

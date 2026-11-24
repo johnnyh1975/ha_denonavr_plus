@@ -82,3 +82,33 @@ async def test_a_quick_select_preset_can_be_saved(
     telnet.sent.clear()
     await button.async_press()
     assert telnet.sent == ["MSQUICK2 MEMORY"]
+
+
+@pytest.mark.assumed(
+    "the soft power cycle follows TheFab21/ha-denon-marantz-avr; whether it brings "
+    "back a lost sound would only show on a receiver that lost it"
+)
+async def test_recover_audio_cycles_standby_and_restores_the_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+
+    await async_enable(hass, loaded_entry, "button_recover_audio")
+    button = entity_id(hass, loaded_entry, "button_recover_audio")
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SITV")
+    await asyncio.sleep(0.15)
+    telnet.sent.clear()
+
+    async def answer() -> None:
+        for _ in range(300):
+            if "PWON" in telnet.sent:
+                telnet.push("PWON", "ZMON")
+                return
+            await asyncio.sleep(0.01)
+
+    task = asyncio.create_task(answer())
+    with patch("custom_components.denonavr_plus.avr.device.RECOVER_STANDBY_TIME", 0):
+        await hass.services.async_call("button", "press", {"entity_id": button}, blocking=True)
+    await task
+    assert telnet.sent == ["PWSTANDBY", "PWON", "SITV"]

@@ -41,6 +41,7 @@ async def async_setup_entry(
         for number in sorted(device.discovery.quick_select_names)
     )
     entities.extend(DenonAvrCommandButton(coordinator, name) for name in device.button_commands)
+    entities.append(DenonAvrRecoverAudio(coordinator))
     async_add_entities(entities)
 
 
@@ -133,3 +134,23 @@ class DenonAvrEqSetDefaults(DenonAvrEntity, ButtonEntity):
     @receiver_action
     async def async_press(self) -> None:
         await self.coordinator.device.graphic_eq.set_defaults()
+
+
+class DenonAvrRecoverAudio(DenonAvrEntity, ButtonEntity):
+    """Standby and back on with the same input, for a receiver stuck silent.
+
+    As TheFab21/ha-denon-marantz-avr offers it. Starts disabled: rarely
+    needed, and it interrupts what plays.
+    """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
+        super().__init__(coordinator, "button_recover_audio")
+        self._attr_translation_key = "recover_audio"
+
+    @receiver_action
+    async def async_press(self) -> None:
+        await self.coordinator.device.async_recover_audio()
+

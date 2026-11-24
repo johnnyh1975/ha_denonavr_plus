@@ -313,6 +313,20 @@ class HeosClient:
             "player/move_queue_item", f"pid={self._own_pid()}&sqid={ids}&dqid={destination}"
         )
 
+    async def async_check_update(self) -> bool | None:
+        """Whether HEOS has a firmware update for the receiver; None if it cannot tell."""
+
+        try:
+            message = await self._request("player/check_update", f"pid={self._own_pid()}")
+        except Exception as err:  # noqa: BLE001 - asked in the background
+            _LOGGER.debug("HEOS update check of %s failed: %s", self._host, err)
+            return None
+        payload = message.get("payload")
+        update = payload.get("update") if isinstance(payload, dict) else None
+        if update == "update_exist":
+            return True
+        return False if update == "update_none" else None
+
     async def async_refresh_favorites(self) -> None:
         """Read the favorites' names if the HEOS system is signed in. Never raises."""
 

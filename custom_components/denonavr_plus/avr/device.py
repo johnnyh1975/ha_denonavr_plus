@@ -74,6 +74,12 @@ SIGNAL_TRIGGERS = ("SI", "PW", "ZM", "SSINFAI", "SYSDA", "SV")
 #: How long after such a line the signal information is read (the receiver
 #: settles on a new signal first).
 SIGNAL_SETTLE = 3.0
+#: How often HEOS is asked for a firmware update (seconds).
+FIRMWARE_CHECK_INTERVAL = 12 * 3600
+#: Recover audio: how long the receiver stays in standby, and how long it may
+#: take to report on again.
+RECOVER_STANDBY_TIME = 5.0
+RECOVER_ON_WAIT = 20.0
 #: A zone's source code meaning "the main zone's source" (Z2SOURCE).
 FOLLOW_MAIN = "SOURCE"
 #: How long a preset recall waits for the receiver to switch to the tuner.
@@ -124,6 +130,8 @@ class DenonAvrDevice:
         # subsystem is encapsulated in its own controller (read/edit/apply),
         # keeping it off this device's transport-orchestration surface.
         self._webconfig = WebConfigClient(session, host)
+        self._firmware_update: bool | None = None
+        self._firmware_checked_at: float | None = None
         # None until the setup interface was asked for signal information.
         self._signal_supported: bool | None = None
         self._signal_handle: asyncio.TimerHandle | None = None
@@ -870,6 +878,50 @@ class DenonAvrDevice:
         self._signal_handle = loop.call_later(
             SIGNAL_SETTLE, lambda: self._create_task(self.async_refresh_signal())
         )
+
+    @property
+    def firmware_update(self) -> bool | None:
+        """Whether HEOS reports a firmware update; None while it is not known."""
+
+        return self._firmware_update
+
+    async def async_check_firmware(self) -> None:
+        """Ask HEOS for a firmware update, at most every FIRMWARE_CHECK_INTERVAL."""
+
+        heos = self.heos
+        loop = asyncio.get_running_loop()
+        if heos is None or (
+            self._firmware_checked_at is not None
+            and loop.time() - self._firmware_checked_at < FIRMWARE_CHECK_INTERVAL
+        ):
+            return
+        result = await heos.async_check_update()
+        if result is None:
+            return
+        self._firmware_checked_at = loop.time()
+        if result != self._firmware_update:
+            self._firmware_update = result
+            self._schedule_update()
+
+    async def async_recover_audio(self) -> None:
+        """Standby and back on, then the input it had: for a receiver stuck silent.
+
+        As TheFab21/ha-denon-marantz-avr offers it: a soft power cycle, not a
+        cut of the power. Waits for the receiver to report on before the input.
+        """
+
+        source = self._state.zone("main").source
+        await self.async_set_system_power(False)
+        await asyncio.sleep(RECOVER_STANDBY_TIME)
+        await self.async_set_system_power(True)
+        try:
+            async with asyncio.timeout(RECOVER_ON_WAIT):
+                while not self._state.zone("main").power:
+                    await asyncio.sleep(0.25)
+        except TimeoutError:
+            _LOGGER.debug("%s did not report on after the recovery", self._host)
+        if source:
+            await self.async_select_source("main", source)
 
     async def async_refresh_setup(self) -> None:
         """Read the settings kept on the setup interface again.

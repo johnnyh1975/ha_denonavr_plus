@@ -234,6 +234,9 @@
     "binary_sensor": {
       "connectivity": {
         "name": "Connectivité"
+      },
+      "firmware_update": {
+        "name": "Mise à jour du firmware"
       }
     },
     "sensor": {
@@ -970,6 +973,9 @@
       },
       "network_restart": {
         "name": "Redémarrer le réseau"
+      },
+      "recover_audio": {
+        "name": "Rétablir le son"
       }
     },
     "remote": {

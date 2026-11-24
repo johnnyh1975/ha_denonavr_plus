@@ -4,6 +4,11 @@
     "enabled": true,
     "category": "diagnostic"
   },
+  "binary_sensor_firmware_update": {
+    "entity_id": "binary_sensor.avc_x3700h_firmware_update",
+    "enabled": true,
+    "category": "diagnostic"
+  },
   "button_channel_level_reset": {
     "entity_id": "button.avc_x3700h_speakers_reset_channel_levels",
     "enabled": false,
@@ -28,6 +33,11 @@
     "entity_id": "button.avc_x3700h_restart_network",
     "enabled": false,
     "category": "config"
+  },
+  "button_recover_audio": {
+    "entity_id": "button.avc_x3700h_recover_audio",
+    "enabled": false,
+    "category": "diagnostic"
   },
   "media_player_main": {
     "entity_id": "media_player.avc_x3700h",

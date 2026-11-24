@@ -18,6 +18,9 @@
       },
       "quick_select_save": {
         "default": "mdi:content-save"
+      },
+      "recover_audio": {
+        "default": "mdi:volume-source"
       }
     },
     "number": {
@@ -424,6 +427,11 @@
         "state": {
           "off": "mdi:music-off"
         }
+      }
+    },
+    "binary_sensor": {
+      "firmware_update": {
+        "default": "mdi:package-up"
       }
     }
   },

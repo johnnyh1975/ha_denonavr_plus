@@ -573,3 +573,36 @@ def test_a_late_answer_goes_to_its_own_request_only() -> None:
 
     asyncio.run(scenario())
 
+
+
+@pytest.mark.usefixtures("socket_enabled")
+async def test_the_update_check() -> None:
+    answers = iter(
+        [
+            [_answer("player/check_update", "pid=202", {"update": "update_exist"})],
+            [_answer("player/check_update", "pid=202", {"update": "update_none"})],
+            [_answer("player/check_update", "pid=202", {"update": "odd"})],
+            [_answer("player/check_update", "eid=2&text=failed", result="fail")],
+        ]
+    )
+
+    def replies(name: str, command: str) -> list[dict] | None:
+        if name == "player/get_players":
+            return [_answer(name, payload=[{"pid": 202, "name": "AVR", "ip": "127.0.0.1"}])]
+        if name == "player/check_update":
+            return next(answers)
+        return None
+
+    server = _HeosServer(answer_heartbeat=True, replies=replies)
+    port = await server.start()
+    client = HeosClient("127.0.0.1", on_update=lambda _: None, port=port)
+    await client.async_start()
+    try:
+        for _ in range(100):
+            if client.connected:
+                break
+            await asyncio.sleep(0.01)
+        assert [await client.async_check_update() for _ in range(4)] == [True, False, None, None]
+    finally:
+        await client.async_stop()
+        await server.stop()

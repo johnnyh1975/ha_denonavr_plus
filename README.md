@@ -310,7 +310,17 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
 - **Sensors** (diagnostic): sample rate, decoder, audio format, input signal,
   mode info and sound mode; and per zone the selected **source**, under the
   name Home Assistant shows.
-- **Binary sensor**: telnet connectivity.
+- **Signal sensors**, on receivers with the setup interface (not the AVR-X2000):
+  input and output resolution and HDR, input color space, color depth and FRL
+  rate on the Video device, the input signal's channels and the active
+  speakers on the Audio device. Input resolution and HDR start enabled; they
+  are read at setup, with each poll and a few seconds after an input, power or
+  signal change. Not yet confirmed on a receiver.
+- **Binary sensors**: telnet connectivity, and on receivers with HEOS whether
+  HEOS reports a **firmware update** (asked twice a day; HEOS gives no version,
+  so the update is installed from the receiver's menu or the HEOS app).
+- **Recover audio** (a button, starts disabled): standby and back on with the
+  input it had, for a receiver that has lost its sound.
 - **Model-dependent controls**, created only when the receiver answers their
   query at setup (they have no name in its device description): Auto Standby,
   12 V Triggers 1 and 2, Speaker Preset, Bluetooth Transmitter, Dialogue
