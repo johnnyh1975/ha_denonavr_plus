@@ -169,7 +169,7 @@ def test_a_different_value_for_each_kind(profile: Any) -> None:
     # 60 minutes, not 8 hours: an AVR-X2600H ignored STBY8H.
     assert alternative(control("auto_standby"), "OFF") == "60M"
     assert alternative(control("auto_standby"), "60M") == "2H"
-    # Auto: an AVR-X2600H refused Digital on its HDMI-only input.
+    # Auto exists for every input; Digital does not on one with HDMI only.
     assert alternative(control("input_mode"), "HDMI") == "AUTO"
     assert alternative(control("effect_level"), 3) == 4
     assert alternative(control("effect_level"), 15) == 14

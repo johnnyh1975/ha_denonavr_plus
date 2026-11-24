@@ -604,7 +604,8 @@ async def test_settings_are_encoded_for_their_kind(
     await device.async_select_sound_mode_group("PUR")
     await device.async_volume_step("zone2", up=True)
 
-    assert telnet.sent[:5] == ["PSLFE -5", "PSAUROST 07", "Z2SLPOFF", "Z2SLP030", "MSPURE DIRECT"]
+    # LFE as the documents give it: -5 dB is 05 (an AVR-X2600H ignored -1).
+    assert telnet.sent[:5] == ["PSLFE 05", "PSAUROST 07", "Z2SLPOFF", "Z2SLP030", "MSPURE DIRECT"]
 
 
 async def test_receiver_facts_for_the_ui(

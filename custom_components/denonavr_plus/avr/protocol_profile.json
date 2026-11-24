@@ -502,13 +502,13 @@
       "group": "audio",
       "scope": "feature",
       "feature": "LFE",
-      "kind": "signed_int",
+      "kind": "attenuation",
       "query": "PSLFE ?",
       "prefix": "PSLFE ",
       "min": -10,
       "max": 0,
       "step": 1,
-      "doc": "LFE level, 0 down to -10 dB. The receiver does not publish this range (its LFE block is empty), so the protocol defined range is given here as a fallback. Asked as 'SLP?' without a space: an AVR-X2000 and an AVR-X2600H answer that, not 'SLP ?'."
+      "doc": "LFE level, 0 down to -10 dB, sent as two digits without a sign: PSLFE 00 is 0 dB, PSLFE 10 is -10 dB (AVR-X2000/E400 v03, AVR-1713, AVR-2113CI and 2015 X-series documents). The receiver does not publish this range (its LFE block is empty), so the protocol defined range is given here as a fallback."
     },
     "dynamic_eq": {
       "group": "audyssey",
@@ -574,7 +574,7 @@
       "prefix": "SSALSSET ",
       "on": "ON",
       "off": "OFF",
-      "doc": "Auto lip sync (automatic A/V delay). An AVR-X2600H (3.139.175) answers SSALS ? with SSALSSET ON, SSALSDSP OFF and SSALSVAL 000, and has no SSHOSALS (neither SSHOSALS ? nor a line in SSHOS ?); SSALSSET is read as the setting. Writing 'SSALSSET ON|OFF' is unconfirmed: no document names it. Receivers on port 80 report it as SSHOSALS in the HDMI setup list instead (older variant). Gated on the advertised AutoLipSync capability or an answer.",
+      "doc": "Auto lip sync (automatic A/V delay). An AVR-X2600H (3.139.175) answers SSALS ? with SSALSSET ON, SSALSDSP OFF and SSALSVAL 000, and has no SSHOSALS (neither SSHOSALS ? nor a line in SSHOS ?); SSALSSET is read as the setting. Writing 'SSALSSET ON|OFF' is in no document; an AVR-X2600H took both in its command test. Receivers on port 80 report it as SSHOSALS in the HDMI setup list instead (older variant). Gated on the advertised AutoLipSync capability or an answer.",
       "older": {"query": "SSHOS ?", "prefix": "SSHOSALS ", "doc": "AVR-X2000: SSHOSALS ON inside SSHOS ?, no answer to SSHOSALS ?; SSHOSALS OFF confirmed in its command test."}
     },
     "dynamic_volume": {

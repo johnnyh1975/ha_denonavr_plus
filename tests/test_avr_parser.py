@@ -417,6 +417,7 @@ def test_a_shared_prefix_leaves_the_switch_alone(
         "PSBAS xx",
         "PVCN xx",
         "PSLFE xx",
+        "PSLFE -5",
     ],
 )
 def test_lines_that_do_not_fit_are_ignored(
@@ -431,7 +432,8 @@ def test_settings_of_every_kind_are_decoded(
     parser_and_state: tuple[TelnetParser, AvrState],
 ) -> None:
     parser, state = parser_and_state
-    for line in ("Z2SLPOFF", "PSLFE -5", "PVCN 52", "MVMAX 855"):
+    # LFE comes as digits without a sign: 05 is -5 dB.
+    for line in ("Z2SLPOFF", "PSLFE 05", "PVCN 52", "MVMAX 855"):
         assert parser.feed(line, state), line
     assert state.values["zone2_sleep_timer"] == 0
     assert state.values["lfe"] == -5
@@ -459,10 +461,6 @@ def test_sound_mode_lists_are_published_at_their_end() -> None:
     assert state.values["sound_mode_display"] == "Direct"
 
 
-@pytest.mark.assumed(
-    "an AVR-X2600H answered SSALS ? with SSALSSET ON; that SSALSSET OFF switches "
-    "it off is unconfirmed: a command test that changes Auto Lip Sync would settle it"
-)
 def test_auto_lip_sync_by_receiver_generation() -> None:
     """Newer receivers report it as SSALSSET, the AVR-X2000 inside SSHOS."""
     newer, state = TelnetParser(load_profile(), Discovery()), AvrState()
@@ -473,3 +471,12 @@ def test_auto_lip_sync_by_receiver_generation() -> None:
     older.feed("SSHOSALS OFF", state)
     assert state.values["auto_lip_sync"] is False
     assert load_profile().control("auto_lip_sync").query == "SSALS ?"
+
+
+def test_a_sound_mode_listed_twice_is_offered_once() -> None:
+    """An AVR-X2600H left Stereo four times in its list of current modes."""
+    discovery, state = Discovery(), AvrState()
+    parser = TelnetParser(load_profile(), discovery)
+    for line in ("OPSML 010Stereo", "OPSML 020Stereo", "OPSML 031Virtual", "OPSML END"):
+        parser.feed(line, state)
+    assert discovery.current_sound_modes == ["Stereo", "Virtual"]

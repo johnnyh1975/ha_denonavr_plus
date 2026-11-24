@@ -1705,8 +1705,8 @@ class DenonAvrDevice:
         """Set any profile driven feature control to a new value.
 
         The `value` interpretation depends on the control kind: a bool for
-        on/off, a wire token for enum, a dB offset for level, an int for
-        signed_int, and minutes (0 = off) for minutes.
+        on/off, a wire token for enum, a dB offset for level, an int (0 or
+        below) for attenuation, and minutes (0 = off) for minutes.
         """
 
         spec = self._profile.control(control_id)
@@ -1785,8 +1785,8 @@ class DenonAvrDevice:
             # Fixed-width integer offset around a centre (picture controls).
             width = int(spec.get("width", 3))
             return encode_centered(float(value), int(spec.get("center", 0)), width)
-        if kind == "signed_int":
-            return str(int(value))
+        if kind == "attenuation":
+            return f"{abs(int(value)):0{int(spec.get('width', 2))}d}"
         if kind == "integer":
             # Zero pad to the wire width the receiver expects (e.g. 3 for PSDELAY).
             width = int(spec.get("width", 0) or 0)

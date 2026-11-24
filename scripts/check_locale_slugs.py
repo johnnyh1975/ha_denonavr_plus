@@ -49,7 +49,7 @@ _KIND_PLATFORM = {
     "enum": "select",
     "onoff": "switch",
     "level": "number",
-    "signed_int": "number",
+    "attenuation": "number",
     "minutes": "number",
     "integer": "number",
     "centered": "number",

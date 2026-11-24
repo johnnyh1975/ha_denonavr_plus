@@ -110,16 +110,20 @@ confirmed bass, treble, subwoofer level, video mode, picture mode with its
 picture settings and aspect ratio. Several settings were taken without an
 effect, as the documents lead one to expect:
 
-- Dynamic compression, Loudness Management, LFE and Dialog Control act on
-  Dolby and DTS bitstreams; the source sent PCM.
+- Dynamic compression and Loudness Management act on Dolby and DTS
+  bitstreams: with PCM they were taken without an effect, with Dolby
+  Digital 5.1 both were confirmed. Dialog Control acts on DTS:X only.
+- LFE was sent with a sign (`PSLFE -1`), which the receiver ignores. The
+  documents give two digits without one (`PSLFE 01` is -1 dB); the
+  integration sends that now.
 - The subwoofer switch acts in two-channel modes only; the command test now
   skips it in other modes.
 - Headphone EQ needs headphones; Restorer acts on compressed two-channel
   sound, the effect level in DSP modes, Center Spread in the Dolby Surround
   upmix.
 - Front speaker B cannot be chosen while amp assign is Zone 2.
-- Digital input mode does not exist on an HDMI-only input; the command test
-  now chooses Auto.
+- The input mode of an input with HDMI only stays HDMI: neither Digital nor
+  Auto was taken.
 - A second run in Multi In + Dolby Surround with 5.1 PCM gave the same
   results. Center Spread stayed without effect there too: it acts when two
   channels are upmixed. Neural:X acts in its own mode.
@@ -144,8 +148,9 @@ effect, as the documents lead one to expect:
 | HDMI resolution with the i/p scaler on | To test |
 | `PSDIL`, `PSRSZ` (documented for all four 2015 models, no reply) | To test in a surround mode |
 | `TFANNAME?` while the tuner plays | To test |
-| Writing `SSALSSET ON` and `OFF` | To test |
-| DRC, Loudness, LFE, Dialog Control with a Dolby or DTS bitstream | To test |
+| Writing `SSALSSET ON` and `OFF` | Confirmed |
+| LFE as `PSLFE 01` with a Dolby or DTS bitstream | To test |
+| Dialog Control with DTS:X | To test |
 | Token for video mode Bypass | To test |
 | `MNZST ?` in another state (All Zone Stereo on) | To test |
 | HEOS: URL playback, Quick Select commands, `serial`, volume mapping | To test |

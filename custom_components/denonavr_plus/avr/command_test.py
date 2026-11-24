@@ -102,15 +102,15 @@ AUDIBLE_CONTROLS = frozenset(
 )
 
 #: Value kinds the test can write.
-KINDS = frozenset({"onoff", "enum", "level", "centered", "integer", "signed_int", "minutes"})
+KINDS = frozenset({"onoff", "enum", "level", "centered", "integer", "attenuation", "minutes"})
 
 #: The value written instead of the neighbour, where a neighbour would do harm
 #: if it were not put back (auto standby after 15 minutes).
 PREFERRED = {
     "auto_standby": "60M",
     "zone2_auto_standby": "8H",
-    # Every input takes Auto; an AVR-X2600H kept HDMI on an HDMI-only input
-    # when the test chose Digital.
+    # Auto exists for every input. On an input with HDMI only, an AVR-X2600H
+    # kept HDMI whatever the test chose (Digital, Auto).
     "input_mode": "AUTO",
 }
 
@@ -291,7 +291,7 @@ def alternative(spec: ControlSpec, value: Any, step: float = 0.5) -> Any:
     if kind == "level":
         # Towards 0 dB: always inside the range of a valid value.
         return float(value) - step if float(value) > 0 else float(value) + step
-    if kind in ("centered", "integer", "signed_int"):
+    if kind in ("centered", "integer", "attenuation"):
         step = int(spec.get("step", 1) or 1)
         low, high = spec.get("min"), spec.get("max")
         current = int(value)

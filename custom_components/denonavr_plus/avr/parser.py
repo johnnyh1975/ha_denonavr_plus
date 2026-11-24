@@ -575,7 +575,9 @@ class TelnetParser:
         digits, name = match.group(1), match.group(2).strip()
         if not name:
             return False
-        self._opsml_pending.append(name)
+        # Once each: an AVR-X2600H left Stereo four times in the list.
+        if name not in self._opsml_pending:
+            self._opsml_pending.append(name)
         # The trailing digit is the "currently selected" flag; this is the mode
         # the user selected, which can differ from the resolved MS mode.
         if digits and digits[-1] == "1":
@@ -810,11 +812,16 @@ class TelnetParser:
             if value is None:
                 return False
             state.values[spec.id] = value
-        elif kind in ("signed_int", "integer"):
+        elif kind == "integer":
             try:
                 state.values[spec.id] = int(remainder)
             except ValueError:
                 return False
+        elif kind == "attenuation":
+            # Digits without a sign: 'PSLFE 10' is -10 dB.
+            if not remainder.isdigit():
+                return False
+            state.values[spec.id] = -int(remainder)
         elif kind == "minutes":
             off = spec.get("off", "OFF")
             if remainder == off:

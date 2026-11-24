@@ -9,13 +9,18 @@
   "main_zone_on": true,
   "turned_on_for_test": false,
   "context": {
-    "sound_mode": "M CH IN+DSUR",
+    "sound_mode": "DOLBY AUDIO-DD+DSUR",
     "multeq": "AUDYSSEY",
     "tone_control": false,
     "picture_mode": "OFF",
     "input_mode": "HDMI",
     "source": "AUX2",
-    "zone2_power": false
+    "zone2_power": false,
+    "signal": {
+      "decoder": "Dolby Audio - DD",
+      "audio_format": "3/2/.1",
+      "sample_rate": "48K"
+    }
   },
   "tests": {
     "bass": {
@@ -78,11 +83,13 @@
       "group": "quiet",
       "before": "OFF",
       "written": "LOW",
-      "after": "OFF",
-      "result": "no_effect",
+      "after": "LOW",
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "PSDRC OFF",
+        "PSDRC LOW",
+        "PSDRC LOW",
         "PSDRC OFF",
         "PSDRC OFF"
       ]
@@ -177,11 +184,13 @@
       "group": "quiet",
       "before": true,
       "written": false,
-      "after": true,
-      "result": "no_effect",
+      "after": false,
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "PSLOM ON",
+        "PSLOM OFF",
+        "PSLOM OFF",
         "PSLOM ON",
         "PSLOM ON"
       ]
@@ -298,16 +307,8 @@
     },
     "subwoofer_switch": {
       "group": "quiet",
-      "before": true,
-      "written": false,
-      "after": true,
-      "result": "no_effect",
-      "restored": true,
-      "lines": [
-        "PSSWR ON",
-        "PSSWR ON",
-        "PSSWR ON"
-      ]
+      "result": "precondition",
+      "reason": "not_two_channel"
     },
     "subwoofer_level": {
       "group": "quiet",
@@ -356,20 +357,27 @@
     },
     "auto_lip_sync": {
       "group": "quiet",
-      "result": "no_value",
+      "before": true,
+      "written": false,
+      "after": false,
+      "result": "confirmed",
+      "restored": true,
       "lines": [
-        "SSHOSCONARC OFF",
-        "SSHOSCONPSV OFF",
-        "SSHOSSMN OFF",
-        "SSHOSRSS POS",
-        "SSHOSCON ON",
-        "SSHOSCONSTS LAS",
-        "SSHOSIPS OFF",
-        "SSHOSCONPOF ALL",
-        "SSHOSIPM AUT",
-        "SSHOSPAS OFF",
-        "SSHOSTAS ON",
-        "SSHOS END"
+        "SSALSSET ON",
+        "SSALSDSP OFF",
+        "SSALSVAL 000",
+        "SSALSSET OFF",
+        "SSALSDSP OFF",
+        "SSALSVAL 000",
+        "SSALSSET OFF",
+        "SSALSDSP OFF",
+        "SSALSVAL 000",
+        "SSALSSET ON",
+        "SSALSDSP OFF",
+        "SSALSVAL 000",
+        "SSALSSET ON",
+        "SSALSDSP OFF",
+        "SSALSVAL 000"
       ]
     },
     "video_mode": {
@@ -470,7 +478,6 @@
         "PVENH 00",
         "PVENH 01",
         "PVENH 01",
-        "PVENH 01",
         "PVENH 00",
         "PVENH 00"
       ]
@@ -550,10 +557,10 @@
         "SSVCTZMALIM OFF",
         "SSVCTZMAPON LAS",
         "SSVCTZMAMLV MUT",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
         "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS"
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT"
       ]
     },
     "sleep_timer": {
@@ -618,22 +625,22 @@
     },
     "main_volume": {
       "group": "quiet",
-      "before": 46.0,
-      "written": 45.5,
-      "after": 45.5,
+      "before": 16.0,
+      "written": 15.5,
+      "after": 15.5,
       "result": "confirmed",
       "restored": true,
       "lines": [
-        "MV46",
-        "MVMAX 73",
-        "MV455",
-        "MVMAX 73",
-        "MV455",
-        "MVMAX 73",
-        "MV46",
-        "MVMAX 73",
-        "MV46",
-        "MVMAX 73"
+        "MV16",
+        "MVMAX 695",
+        "MV155",
+        "MVMAX 695",
+        "MV155",
+        "MVMAX 695",
+        "MV16",
+        "MVMAX 695",
+        "MV16",
+        "MVMAX 695"
       ]
     },
     "zone2_sleep_timer": {
@@ -769,7 +776,7 @@
     "input_mode": {
       "group": "audible",
       "before": "HDMI",
-      "written": "DIGITAL",
+      "written": "AUTO",
       "after": "HDMI",
       "result": "no_effect",
       "restored": true,
@@ -802,14 +809,14 @@
       "result": "confirmed",
       "restored": true,
       "lines": [
-        "MSM CH IN+DSUR",
+        "MSDOLBY AUDIO-DD+DSUR",
         "MNZST ON",
         "MSALL ZONE STEREO",
         "MSALL ZONE STEREO",
-        "MSM CH IN+DSUR",
+        "MSDOLBY AUDIO-DD+DSUR",
         "MNZST OFF",
-        "MSM CH IN+DSUR",
-        "MSM CH IN+DSUR"
+        "MSDOLBY AUDIO-DD+DSUR",
+        "MSDOLBY AUDIO-DD+DSUR"
       ]
     },
     "zone2_quick_select": {
@@ -852,5 +859,5 @@
       "reason": "tuner_not_playing"
     }
   },
-  "tested_at": "2026-11-24T16:55:42.288700+00:00"
+  "tested_at": "2026-11-24T17:26:37.486126+00:00"
 }

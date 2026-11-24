@@ -31,7 +31,7 @@ from .entity import DenonAvrEntity, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device, control_zone_shown
 
 # The control kinds that map to a number entity.
-_NUMBER_KINDS = {"level", "signed_int", "minutes", "integer", "centered"}
+_NUMBER_KINDS = {"level", "attenuation", "minutes", "integer", "centered"}
 
 # Map the profile's plain wire unit tokens to the canonical Home Assistant unit
 # constants (the profile stays HA-independent; this HA layer does the mapping).
@@ -97,7 +97,7 @@ async def async_setup_entry(
 
 
 class DenonAvrNumber(DenonAvrEntity, NumberEntity):
-    """A number entity backed by a profile level, signed_int or minutes control."""
+    """A number entity backed by a profile level, attenuation or minutes control."""
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_mode = NumberMode.SLIDER
