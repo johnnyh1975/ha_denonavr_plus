@@ -41,14 +41,6 @@
           "quiet": "Tests discrets",
           "audible": "Tests audibles et visibles"
         }
-      },
-      "command_test": {
-        "title": "Tester les commandes",
-        "description": "Si vous le souhaitez, testez quelles commandes le {model} accepte une fois connecté. Chaque test écrit un réglage, attend la confirmation du récepteur et rétablit l'ancienne valeur. Les tests discrets modifient des réglages qui se remarquent à peine (tonalité, Audyssey, image, minuteries, afficheur, volume de 0,5 dB). Les tests audibles s'entendent ou se voient (sourdine, enceintes et sortie HDMI, MultEQ, tuner, Zone 2, le menu de configuration sur le téléviseur). L'alimentation, les déclencheurs et tout ce qui enregistre ou réinitialise un réglage ne sont jamais touchés. Les résultats vont dans le fichier de diagnostic.\n\nLaissez les deux désactivés pour passer ; le test se trouve aussi dans les options.",
-        "data": {
-          "quiet": "Tests discrets",
-          "audible": "Tests audibles et visibles"
-        }
       }
     },
     "error": {
@@ -75,6 +67,7 @@
           "sources": "Sources",
           "sound_modes": "Modes son",
           "connection": "Connexion",
+          "entities": "Entités",
           "check": "Vérifier les fonctions",
           "command_test": "Tester les commandes"
         }
@@ -237,6 +230,16 @@
       "command_test_done": {
         "title": "Test des commandes terminé",
         "description": "Le {model} a confirmé {confirmed} commandes sur {total} ; {skipped} ont été ignorées. Réglages non rétablis : {not_restored} ; vérifiez-les sur le récepteur si ce n'est pas 0. Les détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic."
+      },
+      "entities": {
+        "title": "Entités",
+        "description": "Beaucoup d'entités démarrent masquées : réglages que l'on fixe une fois, configuration des enceintes, vidéo, l'égaliseur graphique et diagnostic. Choisissez les groupes affichés ; {count} entités peuvent être affichées. Les entités que vous avez activées ou désactivées vous-même restent telles quelles. Les entités affichées apparaissent en une demi-minute.",
+        "data": {
+          "entity_groups": "Groupes affichés"
+        },
+        "data_description": {
+          "entity_groups": "Un groupe désélectionné masque à nouveau uniquement les entités qu'il a affichées."
+        }
       }
     },
     "error": {
@@ -249,7 +252,8 @@
       "no_additional_zones": "Cet ampli-tuner n'a pas de zone supplémentaire.",
       "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son.",
       "check_not_connected": "L'ampli-tuner n'est pas connecté. La vérification l'interroge via sa connexion telnet ; réessayez quand il est allumé.",
-      "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé."
+      "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé.",
+      "no_hidden_entities": "Ce récepteur n'a pas d'entités masquées."
     },
     "progress": {
       "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie.",
@@ -1128,6 +1132,17 @@
         "tuner_presets": "Présélections du tuner",
         "more": "Plus",
         "queue": "File d'attente"
+      }
+    },
+    "entity_group": {
+      "options": {
+        "audio": "Audio (tonalité, Audyssey, surround)",
+        "speakers": "Enceintes (distances, configuration)",
+        "video": "Vidéo et image",
+        "graphic_eq": "Égaliseur graphique",
+        "zones": "Zones",
+        "receiver": "Récepteur (interrupteurs d'alimentation et de sourdine, limite de volume, ECO, mode d'entrée)",
+        "diagnostic": "Diagnostic (signal, décodeur, rétablir le son)"
       }
     }
   },

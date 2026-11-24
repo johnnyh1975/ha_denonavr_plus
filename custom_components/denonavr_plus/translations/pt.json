@@ -41,14 +41,6 @@
           "quiet": "Testes silenciosos",
           "audible": "Testes audíveis e visíveis"
         }
-      },
-      "command_test": {
-        "title": "Testar comandos",
-        "description": "Opcionalmente, teste que comandos o {model} aceita depois de ligado. Cada teste escreve uma definição, espera que o recetor a confirme e repõe o valor anterior. Os testes silenciosos alteram definições que mal se notam (tom, Audyssey, imagem, temporizadores, visor, volume em 0,5 dB). Os testes audíveis ouvem-se ou veem-se (silêncio, altifalantes e saída HDMI, MultEQ, sintonizador, Zona 2, o menu de configuração na televisão). A alimentação, os disparadores e tudo o que guarda ou repõe uma definição nunca são tocados. Os resultados vão para o ficheiro de diagnóstico.\n\nDeixe ambos desligados para saltar; o teste também está nas opções.",
-        "data": {
-          "quiet": "Testes silenciosos",
-          "audible": "Testes audíveis e visíveis"
-        }
       }
     },
     "error": {
@@ -75,6 +67,7 @@
           "sources": "Fontes",
           "sound_modes": "Modos de som",
           "connection": "Ligação",
+          "entities": "Entidades",
           "check": "Verificar funções",
           "command_test": "Testar comandos"
         }
@@ -237,6 +230,16 @@
       "command_test_done": {
         "title": "Teste de comandos concluído",
         "description": "O {model} confirmou {confirmed} de {total} comandos; {skipped} foram saltados. Definições não repostas: {not_restored}; verifique-as no recetor se não for 0. Os detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos).\n\nPara ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro de diagnóstico."
+      },
+      "entities": {
+        "title": "Entidades",
+        "description": "Muitas entidades começam ocultas: definições que se ajustam uma vez, configuração dos altifalantes, vídeo, o equalizador gráfico e diagnóstico. Escolha os grupos mostrados; podem ser mostradas {count} entidades. As entidades que ativou ou desativou por si ficam como estão. As entidades mostradas aparecem em meio minuto.",
+        "data": {
+          "entity_groups": "Grupos mostrados"
+        },
+        "data_description": {
+          "entity_groups": "Um grupo que deixa de estar selecionado volta a ocultar apenas as entidades que mostrou."
+        }
       }
     },
     "error": {
@@ -249,7 +252,8 @@
       "no_additional_zones": "Este recetor não tem zonas adicionais.",
       "no_sound_modes": "O recetor ainda não indicou nenhum modo de som.",
       "check_not_connected": "O recetor não está ligado. A verificação consulta-o pela ligação telnet; tente novamente quando estiver ligado.",
-      "test_not_connected": "O recetor não está ligado. O teste de comandos precisa da sua ligação telnet; tente novamente quando estiver ligado."
+      "test_not_connected": "O recetor não está ligado. O teste de comandos precisa da sua ligação telnet; tente novamente quando estiver ligado.",
+      "no_hidden_entities": "Este recetor não tem entidades ocultas."
     },
     "progress": {
       "capability_check": "A consultar o recetor. Demora até minuto e meio.",
@@ -1128,6 +1132,17 @@
         "tuner_presets": "Predefinições do sintonizador",
         "more": "Mais",
         "queue": "Fila"
+      }
+    },
+    "entity_group": {
+      "options": {
+        "audio": "Áudio (tom, Audyssey, surround)",
+        "speakers": "Altifalantes (distâncias, configuração)",
+        "video": "Vídeo e imagem",
+        "graphic_eq": "Equalizador gráfico",
+        "zones": "Zonas",
+        "receiver": "Recetor (interruptores de alimentação e silêncio, limite de volume, ECO, modo de entrada)",
+        "diagnostic": "Diagnóstico (sinal, descodificador, recuperar áudio)"
       }
     }
   },

@@ -20,7 +20,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.typing import ConfigType
 
-from . import choices, command_test
+from . import choices, command_test, entity_groups
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import (
@@ -93,6 +93,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     _remove_hidden_zones(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, _platforms(coordinator))
     _apply_channel_defaults(hass, entry, coordinator)
+    if not coordinator.started_offline:
+        entity_groups.async_apply(
+            hass, entry, coordinator.device.discovery.configured_channels
+        )
     _sub_devices_follow_room(hass, entry, coordinator)
     coordinator.capabilities.async_update_issues(coordinator.device.discovery.device.model_name)
     pending = entry.options.get(OPT_CHECK_PENDING) or entry.options.get(OPT_TEST_PENDING)
@@ -177,7 +181,7 @@ def _remove_hidden_zones(
 
 
 async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
-    """Options changed: reload for other zones or connection options.
+    """Options changed: entity groups, and a reload for other zones or connection.
 
     The entities read the source, sound mode and volume options when they
     need them, so only a change of zones (entities created or removed) or of
@@ -185,6 +189,10 @@ async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) 
     """
 
     coordinator = entry.runtime_data
+    if not coordinator.started_offline:
+        entity_groups.async_apply(
+            hass, entry, coordinator.device.discovery.configured_channels
+        )
     if (
         _shown_zones(entry, coordinator) != coordinator.shown_zones
         or connection_options(entry) != coordinator.connection

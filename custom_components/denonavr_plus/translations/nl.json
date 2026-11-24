@@ -41,14 +41,6 @@
           "quiet": "Stille tests",
           "audible": "Hoorbare en zichtbare tests"
         }
-      },
-      "command_test": {
-        "title": "Commando's testen",
-        "description": "Test desgewenst welke commando's de {model} aanneemt zodra hij verbonden is. Elke test schrijft een instelling, wacht tot de receiver die bevestigt en zet de oude waarde terug. Stille tests veranderen instellingen die nauwelijks opvallen (klank, Audyssey, beeld, timers, display, volume met 0,5 dB). Hoorbare tests hoor of zie je (dempen, luidsprekers en HDMI-uitgang, MultEQ, tuner, Zone 2, het instelmenu op de tv). Inschakelen, de triggers en alles wat een instelling opslaat of terugzet worden nooit aangeraakt. De resultaten komen in het diagnosebestand.\n\nLaat beide uit om over te slaan; de test staat ook in de opties.",
-        "data": {
-          "quiet": "Stille tests",
-          "audible": "Hoorbare en zichtbare tests"
-        }
       }
     },
     "error": {
@@ -75,6 +67,7 @@
           "sources": "Bronnen",
           "sound_modes": "Geluidsmodi",
           "connection": "Verbinding",
+          "entities": "Entiteiten",
           "check": "Functies controleren",
           "command_test": "Commando's testen"
         }
@@ -237,6 +230,16 @@
       "command_test_done": {
         "title": "Commandotest voltooid",
         "description": "De {model} bevestigde {confirmed} van {total} commando's; {skipped} werden overgeslagen. Niet teruggezette instellingen: {not_restored}; controleer ze op de receiver als dit niet 0 is. De details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden).\n\nOm dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het diagnosebestand toe."
+      },
+      "entities": {
+        "title": "Entiteiten",
+        "description": "Veel entiteiten starten verborgen: instellingen die je één keer zet, luidsprekerinstellingen, video, de grafische EQ en diagnose. Kies welke groepen getoond worden; {count} entiteiten kunnen getoond worden. Entiteiten die je zelf in- of uitgeschakeld hebt, blijven zoals ze zijn. Getoonde entiteiten verschijnen binnen een halve minuut.",
+        "data": {
+          "entity_groups": "Getoonde groepen"
+        },
+        "data_description": {
+          "entity_groups": "Een groep die niet meer geselecteerd is, verbergt alleen de entiteiten die hij getoond heeft weer."
+        }
       }
     },
     "error": {
@@ -249,7 +252,8 @@
       "no_additional_zones": "Deze receiver heeft geen extra zone.",
       "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld.",
       "check_not_connected": "De receiver is niet verbonden. De controle bevraagt hem via zijn telnet-verbinding; probeer het opnieuw wanneer hij aan staat.",
-      "test_not_connected": "De receiver is niet verbonden. De commandotest heeft zijn telnetverbinding nodig; probeer het opnieuw als hij aan staat."
+      "test_not_connected": "De receiver is niet verbonden. De commandotest heeft zijn telnetverbinding nodig; probeer het opnieuw als hij aan staat.",
+      "no_hidden_entities": "Deze receiver heeft geen verborgen entiteiten."
     },
     "progress": {
       "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut.",
@@ -1128,6 +1132,17 @@
         "tuner_presets": "Tunervoorkeuzes",
         "more": "Meer",
         "queue": "Wachtrij"
+      }
+    },
+    "entity_group": {
+      "options": {
+        "audio": "Audio (klank, Audyssey, surround)",
+        "speakers": "Luidsprekers (afstanden, instellingen)",
+        "video": "Video en beeld",
+        "graphic_eq": "Grafische EQ",
+        "zones": "Zones",
+        "receiver": "Receiver (schakelaars voor aan/uit en dempen, volumegrens, ECO, ingangsmodus)",
+        "diagnostic": "Diagnose (signaal, decoder, geluid herstellen)"
       }
     }
   },

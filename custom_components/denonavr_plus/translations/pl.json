@@ -41,14 +41,6 @@
           "quiet": "Ciche testy",
           "audible": "Słyszalne i widoczne testy"
         }
-      },
-      "command_test": {
-        "title": "Testuj polecenia",
-        "description": "Opcjonalnie sprawdź po połączeniu, które polecenia przyjmuje {model}. Każdy test zapisuje ustawienie, czeka na potwierdzenie amplitunera i przywraca poprzednią wartość. Ciche testy zmieniają ustawienia, które ledwo widać (barwa dźwięku, Audyssey, obraz, timery, wyświetlacz, głośność o 0,5 dB). Słyszalne testy słychać lub widać (wyciszenie, głośniki i wyjście HDMI, MultEQ, tuner, Strefa 2, menu konfiguracji na telewizorze). Zasilanie, wyzwalacze i wszystko, co zapisuje lub resetuje ustawienie, nigdy nie są ruszane. Wyniki trafiają do pliku diagnostycznego.\n\nPozostaw oba wyłączone, aby pominąć; test jest też w opcjach.",
-        "data": {
-          "quiet": "Ciche testy",
-          "audible": "Słyszalne i widoczne testy"
-        }
       }
     },
     "error": {
@@ -75,6 +67,7 @@
           "sources": "Źródła",
           "sound_modes": "Tryby dźwięku",
           "connection": "Połączenie",
+          "entities": "Encje",
           "check": "Sprawdź funkcje",
           "command_test": "Testuj polecenia"
         }
@@ -237,6 +230,16 @@
       "command_test_done": {
         "title": "Test poleceń zakończony",
         "description": "{model} potwierdził {confirmed} z {total} poleceń; pominięto {skipped}. Nieprzywrócone ustawienia: {not_restored}; jeśli to nie 0, sprawdź je na amplitunerze. Szczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne).\n\nAby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik diagnostyczny."
+      },
+      "entities": {
+        "title": "Encje",
+        "description": "Wiele encji startuje ukrytych: ustawienia ustawiane raz, konfiguracja głośników, wideo, korektor graficzny i diagnostyka. Wybierz wyświetlane grupy; można pokazać {count} encji. Encje, które włączyłeś lub wyłączyłeś sam, pozostają bez zmian. Pokazane encje pojawiają się w ciągu pół minuty.",
+        "data": {
+          "entity_groups": "Wyświetlane grupy"
+        },
+        "data_description": {
+          "entity_groups": "Odznaczona grupa ponownie ukrywa tylko encje, które sama pokazała."
+        }
       }
     },
     "error": {
@@ -249,7 +252,8 @@
       "no_additional_zones": "Ten amplituner nie ma dodatkowych stref.",
       "no_sound_modes": "Amplituner nie zgłosił jeszcze żadnych trybów dźwięku.",
       "check_not_connected": "Amplituner nie jest połączony. Sprawdzenie odpytuje go przez połączenie telnet; spróbuj ponownie, gdy będzie włączony.",
-      "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony."
+      "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony.",
+      "no_hidden_entities": "Ten amplituner nie ma ukrytych encji."
     },
     "progress": {
       "capability_check": "Odpytywanie amplitunera. Trwa to do półtorej minuty.",
@@ -1128,6 +1132,17 @@
         "tuner_presets": "Stacje zapisane w tunerze",
         "more": "Więcej",
         "queue": "Kolejka"
+      }
+    },
+    "entity_group": {
+      "options": {
+        "audio": "Audio (barwa dźwięku, Audyssey, surround)",
+        "speakers": "Głośniki (odległości, konfiguracja)",
+        "video": "Wideo i obraz",
+        "graphic_eq": "Korektor graficzny",
+        "zones": "Strefy",
+        "receiver": "Amplituner (przełączniki zasilania i wyciszenia, limit głośności, ECO, tryb wejścia)",
+        "diagnostic": "Diagnostyka (sygnał, dekoder, przywróć dźwięk)"
       }
     }
   },

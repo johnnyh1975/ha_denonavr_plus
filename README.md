@@ -98,7 +98,7 @@ address must belong to the same receiver.
 ### Options
 
 **Configure** on the integration entry opens a menu: volume, zones, sources,
-sound modes, connection, **Check capabilities** and **Test commands** (both
+sound modes, connection, entities, **Check capabilities** and **Test commands** (both
 under Contributing). Apart from the command test, nothing in it changes the
 receiver; it changes what Home Assistant shows and does.
 
@@ -145,6 +145,14 @@ zone's media player offers, and their names. The receiver only offers the
 modes that fit the current signal. The current source and sound mode are
 always shown, also when they are not selected. The sound mode selects keep
 the receiver's full list.
+
+**Entities** (works even when the receiver is off): which groups of the
+entities that start hidden are shown: Audio, Speakers, Video and picture,
+Graphic EQ, Zones, Receiver, Diagnostics. A group shows only entities the
+integration hid; one you enabled or disabled yourself stays as it is, and
+speaker entities of channels the receiver does not have stay hidden. Removing
+a group from the list hides again only what it showed. Shown entities appear
+within half a minute, when Home Assistant reloads the integration.
 
 **Connection** (works even when the receiver is off; a change restarts the
 integration):
@@ -364,7 +372,8 @@ which repeat the media player. The sample rate, input signal, audio format and
 mode info sensors also start disabled, because they change with every track and
 fill the history, and so do the sound mode and source sensors, which repeat the
 media player. Enable any of them on the device page under its entities, or
-in the entity's settings. Home Assistant keeps your choice from then on.
+in the entity's settings. Home Assistant keeps your choice from then on. To
+show a whole group at once, use Configure → **Entities** (see Options).
 
 Speaker crossover frequencies are a discrete, non-uniform set, so they are
 exposed as a select rather than a stepped number. The current crossover per group
@@ -632,9 +641,10 @@ is sent anywhere by itself.
 **Command test.** The capability check only asks; the command test writes. Each
 test reads a setting, writes a different valid value, waits up to 2 seconds for
 the receiver to confirm it, asks again, then writes the old value back and
-checks that it is back. Choose it under Configure → **Test commands**, or when
-adding the receiver (skippable: both groups are off unless you choose them; it
-then runs once the receiver is connected, after the capability check).
+checks that it is back. Choose it under Configure → **Test commands**. When a
+model that has not been checked yet is added, setup offers it next to the
+capability check (both groups off unless you choose them; it then runs once
+the receiver is connected, after the capability check).
 
 - **Quiet tests**: settings you hardly notice for a few seconds: tone,
   Audyssey, surround and picture settings, timers, the display, ECO, Zone 2

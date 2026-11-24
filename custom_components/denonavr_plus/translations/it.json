@@ -41,14 +41,6 @@
           "quiet": "Test silenziosi",
           "audible": "Test udibili e visibili"
         }
-      },
-      "command_test": {
-        "title": "Prova comandi",
-        "description": "Facoltativo: prova quali comandi accetta il {model} una volta connesso. Ogni test scrive un'impostazione, attende la conferma del ricevitore e ripristina il valore precedente. I test silenziosi cambiano impostazioni che si notano appena (toni, Audyssey, immagine, timer, display, volume di 0,5 dB). I test udibili si sentono o si vedono (muto, diffusori e uscita HDMI, MultEQ, sintonizzatore, Zona 2, il menu di configurazione sul televisore). L'accensione, i trigger e tutto ciò che salva o azzera un'impostazione non vengono mai toccati. I risultati finiscono nel file di diagnostica.\n\nLascia entrambi disattivati per saltare; il test è anche nelle opzioni.",
-        "data": {
-          "quiet": "Test silenziosi",
-          "audible": "Test udibili e visibili"
-        }
       }
     },
     "error": {
@@ -75,6 +67,7 @@
           "sources": "Sorgenti",
           "sound_modes": "Modalità audio",
           "connection": "Connessione",
+          "entities": "Entità",
           "check": "Verifica funzioni",
           "command_test": "Prova comandi"
         }
@@ -237,6 +230,16 @@
       "command_test_done": {
         "title": "Prova dei comandi terminata",
         "description": "Il {model} ha confermato {confirmed} comandi su {total}; {skipped} sono stati saltati. Impostazioni non ripristinate: {not_restored}; controllale sul ricevitore se non è 0. I dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica).\n\nPer aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file di diagnostica."
+      },
+      "entities": {
+        "title": "Entità",
+        "description": "Molte entità partono nascoste: impostazioni che si fissano una volta, configurazione dei diffusori, video, l'equalizzatore grafico e diagnostica. Scegli i gruppi mostrati; si possono mostrare {count} entità. Le entità che hai attivato o disattivato tu restano come sono. Le entità mostrate compaiono entro mezzo minuto.",
+        "data": {
+          "entity_groups": "Gruppi mostrati"
+        },
+        "data_description": {
+          "entity_groups": "Un gruppo non più selezionato nasconde di nuovo solo le entità che ha mostrato."
+        }
       }
     },
     "error": {
@@ -249,7 +252,8 @@
       "no_additional_zones": "Questo sintoamplificatore non ha zone aggiuntive.",
       "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio.",
       "check_not_connected": "Il sintoamplificatore non è connesso. La verifica lo interroga tramite la connessione telnet; riprova quando è acceso.",
-      "test_not_connected": "Il ricevitore non è connesso. La prova dei comandi richiede la sua connessione telnet; riprova quando è acceso."
+      "test_not_connected": "Il ricevitore non è connesso. La prova dei comandi richiede la sua connessione telnet; riprova quando è acceso.",
+      "no_hidden_entities": "Questo ricevitore non ha entità nascoste."
     },
     "progress": {
       "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo.",
@@ -1128,6 +1132,17 @@
         "tuner_presets": "Preselezioni del sintonizzatore",
         "more": "Altro",
         "queue": "Coda"
+      }
+    },
+    "entity_group": {
+      "options": {
+        "audio": "Audio (toni, Audyssey, surround)",
+        "speakers": "Diffusori (distanze, configurazione)",
+        "video": "Video e immagine",
+        "graphic_eq": "Equalizzatore grafico",
+        "zones": "Zone",
+        "receiver": "Ricevitore (interruttori di accensione e muto, limite di volume, ECO, modalità di ingresso)",
+        "diagnostic": "Diagnostica (segnale, decoder, ripristina audio)"
       }
     }
   },

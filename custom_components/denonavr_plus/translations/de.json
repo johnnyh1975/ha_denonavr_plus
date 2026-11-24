@@ -41,14 +41,6 @@
           "quiet": "Leise Tests",
           "audible": "Hörbare und sichtbare Tests"
         }
-      },
-      "command_test": {
-        "title": "Befehle testen",
-        "description": "Optional: teste nach der Verbindung, welche Befehle der {model} annimmt. Jeder Test schreibt eine Einstellung, wartet auf die Bestätigung des Receivers und stellt den alten Wert wieder her. Leise Tests ändern Einstellungen, die kaum auffallen (Klang, Audyssey, Bild, Timer, Display, Lautstärke um 0,5 dB). Hörbare Tests hört oder sieht man (Stummschaltung, Lautsprecher und HDMI-Ausgang, MultEQ, Tuner, Zone 2, das Setup-Menü am Fernseher). Einschalten, die Trigger und alles, was eine Einstellung speichert oder zurücksetzt, wird nie berührt. Die Ergebnisse stehen in der Diagnose-Datei.\n\nLass beide aus, um den Test zu überspringen; er steht auch in den Optionen.",
-        "data": {
-          "quiet": "Leise Tests",
-          "audible": "Hörbare und sichtbare Tests"
-        }
       }
     },
     "error": {
@@ -75,6 +67,7 @@
           "sources": "Quellen",
           "sound_modes": "Klangmodi",
           "connection": "Verbindung",
+          "entities": "Entitäten",
           "check": "Fähigkeiten prüfen",
           "command_test": "Befehle testen"
         }
@@ -237,6 +230,16 @@
       "command_test_done": {
         "title": "Befehlstest abgeschlossen",
         "description": "Der {model} hat {confirmed} von {total} Befehlen bestätigt; {skipped} wurden übersprungen. Nicht wiederhergestellte Einstellungen: {not_restored}; prüfe sie am Receiver, wenn das nicht 0 ist. Die Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen).\n\nUm die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Diagnose-Datei an."
+      },
+      "entities": {
+        "title": "Entitäten",
+        "description": "Viele Entitäten starten ausgeblendet: Einstellungen, die man einmal setzt, Lautsprecher-Einrichtung, Video, der Grafik-EQ und Diagnose. Wähle die Gruppen, die angezeigt werden; {count} Entitäten lassen sich einblenden. Entitäten, die du selbst aktiviert oder deaktiviert hast, bleiben, wie sie sind. Eingeblendete Entitäten erscheinen innerhalb einer halben Minute.",
+        "data": {
+          "entity_groups": "Angezeigte Gruppen"
+        },
+        "data_description": {
+          "entity_groups": "Eine abgewählte Gruppe blendet nur die Entitäten wieder aus, die sie eingeblendet hat."
+        }
       }
     },
     "error": {
@@ -249,7 +252,8 @@
       "no_additional_zones": "Dieser Receiver hat keine weitere Zone.",
       "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet.",
       "check_not_connected": "Der Receiver ist nicht verbunden. Der Prüflauf fragt ihn über seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist.",
-      "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist."
+      "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist.",
+      "no_hidden_entities": "Dieser Receiver hat keine ausgeblendeten Entitäten."
     },
     "progress": {
       "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten.",
@@ -1128,6 +1132,17 @@
         "tuner_presets": "Tuner-Presets",
         "more": "Mehr",
         "queue": "Warteschlange"
+      }
+    },
+    "entity_group": {
+      "options": {
+        "audio": "Audio (Klang, Audyssey, Surround)",
+        "speakers": "Lautsprecher (Abstände, Einrichtung)",
+        "video": "Video und Bild",
+        "graphic_eq": "Grafik-EQ",
+        "zones": "Zonen",
+        "receiver": "Receiver (Schalter für Ein/Aus und Stumm, Lautstärkegrenze, ECO, Eingangsmodus)",
+        "diagnostic": "Diagnose (Signal, Decoder, Ton wiederherstellen)"
       }
     }
   },

@@ -41,14 +41,6 @@
           "quiet": "Quiet tests",
           "audible": "Audible and visible tests"
         }
-      },
-      "command_test": {
-        "title": "Test commands",
-        "description": "Optionally, test which commands the {model} takes once it is connected. Each test writes a setting, waits for the receiver to confirm it, and puts the old value back. Quiet tests change settings you will hardly notice (tone, Audyssey, picture, timers, display, volume by 0.5 dB). Audible tests are heard or seen (mute, speakers and HDMI output, MultEQ, tuner, Zone 2, the setup menu on the TV). Power, the triggers and anything that stores or resets a setting are never touched. The results go into the diagnostics file.\n\nLeave both off to skip; the test is also in the options.",
-        "data": {
-          "quiet": "Quiet tests",
-          "audible": "Audible and visible tests"
-        }
       }
     },
     "error": {
@@ -75,6 +67,7 @@
           "sources": "Sources",
           "sound_modes": "Sound modes",
           "connection": "Connection",
+          "entities": "Entities",
           "check": "Check capabilities",
           "command_test": "Test commands"
         }
@@ -237,6 +230,16 @@
       "command_test_done": {
         "title": "Command test finished",
         "description": "The {model} confirmed {confirmed} of {total} commands; {skipped} were skipped. Settings not put back: {not_restored}; check them on the receiver if this is not 0. The details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file."
+      },
+      "entities": {
+        "title": "Entities",
+        "description": "Many entities start hidden: settings you set once, speaker setup, video, the graphic EQ and diagnostics. Choose the groups to show; {count} entities can be shown. Entities you enabled or disabled yourself stay as they are. Entities shown appear within half a minute.",
+        "data": {
+          "entity_groups": "Groups shown"
+        },
+        "data_description": {
+          "entity_groups": "A group no longer selected hides again only the entities it showed."
+        }
       }
     },
     "error": {
@@ -249,7 +252,8 @@
       "no_additional_zones": "This receiver has no additional zone.",
       "no_sound_modes": "The receiver has not reported any sound modes yet.",
       "check_not_connected": "The receiver is not connected. The capability check asks it over its telnet connection; try again when it is on.",
-      "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on."
+      "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on.",
+      "no_hidden_entities": "This receiver has no hidden entities."
     },
     "progress": {
       "capability_check": "Asking the receiver. This takes up to a minute and a half.",
@@ -1128,6 +1132,17 @@
         "tuner_presets": "Tuner presets",
         "more": "More",
         "queue": "Queue"
+      }
+    },
+    "entity_group": {
+      "options": {
+        "audio": "Audio (tone, Audyssey, surround)",
+        "speakers": "Speakers (distances, setup)",
+        "video": "Video and picture",
+        "graphic_eq": "Graphic EQ",
+        "zones": "Zones",
+        "receiver": "Receiver (power and mute switches, volume limit, ECO, input mode)",
+        "diagnostic": "Diagnostics (signal, decoder, recover audio)"
       }
     }
   },

@@ -62,15 +62,6 @@ def _identity(mac: str | None = MAC, model: str | None = MODEL) -> AsyncMock:
     return AsyncMock(return_value=DeviceInfo(model_name=model, mac_address=mac))
 
 
-async def _skip_command_test(hass: HomeAssistant, result: Any) -> Any:
-    """A known model: the command test is offered before the entry; skip it."""
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "command_test"
-    return await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"quiet": False, "audible": False}
-    )
-
-
 async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -80,7 +71,6 @@ async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: f" {HOST} "}
         )
-    result = await _skip_command_test(hass, result)
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == MODEL
     assert result["data"] == {CONF_HOST: HOST}
@@ -103,7 +93,6 @@ async def test_user_flow_cannot_connect_then_recovers(hass: HomeAssistant) -> No
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: HOST}
         )
-    result = await _skip_command_test(hass, result)
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
 
@@ -295,7 +284,6 @@ async def test_an_empty_address_offers_the_receivers_found(hass: HomeAssistant) 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"receiver": "192.0.2.10"}
         )
-    result = await _skip_command_test(hass, result)
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {CONF_HOST: "192.0.2.10"}
 
@@ -303,7 +291,6 @@ async def test_an_empty_address_offers_the_receivers_found(hass: HomeAssistant) 
 async def test_a_single_receiver_found_is_added_directly(hass: HomeAssistant) -> None:
     with patch.object(DenonAvrDevice, "async_fetch_identity", _identity()):
         result = await _search(hass, _seen(LIVING, KITCHEN))
-    result = await _skip_command_test(hass, result)
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {CONF_HOST: "192.0.2.10"}
 
@@ -340,7 +327,6 @@ async def test_ssdp_discovery_and_confirm(hass: HomeAssistant) -> None:
     assert result["description_placeholders"] == {"name": MODEL}
 
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
-    result = await _skip_command_test(hass, result)
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {CONF_HOST: HOST}
     assert result["result"].unique_id == MAC
@@ -534,7 +520,8 @@ async def _options_step(hass: HomeAssistant, entry: MockConfigEntry, step: str) 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.MENU
     assert result["menu_options"] == [
-        "volume", "zones", "sources", "sound_modes", "connection", "check", "command_test"
+        "volume", "zones", "sources", "sound_modes", "connection", "entities", "check",
+        "command_test",
     ]
     return await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": step}
@@ -740,7 +727,8 @@ async def test_the_capability_check_needs_the_receiver(hass: HomeAssistant) -> N
     assert result["reason"] == "check_not_connected"
 
 
-async def test_a_known_model_can_test_commands_after_setup(hass: HomeAssistant) -> None:
+async def test_a_known_model_is_added_without_the_tests(hass: HomeAssistant) -> None:
+    """Both tests stay in the options; setting up a known model asks nothing."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
@@ -748,15 +736,8 @@ async def test_a_known_model_can_test_commands_after_setup(hass: HomeAssistant) 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: HOST}
         )
-    assert result["step_id"] == "command_test"
-    # Skippable: nothing is chosen unless the user chooses it.
-    defaults = {str(key): key.default() for key in result["data_schema"].schema}
-    assert defaults == {"quiet": False, "audible": False}
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"quiet": True, "audible": False}
-    )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["result"].options == {"command_test_pending": ["quiet"]}
+    assert result["result"].options == {}
 
 
 async def test_an_unknown_model_offers_the_check_and_the_command_test(
@@ -770,6 +751,9 @@ async def test_an_unknown_model_offers_the_check_and_the_command_test(
             result["flow_id"], {CONF_HOST: HOST}
         )
     assert result["step_id"] == "unknown_model"
+    # Skippable: the command test is chosen by nobody by default.
+    defaults = {str(key): key.default() for key in result["data_schema"].schema}
+    assert defaults == {"check": True, "quiet": False, "audible": False}
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"check": True, "quiet": True, "audible": True}
     )

@@ -54,8 +54,9 @@ from .const import (
 )
 from .capabilities import OPT_CHECK_PENDING, CapabilityCheckSteps, known_model
 from .command_test import OPT_TEST_PENDING, CommandTestSteps, chosen, groups_schema
+from .entity_groups import OPT_ENTITY_GROUPS
 from .coordinator import connection_options
-from . import choices
+from . import choices, entity_groups
 from .choices import (
     OPT_MAIN_OFF_STANDBY,
     OPT_SOURCE_SHORTCUTS,
@@ -208,15 +209,15 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         return self._async_create(name, self._entry_data(host))
 
     def _async_create(self, title: str, data: dict[str, Any]) -> ConfigFlowResult:
-        """Offer the tests before the entry is created; all can be skipped.
+        """Create the entry; a model not checked before is offered the tests first.
 
-        A model not checked before gets the capability check too (chosen by
-        default); the command test is chosen by nobody by default.
+        The capability check is chosen by default there, the command test is
+        not. A known model needs neither; both are in the options for all.
         """
 
-        self._new_entry = (title, data)
         if known_model(title):
-            return self._command_test_form()
+            return self.async_create_entry(title=title, data=data)
+        self._new_entry = (title, data)
         return self._unknown_model_form()
 
     def _unknown_model_form(self) -> ConfigFlowResult:
@@ -225,13 +226,6 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {vol.Required(CONF_CHECK, default=True): BooleanSelector(), **groups_schema()}
             ),
-            description_placeholders={"model": self._new_entry[0]},
-        )
-
-    def _command_test_form(self) -> ConfigFlowResult:
-        return self.async_show_form(
-            step_id="command_test",
-            data_schema=vol.Schema(groups_schema()),
             description_placeholders={"model": self._new_entry[0]},
         )
 
@@ -244,14 +238,6 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             options[OPT_TEST_PENDING] = groups
         return self.async_create_entry(title=title, data=data, options=options)
 
-    async def async_step_command_test(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Test commands after setup? Writes settings and puts them back."""
-
-        if user_input is None:
-            return self._command_test_form()
-        return self._create_with_tests(user_input)
 
     async def async_step_unknown_model(
         self, user_input: dict[str, Any] | None = None
@@ -459,6 +445,7 @@ class DenonAvrOptionsFlow(CommandTestSteps, CapabilityCheckSteps, OptionsFlow):
                 "sources",
                 "sound_modes",
                 "connection",
+                "entities",
                 "check",
                 "command_test",
             ],
@@ -612,6 +599,43 @@ class DenonAvrOptionsFlow(CommandTestSteps, CapabilityCheckSteps, OptionsFlow):
                     vol.Required(OPT_MAIN_OFF_STANDBY, default=standby): BooleanSelector(),
                 }
             ),
+        )
+
+    # Entities ----------------------------------------------------------------
+
+    async def async_step_entities(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Which groups of the entities that start hidden are shown.
+
+        Works from the registry, so also without the receiver. The change is
+        applied by the update listener (entity_groups.async_apply).
+        """
+
+        chosen = list(self.config_entry.options.get(OPT_ENTITY_GROUPS, []))
+        if user_input is not None:
+            return self._save({OPT_ENTITY_GROUPS: list(user_input[OPT_ENTITY_GROUPS])})
+        discovery = self._discovery()
+        configured = discovery.configured_channels if discovery is not None else set()
+        counts = entity_groups.hidden_counts(self.hass, self.config_entry, configured)
+        offered = [group for group in entity_groups.GROUPS if counts.get(group) or group in chosen]
+        if not offered:
+            return self.async_abort(reason="no_hidden_entities")
+        return self.async_show_form(
+            step_id="entities",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(OPT_ENTITY_GROUPS, default=chosen): SelectSelector(
+                        SelectSelectorConfig(
+                            options=offered,
+                            multiple=True,
+                            mode=SelectSelectorMode.LIST,
+                            translation_key="entity_group",
+                        )
+                    ),
+                }
+            ),
+            description_placeholders={"count": str(sum(counts.values()))},
         )
 
     # Sources -----------------------------------------------------------------
