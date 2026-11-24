@@ -23,6 +23,23 @@ CHECK_VERSION = 3
 #: repair that asks for a check. Add a model once its check has been reviewed.
 KNOWN_MODELS = frozenset({"AVR-X2000", "AVR-X2600H", "AVR-X3600H"})
 
+#: Siblings of a checked model, mapped to it. They are treated like known
+#: models (no check offered, no repair), but nobody has checked them yet, so
+#: a report from one is still welcome. Each group says where it comes from;
+#: stereo receivers of the same year are left out (different feature set).
+RELATED_MODELS: dict[str, str] = {
+    # Same protocol document as the AVR-X2000 (control protocol v03, 2013).
+    "AVR-E400": "AVR-X2000",
+    # Denon's 2019 network AV receivers, as listed in the compatibility list
+    # of Denon's AVR Remote app; the AVR-X3600H and X2600H are of that year.
+    "AVR-X1600H": "AVR-X2600H",
+    "AVR-X1600H DAB": "AVR-X2600H",
+    "AVR-X2600H DAB": "AVR-X2600H",
+    "AVR-S950H": "AVR-X2600H",
+    "AVR-S750H": "AVR-X2600H",
+    "AVR-S650H": "AVR-X2600H",
+}
+
 #: The read-only requests that do not end with "?".
 SCREEN_REQUESTS = frozenset({"NSE", "NSH"})
 

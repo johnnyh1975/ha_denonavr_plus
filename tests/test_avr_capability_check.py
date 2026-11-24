@@ -35,6 +35,12 @@ def test_a_model_with_a_recorded_check_is_known() -> None:
     assert models <= capability_check.KNOWN_MODELS
 
 
+def test_a_related_model_points_to_a_checked_one() -> None:
+    related = capability_check.RELATED_MODELS
+    assert set(related.values()) <= capability_check.KNOWN_MODELS
+    assert not set(related) & capability_check.KNOWN_MODELS
+
+
 def test_only_queries() -> None:
     assert all(
         command.endswith("?") or command in capability_check.SCREEN_REQUESTS

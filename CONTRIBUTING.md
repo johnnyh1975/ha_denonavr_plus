@@ -21,6 +21,12 @@ Bug reports, receiver tests and pull requests are welcome. Back to the
 | Denon AVR-X2600H | 3.139.175 | Works | Capability check and receiver tests with PCM and Dolby Digital ([recording](tests/fixtures/command_test/AVR-X2600H.json)) |
 | Denon AVR-X2000 | | Works, with limits | Capability check ([recording](tests/fixtures/capability_check/AVR-X2000.json)). Most settings stay hidden, as on receivers before 2016 in general |
 
+Siblings of these models count as checked too, so setup asks no check of
+them: the AVR-E400 (same protocol document as the AVR-X2000) and Denon's
+other 2019 receivers, the AVR-X1600H, AVR-S950H, AVR-S750H and AVR-S650H (by
+Denon's app compatibility list). Nobody has reported on them yet; a report
+is welcome.
+
 Receivers of the HEOS generation (2016 on) should work, as the integration
 adapts to what the device reports. Receivers from before 2016 work with fewer
 settings. A receiver without a network port cannot be reached at all.

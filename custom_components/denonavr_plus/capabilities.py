@@ -20,7 +20,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from .avr.capability_check import KNOWN_MODELS
+from .avr.capability_check import KNOWN_MODELS, RELATED_MODELS
 from .avr.errors import CommandNotSent
 from .const import DOMAIN
 
@@ -41,7 +41,8 @@ _NEW_ISSUE = "https://github.com/johnnyh1975/ha_denonavr_plus/issues/new"
 
 
 def known_model(model: str | None) -> bool:
-    return model in KNOWN_MODELS
+    """Checked, or a sibling of a checked model: no check is asked for."""
+    return model in KNOWN_MODELS or model in RELATED_MODELS
 
 
 def issue_url(model: str | None, firmware: str | None) -> str:

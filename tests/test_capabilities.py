@@ -56,6 +56,13 @@ async def test_an_unchecked_model_gets_a_repair(
     assert issue.translation_placeholders == {"model": "AVC-X3700H"}
 
 
+def test_a_sibling_of_a_checked_model_counts_as_known() -> None:
+    assert capabilities.known_model("AVR-S750H")
+    assert capabilities.known_model("AVR-E400")
+    assert not capabilities.known_model("AVR-X2700H")
+    assert not capabilities.known_model(None)
+
+
 async def test_a_known_model_gets_none(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
