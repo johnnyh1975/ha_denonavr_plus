@@ -176,6 +176,17 @@ def test_a_different_value_for_each_kind(profile: Any) -> None:
     assert alternative(control("sleep_timer"), 5) == 10
 
 
+async def test_a_level_moves_by_the_receivers_own_step(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """An AVR-X2600H publishes whole dB for bass and ignored PSBAS 505."""
+    device = loaded_entry.runtime_data.device
+    device.discovery.numeric_meta["Bass"] = {"min": -6.0, "max": 6.0, "step": 1.0}
+    probes = {p.key: p for p in command_test.probes_for(device, [QUIET])}
+    assert probes["bass"].alternative(0.0) == 1.0
+    assert probes["bass"].alternative(3.0) == 2.0
+
+
 def test_no_different_value() -> None:
     assert alternative(ControlSpec("x", {"kind": "enum", "values": ["A"]}), "A") is None
     assert alternative(ControlSpec("x", {"kind": "enum", "values": []}), "A") is None
@@ -322,15 +333,15 @@ async def test_each_outcome(
         "group": QUIET,
         "result": "confirmed",
         "before": 0.0,
-        "written": 0.5,
-        "after": 0.5,
+        "written": 1.0,
+        "after": 1.0,
         "restored": True,
         # Bass and treble are only taken with tone control on (and with it
         # Dynamic EQ off, which the recording does not report: left alone).
         "requires": {"dynamic_eq": False, "tone_control": True},
         "lines": [],
     }
-    assert tests["bass"]["lines"] == ["PSBAS 50", "PSBAS 505", "PSBAS 505", "PSBAS 50", "PSBAS 50"]
+    assert tests["bass"]["lines"] == ["PSBAS 50", "PSBAS 51", "PSBAS 51", "PSBAS 50", "PSBAS 50"]
     # The dimmer took the change but not the way back.
     assert tests["dimmer"]["restored"] is False
     assert tests["dynamic_compression"]["restored"] is True
@@ -384,7 +395,7 @@ async def test_the_main_zone_must_be_on(
     assert result["tests"]["sleep_timer"]["result"] == "confirmed"
     assert result["tests"]["sleep_timer"]["written"] == 120
     assert receiver.settings["SLP"] == "OFF"
-    assert "PSBAS 505" not in receiver.telnet.sent
+    assert "PSBAS 51" not in receiver.telnet.sent
 
 
 async def test_the_test_needs_telnet(
@@ -768,7 +779,7 @@ async def test_a_setting_the_receiver_needs_does_not_come(
         "result": "precondition",
         "reason": "tone_control_not_set",
     }
-    assert "PSBAS 505" not in receiver.telnet.sent
+    assert "PSBAS 51" not in receiver.telnet.sent
     # Put back even so: the command went out.
     assert receiver.telnet.sent[-1] == "PSTONE CTRL OFF"
 
@@ -790,6 +801,8 @@ async def test_a_setting_already_as_needed_is_left_alone(
     [
         ("dynamic_eq", ("PSMULTEQ:OFF",), "audyssey_off"),
         ("zone2_channel_level_fl", ("Z2OFF",), "zone2_off"),
+        # An AVR-X2600H with Zone 2 off did not take Z2QUICK1.
+        ("zone2_quick_select", ("Z2OFF",), "zone2_off"),
     ],
 )
 async def test_what_cannot_be_set_quietly_is_a_missing_precondition(
@@ -806,10 +819,10 @@ async def test_what_cannot_be_set_quietly_is_a_missing_precondition(
     device = loaded_entry.runtime_data.device
     # The recording does not answer the Zone 2 settings; as one that does.
     device.discovery.answered.add(key)
-    probe = next(p for p in command_test.probes_for(device, [QUIET]) if p.key == key)
+    probe = next(p for p in command_test.probes_for(device, [QUIET, AUDIBLE]) if p.key == key)
     with patch.object(receiver.telnet, "async_send", receiver.send):
         result = await command_test._run_probe(device, probe)
-    assert result == {"group": QUIET, "result": "precondition", "reason": reason}
+    assert result == {"group": probe.group, "result": "precondition", "reason": reason}
 
 
 async def test_a_cancelled_test_puts_back_what_it_needed(
@@ -827,7 +840,7 @@ async def test_a_cancelled_test_puts_back_what_it_needed(
         receiver.telnet.push("ZMON", "PSTONE CTRL OFF")
         task = hass.async_create_task(device.async_command_test([QUIET]))
         for _ in range(100):
-            if "PSBAS 505" in receiver.telnet.sent:
+            if "PSBAS 51" in receiver.telnet.sent:
                 break
             await asyncio.sleep(0.01)
         task.cancel()
@@ -860,7 +873,7 @@ async def test_tone_control_needs_dynamic_eq_off_with_audyssey_on(
     assert result["tests"]["bass"]["result"] == "confirmed"
     assert result["tests"]["bass"]["requires"] == {"dynamic_eq": False, "tone_control": True}
     sent = receiver.telnet.sent
-    assert sent.index("PSDYNEQ OFF") < sent.index("PSTONE CTRL ON") < sent.index("PSBAS 505")
+    assert sent.index("PSDYNEQ OFF") < sent.index("PSTONE CTRL ON") < sent.index("PSBAS 51")
     # Put back in the other order.
     assert sent[-2:] == ["PSTONE CTRL OFF", "PSDYNEQ ON"]
     assert (receiver.settings["PSDYNEQ "], receiver.settings["PSTONE CTRL "]) == ("ON", "OFF")

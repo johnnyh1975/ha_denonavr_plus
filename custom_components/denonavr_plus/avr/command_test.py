@@ -166,7 +166,13 @@ _AUDYSSEY_SETTINGS = frozenset(
 #: The graphic EQ works only with MultEQ off; switching MultEQ is heard.
 _NEEDS_AUDYSSEY_OFF = frozenset({"graphic_eq"})
 _ZONE2_SETTINGS = frozenset(
-    {"zone2_sleep_timer", "zone2_auto_standby", "zone2_channel_level_fl", "zone2_channel_level_fr"}
+    {
+        "zone2_sleep_timer",
+        "zone2_auto_standby",
+        "zone2_channel_level_fl",
+        "zone2_channel_level_fr",
+        "zone2_quick_select",
+    }
 )
 
 #: What the receiver was doing when the test started, for reading the results.
@@ -244,8 +250,12 @@ def same(first: Any, second: Any) -> bool:
     return bool(first == second)
 
 
-def alternative(spec: ControlSpec, value: Any) -> Any:
-    """A different valid value for a control, or None when there is none."""
+def alternative(spec: ControlSpec, value: Any, step: float = 0.5) -> Any:
+    """A different valid value for a control, or None when there is none.
+
+    `step` is the receiver's step for a level: an AVR-X2600H takes bass and
+    treble in whole dB only and ignores PSBAS 505.
+    """
 
     kind = spec.kind
     if kind == "onoff":
@@ -263,7 +273,7 @@ def alternative(spec: ControlSpec, value: Any) -> Any:
         return values[0] if values else None
     if kind == "level":
         # Towards 0 dB: always inside the range of a valid value.
-        return float(value) - 0.5 if float(value) > 0 else float(value) + 0.5
+        return float(value) - step if float(value) > 0 else float(value) + step
     if kind in ("centered", "integer", "signed_int"):
         step = int(spec.get("step", 1) or 1)
         low, high = spec.get("min"), spec.get("max")
@@ -330,7 +340,7 @@ def _control_probe(device: DenonAvrDevice, spec: ControlSpec) -> Probe:
         prefixes=prefixes,
         read=read,
         write=write,
-        alternative=lambda value: alternative(spec, value),
+        alternative=lambda value: alternative(spec, value, _level_step(device, spec)),
         condition=condition,
         zones=tuple(zone for zone in _ZONE_RESTORE.get(spec.id, ()) if _has_zone(device, zone)),
         write_back=spec.id not in _NO_WRITE_BACK,
@@ -356,6 +366,13 @@ def _precondition(device: DenonAvrDevice, control_id: str) -> Callable[[], str |
         return None
 
     return missing
+
+
+def _level_step(device: DenonAvrDevice, spec: ControlSpec) -> float:
+    """The receiver's own step for a level, where it publishes one."""
+
+    meta = device.discovery.numeric_meta.get(spec.feature or "")
+    return float(meta["step"]) if meta and meta.get("step") else 0.5
 
 
 def _wanted(device: DenonAvrDevice, control_id: str) -> Callable[[str], bool]:

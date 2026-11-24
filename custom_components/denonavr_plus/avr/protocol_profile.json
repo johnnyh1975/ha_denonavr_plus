@@ -465,7 +465,7 @@
       "kind": "level",
       "query": "PSBAS ?",
       "prefix": "PSBAS ",
-      "doc": "Tone control bass. Half step level, 50 == 0 dB."
+      "doc": "Tone control bass. Level, 50 == 0 dB. The step comes from the receiver's published range: whole dB on an AVR-X2600H and an AVC-X3700H recording; the AVR-X2600H ignored a half step (PSBAS 505) in the command test."
     },
     "treble": {
       "group": "tone",
@@ -474,7 +474,7 @@
       "kind": "level",
       "query": "PSTRE ?",
       "prefix": "PSTRE ",
-      "doc": "Tone control treble. Half step level, 50 == 0 dB."
+      "doc": "Tone control treble. Level, 50 == 0 dB. The step comes from the receiver's published range: whole dB on an AVR-X2600H and an AVC-X3700H recording; the AVR-X2600H ignored a half step (PSTRE 505) in the command test."
     },
     "tone_control": {
       "group": "tone",
@@ -574,7 +574,7 @@
       "prefix": "SSHOSALS ",
       "on": "ON",
       "off": "OFF",
-      "doc": "Auto lip sync (automatic A/V delay), token SSHOSALS. Read from the HDMI setup list (SSHOS ?): an AVR-X2000 reports SSHOSALS ON there and answers no SSHOSALS ? (capability check); the AVR-X2600H answers neither with this token. Gated on the advertised AutoLipSync capability or an answer."
+      "doc": "Auto lip sync (automatic A/V delay), token SSHOSALS. Read from the HDMI setup list (SSHOS ?): an AVR-X2000 reports SSHOSALS ON there and answers no SSHOSALS ? (capability check); the AVR-X2600H answers neither with this token, but answers SSALS ? with SSALSSET ON, SSALSDSP OFF, SSALSVAL 000 (likely its auto lip sync; unconfirmed by a write). Gated on the advertised AutoLipSync capability or an answer."
     },
     "dynamic_volume": {
       "group": "audyssey",

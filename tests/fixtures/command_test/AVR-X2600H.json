@@ -20,23 +20,54 @@
   "tests": {
     "bass": {
       "group": "quiet",
-      "result": "precondition",
-      "reason": "tone_control_not_set"
-    },
-    "treble": {
-      "group": "quiet",
-      "result": "precondition",
-      "reason": "tone_control_not_set"
-    },
-    "tone_control": {
-      "group": "quiet",
-      "before": false,
-      "written": true,
-      "after": false,
+      "requires": {
+        "dynamic_eq": false,
+        "tone_control": true
+      },
+      "before": 0.0,
+      "written": 0.5,
+      "after": 0.0,
       "result": "no_effect",
       "restored": true,
       "lines": [
+        "PSBAS 50",
+        "PSBAS 50",
+        "PSBAS 50",
+        "PSBAS 50"
+      ]
+    },
+    "treble": {
+      "group": "quiet",
+      "requires": {
+        "dynamic_eq": false,
+        "tone_control": true
+      },
+      "before": 0.0,
+      "written": 0.5,
+      "after": 0.0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSTRE 50",
+        "PSTRE 50",
+        "PSTRE 50",
+        "PSTRE 50"
+      ]
+    },
+    "tone_control": {
+      "group": "quiet",
+      "requires": {
+        "dynamic_eq": false
+      },
+      "before": false,
+      "written": true,
+      "after": true,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
         "PSTONE CTRL OFF",
+        "PSTONE CTRL ON",
+        "PSTONE CTRL ON",
         "PSTONE CTRL OFF",
         "PSTONE CTRL OFF"
       ]
@@ -84,16 +115,8 @@
     },
     "graphic_eq": {
       "group": "quiet",
-      "before": false,
-      "written": true,
-      "after": false,
-      "result": "no_effect",
-      "restored": true,
-      "lines": [
-        "PSGEQ OFF",
-        "PSGEQ OFF",
-        "PSGEQ OFF"
-      ]
+      "result": "precondition",
+      "reason": "audyssey_on"
     },
     "room_size": {
       "group": "quiet",
@@ -116,24 +139,6 @@
         "PSHEQ OFF",
         "PSHEQ OFF",
         "PSHEQ OFF"
-      ]
-    },
-    "auto_lip_sync": {
-      "group": "quiet",
-      "result": "no_value",
-      "lines": [
-        "SSHOSCONARC OFF",
-        "SSHOSCONPSV OFF",
-        "SSHOSSMN OFF",
-        "SSHOSRSS POS",
-        "SSHOSCON ON",
-        "SSHOSCONSTS LAS",
-        "SSHOSIPS ATH",
-        "SSHOSCONPOF ALL",
-        "SSHOSIPM AUT",
-        "SSHOSPAS OFF",
-        "SSHOSTAS ON",
-        "SSHOS END"
       ]
     },
     "dynamic_volume": {
@@ -205,160 +210,6 @@
         "PSRSTR OFF",
         "PSRSTR OFF",
         "PSRSTR OFF"
-      ]
-    },
-    "subwoofer_switch": {
-      "group": "quiet",
-      "before": true,
-      "written": false,
-      "after": true,
-      "result": "no_effect",
-      "restored": true,
-      "lines": [
-        "PSSWR ON",
-        "PSSWR ON",
-        "PSSWR ON"
-      ]
-    },
-    "subwoofer_level": {
-      "group": "quiet",
-      "before": -12.0,
-      "written": -11.5,
-      "after": -12.0,
-      "result": "no_effect",
-      "restored": true,
-      "lines": [
-        "PSSWL 38",
-        "PSSWL 38",
-        "PSSWL 38"
-      ]
-    },
-    "volume_scale": {
-      "group": "quiet",
-      "before": "ABS",
-      "written": "REL",
-      "after": "REL",
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS",
-        "SSVCTZMADIS REL",
-        "SSVCTZMADIS REL",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS"
-      ]
-    },
-    "muting_level": {
-      "group": "quiet",
-      "before": "MUT",
-      "written": "040",
-      "after": "040",
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS",
-        "SSVCTZMAMLV 040",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV 040",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS"
-      ]
-    },
-    "subwoofer_mode": {
-      "group": "quiet",
-      "before": "LFE",
-      "written": "L+M",
-      "after": "L+M",
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "SSSWM LFE",
-        "SSSWM L+M",
-        "SSSWM L+M",
-        "SSSWM LFE",
-        "SSSWM LFE"
-      ]
-    },
-    "lpf_for_lfe": {
-      "group": "quiet",
-      "before": "120",
-      "written": "150",
-      "after": "150",
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "SSLFL 120",
-        "SSLFL 150",
-        "SSLFL 150",
-        "SSLFL 120",
-        "SSLFL 120"
-      ]
-    },
-    "zone2_sleep_timer": {
-      "group": "quiet",
-      "result": "precondition",
-      "reason": "zone2_off"
-    },
-    "zone2_auto_standby": {
-      "group": "quiet",
-      "result": "precondition",
-      "reason": "zone2_off"
-    },
-    "zone2_channel_level_fl": {
-      "group": "quiet",
-      "result": "precondition",
-      "reason": "zone2_off"
-    },
-    "zone2_channel_level_fr": {
-      "group": "quiet",
-      "result": "precondition",
-      "reason": "zone2_off"
-    },
-    "sleep_timer": {
-      "group": "quiet",
-      "before": 0,
-      "written": 120,
-      "after": 120,
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "SLPOFF",
-        "SLP120",
-        "SLP120",
-        "SLPOFF",
-        "SLPOFF"
-      ]
-    },
-    "eco_mode": {
-      "group": "quiet",
-      "before": "ON",
-      "written": "AUTO",
-      "after": "AUTO",
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "ECOON",
-        "ECOAUTO",
-        "ECOAUTO",
-        "ECOON",
-        "ECOON"
       ]
     },
     "speaker_virtualizer": {
@@ -443,19 +294,78 @@
         "PSDIC 00"
       ]
     },
-    "dimmer": {
+    "subwoofer_switch": {
       "group": "quiet",
-      "before": "DIM",
-      "written": "DAR",
-      "after": "DAR",
+      "before": true,
+      "written": false,
+      "after": true,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSSWR ON",
+        "PSSWR ON",
+        "PSSWR ON"
+      ]
+    },
+    "subwoofer_level": {
+      "group": "quiet",
+      "before": -12.0,
+      "written": -11.5,
+      "after": -12.0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSSWL 38",
+        "PSSWL 38",
+        "PSSWL 38"
+      ]
+    },
+    "subwoofer_mode": {
+      "group": "quiet",
+      "before": "LFE",
+      "written": "L+M",
+      "after": "L+M",
       "result": "confirmed",
       "restored": true,
       "lines": [
-        "DIM DIM",
-        "DIM DAR",
-        "DIM DAR",
-        "DIM DIM",
-        "DIM DIM"
+        "SSSWM LFE",
+        "SSSWM L+M",
+        "SSSWM L+M",
+        "SSSWM LFE",
+        "SSSWM LFE"
+      ]
+    },
+    "lpf_for_lfe": {
+      "group": "quiet",
+      "before": "120",
+      "written": "150",
+      "after": "150",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSLFL 120",
+        "SSLFL 150",
+        "SSLFL 150",
+        "SSLFL 120",
+        "SSLFL 120"
+      ]
+    },
+    "auto_lip_sync": {
+      "group": "quiet",
+      "result": "no_value",
+      "lines": [
+        "SSHOSCONARC OFF",
+        "SSHOSCONPSV OFF",
+        "SSHOSSMN OFF",
+        "SSHOSRSS POS",
+        "SSHOSCON ON",
+        "SSHOSCONSTS LAS",
+        "SSHOSIPS ATH",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT",
+        "SSHOSPAS OFF",
+        "SSHOSTAS ON",
+        "SSHOS END"
       ]
     },
     "video_mode": {
@@ -522,15 +432,110 @@
         "VSASPFUL"
       ]
     },
+    "volume_scale": {
+      "group": "quiet",
+      "before": "ABS",
+      "written": "REL",
+      "after": "REL",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS REL",
+        "SSVCTZMADIS REL",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
+    "muting_level": {
+      "group": "quiet",
+      "before": "MUT",
+      "written": "040",
+      "after": "040",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMAMLV 040",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV 040",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
+    "sleep_timer": {
+      "group": "quiet",
+      "before": 0,
+      "written": 120,
+      "after": 120,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SLPOFF",
+        "SLP120",
+        "SLP120",
+        "SLPOFF",
+        "SLPOFF"
+      ]
+    },
+    "eco_mode": {
+      "group": "quiet",
+      "before": "ON",
+      "written": "AUTO",
+      "after": "AUTO",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "ECOON",
+        "ECOAUTO",
+        "ECOAUTO",
+        "ECOON",
+        "ECOON"
+      ]
+    },
+    "dimmer": {
+      "group": "quiet",
+      "before": "DIM",
+      "written": "DAR",
+      "after": "DAR",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "DIM DIM",
+        "DIM DAR",
+        "DIM DAR",
+        "DIM DIM",
+        "DIM DIM"
+      ]
+    },
     "auto_standby": {
       "group": "quiet",
       "before": "15M",
-      "written": "8H",
-      "after": "15M",
-      "result": "no_effect",
+      "written": "60M",
+      "after": "60M",
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "STBY15M",
+        "STBY60M",
+        "STBY60M",
         "STBY15M",
         "STBY15M"
       ]
@@ -555,20 +560,25 @@
         "MVMAX 98"
       ]
     },
-    "main_mute": {
-      "group": "audible",
-      "before": false,
-      "written": true,
-      "after": false,
-      "result": "no_effect",
-      "restored": true,
-      "lines": [
-        "MUOFF",
-        "MUON",
-        "MUOFF",
-        "MUOFF",
-        "MUOFF"
-      ]
+    "zone2_sleep_timer": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
+    },
+    "zone2_auto_standby": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
+    },
+    "zone2_channel_level_fl": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
+    },
+    "zone2_channel_level_fr": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
     },
     "multeq": {
       "group": "audible",
@@ -585,47 +595,6 @@
         "PSMULTEQ:AUDYSSEY"
       ]
     },
-    "volume_limit": {
-      "group": "audible",
-      "before": "OFF",
-      "written": "060",
-      "after": "060",
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS",
-        "SSVCTZMALIM 060",
-        "SSVCTZMALIM 060",
-        "SSVCTZMAPON LAS",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV MUT",
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS"
-      ]
-    },
-    "all_zone_stereo": {
-      "group": "audible",
-      "before": false,
-      "written": true,
-      "after": true,
-      "result": "confirmed",
-      "restored": true,
-      "lines": [
-        "MSMCH STEREO",
-        "MNZST ON",
-        "MSALL ZONE STEREO",
-        "MSMCH STEREO",
-        "MNZST OFF",
-        "MSMCH STEREO",
-        "MSMCH STEREO"
-      ]
-    },
     "front_speaker": {
       "group": "audible",
       "before": "SPA",
@@ -637,18 +606,6 @@
         "PSFRONT SPA",
         "PSFRONT SPA",
         "PSFRONT SPA"
-      ]
-    },
-    "zone2_quick_select": {
-      "group": "audible",
-      "before": "0",
-      "written": "1",
-      "after": "0",
-      "result": "no_effect",
-      "restored": true,
-      "lines": [
-        "Z2QUICK0",
-        "Z2QUICK0"
       ]
     },
     "hdmi_video_output": {
@@ -694,6 +651,45 @@
         "VSSCHAUTO"
       ]
     },
+    "main_mute": {
+      "group": "audible",
+      "before": false,
+      "written": true,
+      "after": true,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "MUOFF",
+        "MUON",
+        "MUON",
+        "MUOFF",
+        "MUOFF"
+      ]
+    },
+    "volume_limit": {
+      "group": "audible",
+      "before": "OFF",
+      "written": "060",
+      "after": "060",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM 060",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM 060",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
     "input_mode": {
       "group": "audible",
       "before": "NO",
@@ -722,27 +718,53 @@
         "MNMEN OFF"
       ]
     },
-    "zone2_follow_main": {
+    "all_zone_stereo": {
       "group": "audible",
-      "before": "NET",
-      "written": "SOURCE",
-      "after": "SOURCE",
+      "before": false,
+      "written": true,
+      "after": true,
       "result": "confirmed",
       "restored": true,
       "lines": [
+        "MSMCH STEREO",
+        "MNZST ON",
+        "MSALL ZONE STEREO",
+        "MSALL ZONE STEREO",
+        "MNZST OFF",
+        "MSMCH STEREO",
+        "MSMCH STEREO"
+      ]
+    },
+    "zone2_quick_select": {
+      "group": "audible",
+      "before": "0",
+      "written": "1",
+      "after": "0",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "Z2QUICK0",
+        "Z2QUICK0"
+      ]
+    },
+    "zone2_follow_main": {
+      "group": "audible",
+      "before": "SOURCE",
+      "written": "TV",
+      "after": "SOURCE",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
         "Z2OFF",
-        "Z2NET",
+        "Z2SOURCE",
+        "Z232",
+        "Z2OFF",
+        "Z2SOURCE",
         "Z232",
         "Z2ON",
-        "Z2SOURCE",
         "Z2SLPOFF",
-        "Z2ON",
-        "Z2SOURCE",
-        "Z232",
-        "Z2SLPOFF",
-        "Z2NET",
         "Z2OFF",
-        "Z2NET",
+        "Z2SOURCE",
         "Z232"
       ]
     },
