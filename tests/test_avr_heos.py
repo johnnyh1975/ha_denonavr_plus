@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Callable
 from typing import Any
 from unittest.mock import patch
 
@@ -201,8 +202,15 @@ def test_the_outcome_of_a_command_is_kept_without_the_url() -> None:
 class _HeosServer:
     """A HEOS stand-in on localhost that records commands and connections."""
 
-    def __init__(self, *, answer_heartbeat: bool) -> None:
+    def __init__(
+        self,
+        *,
+        answer_heartbeat: bool,
+        replies: Callable[[str, str], list[dict]] | None = None,
+    ) -> None:
         self.answer_heartbeat = answer_heartbeat
+        # Scripted answers by command name and full command; None: a plain success.
+        self.replies = replies
         self.connections = 0
         self.received: list[str] = []
         self.server: asyncio.Server | None = None
@@ -225,8 +233,11 @@ class _HeosServer:
                 if command == "heos://system/heart_beat" and not self.answer_heartbeat:
                     continue
                 name = command.removeprefix("heos://").split("?")[0]
-                reply = {"heos": {"command": name, "result": "success", "message": ""}}
-                writer.write(json.dumps(reply).encode() + b"\r\n")
+                scripted = self.replies(name, command) if self.replies else None
+                if scripted is None:
+                    scripted = [{"heos": {"command": name, "result": "success", "message": ""}}]
+                for reply in scripted:
+                    writer.write(json.dumps(reply).encode() + b"\r\n")
                 await writer.drain()
         except ConnectionError:
             pass
@@ -303,3 +314,131 @@ async def test_stopping_while_a_dropped_link_closes() -> None:
         await closing
     # The second close must not wait on the cancelled waiter again.
     await client.async_stop()
+
+
+def _answer(name: str, message: str = "", payload: Any = None, result: str = "success") -> dict:
+    reply: dict[str, Any] = {"heos": {"command": name, "result": result, "message": message}}
+    if payload is not None:
+        reply["payload"] = payload
+    return reply
+
+
+_SOURCES = [
+    {"name": "Favorites", "sid": 1028, "type": "heos_service", "available": "true", "image_url": ""},
+    {"name": "TuneIn", "sid": 3, "type": "music_service", "available": "true"},
+    {"name": "Pandora", "sid": 1, "type": "music_service", "available": "false"},
+]
+
+
+def _browse_replies(name: str, command: str) -> list[dict] | None:
+    """A receiver with two favorites, TuneIn and a 120-item local container."""
+    if name == "player/get_players":
+        return [_answer(name, payload=[{"pid": 202, "name": "AVR", "ip": "127.0.0.1"}])]
+    if name == "system/check_account":
+        return [_answer(name, "signed_in&un=user@example.com")]
+    if name == "browse/get_music_sources":
+        return [_answer(name, payload=_SOURCES)]
+    if name == "browse/browse" and "sid=1028" in command:
+        favorites = [
+            {"container": "no", "playable": "yes", "type": "station", "name": "Bayern 3", "mid": "s1"},
+            {"container": "no", "playable": "yes", "type": "station", "name": "Klassik & Jazz", "mid": "s2"},
+        ]
+        return [_answer(name, "sid=1028&returned=2&count=2", favorites)]
+    if name == "browse/browse" and "cid=Albums%26More" in command:
+        # Interim answer first, as the CLI sends for slow sources.
+        page = [{"container": "no", "playable": "yes", "type": "song", "name": "Track", "mid": "m1"}]
+        return [
+            _answer(name, "command under process&sid=4"),
+            _answer(name, "sid=4&cid=Albums%26More&returned=1&count=120", page),
+        ]
+    if name == "browse/play_preset" and "preset=9" in command:
+        return [_answer(name, "eid=2&text=Invalid preset", result="fail")]
+    return None
+
+
+@pytest.mark.usefixtures("socket_enabled")
+async def test_browse_asks_and_waits_for_the_answer() -> None:
+    """Sources, a page past an interim answer, favorites once signed in, a failure."""
+    server = _HeosServer(answer_heartbeat=True, replies=_browse_replies)
+    port = await server.start()
+    updates: list[dict] = []
+    client = HeosClient("127.0.0.1", on_update=updates.append, port=port)
+    await client.async_start()
+    try:
+        for _ in range(100):
+            if client.connected and client.favorites:
+                break
+            await asyncio.sleep(0.01)
+        assert client.favorites == ["Bayern 3", "Klassik & Jazz"]
+
+        sources = await client.async_music_sources()
+        assert [(item.sid, item.available) for item in sources] == [
+            (1028, True), (3, True), (1, False)
+        ]
+        items, total = await client.async_browse(4, "Albums&More", 50)
+        assert (items[0].name, items[0].mid, total) == ("Track", "m1", 120)
+        assert "heos://browse/browse?sid=4&cid=Albums%26More&range=50,99" in server.received
+
+        await client.async_play_preset(2)
+        await client.async_play_station(3, "CID-1", "s=1", "Q & A")
+        await client.async_add_to_queue(4, "Albums&More", heos.PLAY_NEXT, mid="m1")
+        assert server.received[-3:] == [
+            "heos://browse/play_preset?pid=202&preset=2",
+            "heos://browse/play_stream?pid=202&sid=3&cid=CID-1&mid=s%3D1&name=Q %26 A",
+            "heos://browse/add_to_queue?pid=202&sid=4&cid=Albums%26More&mid=m1&aid=2",
+        ]
+        with pytest.raises(heos.HeosCommandError, match="Invalid preset"):
+            await client.async_play_preset(9)
+    finally:
+        await client.async_stop()
+        await server.stop()
+
+
+async def test_a_request_without_a_link_or_an_answer_fails() -> None:
+    client, _ = _client()
+    with pytest.raises(ConnectionError):
+        await client.async_music_sources()
+    with pytest.raises(ConnectionError):
+        await client.async_play_preset(1)
+
+
+@pytest.mark.usefixtures("socket_enabled")
+async def test_requests_fail_when_the_link_drops_and_favorites_clear_when_signed_out() -> None:
+    def replies(name: str, command: str) -> list[dict] | None:
+        if name == "player/get_players":
+            return [_answer(name, payload=[{"pid": 202, "name": "AVR", "ip": "127.0.0.1"}])]
+        if name == "system/check_account":
+            return [_answer(name, "signed_out")]
+        if name == "browse/get_music_sources":
+            return []  # never answered
+        return None
+
+    server = _HeosServer(answer_heartbeat=True, replies=replies)
+    port = await server.start()
+    client = HeosClient("127.0.0.1", on_update=lambda _: None, port=port)
+    client.favorites = ["old"]
+    await client.async_start()
+    try:
+        for _ in range(100):
+            if client.connected and not client.favorites:
+                break
+            await asyncio.sleep(0.01)
+        assert client.favorites == []
+        with patch.object(heos, "REQUEST_TIMEOUT", 0.05), pytest.raises(TimeoutError):
+            await client.async_music_sources()
+        pending = asyncio.ensure_future(client.async_music_sources())
+        await asyncio.sleep(0.05)
+        await client.async_stop()
+        with pytest.raises(ConnectionError):
+            await pending
+    finally:
+        await client.async_stop()
+        await server.stop()
+
+
+def test_a_sources_change_reads_the_favorites_again() -> None:
+    client, _ = _client()
+    with patch.object(client, "_schedule_favorites") as schedule:
+        _feed(client, "event/sources_changed")
+        _feed(client, "event/user_changed")
+    assert schedule.call_count == 2

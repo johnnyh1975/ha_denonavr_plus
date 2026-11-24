@@ -985,6 +985,15 @@
     },
     "play_url_main_zone": {
       "message": "The {model} plays web addresses on its main zone (over HEOS). Play them there and join this zone to it."
+    },
+    "heos_unavailable": {
+      "message": "HEOS is not connected on the {model} right now."
+    },
+    "heos_browse_failed": {
+      "message": "HEOS browsing failed: {error}"
+    },
+    "heos_failed": {
+      "message": "HEOS did not play it: {error}"
     }
   },
   "issues": {
@@ -1029,7 +1038,8 @@
       "options": {
         "quick_select": "Quick Select",
         "sources": "Sources",
-        "tuner_presets": "Tuner presets"
+        "tuner_presets": "Tuner presets",
+        "more": "More"
       }
     }
   },

@@ -91,6 +91,7 @@ class FakeHeos:
         self.calls: list[tuple[str, Any]] = []
         self.connected = False
         self.command_results: dict[str, dict[str, str]] = {}
+        self.favorites: list[str] = []
         FakeHeos.instances.append(self)
 
     async def async_set_repeat(self, repeat: str) -> None:
@@ -101,6 +102,19 @@ class FakeHeos:
 
     async def async_play(self) -> None:
         self.calls.append(("play", None))
+
+    async def async_play_preset(self, number: int) -> None:
+        self.calls.append(("play_preset", number))
+
+    async def async_add_to_queue(
+        self, sid: int, cid: str, criteria: int, mid: str | None = None
+    ) -> None:
+        self.calls.append(("add_to_queue", (sid, cid, criteria, mid)))
+
+    async def async_music_sources(self) -> list[Any]:
+        from custom_components.denonavr_plus.avr.transport.heos import HeosItem
+
+        return [HeosItem("Favorites", 1028, container=True)]
 
     async def async_pause(self) -> None:
         self.calls.append(("pause", None))

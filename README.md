@@ -241,6 +241,14 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   zone. Receivers without HEOS take quick selects, sources and presets only.
   A zone in standby is turned on first, also when a source or a sound mode is
   picked.
+- **HEOS music** on receivers with HEOS (main zone): the browser's HEOS folder
+  holds the receiver's music sources (HEOS favorites, local media servers and
+  USB, TuneIn, playlists, history, signed-in services), in pages of 50.
+  Albums and playlists play as a whole, now, next, at the end or replacing the
+  queue (`enqueue` of `play_media`); tracks and stations play alone. The HEOS
+  favorites also follow the quick selects in the source menu. Favorites need
+  the HEOS system signed in to a HEOS account, which the HEOS app normally has
+  done; this integration asks for no account.
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,

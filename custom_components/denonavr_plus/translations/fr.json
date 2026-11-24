@@ -985,6 +985,15 @@
     },
     "play_url_main_zone": {
       "message": "Le {model} lit les adresses web dans sa zone principale (via HEOS). Lisez-les là et ajoutez cette zone à la zone principale."
+    },
+    "heos_unavailable": {
+      "message": "HEOS n'est pas connecté sur le {model} pour le moment."
+    },
+    "heos_browse_failed": {
+      "message": "La navigation HEOS a échoué : {error}"
+    },
+    "heos_failed": {
+      "message": "HEOS ne l'a pas lu : {error}"
     }
   },
   "issues": {
@@ -1029,7 +1038,8 @@
       "options": {
         "quick_select": "Quick Select",
         "sources": "Sources",
-        "tuner_presets": "Présélections du tuner"
+        "tuner_presets": "Présélections du tuner",
+        "more": "Plus"
       }
     }
   },

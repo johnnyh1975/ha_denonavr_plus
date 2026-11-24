@@ -11,6 +11,7 @@ import pytest
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
+from homeassistant.components.media_player import BrowseError
 from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -575,7 +576,6 @@ async def test_skip_steps_through_the_tuner_presets(
 async def test_the_browser_recalls_a_tuner_preset(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    from homeassistant.components.media_player import BrowseError
     from homeassistant.exceptions import ServiceValidationError
 
     await _push(hass, "PWON", "ZMON", "SITUNER")
@@ -887,3 +887,63 @@ async def test_main_off_can_put_the_whole_receiver_in_standby(
     telnet.sent.clear()
     await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
     assert telnet.sent == ["PWSTANDBY"]
+
+
+async def test_heos_music_and_favorites_on_a_heos_receiver(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """HEOS sources in the browser, favorites in the source menu, enqueue options."""
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+
+    from .test_init import FakeHeos
+
+    heos = FakeHeos.instances[-1]
+    heos.connected = True
+    heos.favorites = ["Bayern 3", "CD"]
+    await _push(hass, "PWON", "ZMON", "SICD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    state = hass.states.get(main)
+    assert MediaPlayerEntityFeature(state.attributes["supported_features"]) & (
+        MediaPlayerEntityFeature.MEDIA_ENQUEUE
+    )
+    # A favorite named like an input stays out of the menu.
+    assert state.attributes["source_list"][-1] == "Bayern 3"
+    assert state.attributes["source_list"].count("CD") == 1
+
+    entity = _player(hass, main)
+    with patch(
+        "custom_components.denonavr_plus.media_player.media_source.async_browse_media",
+        AsyncMock(side_effect=BrowseError),
+    ):
+        root = await entity.async_browse_media()
+    assert "heos" in [child.media_content_id for child in root.children or []]
+    sources = await entity.async_browse_media(None, "heos")
+    assert [child.title for child in sources.children or []] == ["Favorites"]
+
+    await hass.services.async_call(
+        "media_player", "select_source", {"entity_id": main, "source": "Bayern 3"}, blocking=True
+    )
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {
+            "entity_id": main,
+            "media_content_type": "music",
+            "media_content_id": "heos_container/1024/a%261/Album",
+            "enqueue": "next",
+        },
+        blocking=True,
+    )
+    assert heos.calls[-2:] == [("play_preset", 1), ("add_to_queue", (1024, "a&1", 2, None))]
+
+    # Without the HEOS link there is nothing to browse or play from it.
+    heos.connected = False
+    with pytest.raises(BrowseError):
+        await entity.async_browse_media(None, "heos")
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "music", "media_content_id": "heos_favorite/1"},
+            blocking=True,
+        )

@@ -985,6 +985,15 @@
     },
     "play_url_main_zone": {
       "message": "Il {model} riproduce gli indirizzi web nella zona principale (tramite HEOS). Riproducili lì e unisci questa zona a quella principale."
+    },
+    "heos_unavailable": {
+      "message": "HEOS non è collegato sul {model} in questo momento."
+    },
+    "heos_browse_failed": {
+      "message": "Navigazione HEOS non riuscita: {error}"
+    },
+    "heos_failed": {
+      "message": "HEOS non l'ha riprodotto: {error}"
     }
   },
   "issues": {
@@ -1029,7 +1038,8 @@
       "options": {
         "quick_select": "Quick Select",
         "sources": "Sorgenti",
-        "tuner_presets": "Preselezioni del sintonizzatore"
+        "tuner_presets": "Preselezioni del sintonizzatore",
+        "more": "Altro"
       }
     }
   },

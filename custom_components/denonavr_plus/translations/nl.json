@@ -985,6 +985,15 @@
     },
     "play_url_main_zone": {
       "message": "De {model} speelt webadressen af in de hoofdzone (via HEOS). Speel ze daar af en voeg deze zone aan de hoofdzone toe."
+    },
+    "heos_unavailable": {
+      "message": "HEOS is op dit moment niet verbonden op de {model}."
+    },
+    "heos_browse_failed": {
+      "message": "Bladeren via HEOS mislukt: {error}"
+    },
+    "heos_failed": {
+      "message": "HEOS heeft het niet afgespeeld: {error}"
     }
   },
   "issues": {
@@ -1029,7 +1038,8 @@
       "options": {
         "quick_select": "Snelkeuze",
         "sources": "Bronnen",
-        "tuner_presets": "Tunervoorkeuzes"
+        "tuner_presets": "Tunervoorkeuzes",
+        "more": "Meer"
       }
     }
   },

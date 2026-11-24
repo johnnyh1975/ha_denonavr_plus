@@ -985,6 +985,15 @@
     },
     "play_url_main_zone": {
       "message": "{model} odtwarza adresy internetowe w strefie głównej (przez HEOS). Odtwórz je tam i dołącz tę strefę do strefy głównej."
+    },
+    "heos_unavailable": {
+      "message": "HEOS nie jest teraz połączony w {model}."
+    },
+    "heos_browse_failed": {
+      "message": "Przeglądanie HEOS nie powiodło się: {error}"
+    },
+    "heos_failed": {
+      "message": "HEOS tego nie odtworzył: {error}"
     }
   },
   "issues": {
@@ -1029,7 +1038,8 @@
       "options": {
         "quick_select": "Quick Select",
         "sources": "Źródła",
-        "tuner_presets": "Stacje zapisane w tunerze"
+        "tuner_presets": "Stacje zapisane w tunerze",
+        "more": "Więcej"
       }
     }
   },

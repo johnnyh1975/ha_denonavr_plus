@@ -14,6 +14,7 @@ from typing import Any
 
 from homeassistant.components import media_source
 from homeassistant.components.media_player import (
+    ATTR_MEDIA_ENQUEUE,
     BrowseError,
     BrowseMedia,
     MediaClass,
@@ -34,7 +35,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import choices
+from . import choices, heos_media
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent
@@ -165,6 +166,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         features |= MediaPlayerEntityFeature.BROWSE_MEDIA | MediaPlayerEntityFeature.PLAY_MEDIA
         if zone.is_main:
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
+            if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
+                # HEOS queues albums and playlists now, next or at the end.
+                features |= MediaPlayerEntityFeature.MEDIA_ENQUEUE
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -341,7 +345,26 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         """
 
         sources = choices.source_list(self._device.discovery, self._entry_options, self._zone.id)
-        return sources + [name for name in self._quick_select_sources() if name not in sources]
+        extra = [*self._quick_select_sources(), *self._favorite_sources()]
+        return sources + [name for name in dict.fromkeys(extra) if name not in sources]
+
+    def _favorite_sources(self) -> dict[str, int]:
+        """HEOS favorite name -> number (from 1), for the main zone's source menu.
+
+        As the HEOS integration lists them; a name already taken by an input
+        or a quick select stays out.
+        """
+
+        heos = self._device.heos
+        if not self._zone.is_main or heos is None:
+            return {}
+        taken = set(choices.source_list(self._device.discovery, self._entry_options, self._zone.id))
+        taken |= set(self._quick_select_sources())
+        named: dict[str, int] = {}
+        for number, name in enumerate(heos.favorites, start=1):
+            if name and name not in taken:
+                named.setdefault(name, number)
+        return named
 
     def _quick_select_sources(self) -> dict[str, int]:
         """Quick select name -> number, for the main zone's source menu."""
@@ -635,6 +658,10 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if code is None and (number := self._quick_select_sources().get(source)):
             await self._device.async_select_quick_select(number)
             return
+        heos = self._device.heos
+        if code is None and heos is not None and (favorite := self._favorite_sources().get(source)):
+            await heos_media.async_play(heos, f"heos_favorite/{favorite}", None)
+            return
         await self._device.async_select_source(self._zone.id, code or source)
 
     @receiver_action
@@ -686,6 +713,17 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 content_filter=lambda item: item.media_content_type.startswith("audio/"),
             )
         names = await self._folder_names()
+        if heos_media.is_heos_id(media_content_id) and self._zone.is_main:
+            heos = self._device.heos
+            if heos is None:
+                raise BrowseError(
+                    translation_domain=DOMAIN,
+                    translation_key="heos_unavailable",
+                    translation_placeholders={"model": self._model},
+                )
+            return await heos_media.async_browse(
+                heos, str(media_content_id), "HEOS", names["more"]
+            )
         if media_content_id == "quick_select":
             return self._folder("quick_select", names["quick_select"], self._quick_select_items())
         if media_content_id == "sources":
@@ -698,6 +736,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         children.append(self._folder("sources", names["sources"], None))
         if self._has_tuner_presets:
             children.append(self._folder("tuner_presets", names["tuner_presets"], None))
+        if self._zone.is_main and self._device.heos is not None:
+            children.append(self._folder(heos_media.ROOT, "HEOS", None))
         if self._device.can_play_url and self._zone.is_main:
             try:
                 media = await media_source.async_browse_media(
@@ -743,6 +783,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 ("quick_select", "Quick Select"),
                 ("sources", "Sources"),
                 ("tuner_presets", "Tuner presets"),
+                ("more", "More"),
             )
         }
 
@@ -838,6 +879,16 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         """A quick select, a source, or a URL (also from Home Assistant's media, TTS)."""
 
         await self._ensure_on()
+        if media_id.startswith(heos_media.PREFIXES):
+            heos = self._device.heos if self._zone.is_main else None
+            if heos is None:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="heos_unavailable",
+                    translation_placeholders={"model": self._model},
+                )
+            await heos_media.async_play(heos, media_id, kwargs.get(ATTR_MEDIA_ENQUEUE))
+            return
         if media_id.startswith(_QUICK_SELECT):
             number = media_id[len(_QUICK_SELECT):]
             if not number.isdigit() or int(number) not in self._quick_select_numbers():

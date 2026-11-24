@@ -1152,6 +1152,14 @@ class DenonAvrDevice:
         return True
 
     @property
+    def heos(self) -> HeosClient | None:
+        """The HEOS connection, where it browses and plays (HEOS receivers)."""
+
+        if not self.heos_enabled or self.telnet_media or not self._heos.connected:
+            return None
+        return self._heos
+
+    @property
     def heos_connected(self) -> bool:
         """Whether the HEOS connection is up and knows the receiver's player."""
 

@@ -985,6 +985,15 @@
     },
     "play_url_main_zone": {
       "message": "Der {model} spielt Webadressen in der Hauptzone ab (über HEOS). Spiele sie dort ab und füge diese Zone der Hauptzone hinzu."
+    },
+    "heos_unavailable": {
+      "message": "HEOS ist beim {model} gerade nicht verbunden."
+    },
+    "heos_browse_failed": {
+      "message": "Durchsuchen über HEOS fehlgeschlagen: {error}"
+    },
+    "heos_failed": {
+      "message": "HEOS hat es nicht abgespielt: {error}"
     }
   },
   "issues": {
@@ -1029,7 +1038,8 @@
       "options": {
         "quick_select": "Quick Select",
         "sources": "Quellen",
-        "tuner_presets": "Tuner-Presets"
+        "tuner_presets": "Tuner-Presets",
+        "more": "Mehr"
       }
     }
   },

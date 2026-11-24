@@ -14,6 +14,12 @@ progress events only count when the position jumps (a seek, a new track), so
 Home Assistant extrapolates in between as it does for other players. Only the receiver's own player counts: the HEOS
 system lists every HEOS device in the home, so the player is matched on the
 receiver's address and events of other players are ignored.
+
+Browsing (music sources, HEOS favorites, local servers, TuneIn, playlists)
+asks and waits for the answer: a request is matched to the next reply with
+the same command, past the interim "command under process" replies. HEOS
+favorites need the HEOS system signed in to an account, which the HEOS app
+normally has done; this client does not sign in.
 """
 
 from __future__ import annotations
@@ -22,7 +28,9 @@ import asyncio
 import json
 import logging
 import time
+from collections import deque
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 from urllib.parse import parse_qs
 
@@ -49,6 +57,39 @@ _HEARTBEAT = "heos://system/heart_beat"
 # a jump worth reporting: a seek, a new track, a stall.
 _POSITION_JUMP = 2.0
 REPEAT_MODES = ("off", "on_all", "on_one")
+#: How long a browse request waits for its answer.
+REQUEST_TIMEOUT = 10.0
+#: Items per browse page (the CLI returns at most 50 or 100).
+BROWSE_PAGE = 50
+#: The HEOS favorites source.
+FAVORITES_SID = 1028
+#: Add criteria of browse/add_to_queue.
+PLAY_NOW, PLAY_NEXT, ADD_TO_END, REPLACE_AND_PLAY = 1, 2, 3, 4
+
+
+class HeosCommandError(Exception):
+    """The receiver answered a HEOS request with a failure."""
+
+    def __init__(self, command: str, text: str) -> None:
+        super().__init__(f"{command}: {text}")
+        self.text = text
+
+
+@dataclass(frozen=True)
+class HeosItem:
+    """A music source, a container or a playable item from HEOS browse."""
+
+    name: str
+    sid: int
+    cid: str | None = None
+    mid: str | None = None
+    image_url: str | None = None
+    #: artist, album, song, station, container, playlist, ... or the source
+    #: type (music_service, heos_server, heos_service, dlna_server).
+    type: str | None = None
+    container: bool = False
+    playable: bool = False
+    available: bool = True
 
 
 class HeosClient:
@@ -91,6 +132,12 @@ class HeosClient:
         # The receiver's last answer to each command this client sent (result,
         # and eid and text on a failure), for the diagnostics.
         self.command_results: dict[str, dict[str, str]] = {}
+        # Requests waiting for their answer, per command, oldest first.
+        self._pending: dict[str, deque[asyncio.Future[dict[str, Any]]]] = {}
+        # Names of the HEOS favorites (play_preset numbers from 1), empty while
+        # the HEOS system is not signed in.
+        self.favorites: list[str] = []
+        self._favorites_task: asyncio.Task[None] | None = None
 
     @property
     def connected(self) -> bool:
@@ -109,6 +156,8 @@ class HeosClient:
         """Stop the connection manager and close the socket."""
 
         self._stopped = True
+        if self._favorites_task is not None:
+            self._favorites_task.cancel()
         if self._manager_task is not None:
             self._manager_task.cancel()
             try:
@@ -147,6 +196,137 @@ class HeosClient:
             f"heos://browse/play_stream?pid={self._pid}&url={_quote(url)}"
         )
         return True
+
+    # Browsing and playing from HEOS ----------------------------------------
+
+    async def async_music_sources(self) -> list[HeosItem]:
+        """The HEOS music sources (favorites, local servers, TuneIn, ...)."""
+
+        message = await self._request("browse/get_music_sources")
+        return [
+            HeosItem(
+                name=str(item.get("name", "")),
+                sid=int(item["sid"]),
+                image_url=item.get("image_url") or None,
+                type=item.get("type"),
+                container=True,
+                available=str(item.get("available", "true")).lower() == "true",
+            )
+            for item in message.get("payload") or []
+            if "sid" in item
+        ]
+
+    async def async_browse(
+        self, sid: int, cid: str | None = None, start: int = 0
+    ) -> tuple[list[HeosItem], int]:
+        """One page of a source or a container, and the total (0: unknown)."""
+
+        query = f"sid={sid}"
+        if cid is not None:
+            query += f"&cid={_quote(cid)}"
+        query += f"&range={start},{start + BROWSE_PAGE - 1}"
+        message = await self._request("browse/browse", query)
+        attrs = _parse_message(message.get("heos", {}).get("message", ""))
+        items = [
+            HeosItem(
+                name=str(item.get("name", "")),
+                sid=int(item.get("sid", sid)),
+                cid=item.get("cid"),
+                mid=item.get("mid"),
+                image_url=item.get("image_url") or None,
+                type=item.get("type"),
+                container=item.get("container") == "yes",
+                playable=item.get("playable") == "yes",
+            )
+            for item in message.get("payload") or []
+        ]
+        count = attrs.get("count", "0")
+        return items, int(count) if count.isdigit() else 0
+
+    async def async_play_preset(self, number: int) -> None:
+        """Play HEOS favorite `number` (1 and above)."""
+
+        await self._request("browse/play_preset", f"pid={self._own_pid()}&preset={number}")
+
+    async def async_play_station(self, sid: int, cid: str | None, mid: str, name: str) -> None:
+        query = f"pid={self._own_pid()}&sid={sid}"
+        if cid:
+            query += f"&cid={_quote(cid)}"
+        query += f"&mid={_quote(mid)}&name={_quote(name)}"
+        await self._request("browse/play_stream", query)
+
+    async def async_add_to_queue(
+        self, sid: int, cid: str, criteria: int, mid: str | None = None
+    ) -> None:
+        """Queue a playable container, or one track of it (mid)."""
+
+        query = f"pid={self._own_pid()}&sid={sid}&cid={_quote(cid)}"
+        if mid:
+            query += f"&mid={_quote(mid)}"
+        await self._request("browse/add_to_queue", f"{query}&aid={criteria}")
+
+    async def async_refresh_favorites(self) -> None:
+        """Read the favorites' names if the HEOS system is signed in. Never raises."""
+
+        try:
+            account = await self._request("system/check_account")
+            if "signed_in" not in account.get("heos", {}).get("message", "").split("&")[0]:
+                favorites: list[str] = []
+            else:
+                items, _ = await self.async_browse(FAVORITES_SID)
+                favorites = [item.name for item in items]
+        except (ConnectionError, TimeoutError, HeosCommandError) as err:
+            _LOGGER.debug("HEOS favorites of %s not read: %s", self._host, err)
+            return
+        if favorites != self.favorites:
+            self.favorites = favorites
+            self._on_update(dict(self._snapshot))
+
+    def _schedule_favorites(self) -> None:
+        if self._favorites_task is None or self._favorites_task.done():
+            self._favorites_task = asyncio.ensure_future(self.async_refresh_favorites())
+
+    def _own_pid(self) -> int:
+        if self._pid is None:
+            raise ConnectionError("HEOS player not known yet")
+        return self._pid
+
+    async def _request(self, command: str, query: str = "") -> dict[str, Any]:
+        """Send a command and wait for its answer; raise on a failure."""
+
+        if self._writer is None:
+            raise ConnectionError("HEOS not connected")
+        future: asyncio.Future[dict[str, Any]] = asyncio.get_running_loop().create_future()
+        waiting = self._pending.setdefault(command, deque())
+        waiting.append(future)
+        await self._queue.put(f"heos://{command}" + (f"?{query}" if query else ""))
+        try:
+            message = await asyncio.wait_for(future, REQUEST_TIMEOUT)
+        finally:
+            if future in waiting:
+                waiting.remove(future)
+        heos = message.get("heos", {})
+        if heos.get("result") == "fail":
+            attrs = _parse_message(heos.get("message", ""))
+            raise HeosCommandError(command, attrs.get("text", "failed"))
+        return message
+
+    def _answer(self, command: str, heos: dict[str, Any], message: dict[str, Any]) -> None:
+        """Hand an answer to the oldest request waiting for it."""
+
+        waiting = self._pending.get(command)
+        if not waiting or "command under process" in str(heos.get("message", "")):
+            return
+        future = waiting.popleft()
+        if not future.done():
+            future.set_result(message)
+
+    def _fail_pending(self) -> None:
+        for waiting in self._pending.values():
+            while waiting:
+                future = waiting.popleft()
+                if not future.done():
+                    future.set_exception(ConnectionError("HEOS connection closed"))
 
     async def async_set_repeat(self, repeat: str) -> None:
         """Repeat off, all or one (off, on_all, on_one)."""
@@ -231,6 +411,7 @@ class HeosClient:
         writer = self._writer
         self._reader = None
         self._writer = None
+        self._fail_pending()
         if writer is not None:
             writer.close()
             try:
@@ -284,8 +465,10 @@ class HeosClient:
         except ValueError:
             return
         heos = message.get("heos", {})
-        command = heos.get("command", "")
+        command = str(heos.get("command", "")).strip()
         attrs = _parse_message(heos.get("message", ""))
+        if not command.startswith("event/"):
+            self._answer(command, heos, message)
         if command in _SENT_COMMANDS and heos.get("result"):
             # Only the outcome: the message also repeats the URL that was played.
             self.command_results[command] = {"result": heos["result"]} | {
@@ -300,6 +483,12 @@ class HeosClient:
                 self._request_now_playing()
                 self._request_play_state()
                 self._request_play_mode()
+                self._schedule_favorites()
+            return
+
+        if command in ("event/sources_changed", "event/user_changed"):
+            # Favorites added or removed, or the HEOS account changed.
+            self._schedule_favorites()
             return
 
         # Events name the player they are about; the HEOS system holds every
