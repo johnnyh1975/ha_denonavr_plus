@@ -186,3 +186,10 @@ def test_audio_delay_and_zone_2_levels_follow_denons_tables() -> None:
     assert field(profile_variant(profile, "older"), "audio_delay", "max") == 200
     assert field(profile, "zone2_channel_level_fl", "step") == 1
     assert field(profile, "zone2_channel_level_fr", "step") == 1
+
+
+def test_mdax_sends_the_values_of_marantzs_table() -> None:
+    """Marantz FY20 AVR control protocol (2019): PSMDAX OFF/LOW/MID/HI, no MED."""
+    spec = load_profile().control("mdax")
+    assert spec is not None
+    assert spec.values == ["OFF", "LOW", "MID", "HI"]
