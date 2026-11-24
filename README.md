@@ -502,6 +502,31 @@ receiver, so turning on works then too. The other entities stay unavailable unti
 the receiver answers; then the integration sets itself up in full by itself. A
 receiver that has never been reached since it was added has to be on for setup.
 
+## With Music Assistant and the HEOS integration
+
+The receiver has one HEOS player. Three integrations can reach it; each has
+its own job, so nothing is controlled twice:
+
+| Job | Where |
+|---|---|
+| Power, input, volume, sound mode, zones, tuner, quick selects | this integration |
+| Now playing, transport, URLs, text to speech and announcements on the receiver | this integration (over HEOS) |
+| HEOS favorites, local servers, TuneIn, playlists in the browser | this integration (over HEOS) |
+| Your music library, streaming services, queues, playing on many speakers | Music Assistant (its HEOS or AirPlay provider) |
+| Grouping the receiver with other HEOS speakers in the home | the HEOS integration of Home Assistant |
+
+With **Music Assistant**, use the Music switch of a zone as the power control
+of the Music Assistant player: Music Assistant switches it on to play (zone on,
+network input) and off when it stops, without ending a film on another input.
+Volume can stay on this integration's media player. Zone 2 plays the network
+by joining the main zone (Home Assistant's join); whether zone 2 can play a
+stream of its own is not yet tried on a receiver.
+
+The **HEOS integration** is only needed to group the receiver with other HEOS
+speakers. It may run alongside: HEOS takes several connections. Its media
+player then shows the same music a second time; hide one of them if that is
+confusing. Without other HEOS speakers it can be removed.
+
 ## Notes and limitations
 
 - Some parameters only apply to certain signals or sound modes (for example
