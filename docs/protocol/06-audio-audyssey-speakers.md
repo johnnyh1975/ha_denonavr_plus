@@ -51,26 +51,27 @@ its table pairs the labels one row off. Use the token names, not the labels.
 
 ## Other audio parameters
 
-| Command | Purpose | Values | AVR-X2000 | 2015 doc |
-|---|---|---|---|---|
-| `PSDRC` | Dynamic range compression | `AUTO`, `LOW`, `MID`, `HI`, `OFF` | yes | yes |
-| `PSLFE` | LFE level | `00` to `10` = 0 to −10 dB | yes | yes |
-| `PSDELAY` | Audio delay | 0–200 ms | yes | yes |
-| `PSDEL` | Effect delay | 0–300 ms | yes | yes |
-| `PSEFF` | Effect level | 1–15 | yes | yes |
-| `PSRSTR` | Audio restorer | `OFF`, `LOW`, `MED`, `HI` | yes | yes |
-| `PSCINEMA EQ.` | Cinema EQ | `ON`/`OFF` | yes | yes |
-| `PSSWR` | Subwoofer on/off in Direct/Stereo | `ON`/`OFF` | yes | yes |
-| `PSRSZ` | Room size | `S`, `MS`, `M`, `ML`, `L` | yes | yes |
-| `PSPAN`, `PSDIM`, `PSCEN`, `PSCEI` | Pro Logic II / Neo:6 parameters | | yes | none of the four models |
-| `PSMODE:`, `PSPHG` | Pro Logic mode, height gain | | yes | `PSMODE:` reported only |
-| `PSFRONT` | Front speakers A/B | `SPA`, `SPB`, `A+B` | AVR-X2000 only (not E400) | yes |
-| `PSSWL`, `PSSWL2` | Subwoofer level | `ON`/`OFF`, 38–62 (50 = 0 dB) | — | yes (`SWL2` X4200W) |
-| `PSDIL` | Dialog level | `ON`/`OFF`, 38–62 | — | yes |
-| `PSDIC` | Dialog control | 0–6 | — | yes |
-| `PSGEQ`, `PSHEQ` | Graphic EQ on/off, headphone EQ | `ON`/`OFF` | — | yes |
-| `PSNEURAL`, `PSCES` | Neural:X, center spread | `ON`/`OFF` | — | yes |
-| `PSBSC`, `PSDEH` | Bass sync, dialogue enhancer | | — | none of the four models |
+| Command | Purpose | Values | AVR-X2000 | 2015 doc | 2020 table |
+|---|---|---|---|---|---|
+| `PSDRC` | Dynamic range compression | `AUTO`, `LOW`, `MID`, `HI`, `OFF` | yes | yes | yes |
+| `PSLFE` | LFE level | `00` to `10` = 0 to −10 dB | yes | yes | yes |
+| `PSDELAY` | Audio delay | 0–200 ms | yes | yes | yes |
+| `PSDEL` | Effect delay | 0–300 ms | yes | yes | yes |
+| `PSEFF` | Effect level | 1–15 | yes | yes | yes |
+| `PSRSTR` | Audio restorer | `OFF`, `LOW`, `MED`, `HI` | yes | yes | yes |
+| `PSCINEMA EQ.` | Cinema EQ | `ON`/`OFF` | yes | yes | yes |
+| `PSSWR` | Subwoofer on/off in Direct/Stereo | `ON`/`OFF` | yes | yes | yes (`OFF` in Direct and Stereo only) |
+| `PSRSZ` | Room size | `S`, `MS`, `M`, `ML`, `L` | yes | yes | yes |
+| `PSPAN`, `PSDIM`, `PSCEN`, `PSCEI` | Pro Logic II / Neo:6 parameters | | yes | none of the four models | — |
+| `PSMODE:`, `PSPHG` | Pro Logic mode, height gain | | yes | `PSMODE:` reported only | — |
+| `PSFRONT` | Front speakers A/B | `SPA`, `SPB`, `A+B` | AVR-X2000 only (not E400) | yes | only with amp assign Front B; not S960H |
+| `PSSWL`, `PSSWL2` | Subwoofer level | `ON`/`OFF`, 38–62 (50 = 0 dB) | — | yes (`SWL2` X4200W) | yes (`SWL2` X3700H and up) |
+| `PSDIL` | Dialog level | `ON`/`OFF`, 38–62 | — | yes | — (replaced by `PSCLV`) |
+| `PSCLV` | Center level adjust | 38–62 (50 = 0 dB) | — | — | X2700H, X3700H, X4700H, S960H |
+| `PSDIC` | Dialog control | 0–6 | — | yes | yes |
+| `PSGEQ`, `PSHEQ` | Graphic EQ on/off, headphone EQ | `ON`/`OFF` | — | yes | yes |
+| `PSNEURAL`, `PSCES` | Neural:X, center spread | `ON`/`OFF` | — | yes | `PSNEURAL` yes; `PSCES` none of the five |
+| `PSBSC`, `PSDEH` | Bass sync, dialogue enhancer | | — | none of the four models | `PSBSC` X4700H and up, `PSDEH` X6700H |
 
 Mode gating: many `PS…` parameters only answer in a sound mode where they
 apply (for example `PSEFF` in DSP modes, `PSCEN` in Neo:6). Silence to a

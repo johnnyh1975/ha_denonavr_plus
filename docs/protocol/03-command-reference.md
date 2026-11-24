@@ -71,7 +71,7 @@ the other.
 | Dynamic Volume | 2011: `NGT`, `EVE`, `DAY` | 2012 onward: `OFF`, `LIT`, `MED`, `HEV` | Profile has the newer set |
 | Audio Restorer | 2011–2013 (2112CI, 1713, 2113CI): `MODE1`–`MODE3`, `OFF` | AVR-X2000 and 2015: `LOW`, `MED`, `HI`, `OFF` (2015 maps LOW = MODE3, MED = MODE2, HI = MODE1) | Profile fits the AVR-X2000 |
 | Tuner preset numbers | 2011 and AVR-X2000 v03: `A1`–`G8` | 2113CI v04 (May 2013, "corrected"), 2014 and 2015: `01`–`56` | AVR-X2000 To test |
-| All Zone Stereo state | AVR-X2000: set with `MNZST ON/OFF`, state only from the `MSALL ZONE STEREO` event | 2014 onward: `MNZST?` query (2014 reply column inconsistent) | The integration queries `MNZST ?`; AVR-X2000 To test |
+| All Zone Stereo state | AVR-X2000: set with `MNZST ON/OFF`, state only from the `MSALL ZONE STEREO` event | 2014 onward: `MNZST?` query (2014 reply column inconsistent) | The integration queries `MNZST?` as the 2014 and 2020 documents write it; AVR-X2000 To test |
 | Sound modes | Pro Logic II/IIx/IIz, Neo:6 combinations, no `MSAUTO` command | Atmos, DTS:X, Neural:X, Dolby Surround, `MSAUTO`; PL II and Neo:6 gone | Mode list is read from the receiver (`OPSML`), which the AVR-X2000 probably lacks (To test) |
 | Front speaker A/B | AVR-X2000 command table: `PSFRONT SPA+B`; its event table: `PSFRONT A+B` | 2015: `A+B` | Profile uses `A+B` |
 | Quick Select slots | `MSQUICK1`–`5` documented for all | same | The AVR-X2000 description lists four (`Quick Select1`–`4`); To test |

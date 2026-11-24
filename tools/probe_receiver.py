@@ -122,7 +122,8 @@ CATALOGUE: list[Query] = [
     _q("Z3SLP?", "Power and zones", "Zone 3 sleep timer"),
     _q("Z3STBY?", "Power and zones", "Zone 3 auto standby"),
     _q("Z3QUICK ?", "Power and zones", "Zone 3 quick select"),
-    _q("MNZST ?", "Power and zones", "All Zone Stereo"),
+    _q("MNZST ?", "Power and zones", "All Zone Stereo with a space (no answer on AVR-X2600H)"),
+    _q("MNZST?", "Power and zones", "All Zone Stereo, as Denon's 2020 table writes it"),
     _q("SR?", "Power and zones", "Record/zone 2 mode (older models)"),
     # Volume, input, timers
     _q("MV?", "Volume and input", "Master volume and maximum"),
@@ -153,7 +154,8 @@ CATALOGUE: list[Query] = [
     _q("PSTONE CTRL ?", "Audio", "Tone control"),
     _q("PSBAS ?", "Audio", "Bass"),
     _q("PSTRE ?", "Audio", "Treble"),
-    _q("PSDIL ?", "Audio", "Dialogue level"),
+    _q("PSDIL ?", "Audio", "Dialogue level (2015 documents)"),
+    _q("PSCLV ?", "Audio", "Center level adjust (2020 table)"),
     _q("PSSWL ?", "Audio", "Subwoofer level"),
     _q("PSCINEMA EQ. ?", "Audio", "Cinema EQ"),
     _q("PSLOM ?", "Audio", "Loudness management"),
@@ -267,7 +269,7 @@ CATALOGUE: list[Query] = [
 ]
 
 QUICK = {
-    "PW?", "ZM?", "Z2?", "Z3?", "MNZST ?", "MV?", "MU?", "CV?", "SI?", "MS?",
+    "PW?", "ZM?", "Z2?", "Z3?", "MNZST?", "MV?", "MU?", "CV?", "SI?", "MS?",
     "OPSMLALL ?", "PSMULTEQ: ?", "PSDYNEQ ?", "PSBAS ?", "PSTRE ?", "VSSCH ?",
     "PV?", "TPAN?", "NSE", "SSINF ?", "SSFUN ?",
 }

@@ -17,7 +17,7 @@ from __future__ import annotations
 import re
 
 #: Bump when the queries or the result format change.
-CHECK_VERSION = 2
+CHECK_VERSION = 3
 
 #: Models whose capabilities have been checked on a receiver. Others get the
 #: repair that asks for a check. Add a model once its check has been reviewed.
@@ -48,6 +48,7 @@ QUERIES: tuple[tuple[str, str], ...] = (
     ("Z3STBY?", "Power and zones"),
     ("Z3QUICK ?", "Power and zones"),
     ("MNZST ?", "Power and zones"),
+    ("MNZST?", "Power and zones"),
     ("SR?", "Power and zones"),
     ("MV?", "Volume and input"),
     ("MU?", "Volume and input"),
@@ -76,6 +77,7 @@ QUERIES: tuple[tuple[str, str], ...] = (
     ("PSBAS ?", "Audio"),
     ("PSTRE ?", "Audio"),
     ("PSDIL ?", "Audio"),
+    ("PSCLV ?", "Audio"),
     ("PSSWL ?", "Audio"),
     ("PSCINEMA EQ. ?", "Audio"),
     ("PSLOM ?", "Audio"),

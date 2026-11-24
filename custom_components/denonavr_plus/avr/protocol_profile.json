@@ -550,9 +550,10 @@
       "scope": "feature",
       "feature": "DialogLevel",
       "kind": "level",
-      "query": "PSDIL ?",
-      "prefix": "PSDIL ",
-      "doc": "Dialog (center) level adjust. PSDIL <nn> half-step, 50 = 0 dB (level kind); the receiver also has a PSDIL ON/OFF enable that is not separately exposed (a non-numeric value is ignored by the level decoder). Range derives from the device's DialogLevel block. Candidate: silent on the X3600H '?' probe."
+      "query": "PSCLV ?",
+      "prefix": "PSCLV ",
+      "doc": "Center level adjust (the receiver's DialogLevel function, named Center Level Adjust in its Deviceinfo). PSCLV <nn>, 38 to 62 with half steps, 50 = 0 dB (level kind), per Denon's FY21 AVR protocol table (v02, 2020) for the AVR-X2700H to X4700H and S960H. Range derives from the device's DialogLevel block. An AVR-X2600H and an AVR-X3600H left PSDIL ? unanswered.",
+      "older": {"query": "PSDIL ?", "prefix": "PSDIL ", "doc": "PSDIL <nn> in the 2015 X-series document; the AVR-X2000 left PSDIL ? unanswered."}
     },
     "headphone_eq": {
       "group": "audio",
@@ -701,12 +702,12 @@
       "group": "surround",
       "scope": "core",
       "kind": "onoff",
-      "query": "MNZST ?",
+      "query": "MNZST?",
       "prefix": "MNZST ",
       "on": "ON",
       "off": "OFF",
       "name": "All Zone Stereo",
-      "doc": "All Zone Stereo: play the main zone audio in stereo across every zone. Set via 'MNZST ON|OFF' (verified live). Core-scoped (no Deviceinfo FuncName), parsed explicitly. Its own 'MNZST ?' query returns nothing, so the on/off state is derived from the sound mode (MS reports 'ALL ZONE STEREO' when active, verified live) - this gives a known state (single toggle, not two buttons) from the resync MS? onwards; the MNZST echo/push updates it immediately on change. An AVR-X2600H (3.139.175) took 'MNZST ON' sent right after a MultEQ change and back, then answered nothing for the rest of a command test; the same command after other settings came and went normally."
+      "doc": "All Zone Stereo: play the main zone audio in stereo across every zone. Set via 'MNZST ON|OFF' (verified live). Core-scoped (no Deviceinfo FuncName), parsed explicitly. Asked as 'MNZST?' without a space, the form Denon's FY21 AVR protocol table gives; 'MNZST ?' got no answer from an AVR-X2600H or an AVR-X3600H. As a fallback the on/off state is derived from the sound mode (MS reports 'ALL ZONE STEREO' when active, verified live) - this gives a known state (single toggle, not two buttons) from the resync MS? onwards; the MNZST echo/push updates it immediately on change. An AVR-X2600H (3.139.175) took 'MNZST ON' sent right after a MultEQ change and back, then answered nothing for the rest of a command test; the same command after other settings came and went normally."
     },
     "subwoofer_mode": {
       "group": "speaker",
@@ -890,10 +891,10 @@
       "query": "PSCNTAMT ?",
       "prefix": "PSCNTAMT ",
       "width": 2,
-      "min": 0,
+      "min": 1,
       "max": 7,
       "step": 1,
-      "doc": "LFC containment amount. Verified live (PSCNTAMT). The receiver publishes only step/default, so 0-7 is the protocol fallback range. Applies when LFC is on."
+      "doc": "LFC containment amount. Verified live (PSCNTAMT). The receiver publishes only step/default, so the range is 1-7 (01-07) from Denon's FY21 AVR protocol table (v02, 2020). Applies when LFC is on."
     },
     "audio_delay": {
       "group": "audio",
@@ -1103,7 +1104,7 @@
     "speaker_preset": {"group": "speaker", "scope": "answered", "kind": "enum", "query": "SPPR ?", "prefix": "SPPR ", "values": ["1", "2"], "labels": ["Preset 1", "Preset 2"], "doc": "Speaker preset. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "bluetooth_transmitter": {"group": "system", "scope": "answered", "kind": "onoff", "query": "BTTX ?", "prefix": "BTTX ", "on": "ON", "off": "OFF", "exact_onoff": true, "doc": "Bluetooth transmitter. The same prefix also reports the output mode (SP, BT), which this control ignores. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "dialog_enhancer": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSDEH ?", "prefix": "PSDEH ", "values": ["OFF", "LOW", "MED", "HIGH"], "labels": ["Off", "Low", "Medium", "High"], "doc": "Dialogue Enhancer. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
-    "imax": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSIMAX ?", "prefix": "PSIMAX ", "values": ["AUTO", "OFF"], "labels": ["Auto", "Off"], "doc": "IMAX Enhanced. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
+    "imax": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSIMAX ?", "prefix": "PSIMAX ", "values": ["AUTO", "ON", "OFF"], "labels": ["Auto", "On", "Off"], "doc": "IMAX Enhanced: AUTO, ON or OFF as Denon's FY21 AVR protocol table (v02, 2020) gives them for the AVR-X3700H and up; the denonavr library knows AUTO and OFF only. Not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "imax_audio": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSIMAXAUD ?", "prefix": "PSIMAXAUD ", "values": ["AUTO", "MANUAL"], "labels": ["Auto", "Manual"], "doc": "IMAX audio settings. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "imax_hpf": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSIMAXHPF ?", "prefix": "PSIMAXHPF ", "values": ["040", "060", "080", "090", "100", "110", "120", "150", "180", "200", "250"], "labels": ["40 Hz", "60 Hz", "80 Hz", "90 Hz", "100 Hz", "110 Hz", "120 Hz", "150 Hz", "180 Hz", "200 Hz", "250 Hz"], "doc": "IMAX high-pass filter, zero padded to three digits as the library sends it. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "imax_lpf": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSIMAXLPF ?", "prefix": "PSIMAXLPF ", "values": ["080", "090", "100", "110", "120", "150", "180", "200", "250"], "labels": ["80 Hz", "90 Hz", "100 Hz", "110 Hz", "120 Hz", "150 Hz", "180 Hz", "200 Hz", "250 Hz"], "doc": "IMAX low-pass filter, zero padded. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},

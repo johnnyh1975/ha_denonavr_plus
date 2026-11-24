@@ -135,6 +135,29 @@ effect, as the documents lead one to expect:
   in Zone 2 while the main zone plays HDMI. All Zone Stereo was taken and reported as
   `MNZST ON` and `MSALL ZONE STEREO`, although `MNZST ?` gets no reply.
 
+## Compared with Denon's 2020 table
+
+Denon's FY21 AVR control protocol (Ver.02, May 2020) covers the AVR-X2700H,
+the successor of this receiver, and its siblings. It explains several of the
+results above:
+
+- **Center level adjust** is `PSCLV` (38 to 62, 50 = 0 dB) on the AVR-X2700H
+  to X4700H; `PSDIL` is not in the table. The receiver's own Deviceinfo calls
+  the function Center Level Adjust. The integration now asks `PSCLV ?`.
+- **All Zone Stereo** is asked as `MNZST?`, without a space; `MNZST ?` got
+  no answer. The integration now asks `MNZST?`.
+- **Front speaker A/B** needs amp assign set to Front B; this receiver is set
+  to Zone 2, so Front B could not be chosen.
+- **Subwoofer off** works in Direct and Stereo only, as in the 2015 document.
+- **Speaker presets** (`SPPR`) are listed for the AVR-X2700H; this receiver
+  left `SPPR ?` unanswered, so they arrived with the 2020 models.
+- **Center Spread** is not marked for any 2020 model, though this receiver
+  answers it.
+- **Larger models only:** triggers (`TR1` from the AVR-X3700H, `TR2` from
+  the AVR-X4700H), LFC, IMAX and `PSSP:` from the AVR-X3700H, Auro and bass
+  sync from the AVR-X4700H, dialogue enhancer on the AVR-X6700H.
+- **HDMI resolution** adds `8K` in 2020 and drops `10P24` and `4KF`.
+
 ## Open points
 
 | Point | Status |
@@ -146,13 +169,14 @@ effect, as the documents lead one to expect:
 | Independent `NET` playback in Zone 2 | Confirmed: Zone 2 played Amazon Music through HEOS while the main zone played an HDMI source |
 | Zone 2 playing an HDMI source | No: silent when following the main zone, not taken by name |
 | HDMI resolution with the i/p scaler on | To test |
-| `PSDIL`, `PSRSZ` (documented for all four 2015 models, no reply) | To test in a surround mode |
+| Center level adjust as `PSCLV ?` | To test |
+| All Zone Stereo as `MNZST?` | To test |
+| `PSRSZ` (documented in 2015 and 2020, no reply) | To test in a DSP mode such as Rock Arena |
 | `TFANNAME?` while the tuner plays | To test |
 | Writing `SSALSSET ON` and `OFF` | Confirmed |
 | LFE as `PSLFE 01` with a Dolby or DTS bitstream | To test |
 | Dialog Control with DTS:X | To test |
 | Token for video mode Bypass | To test |
-| `MNZST ?` in another state (All Zone Stereo on) | To test |
 | HEOS: URL playback, Quick Select commands, `serial`, volume mapping | To test |
 | Setup config API on 10443 or 11080 with current firmware | To test |
 | Calibration port 1256 open | To test |

@@ -56,7 +56,7 @@ sheet lists one Zone 2 output.
 | Step | AVR-X2000 | AVR-X2600H |
 |---|---|---|
 | Switch on/off | `MNZST ON` / `MNZST OFF` (Documented) | same (Documented in 2015 doc; Tested on AVR-X3600H) |
-| Read state | Event `MSALL ZONE STEREO` while active (Documented) | `MNZST ?` (Documented 2015; Tested on AVR-X3600H) |
+| Read state | Event `MSALL ZONE STEREO` while active (Documented) | `MNZST?` without a space (2014 and 2020 documents); `MNZST ?` got no answer from an AVR-X2600H or an AVR-X3600H |
 
 All Zone Stereo needs a configured Zone 2. While it is on, the main zone's
 sound mode reads `ALL ZONE STEREO`; the previous mode comes back when it is

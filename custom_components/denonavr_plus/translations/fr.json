@@ -720,6 +720,7 @@
         "name": "IMAX",
         "state": {
           "auto": "Auto",
+          "on": "Activé",
           "off": "Désactivé"
         }
       },

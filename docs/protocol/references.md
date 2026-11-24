@@ -17,7 +17,7 @@ actually sent; community sources are leads, never the only evidence.
 | Denon AVR control protocol V06, AVR-S700W to AVR-X7200W, 2014 | Dates the encoding changes to 2014 (volume minimum, `CVEND`, picture values, tuner presets, `MNZST?`, `STBY`/`ECO`/`DIM`/`TR`, `PSSWL`, `VSMONI`) | <https://www.mikrocontroller.net/attachment/343965/IP_Protocol_AVR-Xx100.pdf>; read through an automated text extract, not page by page |
 | AVR-X6400H … S730H protocol V01, 2017 | HEOS-era command set | Formerly `assets.denon.com/…/AVR-X6400H_X4400H_X3400H_X2400H_X1400H_S930H_S730H_PROTOCOL_V01.xlsx`; link dead |
 | AVC-X6500H … S640H protocol V01, 2018 | Includes the AVR-X2500H, the direct predecessor of the AVR-X2600H | Named in the IPSymconDenon project; no working link found |
-| FY21 AVR protocol (V02 of 4 June 2020; a V04 also exists) | The newest Denon document known; 2020 models | `https://www.denon.com/-/media/files/documentmaster/denonna/fy21avr_denon_protocol_v02_04062020.xlsx` (cited in forums; not reachable from here). Denon support also sent it to users on request |
+| FY21 AVR control protocol, Ver.02, last update 12 May 2020 | AVR-X2700H, X3700H, X4700H, X6700H and S960H: commands, values and per-model availability; the newest Denon document known and the closest to the AVR-X2600H (2019) | <https://assets.denon.com/documentmaster/us/fy21avr_denon_protocol_v02.xlsx>; read from a downloaded copy, sheet "COMMAND and RESPONSE list" |
 
 ## Manufacturer: product information
 

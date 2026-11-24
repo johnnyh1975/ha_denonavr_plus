@@ -147,3 +147,33 @@ def test_controls_by_scope_and_group() -> None:
     assert profile.controls_by_scope("nowhere") == []
     assert all(spec.group == "tone" for spec in profile.controls_by_group("tone"))
     assert profile.controls_by_group("tone")
+
+
+@pytest.mark.assumed(
+    "Denon's FY21 AVR protocol table (2020) gives PSCLV for center level adjust on "
+    "the AVR-X2700H to X4700H; an AVR-X2600H answering PSCLV ? would settle it"
+)
+def test_center_level_by_receiver_generation() -> None:
+    from custom_components.denonavr_plus.avr.profile import profile_variant
+
+    profile = load_profile()
+    assert profile.control("dialog_level").query == "PSCLV ?"
+    assert profile_variant(profile, "older").control("dialog_level").query == "PSDIL ?"
+
+
+@pytest.mark.assumed(
+    "Denon's 2014 and 2020 documents write MNZST? without a space; an AVR-X2600H "
+    "and an AVR-X3600H left MNZST ? unanswered. An answer to MNZST? would settle it"
+)
+def test_all_zone_stereo_is_asked_without_a_space() -> None:
+    assert load_profile().control("all_zone_stereo").query == "MNZST?"
+
+
+@pytest.mark.assumed(
+    "values from Denon's FY21 AVR protocol table (2020); no receiver with IMAX "
+    "or LFC has been tested"
+)
+def test_values_from_the_2020_table() -> None:
+    profile = load_profile()
+    assert profile.control("imax").get("values") == ["AUTO", "ON", "OFF"]
+    assert profile.control("containment_amount").get("min") == 1
