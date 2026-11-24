@@ -195,6 +195,11 @@ receiver are taken over already.
 > when you want the same names on its display; rename here when only Home
 > Assistant should show them. Automations keep working with the receiver's
 > names either way.
+>
+> **Zone 2:** smaller receivers play no HDMI input in Zone 2 (an
+> AVR-X2600H stays silent), only analog inputs, the tuner and network
+> sources. Take the HDMI inputs out of the Zone 2 list; which inputs those
+> are depends on how they are assigned on the receiver.
 
 ### Entities
 
