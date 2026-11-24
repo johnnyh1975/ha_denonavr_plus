@@ -7,7 +7,7 @@ import json
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -204,6 +204,39 @@ async def test_the_tests_of_a_receiver(hass: HomeAssistant, loaded_entry: MockCo
     assert by_key["all_zone_stereo"].zones == ("zone2",)
     audible = command_test.probes_for(device, [AUDIBLE])
     assert {probe.group for probe in audible} == {AUDIBLE}
+
+
+async def test_the_tests_go_through_the_receiver_part_by_part(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    probes = command_test.probes_for(device, [QUIET, AUDIBLE])
+    areas = {probe.key: probe.area for probe in probes}
+    assert areas["bass"] == areas["graphic_eq"] == areas["cinema_eq"] == "audio"
+    assert areas["subwoofer_level"] == "speakers"
+    assert areas["picture_mode"] == "video"
+    assert areas["dimmer"] == areas["main_volume"] == areas["setup_menu"] == "receiver"
+    assert areas["zone2_follow_main"] == "zone2"
+    assert areas["tuner_preset"] == "tuner"
+    # Within each group the parts come one after the other, in their order,
+    # so the progress names each part once.
+    for group in (QUIET, AUDIBLE):
+        order = [probe.area for probe in probes if probe.group == group]
+        assert order == sorted(order, key=command_test.AREAS.index)
+
+
+async def test_the_progress_learns_each_part_once(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    parts: list[str] = []
+    with (
+        _only("bass", "treble", "dimmer", "main_volume", "picture_mode"),
+        patch.object(type(device), "telnet_connected", new_callable=PropertyMock, return_value=False),
+    ):
+        results = await command_test.async_run(device, [QUIET], on_current=parts.append)
+    assert parts == ["audio", "receiver", "video"]
+    assert {item["result"] for item in results.values()} == {"interrupted"}
 
 
 # Running them -----------------------------------------------------------

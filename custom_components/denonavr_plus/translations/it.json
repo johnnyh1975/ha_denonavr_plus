@@ -1192,8 +1192,9 @@
         "tuner": "Sintonizzatore",
         "network_audio": "Audio di rete",
         "signal_and_setup": "Segnale e configurazione",
-        "setup_menu": "Menu di configurazione sul televisore",
-        "zone2_follow_main": "La Zona 2 segue la zona principale"
+        "speakers": "Diffusori",
+        "receiver": "Ricevitore",
+        "zone2": "Zona 2"
       }
     }
   },

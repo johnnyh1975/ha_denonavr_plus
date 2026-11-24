@@ -1192,8 +1192,9 @@
         "tuner": "Tuner",
         "network_audio": "Netwerkaudio",
         "signal_and_setup": "Signaal en instellingen",
-        "setup_menu": "Instelmenu op de tv",
-        "zone2_follow_main": "Zone 2 volgt de hoofdzone"
+        "speakers": "Luidsprekers",
+        "receiver": "Receiver",
+        "zone2": "Zone 2"
       }
     }
   },

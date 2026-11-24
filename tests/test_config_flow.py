@@ -863,8 +863,8 @@ async def test_the_receiver_test_ends_when_a_part_fails(
 async def test_the_progress_names_what_runs(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    """The step is reloaded with the name of each test as it starts."""
-    keys = ("bass", "graphic_eq", "zone2_channel_level_fl", "main_volume", "something_new")
+    """The step is reloaded with the name of each part of the receiver."""
+    keys = ("audio", "speakers", "zone2", "receiver", "something_new")
     gates = {key: asyncio.Event() for key in ("check", *keys)}
 
     async def check(self: Any, on_progress: Any = None, on_current: Any = None) -> Any:
@@ -913,14 +913,13 @@ async def test_the_progress_names_what_runs(
         for key in keys:
             names.append(await shown(flow_id))
             gates[key].set()
-    # Entity names, the device for a name that says little alone, a name of
-    # its own, and a readable key for anything new.
+    # The part's name, and a readable key for anything new.
     assert names == [
         "Signal and setup",
-        "Bass",
-        "Graphic EQ: Enabled",
-        "Zone 2: Front Left Level",
-        "Volume",
+        "Audio",
+        "Speakers",
+        "Zone 2",
+        "Receiver",
         "Something new",
     ]
     # After each reload the percentage comes again, so the circle keeps it.

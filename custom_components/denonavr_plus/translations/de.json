@@ -1192,8 +1192,9 @@
         "tuner": "Tuner",
         "network_audio": "Netzwerk-Audio",
         "signal_and_setup": "Signal und Einrichtung",
-        "setup_menu": "Setup-Menü am Fernseher",
-        "zone2_follow_main": "Zone 2 folgt der Hauptzone"
+        "speakers": "Lautsprecher",
+        "receiver": "Receiver",
+        "zone2": "Zone 2"
       }
     }
   },

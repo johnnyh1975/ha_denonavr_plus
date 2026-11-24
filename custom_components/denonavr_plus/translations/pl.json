@@ -1192,8 +1192,9 @@
         "tuner": "Tuner",
         "network_audio": "Audio sieciowe",
         "signal_and_setup": "Sygnał i konfiguracja",
-        "setup_menu": "Menu konfiguracji na telewizorze",
-        "zone2_follow_main": "Strefa 2 podąża za strefą główną"
+        "speakers": "Głośniki",
+        "receiver": "Amplituner",
+        "zone2": "Strefa 2"
       }
     }
   },

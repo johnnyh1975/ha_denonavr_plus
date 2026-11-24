@@ -34,8 +34,6 @@ from .avr.errors import CommandNotSent
 from .capabilities import issue_url
 from .capabilities import summary as check_summary
 from .const import DOMAIN
-from .entity import SUB_DEVICE_NAMES
-from .helpers import control_sub_device
 
 if TYPE_CHECKING:
     from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -51,15 +49,12 @@ Run = Callable[
     Awaitable[dict[str, Any]],
 ]
 
-#: Names shown for what runs that are no entity's name: the parts of the
-#: capability check (slugs of avr.capability_check.QUERIES groups) and the
-#: tests that are no profile control. Translated under selector.receiver_test_item.
+#: Names of what runs: the parts of the capability check (slugs of
+#: avr.capability_check.QUERIES groups) and the parts of the receiver the
+#: command test goes through (avr.command_test.AREAS). Only a new part
+#: reloads the page, not every setting. Translated under
+#: selector.receiver_test_item.
 ITEM_SELECTOR = "receiver_test_item"
-#: A test whose entity has another translation key.
-_ENTITY_KEY = {"main_volume": "volume"}
-
-#: Sub-devices whose settings are named by their device in the progress.
-_NAMED_BY_DEVICE = frozenset({"eq", "zone2", "zone3"})
 #: When to send the percentage again after the page was reloaded (seconds).
 PROGRESS_AGAIN = 0.5
 
@@ -195,38 +190,18 @@ class ReceiverTestSteps:
             "url": issue_url(check.get("model"), check.get("firmware")),
         }
 
-    async def _names(self, coordinator: DenonAvrCoordinator) -> dict[str, str]:
-        """What runs, by key, in the language of Home Assistant.
-
-        A setting on the Graphic EQ or a zone has a name that says little
-        alone ("Enabled", "Front left level"): its device comes first.
-        """
+    async def _names(self) -> dict[str, str]:
+        """What runs, by part, in the language of Home Assistant."""
 
         if self._test_names is None:
             texts = await translation.async_get_translations(
-                self.hass, self.hass.config.language, "entity", {DOMAIN}
-            )
-            texts |= await translation.async_get_translations(
                 self.hass, self.hass.config.language, "selector", {DOMAIN}
             )
-            names: dict[str, str] = {}
             items = f"component.{DOMAIN}.selector.{ITEM_SELECTOR}.options."
-            for key, text in texts.items():
-                if key.startswith(items):
-                    names[key[len(items) :]] = text
-                elif key.startswith(f"component.{DOMAIN}.entity.") and key.endswith(".name"):
-                    names.setdefault(key.split(".")[-2], text)
-            for test, entity in _ENTITY_KEY.items():
-                if entity in names:
-                    names.setdefault(test, names[entity])
+            names = {key[len(items) :]: text for key, text in texts.items() if key.startswith(items)}
             for group in {group for _, group in QUERIES}:
-                slug = _slug(group)
-                if slug in names:
-                    names[group] = names[slug]
-            for spec in coordinator.device.profile.controls.values():
-                sub = control_sub_device(spec)
-                if sub in _NAMED_BY_DEVICE and spec.id in names:
-                    names[spec.id] = f"{SUB_DEVICE_NAMES[sub]}: {names[spec.id]}"
+                if _slug(group) in names:
+                    names[group] = names[_slug(group)]
             self._test_names = names
         return self._test_names
 
@@ -261,11 +236,11 @@ class ReceiverTestSteps:
                 self.async_update_progress(shown[0])  # type: ignore[attr-defined]
 
             progress(0.0)
-            names = await self._names(entry.runtime_data)
+            names = await self._names()
             self._test_current = ""
 
             def current(key: str) -> None:
-                # The frontend reloads the step and shows the new name. The
+                # The frontend reloads the step and shows the new part. The
                 # reloaded page starts without a percentage: send it again
                 # once the page is there, so the circle does not jump to an
                 # endless spinner until the next test ends.

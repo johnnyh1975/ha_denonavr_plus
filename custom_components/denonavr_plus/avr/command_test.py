@@ -162,6 +162,19 @@ _ZONE2_SETTINGS = frozenset(
 #: What the receiver was doing when the test started, for reading the results.
 CONTEXT = ("sound_mode", "multeq", "tone_control", "picture_mode", "input_mode")
 
+#: The parts of the receiver the tests are ordered and announced by, in
+#: this order; a control's command group decides its part.
+AREAS = ("audio", "speakers", "video", "receiver", "zone2", "tuner")
+_AREA_OF_GROUP = {
+    "tone": "audio",
+    "audio": "audio",
+    "audyssey": "audio",
+    "surround": "audio",
+    "speaker": "speakers",
+    "video": "video",
+    "zone": "zone2",
+}
+
 #: FM band in the tuner's unit (MHz x 100) and its step.
 _FM_LOW, _FM_HIGH, _FM_STEP = 8750, 10800, 5
 
@@ -194,6 +207,8 @@ class Probe:
     write_back: bool = True
     #: The value assumed when the query is not answered.
     default: Any = None
+    #: The part of the receiver it belongs to (AREAS); the progress names it.
+    area: str = "receiver"
     extra: dict[str, Any] = field(default_factory=dict)
 
     def wanted(self, line: str) -> bool:
@@ -293,6 +308,7 @@ def _control_probe(device: DenonAvrDevice, spec: ControlSpec) -> Probe:
     return Probe(
         key=spec.id,
         group=AUDIBLE if spec.id in AUDIBLE_CONTROLS else QUIET,
+        area=_AREA_OF_GROUP.get(spec.group or "", "receiver"),
         query=query,
         prefixes=prefixes,
         read=read,
@@ -429,6 +445,7 @@ def _zone2_follow_probe(device: DenonAvrDevice) -> Probe:
     return Probe(
         key="zone2_follow_main",
         group=AUDIBLE,
+        area="zone2",
         query="Z2?",
         prefixes=("Z2",),
         read=read,
@@ -500,6 +517,7 @@ def _tuner_probes(device: DenonAvrDevice) -> list[Probe]:
         Probe(
             key="tuner_frequency",
             group=AUDIBLE,
+            area="tuner",
             query="TFAN?",
             prefixes=("TFAN",),
             read=read_frequency,
@@ -511,6 +529,7 @@ def _tuner_probes(device: DenonAvrDevice) -> list[Probe]:
         Probe(
             key="tuner_preset",
             group=AUDIBLE,
+            area="tuner",
             query=f"{preset_prefix}?",
             prefixes=(preset_prefix,),
             read=read_preset,
@@ -539,10 +558,17 @@ async def async_power_on(device: DenonAvrDevice) -> bool:
 
 
 def probes_for(device: DenonAvrDevice, groups: tuple[str, ...] | list[str]) -> list[Probe]:
-    """The tests of the chosen groups: quiet ones first."""
+    """The tests of the chosen groups: quiet ones first, each by part of the receiver."""
 
     every = control_probes(device) + special_probes(device)
-    return [probe for group in GROUPS if group in groups for probe in every if probe.group == group]
+    return [
+        probe
+        for group in GROUPS
+        if group in groups
+        for area in AREAS
+        for probe in every
+        if probe.group == group and probe.area == area
+    ]
 
 
 async def async_run(
@@ -553,7 +579,8 @@ async def async_run(
 ) -> dict[str, dict[str, Any]]:
     """Run the tests one after the other; each puts back what it changed.
 
-    `on_current` learns the key of each test as it starts.
+    `on_current` learns the part of the receiver (AREAS) when the tests
+    move on to the next one.
 
     When the telnet connection drops, the remaining tests are marked
     interrupted; the one that ran is still put back (over HTTP if need be).
@@ -562,8 +589,8 @@ async def async_run(
     probes = probes_for(device, groups)
     results: dict[str, dict[str, Any]] = {}
     for index, probe in enumerate(probes):
-        if on_current is not None:
-            on_current(probe.key)
+        if on_current is not None and probe.area != (probes[index - 1].area if index else None):
+            on_current(probe.area)
         if not device.telnet_connected:
             results[probe.key] = {"group": probe.group, "result": "interrupted"}
         else:
