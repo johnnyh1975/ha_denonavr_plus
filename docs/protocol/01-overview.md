@@ -19,6 +19,26 @@ interface moved.
 
 Sources for each row are on the [network page](02-network-and-protocols.md).
 
+## Interface levels (`CommApiVers`)
+
+Within the two generations, `Deviceinfo.xml` reports an interface level in
+`CommApiVers`. Denon's AVR Remote app (3.13.4, read from its code) decides by
+it which functions it offers; the recorded `Deviceinfo.xml` files in
+`tests/fixtures/denonavr/` show the same steps.
+
+| `CommApiVers` | Receivers recorded | Setup functions in `Deviceinfo.xml` | Web interface |
+|---|---|---|---|
+| none (2010–2012) | AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810 | none | port 80 |
+| 0210 (2013) | AVR-X2000, AVR-X4000, AVR-1713, AVR-3313, NR1604, SR5008 | a few (restorer, sleep, tone) | port 80 |
+| 0220 | Marantz M-CR510, M-CR610 (systems) | few | port 80 |
+| 0250 (2014 entry models) | AVR-X1100W | as 0210 | port 80 |
+| 0300 (2014–2015) | AVR-X2100W, AVR-X4100W, SR6011, DRA-N4 | full setup, through `AppCommand0300.xml` | port 80 |
+| 0301 (2016 on) | AVR-X4500H, AVC-X3700H, AVC-X8500H, AVC-A10H, NR1609, SR6012, AV7703 | full setup | port 8080 |
+
+The app no longer supports receivers without a level. Below 0300 a receiver
+names few of its functions in `Deviceinfo.xml`, which is why the AVR-X2000
+lists far fewer than its telnet protocol has.
+
 ## What stays the same
 
 The telnet grammar is stable across both generations: a two-letter command,
@@ -34,16 +54,12 @@ What does change are some value encodings; they are listed in the
 
 ## What this means for the integration
 
-Denon AVR Plus targets the HEOS generation. It reads the device description
-on port 8080 and gates every entity on the function names in it. Both
-choices exclude the AVR-X2000 today:
-
-- the description is on port 80, so setup fails, and
-- the AVR-X2000's description names far fewer functions than its telnet
-  protocol supports.
-
-Supporting it is roadmap item 16 (older receivers) in the maintainer's plan.
-The [AVR-X2000 page](models/AVR-X2000.md) lists what that work needs.
+Denon AVR Plus reads the device description on the port that fits the
+receiver (8080, or 80 for receivers before 2016) and keeps the port in the
+entry. It gates entities on the function names in the description, and on
+receivers that name few functions (the AVR-X2000) it also creates a control
+when the receiver answers its telnet query at setup. The
+[AVR-X2000 page](models/AVR-X2000.md) lists what works there.
 
 ## Architecture rules
 
