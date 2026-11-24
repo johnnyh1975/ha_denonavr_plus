@@ -38,6 +38,14 @@ RELATED_MODELS: dict[str, str] = {
     "AVR-S950H": "AVR-X2600H",
     "AVR-S750H": "AVR-X2600H",
     "AVR-S650H": "AVR-X2600H",
+    # Marantz's 2019 AV receivers: Marantz FY20 SR/NR control protocol V03
+    # (2019) covers these and the stereo NR1200 (left out). Where compared,
+    # its commands match Denon's 2019 ones (PSCLV, two-digit PSLFE, Z2SOURCE,
+    # MNZST); IMAX and LFC are SR6014 only, as on the AVR-X3600H.
+    "SR6014": "AVR-X3600H",
+    "SR5014": "AVR-X2600H",
+    "NR1710": "AVR-X2600H",
+    "NR1510": "AVR-X2600H",
 }
 
 #: The read-only requests that do not end with "?".

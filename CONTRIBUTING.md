@@ -24,8 +24,9 @@ Bug reports, receiver tests and pull requests are welcome. Back to the
 Siblings of these models count as checked too, so setup asks no check of
 them: the AVR-E400 (same protocol document as the AVR-X2000) and Denon's
 other 2019 receivers, the AVR-X1600H, AVR-S950H, AVR-S750H and AVR-S650H (by
-Denon's app compatibility list). Nobody has reported on them yet; a report
-is welcome.
+Denon's app compatibility list), and Marantz's 2019 AV receivers SR6014,
+SR5014, NR1710 and NR1510 (by Marantz's protocol document for that year).
+Nobody has reported on them yet; a report is welcome.
 
 Receivers of the HEOS generation (2016 on) should work, as the integration
 adapts to what the device reports. Receivers from before 2016 work with fewer

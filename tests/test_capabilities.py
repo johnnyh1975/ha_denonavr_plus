@@ -59,6 +59,8 @@ async def test_an_unchecked_model_gets_a_repair(
 def test_a_sibling_of_a_checked_model_counts_as_known() -> None:
     assert capabilities.known_model("AVR-S750H")
     assert capabilities.known_model("AVR-E400")
+    assert capabilities.known_model("SR6014")
+    assert not capabilities.known_model("NR1200")  # stereo, same document
     assert not capabilities.known_model("AVR-X2700H")
     assert not capabilities.known_model(None)
 
