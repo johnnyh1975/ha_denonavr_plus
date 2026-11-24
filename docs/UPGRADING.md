@@ -4,6 +4,12 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 0.5.x
+
+If you imported the blueprint "TV on, receiver on", import it again (same
+address, overwrite): the new version leaves the receiver alone when the TV
+drops off the network.
+
 ## From 0.3.1
 
 Zone 2 and zone 3 are devices of their own, for example `AVR-X2600H Zone 2`.
