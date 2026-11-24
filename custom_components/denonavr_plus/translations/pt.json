@@ -257,6 +257,33 @@
       },
       "source": {
         "name": "Fonte"
+      },
+      "video_input_resolution": {
+        "name": "Resolução de entrada"
+      },
+      "video_output_resolution": {
+        "name": "Resolução de saída"
+      },
+      "video_input_hdr": {
+        "name": "HDR de entrada"
+      },
+      "video_output_hdr": {
+        "name": "HDR de saída"
+      },
+      "video_input_color_space": {
+        "name": "Espaço de cor de entrada"
+      },
+      "video_input_pixel_depth": {
+        "name": "Profundidade de cor de entrada"
+      },
+      "video_input_frl": {
+        "name": "Taxa FRL de entrada"
+      },
+      "audio_input_channels": {
+        "name": "Canais de entrada"
+      },
+      "audio_active_speakers": {
+        "name": "Altifalantes ativos"
       }
     },
     "select": {

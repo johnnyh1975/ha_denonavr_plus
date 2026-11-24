@@ -162,6 +162,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         try:
             await self.device.async_poll()
             await self._maybe_read_setup()
+            if self.device.available:
+                await self.device.async_refresh_signal()
         except Exception as err:  # noqa: BLE001 - surface as an update failure
             raise UpdateFailed(f"Error polling Denon AVR: {err}") from err
         self._check_link()

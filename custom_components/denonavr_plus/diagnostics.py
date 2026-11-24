@@ -58,6 +58,7 @@ async def async_get_config_entry_diagnostics(
             "zones": {zone_id: asdict(zone) for zone_id, zone in state.zones.items()},
             "values": state.values,
             "readonly": state.readonly,
+            "signal": state.signal,
             "channel_levels": state.channel_levels,
             "channel_trims": state.channel_trims,
         },

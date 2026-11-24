@@ -302,6 +302,33 @@
       },
       "source": {
         "default": "mdi:import"
+      },
+      "video_input_resolution": {
+        "default": "mdi:video-input-hdmi"
+      },
+      "video_output_resolution": {
+        "default": "mdi:television"
+      },
+      "video_input_hdr": {
+        "default": "mdi:hdr"
+      },
+      "video_output_hdr": {
+        "default": "mdi:hdr"
+      },
+      "video_input_color_space": {
+        "default": "mdi:palette"
+      },
+      "video_input_pixel_depth": {
+        "default": "mdi:palette-outline"
+      },
+      "video_input_frl": {
+        "default": "mdi:speedometer"
+      },
+      "audio_input_channels": {
+        "default": "mdi:surround-sound"
+      },
+      "audio_active_speakers": {
+        "default": "mdi:speaker-multiple"
       }
     },
     "switch": {

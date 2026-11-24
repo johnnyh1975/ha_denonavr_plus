@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .common import registry_entry
-from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
+from .common import entity_id, registry_entry
+from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
 
@@ -63,3 +65,43 @@ async def test_the_source_sensor_shows_the_name_home_assistant_uses(
     await hass.async_block_till_done()
     state = hass.states.get(entity_id(hass, loaded_entry, "sensor_source_main"))
     assert state is not None and state.state == "Radio"
+
+
+async def test_signal_sensors_follow_the_receiver(hass: HomeAssistant, receiver_network: Any) -> None:
+    """Video and channel sensors appear where the setup interface reports them, and follow an input change."""
+    import asyncio
+    from unittest.mock import AsyncMock, patch
+
+    from homeassistant.const import CONF_HOST
+
+    from custom_components.denonavr_plus.avr.transport import WebConfigClient
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+
+    from .test_avr_signal_info import AUDIO, VIDEO
+
+    answers = {3: VIDEO, 2: AUDIO}
+
+    async def get(section: str, type_id: int, extra: Any = None) -> str | None:
+        return answers.get(type_id) if section == "info" else None
+
+    with (
+        patch.object(WebConfigClient, "async_get", AsyncMock(side_effect=get)),
+        patch("custom_components.denonavr_plus.avr.device.SIGNAL_SETTLE", 0.01),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN, data={CONF_HOST: "192.0.2.10"}, minor_version=CONFIG_MINOR_VERSION
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        resolution = entity_id(hass, entry, "sensor_video_input_resolution")
+        assert hass.states.get(resolution).state == "3840x2160p 60Hz"
+        assert registry_entry(hass, entry, "sensor_audio_active_speakers").disabled_by is not None
+
+        answers[3] = VIDEO.replace("3840x2160p 60Hz", "1920x1080p 50Hz")
+        telnet = FakeTelnet.instances[-1]
+        telnet.push("SICD")
+        await asyncio.sleep(0.2)
+        await hass.async_block_till_done()
+        assert hass.states.get(resolution).state == "1920x1080p 50Hz"
+        await hass.config_entries.async_unload(entry.entry_id)

@@ -35,7 +35,7 @@ from .models import (
 )
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ControlSpec, ProtocolProfile, load_profile, profile_variant
-from . import capability_check, graphic_eq, video_config
+from . import capability_check, graphic_eq, signal_info, video_config
 from .const import (
     CHECK_REPLY_FIRST,
     QUEUE_WAIT_MAX,
@@ -68,6 +68,12 @@ CHANNEL_TRIMS_QUERY = "CV?"
 OLDER = "older"
 #: How often the now playing list and the tuner are asked while they play.
 MEDIA_POLL_INTERVAL = 5.0
+#: Telnet lines after which the live signal information may have changed:
+#: input, power, the input signal and the decoder.
+SIGNAL_TRIGGERS = ("SI", "PW", "ZM", "SSINFAI", "SYSDA", "SV")
+#: How long after such a line the signal information is read (the receiver
+#: settles on a new signal first).
+SIGNAL_SETTLE = 3.0
 #: A zone's source code meaning "the main zone's source" (Z2SOURCE).
 FOLLOW_MAIN = "SOURCE"
 #: How long a preset recall waits for the receiver to switch to the tuner.
@@ -118,6 +124,9 @@ class DenonAvrDevice:
         # subsystem is encapsulated in its own controller (read/edit/apply),
         # keeping it off this device's transport-orchestration surface.
         self._webconfig = WebConfigClient(session, host)
+        # None until the setup interface was asked for signal information.
+        self._signal_supported: bool | None = None
+        self._signal_handle: asyncio.TimerHandle | None = None
         self._graphic_eq = graphic_eq.GraphicEqController(
             self._webconfig,
             self._profile.grammar.get("graphic_eq", {}),
@@ -358,6 +367,8 @@ class DenonAvrDevice:
         self._discovery.features |= self._video_config.feature_flags()
         # Speaker /ajax config (amp assign): no availability map, just read it.
         await self._speaker_config.discover()
+        # Live video and channel information, where the setup interface has it.
+        await self.async_refresh_signal()
         # The authoritative source list comes from the telnet SSFUN/SSSOD
         # introspection (correct codes, names and visibility). Keep the Deviceinfo
         # source list only as a fallback for models without that introspection.
@@ -772,6 +783,9 @@ class DenonAvrDevice:
         if self._update_handle is not None:
             self._update_handle.cancel()
             self._update_handle = None
+        if self._signal_handle is not None:
+            self._signal_handle.cancel()
+            self._signal_handle = None
         for task in list(self._pending_tasks):
             task.cancel()
         self._pending_tasks.clear()
@@ -809,6 +823,54 @@ class DenonAvrDevice:
             await self._poll_additional_zones()
             self._schedule_update()
 
+    @property
+    def signal_supported(self) -> bool:
+        """Whether the receiver reports live video and channel information."""
+
+        return self._signal_supported is True
+
+    async def async_refresh_signal(self) -> None:
+        """Read the live video and channel information again. Never raises.
+
+        Asked at setup, after a change of input, signal or power (a little
+        later, once the receiver has settled) and with every poll. A receiver
+        that does not answer at setup is not asked again.
+        """
+
+        if self._signal_supported is False:
+            return
+        try:
+            video = signal_info.parse_video(
+                await self._webconfig.async_get("info", signal_info.VIDEO_TYPE)
+            )
+            audio = signal_info.parse_audio(
+                await self._webconfig.async_get("info", signal_info.AUDIO_TYPE)
+            )
+        except Exception as err:  # noqa: BLE001 - auxiliary, like the other setup reads
+            _LOGGER.debug("Signal information of %s not read: %s", self._host, err)
+            return
+        if video is None:
+            if self._signal_supported is None:
+                self._signal_supported = False
+            return
+        self._signal_supported = True
+        values = {**video, **(audio or dict.fromkeys(signal_info.AUDIO_FIELDS))}
+        if values != self._state.signal:
+            self._state.signal = values
+            self._schedule_update()
+
+    def _schedule_signal_refresh(self) -> None:
+        """Read the signal information shortly after a change that may alter it."""
+
+        if not self._signal_supported:
+            return
+        if self._signal_handle is not None:
+            self._signal_handle.cancel()
+        loop = asyncio.get_running_loop()
+        self._signal_handle = loop.call_later(
+            SIGNAL_SETTLE, lambda: self._create_task(self.async_refresh_signal())
+        )
+
     async def async_refresh_setup(self) -> None:
         """Read the settings kept on the setup interface again.
 
@@ -832,6 +894,8 @@ class DenonAvrDevice:
             listener(line)
         if self._parser.feed(line, self._state):
             self._schedule_update()
+            if line.startswith(SIGNAL_TRIGGERS):
+                self._schedule_signal_refresh()
         # The receiver pushes OPSMLALL (all groups) when the sound mode context
         # changes, e.g. after a genre group switch, but never pushes OPSML (the
         # current group's selectable modes). When an OPSMLALL push completes,

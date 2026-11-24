@@ -344,6 +344,9 @@ class AvrState:
     zones: dict[str, ZoneState] = field(default_factory=dict)
     values: dict[str, object] = field(default_factory=dict)
     readonly: dict[str, str | None] = field(default_factory=dict)
+    # Live video and channel information from the setup interface, keyed as
+    # avr/signal_info.py names it; empty on receivers without it.
+    signal: dict[str, str | None] = field(default_factory=dict)
     channel_levels: dict[str, float] = field(default_factory=dict)
     channel_trims: dict[str, float] = field(default_factory=dict)
     channel_distances: dict[str, float] = field(default_factory=dict)

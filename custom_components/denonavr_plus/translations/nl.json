@@ -257,6 +257,33 @@
       },
       "source": {
         "name": "Bron"
+      },
+      "video_input_resolution": {
+        "name": "Ingangsresolutie"
+      },
+      "video_output_resolution": {
+        "name": "Uitgangsresolutie"
+      },
+      "video_input_hdr": {
+        "name": "Ingangs-HDR"
+      },
+      "video_output_hdr": {
+        "name": "Uitgangs-HDR"
+      },
+      "video_input_color_space": {
+        "name": "Ingangskleurruimte"
+      },
+      "video_input_pixel_depth": {
+        "name": "Ingangskleurdiepte"
+      },
+      "video_input_frl": {
+        "name": "Ingangs-FRL-snelheid"
+      },
+      "audio_input_channels": {
+        "name": "Ingangskanalen"
+      },
+      "audio_active_speakers": {
+        "name": "Actieve luidsprekers"
       }
     },
     "select": {

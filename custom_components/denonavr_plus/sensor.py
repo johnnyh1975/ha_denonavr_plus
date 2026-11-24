@@ -15,6 +15,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import choices
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
+from .avr import signal_info
 from .entity import DenonAvrEntity, zone_device
 
 # The audio information fields that start enabled. The decoder ('Dolby Atmos',
@@ -22,6 +23,8 @@ from .entity import DenonAvrEntity, zone_device
 # channel layout and mode text change with every track or programme and would
 # fill the history, so they start disabled.
 _ENABLED_READONLY = frozenset({"decoder"})
+#: Signal sensors that start enabled: what a viewer checks (4K? HDR?).
+_ENABLED_SIGNAL = frozenset({"video_input_resolution", "video_input_hdr"})
 
 
 # Read only; the coordinator pushes every update.
@@ -42,6 +45,10 @@ async def async_setup_entry(
     # display name comes from the translation files, keyed by the control id.
     for control_id in device.profile.readonly:
         entities.append(DenonAvrReadonlySensor(coordinator, control_id))
+
+    # Live video and channel information, where the setup interface has it.
+    if device.signal_supported:
+        entities.extend(DenonAvrSignalSensor(coordinator, key) for key in signal_info.FIELDS)
 
     # The current sound mode as a diagnostic sensor (also on the media player).
     entities.append(DenonAvrSoundModeSensor(coordinator))
@@ -70,6 +77,28 @@ class DenonAvrReadonlySensor(DenonAvrEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         return self.coordinator.data.readonly.get(self._control_id)
+
+
+class DenonAvrSignalSensor(DenonAvrEntity, SensorEntity):
+    """What the receiver receives and sends: resolution, HDR, channels (package 39).
+
+    Video on the Video sub-device, channels on the Audio one. The input
+    resolution and HDR start enabled; the rest is diagnostic and starts
+    disabled.
+    """
+
+    def __init__(self, coordinator: DenonAvrCoordinator, key: str) -> None:
+        sub_device = "video" if key.startswith("video_") else "audio"
+        super().__init__(coordinator, f"sensor_{key}", sub_device=sub_device)
+        self._key = key
+        self._attr_translation_key = key
+        if key not in _ENABLED_SIGNAL:
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
+            self._attr_entity_registry_enabled_default = False
+
+    @property
+    def native_value(self) -> str | None:
+        return self.coordinator.data.signal.get(self._key)
 
 
 class DenonAvrSoundModeSensor(DenonAvrEntity, SensorEntity):
