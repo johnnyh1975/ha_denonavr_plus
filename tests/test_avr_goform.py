@@ -95,3 +95,63 @@ async def test_a_refused_command_reports_failure(
     )
     client = GoformClient(async_get_clientsession(hass), HOST)
     assert not await client.async_send_command("MVUP")
+
+
+STATUS = "/goform/formMainZone_MainZoneXmlStatusLite.xml"
+
+
+async def test_status_lite_is_read_into_a_partial_state(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(
+        f"http://{HOST}:8080{STATUS}",
+        text=(
+            "<item><Power><value>ON</value></Power>"
+            "<InputFuncSelect><value>TV Audio</value></InputFuncSelect>"
+            "<VolumeDisplay><value>Absolute</value></VolumeDisplay>"
+            "<MasterVolume><value>-35.5</value></MasterVolume>"
+            "<Mute><value>off</value></Mute></item>"
+        ),
+    )
+    client = GoformClient(async_get_clientsession(hass), HOST, 8080)
+    assert await client.async_get_status(STATUS) == {
+        "power": True,
+        "source": "TV Audio",
+        "volume_display": "Absolute",
+        "volume_db": -35.5,
+        "muted": False,
+    }
+
+
+async def test_status_lite_tolerates_gaps_and_junk(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(
+        f"http://{HOST}:8080{STATUS}",
+        text="<item><MasterVolume><value>--</value></MasterVolume><Mute><value/></Mute></item>",
+    )
+    client = GoformClient(async_get_clientsession(hass), HOST, 8080)
+    assert await client.async_get_status(STATUS) == {}
+
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"http://{HOST}:8080{STATUS}", text="<item")
+    assert await client.async_get_status(STATUS) is None
+
+
+async def test_status_lite_on_an_error_page_gives_nothing(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(f"http://{HOST}:8080{STATUS}", status=500)
+    client = GoformClient(async_get_clientsession(hass), HOST, 8080)
+    assert await client.async_get_status(STATUS) is None
+
+
+async def test_a_command_over_http_is_url_encoded(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(re.compile(r"^http://192\.0\.2\.10:8080/goform/formiPhoneAppDirect\.xml"))
+    client = GoformClient(async_get_clientsession(hass), HOST, 8080)
+
+    assert await client.async_send_command("MV 50")
+
+    assert str(aioclient_mock.mock_calls[-1][1]).endswith("formiPhoneAppDirect.xml?MV%2050")

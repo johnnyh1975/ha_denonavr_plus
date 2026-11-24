@@ -23,9 +23,13 @@ Menu ``display`` flags mirror the setup UI: 1 = not available (hidden), 2 = gray
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from typing import Any
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, cast
 
 from .errors import SetupWriteError
+
+if TYPE_CHECKING:
+    from .transport.webconfig import WebConfigClient
 
 # Per-field display flags used by the setup config API.
 _NOT_AVAILABLE = 1
@@ -52,7 +56,12 @@ def _int(text: str | None, default: int = 0) -> int:
 class VideoConfigController:
     """Owns the /ajax video setup subsystem: availability, read and write."""
 
-    def __init__(self, webconfig, grammar: dict[str, Any], on_update) -> None:
+    def __init__(
+        self,
+        webconfig: WebConfigClient,
+        grammar: dict[str, Any],
+        on_update: Callable[[], None],
+    ) -> None:
         self._webconfig = webconfig
         self._grammar = grammar
         self._on_update = on_update
@@ -67,7 +76,7 @@ class VideoConfigController:
         return bool(self._grammar)
 
     def controls(self) -> list[dict[str, Any]]:
-        return self._grammar.get("controls", [])
+        return cast(list[dict[str, Any]], self._grammar.get("controls", []))
 
     def _control(self, control_id: str) -> dict[str, Any] | None:
         for control in self.controls():
@@ -226,7 +235,7 @@ class VideoConfigController:
 
         field = self._fields.get(control_id)
         if field and field.get("options"):
-            return field["options"]
+            return cast(dict[str, str], field["options"])
         control = self._control(control_id) or {}
         if field is not None and field.get("value_list") is not None:
             # Options are the device-allowed ids, labelled from the static map.
@@ -243,7 +252,7 @@ class VideoConfigController:
                     seen.add(label)
                     result[value] = label
             return result
-        return control.get("options", {})
+        return cast(dict[str, str], control.get("options", {}))
 
     # Write --------------------------------------------------------------
 

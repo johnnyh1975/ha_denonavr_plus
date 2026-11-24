@@ -3,21 +3,27 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import AsyncIterator
+from typing import Any
 
 import pytest
 import json
 from pathlib import Path
 
+from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.avr.profile import load_profile
+from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 from custom_components.denonavr_plus.helpers import enum_options, option_key
 
 from .common import entity_id, registry_entry
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401
+from .setup_api import FakeSetupApi, answering_receiver
+from .test_init import HOST, FakeTelnet, loaded_entry, receiver_network  # noqa: F401
 
 __all__ = ["loaded_entry", "receiver_network"]
+
 
 async def _push(hass: HomeAssistant, *lines: str) -> None:
     FakeTelnet.instances[-1].push(*lines)
@@ -53,7 +59,10 @@ async def test_choosing_an_option_sends_its_command(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
-        "select", "select_option", {"entity_id": select, "option": option}, blocking=True
+        "select",
+        "select_option",
+        {"entity_id": select, "option": option},
+        blocking=True,
     )
     assert any(line.startswith(spec.prefix) for line in telnet.sent), telnet.sent
 
@@ -69,7 +78,10 @@ async def test_fixed_options_are_keys_shown_translated(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
-        "select", "select_option", {"entity_id": select, "option": "dark"}, blocking=True
+        "select",
+        "select_option",
+        {"entity_id": select, "option": "dark"},
+        blocking=True,
     )
     assert telnet.sent == ["DIM DAR"]
     await _push(hass, "DIM DAR")
@@ -97,7 +109,9 @@ def _fixed_options() -> dict[str, list[str]]:
     for section in ("video_web", "speakers_web"):
         for control in profile.grammar[section]["controls"]:
             if control.get("kind") == "select" and control.get("options"):
-                found[control["id"]] = [option_key(v) for v in control["options"].values()]
+                found[control["id"]] = [
+                    option_key(v) for v in control["options"].values()
+                ]
     return found
 
 
@@ -106,7 +120,10 @@ def test_every_fixed_option_has_a_name_in_every_language() -> None:
     package = Path(__file__).parent.parent / "custom_components" / "denonavr_plus"
     fixed = _fixed_options()
     assert len(fixed) > 25
-    for path in [package / "strings.json", *sorted((package / "translations").glob("*.json"))]:
+    for path in [
+        package / "strings.json",
+        *sorted((package / "translations").glob("*.json")),
+    ]:
         names = json.loads(path.read_text(encoding="utf-8"))["entity"]["select"]
         for key, options in fixed.items():
             state = names[key].get("state", {})
@@ -136,3 +153,136 @@ async def test_the_tuner_preset_is_offered_while_the_tuner_plays(
         "select", "select_option", {"entity_id": select, "option": "12"}, blocking=True
     )
     assert telnet.sent == ["TPAN12"]
+
+
+# The speaker and /ajax selects, on a receiver that answers ----------------------
+
+
+@pytest.fixture
+async def setup_api(
+    hass: HomeAssistant, receiver_network: Any
+) -> AsyncIterator[FakeSetupApi]:
+    api = FakeSetupApi()
+    with answering_receiver(api):
+        entry = MockConfigEntry(
+            domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        api.entry = entry  # type: ignore[attr-defined]
+        yield api
+
+
+async def _choose(
+    hass: HomeAssistant, entry: MockConfigEntry, key: str, option: str
+) -> list[str]:
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": entity_id(hass, entry, key), "option": option},
+        blocking=True,
+    )
+    return list(telnet.sent)
+
+
+def _state(hass: HomeAssistant, entry: MockConfigEntry, key: str) -> str:
+    state = hass.states.get(entity_id(hass, entry, key))
+    assert state is not None
+    return state.state
+
+
+async def test_speaker_selects_show_and_set_the_receivers_values(
+    hass: HomeAssistant, setup_api: FakeSetupApi
+) -> None:
+    entry = setup_api.entry  # type: ignore[attr-defined]
+    assert _state(hass, entry, "select_crossover_FRO") == "80 Hz"
+    assert _state(hass, entry, "select_speaker_size_FRO") == "small"
+    assert _state(hass, entry, "select_speaker_size_CEN") == "large"
+    assert _state(hass, entry, "select_subwoofer_count") == "1"
+
+    assert await _choose(hass, entry, "select_crossover_FRO", "100 Hz") == [
+        "SSCFRFRO 100"
+    ]
+    assert await _choose(hass, entry, "select_speaker_size_FRO", "large") == [
+        "SSSPCFRO LAR"
+    ]
+    assert await _choose(hass, entry, "select_subwoofer_count", "2") == ["SSSPCSWF 2SP"]
+
+
+async def test_the_crossover_mode_decides_which_crossover_applies(
+    hass: HomeAssistant, setup_api: FakeSetupApi
+) -> None:
+    entry = setup_api.entry  # type: ignore[attr-defined]
+    assert _state(hass, entry, "select_crossover_speaker_selection") == "Individual"
+    assert _state(hass, entry, "select_crossover_all") == "unavailable"
+
+    assert await _choose(hass, entry, "select_crossover_speaker_selection", "All") == [
+        "SSCFR ALL"
+    ]
+    await _push(hass, "SSCFR ALL")
+
+    assert _state(hass, entry, "select_crossover_FRO") == "unavailable"
+    assert _state(hass, entry, "select_crossover_all") == "80 Hz"
+    assert await _choose(hass, entry, "select_crossover_all", "120 Hz") == [
+        "SSCFRALL 120"
+    ]
+
+
+async def test_quick_select_recalls_a_preset_by_name(
+    hass: HomeAssistant, setup_api: FakeSetupApi
+) -> None:
+    entry = setup_api.entry  # type: ignore[attr-defined]
+    assert _state(hass, entry, "select_quick_select") == "TV"
+
+    assert await _choose(hass, entry, "select_quick_select", "Music") == ["MSQUICK2"]
+    await _push(hass, "MSQUICK0")
+
+    assert _state(hass, entry, "select_quick_select") == "unknown"
+
+
+async def test_graphic_eq_selects_switch_mode_and_channel(
+    hass: HomeAssistant, setup_api: FakeSetupApi
+) -> None:
+    entry = setup_api.entry  # type: ignore[attr-defined]
+    # The curve is read by the poll after setup; read it now.
+    await entry.runtime_data.device.graphic_eq.refresh()
+    await _push(hass)
+    state = hass.states.get(entity_id(hass, entry, "select_eq_channel"))
+    assert state is not None
+    # Flags 3303: channels 0, 1 and 3 are adjustable.
+    assert state.attributes["options"] == ["Front L", "Front R", "Surround L"]
+    assert _state(hass, entry, "select_eq_speaker_selection") == "Each"
+
+    await _choose(hass, entry, "select_eq_channel", "Surround L")
+    assert setup_api.reads[-1] == ("audio", 10, {"opt1": "3", "opt2": "0"})
+
+    await _choose(hass, entry, "select_eq_speaker_selection", "All")
+    assert setup_api.writes[-1] == (
+        "audio",
+        10,
+        "<GraphicEQ><SpeakerSelection>1</SpeakerSelection></GraphicEQ>",
+    )
+
+
+async def test_setup_api_selects_write_the_chosen_value(
+    hass: HomeAssistant, setup_api: FakeSetupApi
+) -> None:
+    entry = setup_api.entry  # type: ignore[attr-defined]
+    # Fixed options are keys; receiver-supplied ones keep the receiver's names.
+    assert _state(hass, entry, "select_hdmi_power_off_control") == "video"
+    assert _state(hass, entry, "select_pass_through_source") == "Apple TV"
+    assert _state(hass, entry, "select_amp_assign") == "7.1ch + ZONE2"
+    assert _state(hass, entry, "select_height_speaker") == "unknown"
+
+    await _choose(hass, entry, "select_hdmi_power_off_control", "all")
+    await _choose(hass, entry, "select_pass_through_source", "Blu-ray")
+    await _choose(hass, entry, "select_amp_assign", "9.1ch")
+
+    assert setup_api.writes == [
+        ("video", 3, "<PowerOffControl>1</PowerOffControl>"),
+        ("video", 3, "<PassThroughSource><Source>2</Source></PassThroughSource>"),
+        ("speakers", 2, "<AmpAssign><AssignMode>1</AssignMode></AmpAssign>"),
+    ]

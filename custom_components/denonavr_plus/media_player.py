@@ -47,7 +47,7 @@ from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent
 from .avr.transport.heos import HeosClient, HeosCommandError
 from .const import DOMAIN
-from .avr.models import NowPlaying, ZoneDescriptor, ZoneSnapshot
+from .avr.models import NowPlaying, ZoneDescriptor, ZoneSnapshot, ZoneState
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .device_trigger import turn_on_trigger
 from .entity import DenonAvrEntity, receiver_action, zone_device
@@ -279,7 +279,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         return self.coordinator.last_update_success and self._reachable
 
     @property
-    def _zone_state(self):
+    def _zone_state(self) -> ZoneState:
         return self.coordinator.data.zone(self._zone.id)
 
     @property
@@ -337,7 +337,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def is_volume_muted(self) -> bool | None:
-        return self._zone_state.muted
+        return bool(self._zone_state.muted) if self._zone_state.muted is not None else None
 
     @property
     def source(self) -> str | None:

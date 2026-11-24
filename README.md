@@ -20,6 +20,15 @@ A receiver set up in the official integration or in Denon AVR (`denon_avr`) can
 be taken over with its entity IDs and history, and handed back
 ([docs/UPGRADING.md](docs/UPGRADING.md#coming-from-another-denon-integration)).
 
+## Documentation
+
+| | For |
+|---|---|
+| **[User guide](docs/USER_GUIDE.md)** | Setting up and using the receiver, step by step with screenshots: before you start, adding it, daily use, options, automations, the receiver test, moving over, troubleshooting. Start here. |
+| **This README** | The reference: every entity, option, action, port and limitation. |
+| [Upgrading](docs/UPGRADING.md) | What to do after an update, and moving over from another Denon integration. |
+| [Protocol](docs/protocol/README.md) | How the receivers talk, per generation, for contributors. |
+
 ## Supported devices
 
 Network-connected receivers of the HEOS generation (2016 and later).
@@ -85,8 +94,7 @@ Copy the `denonavr_plus` folder into `<config>/custom_components/` and restart H
 
 ## Configuration
 
-New here? The [user guide](docs/USER_GUIDE.md) walks through setup, daily
-use, the options, automations and troubleshooting, with screenshots.
+Step by step with screenshots: [user guide, section 2](docs/USER_GUIDE.md#2-add-the-receiver).
 
 Receivers on the network usually show up by themselves under Settings → Devices &
 Services → Discovered.
@@ -103,6 +111,8 @@ hand, open the integration's menu (three dots) and choose **Reconfigure**. The n
 address must belong to the same receiver.
 
 ### Options
+
+Which settings are recommended, and why: [user guide, section 5](docs/USER_GUIDE.md#5-tailor-it-in-the-options).
 
 **Configure** on the integration entry opens a menu: volume, zones, sources,
 sound modes, connection, entities, and **Test the receiver** (see
@@ -554,6 +564,8 @@ receiver that has never been reached since it was added has to be on for setup.
 
 ## Blueprints and an example dashboard
 
+How to build on them: [user guide, sections 4 and 6](docs/USER_GUIDE.md#4-everyday-use).
+
 Two automation blueprints, to import in Home Assistant (Settings → Automations
 & scenes → Blueprints → Import, with the file's GitHub address):
 
@@ -597,6 +609,8 @@ player then shows the same music a second time; hide one of them if that is
 confusing. Without other HEOS speakers it can be removed.
 
 ## Notes and limitations
+
+Symptoms and what to do about them: [user guide, troubleshooting](docs/USER_GUIDE.md#10-troubleshooting).
 
 - Some parameters only apply to certain signals or sound modes (for example
   Dynamic Compression needs a Dolby/DTS bitstream, Video Mode needs an active

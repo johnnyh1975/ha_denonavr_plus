@@ -21,7 +21,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import choices
 from . import volume as _volume
-from .avr import graphic_eq
+from typing import cast
+
+from .avr import DenonAvrDevice, graphic_eq
 from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -137,7 +139,7 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
     @property
     def native_value(self) -> float | None:
         value = self.coordinator.data.values.get(self._spec.id)
-        return float(value) if value is not None else None
+        return float(cast(float, value)) if value is not None else None
 
     @receiver_action
     async def async_set_native_value(self, value: float) -> None:
@@ -213,7 +215,9 @@ class DenonAvrChannelDistance(DenonAvrEntity, NumberEntity):
         await self.coordinator.device.async_set_channel_distance(self._code, value)
 
 
-def _resolve_bounds(device, spec: ControlSpec):
+def _resolve_bounds(
+    device: DenonAvrDevice, spec: ControlSpec
+) -> tuple[float | None, float | None, float | None]:
     """Return (min, max, step), preferring the receiver published range."""
 
     meta = device.discovery.numeric_meta.get(spec.feature or "")

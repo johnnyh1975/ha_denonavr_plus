@@ -142,6 +142,15 @@ class FakeHeos:
     async def async_pause(self) -> None:
         self.calls.append(("pause", None))
 
+    async def async_stop_playback(self) -> None:
+        self.calls.append(("stop", None))
+
+    async def async_next(self) -> None:
+        self.calls.append(("next", None))
+
+    async def async_previous(self) -> None:
+        self.calls.append(("previous", None))
+
     async def async_play_url(self, url: str) -> bool:
         self.calls.append(("url", url))
         return True

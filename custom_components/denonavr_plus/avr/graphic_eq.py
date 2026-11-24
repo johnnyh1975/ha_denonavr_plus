@@ -11,16 +11,20 @@ dependency, so it is unit-testable in isolation.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from typing import Any
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from .errors import SetupWriteError
 from .models import GraphicEqState
+
+if TYPE_CHECKING:
+    from .transport.webconfig import WebConfigClient
 
 
 def band_tag(grammar: dict[str, Any], label: str) -> str:
     """Return the XML tag for a band label, e.g. '1 kHz' -> 'Eq1kHz'."""
 
-    return grammar.get("band_tag_prefix", "Eq") + label.replace(" ", "")
+    return str(grammar.get("band_tag_prefix", "Eq")) + label.replace(" ", "")
 
 
 def band_tags(grammar: dict[str, Any]) -> list[str]:
@@ -150,10 +154,10 @@ class GraphicEqController:
 
     def __init__(
         self,
-        webconfig,
+        webconfig: WebConfigClient,
         grammar: dict[str, Any],
-        supported,
-        on_update,
+        supported: Callable[[], bool],
+        on_update: Callable[[], None],
     ) -> None:
         self._webconfig = webconfig
         self._grammar = grammar
@@ -187,7 +191,7 @@ class GraphicEqController:
         return self.state.bands.get(tag)
 
     def _section(self) -> str:
-        return self._grammar.get("config_section", "audio")
+        return str(self._grammar.get("config_section", "audio"))
 
     def _type(self) -> int:
         return int(self._grammar.get("config_type", 0))

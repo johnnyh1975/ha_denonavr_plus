@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Coroutine, Sequence
 from dataclasses import asdict, fields, replace
 from typing import Any
 
@@ -36,6 +36,7 @@ from .models import (
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
 from .profile import ControlSpec, ProtocolProfile, load_profile, profile_variant
 from . import capability_check, command_test, graphic_eq, signal_info, video_config
+from .video_config import VideoConfigController
 from .const import (
     CHECK_REPLY_FIRST,
     QUEUE_WAIT_MAX,
@@ -172,7 +173,7 @@ class DenonAvrDevice:
         # Strong references to fire and forget tasks (delayed queries, OPSML
         # refreshes). Without these, asyncio only keeps a weak reference and the
         # task can be garbage collected before it runs.
-        self._pending_tasks: set[asyncio.Task] = set()
+        self._pending_tasks: set[asyncio.Task[Any]] = set()
         # Data driven coalesced re-query groups (profile 'refresh' section). The
         # receiver does not push some derived state on every relevant change
         # (audio format on a mode change, channel/speaker layout on a mode or
@@ -188,7 +189,7 @@ class DenonAvrDevice:
         self._http_reachable = False
         # Deviceinfo derived source list, used only if telnet introspection
         # yields no sources (see async_discover / async_await_ready).
-        self._fallback_sources: list = []
+        self._fallback_sources: list[SourceDescriptor] = []
 
     # Public properties ----------------------------------------------------
 
@@ -486,10 +487,13 @@ class DenonAvrDevice:
         # The channel trims, for receivers without the SSLEV list (AVR-X2000):
         # their channels are known only from these.
         queries.append(CHANNEL_TRIMS_QUERY)
+        def feed(line: str) -> None:
+            self._parser.feed(line, self._state)
+
         await async_probe(
             self._host,
             queries,
-            lambda line: self._parser.feed(line, self._state),
+            feed,
             lambda: bool(
                 self._discovery.configured_channels and self._discovery.sources
             ),
@@ -970,7 +974,7 @@ class DenonAvrDevice:
             if on and line.startswith(tuple(on)):
                 self._schedule_refresh(group_id)
 
-    def _handle_now_playing(self, snapshot: dict) -> None:
+    def _handle_now_playing(self, snapshot: dict[str, Any]) -> None:
         """Apply a HEOS now-playing snapshot and notify listeners."""
 
         self._state.now_playing = NowPlaying(**snapshot)
@@ -1009,8 +1013,8 @@ class DenonAvrDevice:
 
         # Introspection first so the source and channel lists (which entities
         # are built from) arrive as early as possible after connecting.
-        for spec in self._profile.introspection.values():
-            add(spec.get("query"))
+        for introspection in self._profile.introspection.values():
+            add(introspection.get("query"))
         # Core controls (main zone) are always present.
         for spec in self._profile.controls_by_scope("core"):
             add(spec.query)
@@ -1022,8 +1026,8 @@ class DenonAvrDevice:
                 # Z2? reports power, source and volume, not the mute state.
                 add(f"{prefix}{zone.index}MU?")
         # Read only audio information.
-        for spec in self._profile.readonly.values():
-            add(spec.get("query"))
+        for readonly in self._profile.readonly.values():
+            add(readonly.get("query"))
         # Feature controls, only those the receiver advertises. Some controls
         # have several queries (a list query and a read query, e.g. channel
         # calibration via SSLEV plus live trims via CV); send all of them.
@@ -1397,18 +1401,18 @@ class DenonAvrDevice:
         return self._graphic_eq
 
     @property
-    def video_config(self) -> video_config.VideoConfigController:
+    def video_config(self) -> VideoConfigController:
         """The /ajax video setup subsystem (HDMI setup, OSD, TV/4K format)."""
 
         return self._video_config
 
     @property
-    def speaker_config(self) -> video_config.VideoConfigController:
+    def speaker_config(self) -> VideoConfigController:
         """The /ajax speaker setup subsystem (amp assign)."""
 
         return self._speaker_config
 
-    def _zone(self, zone_id: str):
+    def _zone(self, zone_id: str) -> ZoneDescriptor | None:
         """Return the discovered ZoneDescriptor for a zone id, if any."""
 
         for zone in self._discovery.zones:
@@ -1652,7 +1656,7 @@ class DenonAvrDevice:
         await self._send(query)
         self._schedule_delayed_query(query, 0.8)
 
-    def _create_task(self, coro) -> None:
+    def _create_task(self, coro: Coroutine[Any, Any, Any]) -> None:
         """Schedule a fire and forget coroutine, keeping a strong reference.
 
         asyncio holds only a weak reference to bare tasks, so a task started
@@ -1766,31 +1770,31 @@ class DenonAvrDevice:
 
     # Encoding helpers -----------------------------------------------------
 
-    def _encode_control_value(self, spec, value: object) -> str | None:
+    def _encode_control_value(self, spec: ControlSpec, value: Any) -> str | None:
         """Encode a Python value into the wire argument for a control."""
 
         kind = spec.kind
         if kind == "onoff":
-            return spec.get("on", "ON") if value else spec.get("off", "OFF")
+            return str(spec.get("on", "ON") if value else spec.get("off", "OFF"))
         if kind == "enum":
             return str(value)
         if kind == "level":
-            raw = self._profile.level_reference + float(value)  # type: ignore[arg-type]
+            raw = self._profile.level_reference + float(value)
             return encode_half_step(raw)
         if kind == "centered":
             # Fixed-width integer offset around a centre (picture controls).
             width = int(spec.get("width", 3))
             return encode_centered(float(value), int(spec.get("center", 0)), width)
         if kind == "signed_int":
-            return str(int(value))  # type: ignore[arg-type]
+            return str(int(value))
         if kind == "integer":
             # Zero pad to the wire width the receiver expects (e.g. 3 for PSDELAY).
             width = int(spec.get("width", 0) or 0)
-            return str(int(value)).zfill(width)  # type: ignore[arg-type]
+            return str(int(value)).zfill(width)
         if kind == "minutes":
-            minutes = int(value)  # type: ignore[arg-type]
+            minutes = int(value)
             if minutes <= 0:
-                return spec.get("off", "OFF")
+                return str(spec.get("off", "OFF"))
             return f"{minutes:03d}"
         return str(value)
 

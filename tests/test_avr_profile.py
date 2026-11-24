@@ -125,3 +125,25 @@ def test_the_older_variant_replaces_the_network_audio_entries() -> None:
     assert older.netaudio["tuner_presets"]["format"] == "letter"
     assert "older" not in older.netaudio
     assert profile.netaudio["tuner_presets"]["format"] == "number"
+
+
+def test_grammar_reference_points() -> None:
+    profile = load_profile()
+    assert profile.line_terminator == "\r"
+    assert profile.list_terminator == "END"
+    assert profile.volume_reference == 80.0
+
+
+def test_group_channels_name_the_members() -> None:
+    profile = load_profile()
+    assert profile.group_channels("SWF") == ["SW", "SW2"]
+    assert profile.group_channels("SBK") == ["SB", "SBL", "SBR"]
+    assert profile.group_channels("NOPE") == []
+
+
+def test_controls_by_scope_and_group() -> None:
+    profile = load_profile()
+    assert all(spec.scope == "zone" for spec in profile.controls_by_scope("zone"))
+    assert profile.controls_by_scope("nowhere") == []
+    assert all(spec.group == "tone" for spec in profile.controls_by_group("tone"))
+    assert profile.controls_by_group("tone")

@@ -14,7 +14,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from typing import Any, cast
+
 from .avr import graphic_eq
+from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, receiver_action
@@ -172,7 +175,7 @@ class DenonAvrSoundModeGroupSelect(DenonAvrEntity, SelectEntity):
     def current_option(self) -> str | None:
         # The current group is reported directly by the receiver (SSSMG).
         code = self.coordinator.data.values.get("sound_mode_genre")
-        return self._genres.get(code) if code else None
+        return self._genres.get(str(code)) if code else None
 
     @receiver_action
     async def async_select_option(self, option: str) -> None:
@@ -207,7 +210,7 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
         if discovery.current_sound_modes:
             return list(discovery.current_sound_modes)
         code = self.coordinator.data.values.get("sound_mode_genre")
-        return discovery.sound_mode_groups.get(code, []) if code else []
+        return discovery.sound_mode_groups.get(str(code), []) if code else []
 
     @property
     def current_option(self) -> str | None:
@@ -295,16 +298,15 @@ class DenonAvrCrossoverSpeakerSelection(DenonAvrEntity, SelectEntity):
         self._attr_translation_key = "crossover_speaker_selection"
         # Wire tokens -> labels come from the profile grammar (kept out of this
         # HA layer like every other enum's tokens).
-        self._labels = coordinator.device.profile.crossover.get(
+        self._labels: dict[str, str] = coordinator.device.profile.crossover.get(
             "speaker_selection", {"IDV": "Individual", "ALL": "All"}
         )
         self._attr_options = list(self._labels.values())
 
     @property
     def current_option(self) -> str | None:
-        return self._labels.get(
-            self.coordinator.data.values.get("crossover_speaker_selection")
-        )
+        token = self.coordinator.data.values.get("crossover_speaker_selection")
+        return self._labels.get(token) if isinstance(token, str) else None
 
     @receiver_action
     async def async_select_option(self, option: str) -> None:
@@ -447,7 +449,7 @@ class DenonAvrQuickSelect(DenonAvrEntity, SelectEntity):
         number = self.coordinator.data.values.get("quick_select")
         if not number:
             return None
-        return self._names.get(int(number))
+        return self._names.get(int(str(number)))
 
     @receiver_action
     async def async_select_option(self, option: str) -> None:
@@ -575,7 +577,7 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
     def __init__(
         self,
         coordinator: DenonAvrCoordinator,
-        control: dict,
+        control: dict[str, Any],
         controller_attr: str = "video_config",
         sub_device: str = "video",
     ) -> None:
@@ -592,9 +594,9 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
         return option_key(label) if self._fixed else label
 
     @property
-    def _ctrl(self):
+    def _ctrl(self) -> VideoConfigController:
         # The /ajax config controller backing this select (video or speakers).
-        return getattr(self.coordinator.device, self._controller_attr)
+        return cast(VideoConfigController, getattr(self.coordinator.device, self._controller_attr))
 
     @property
     def available(self) -> bool:
@@ -606,7 +608,8 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        label = self._ctrl.options(self._id).get(self._ctrl.value(self._id))
+        value = self._ctrl.value(self._id)
+        label = self._ctrl.options(self._id).get(value) if value is not None else None
         return None if label is None else self._shown(label)
 
     @receiver_action

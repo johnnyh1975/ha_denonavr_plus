@@ -19,6 +19,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import choices, volume
 from .avr.models import ZoneDescriptor
+from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, receiver_action, zone_device
@@ -145,7 +146,7 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_entity_registry_enabled_default = False
 
-    def __init__(self, coordinator: DenonAvrCoordinator, control: dict) -> None:
+    def __init__(self, coordinator: DenonAvrCoordinator, control: dict[str, Any]) -> None:
         super().__init__(coordinator, f"switch_{control['id']}", sub_device="video")
         self._id = control["id"]
         self._on = control["on"]
@@ -153,7 +154,7 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
         self._attr_translation_key = control["id"]
 
     @property
-    def _video(self):
+    def _video(self) -> VideoConfigController:
         return self.coordinator.device.video_config
 
     @property
@@ -162,7 +163,7 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        return self._video.value(self._id) == self._on
+        return bool(self._video.value(self._id) == self._on)
 
     @receiver_action
     async def async_turn_on(self, **kwargs: Any) -> None:

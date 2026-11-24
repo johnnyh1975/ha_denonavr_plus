@@ -171,7 +171,7 @@ class TelnetClient:
         self._awaiting: str | None = None
         self._replied = asyncio.Event()
         self._response_time: float | None = None
-        self._manager_task: asyncio.Task | None = None
+        self._manager_task: asyncio.Task[None] | None = None
         self._connected = False
         self._stopped = False
         self._last_activity = 0.0

@@ -11,7 +11,7 @@ import copy
 import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 # The profile file lives next to this module inside the avr package.
 _PROFILE_PATH = Path(__file__).parent / "protocol_profile.json"
@@ -28,13 +28,13 @@ class ControlSpec:
     def kind(self) -> str:
         """The value kind that drives encoding/decoding (power, onoff, ...)."""
 
-        return self._data["kind"]
+        return str(self._data["kind"])
 
     @property
     def scope(self) -> str:
         """One of 'core', 'zone2' or 'feature'."""
 
-        return self._data.get("scope", "feature")
+        return str(self._data.get("scope", "feature"))
 
     @property
     def group(self) -> str | None:
@@ -64,7 +64,7 @@ class ControlSpec:
     def prefix(self) -> str:
         """The telnet token that prefixes both queries and set commands."""
 
-        return self._data.get("prefix", "")
+        return str(self._data.get("prefix", ""))
 
     @property
     def query(self) -> str | None:
@@ -134,15 +134,15 @@ class ProtocolProfile:
     # that even the reference points are data driven.
     @property
     def line_terminator(self) -> str:
-        return self.grammar.get("line_terminator", "\r")
+        return str(self.grammar.get("line_terminator", "\r"))
 
     @property
     def list_terminator(self) -> str:
-        return self.grammar.get("list_terminator", "END")
+        return str(self.grammar.get("list_terminator", "END"))
 
     @property
     def no_signal_token(self) -> str:
-        return self.grammar.get("no_signal_token", "NON")
+        return str(self.grammar.get("no_signal_token", "NON"))
 
     @property
     def volume_reference(self) -> float:
@@ -160,13 +160,13 @@ class ProtocolProfile:
     def distance(self) -> dict[str, Any]:
         """Speaker distance grammar (divisor, min, max, step, unit)."""
 
-        return self.grammar.get("distance", {})
+        return cast(dict[str, Any], self.grammar.get("distance", {}))
 
     @property
     def crossover(self) -> dict[str, Any]:
         """Speaker crossover grammar (width, unit, discrete Hz value set)."""
 
-        return self.grammar.get("crossover", {})
+        return cast(dict[str, Any], self.grammar.get("crossover", {}))
 
     def group_channels(self, group: str) -> list[str]:
         """Return the channel codes that make up a speaker group.
@@ -200,7 +200,7 @@ class ProtocolProfile:
         sync, fully data driven from the profile's refresh section.
         """
 
-        return self.refresh.get("groups", {})
+        return cast(dict[str, dict[str, Any]], self.refresh.get("groups", {}))
 
     def introspection_query(self, key: str) -> str | None:
         """Return the query string for an introspection item, or None."""

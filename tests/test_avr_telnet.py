@@ -74,7 +74,10 @@ class FakeReceiver:
                 raw = await reader.readuntil(b"\r")
                 line = raw.decode().strip("\r")
                 self.received.append((loop.time(), line))
-                if self.close_after is not None and len(self.received) >= self.close_after:
+                if (
+                    self.close_after is not None
+                    and len(self.received) >= self.close_after
+                ):
                     break
                 answer = self.reply(line)
                 if answer is not None:
@@ -243,7 +246,10 @@ async def test_a_receiver_that_stops_answering_gets_a_new_session() -> None:
         answered += 1
         return f"{line[:2]}X" if answered <= 1 else None
 
-    assert await _sessions(FakeReceiver(reply), ["MSALL ZONE STEREO", "MNZST OFF"], 3.0) >= 2
+    assert (
+        await _sessions(FakeReceiver(reply), ["MSALL ZONE STEREO", "MNZST OFF"], 3.0)
+        >= 2
+    )
 
 
 async def test_queries_without_answer_are_not_a_silent_receiver() -> None:
@@ -309,3 +315,126 @@ async def test_a_paced_probe_gets_every_answer_of_a_busy_receiver(
     finally:
         await server.stop()
     assert (len(lines) == len(queries)) is answered
+
+
+# The probe and the link's edges ----------------------------------------------
+
+
+async def _closed_port() -> int:
+    """A loopback port nothing listens on."""
+    server = await asyncio.start_server(lambda r, w: None, LOOPBACK, 0)
+    port = int(server.sockets[0].getsockname()[1])
+    server.close()
+    await server.wait_closed()
+    return port
+
+
+async def test_a_probe_of_an_unreachable_receiver_gives_nothing() -> None:
+    lines: list[str] = []
+    await async_probe(
+        LOOPBACK, ["PW?"], lines.append, lambda: True, port=await _closed_port()
+    )
+    assert lines == []
+
+
+async def test_a_probe_waits_out_silence_until_the_deadline() -> None:
+    server = FakeReceiver(reply=lambda line: None)
+    await server.start()
+    lines: list[str] = []
+    try:
+        await async_probe(
+            LOOPBACK,
+            ["PW?"],
+            lines.append,
+            lambda: False,
+            port=server.port,
+            deadline=0.5,
+            reply_wait=0.1,
+        )
+    finally:
+        await server.stop()
+    assert lines == []
+    assert server.lines == ["PW?"]
+
+
+async def test_a_probe_ends_when_the_receiver_hangs_up() -> None:
+    server = FakeReceiver(close_after=1)
+    await server.start()
+    lines: list[str] = []
+    try:
+        async with asyncio.timeout(2.0):
+            await async_probe(
+                LOOPBACK,
+                ["PW?"],
+                lines.append,
+                lambda: False,
+                port=server.port,
+                deadline=5.0,
+            )
+    finally:
+        await server.stop()
+    assert lines == []
+
+
+async def test_an_unreachable_receiver_is_retried_while_down() -> None:
+    states: list[bool] = []
+    client = TelnetClient(
+        LOOPBACK,
+        on_line=lambda line: None,
+        on_availability=states.append,
+        port=await _closed_port(),
+    )
+    with patch.object(telnet, "RECONNECT_BACKOFF_MIN", 0.05):
+        await client.async_start()
+        await asyncio.sleep(0.2)
+        assert not client.connected
+        await client.async_stop()
+    assert states == []
+
+
+async def _raw_receiver(data: bytes) -> tuple[asyncio.Server, int]:
+    """A receiver that sends ``data`` once and hangs up."""
+
+    async def serve(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        writer.write(data)
+        await writer.drain()
+        writer.close()
+
+    server = await asyncio.start_server(serve, LOOPBACK, 0)
+    return server, int(server.sockets[0].getsockname()[1])
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        # A last line without its terminator still counts; empty lines do not.
+        (b"\rPWON", ["PWON"]),
+        # A line longer than the read buffer breaks the session, nothing is fed.
+        (b"X" * 70_000, []),
+    ],
+)
+async def test_what_arrives_before_the_receiver_hangs_up(
+    data: bytes, expected: list[str]
+) -> None:
+    server, port = await _raw_receiver(data)
+    lines: list[str] = []
+    client = TelnetClient(LOOPBACK, on_line=lines.append, port=port)
+    try:
+        await client.async_start()
+        await asyncio.sleep(0.3)
+    finally:
+        await client.async_stop()
+        server.close()
+        await server.wait_closed()
+    assert lines[: len(expected)] == expected
+    assert all(line.startswith("PW") for line in lines)
+
+
+async def test_an_idle_link_is_kept_alive(receiver: FakeReceiver) -> None:
+    with patch.object(telnet, "KEEPALIVE_INTERVAL", 0.2):
+        client = await _connected_client(receiver, lambda client: [])
+        try:
+            await receiver.wait_for(1, timeout=3.0)
+        finally:
+            await client.async_stop()
+    assert receiver.lines[0] == "PW?"

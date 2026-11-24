@@ -15,7 +15,7 @@ client in every case.
 | 1255/tcp | HEOS CLI | Absent | Sourced (HEOS Built-in) | yes, now playing |
 | 10443/tcp | Setup config API, HTTPS | Absent | To test; Tested on AVR-X3600H | yes, graphic EQ, video setup, amp assign |
 | 11080/tcp | Setup config API, plain HTTP | Absent | Unverified (seen on 2022-era firmware) | yes, when 10443 does not accept a connection |
-| 1256/tcp | Calibration protocol, length-framed JSON | Absent | To test | no (transport built, not wired) |
+| 1256/tcp | Calibration protocol, length-framed JSON | Absent | To test | no |
 | RS-232C | Serial control, same grammar as telnet | North America model only | To test (not in the product sheet's terminal list) | no |
 
 "Absent" for the AVR-X2000 rests on the model generation: these interfaces
@@ -232,8 +232,9 @@ Details of the audio and speaker groups are on the
 
 A length-framed JSON protocol used by the Audyssey MultEQ apps. It reads and
 writes speaker setup and room-correction filters. Entering a calibration
-session interrupts playback, and the port has no push. This integration has
-a transport for it (`avr/transport/tcp_client.py`) but does not use it.
+session interrupts playback, and the port has no push. This integration does
+not use it; an unused transport for it was removed in 0.9.0 and is in the
+history of `avr/transport/tcp_client.py`.
 
 ## Other ports seen on HEOS-era receivers
 

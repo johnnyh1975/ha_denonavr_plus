@@ -19,6 +19,7 @@ from dataclasses import replace
 import logging
 import re
 import xml.etree.ElementTree as ET
+from typing import Any
 
 from .codec import decode_centered, decode_half_step
 from .models import (
@@ -29,7 +30,7 @@ from .models import (
     SourceDescriptor,
     ZoneDescriptor,
 )
-from .profile import ProtocolProfile
+from .profile import ControlSpec, ProtocolProfile
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -271,7 +272,7 @@ def _range_from_block(block: ET.Element) -> dict[str, float] | None:
     high = _num(block, "MaxRange")
     default = _num(block, "DefaultValue")
     step = _num(block, "Step")
-    if None in (low, high, default, step):
+    if low is None or high is None or default is None or step is None:
         return None
     return _to_db_range(low, high, default, step)
 
@@ -283,7 +284,7 @@ def _range_from_tone(tone: ET.Element, prefix: str) -> dict[str, float] | None:
     high = _num(tone, f"{prefix}Max")
     default = _num(tone, f"{prefix}Default")
     step = _num(tone, f"{prefix}Step")
-    if None in (low, high, default, step):
+    if low is None or high is None or default is None or step is None:
         return None
     return _to_db_range(low, high, default, step)
 
@@ -444,16 +445,16 @@ class TelnetParser:
                 return self._set_readonly(control_id, spec, line[len(prefix):], state)
 
         # Generic feature controls.
-        for prefix, spec in self._feature_matchers:
+        for prefix, control in self._feature_matchers:
             if line.startswith(prefix):
                 remainder = line[len(prefix):]
                 # A control with a short, overloaded prefix (e.g. picture mode
                 # 'PV', shared with the video-adjust tokens PVBR/PVCN/...) opts
                 # into exact matching: it only claims the line when the value is
                 # one of its known enum tokens, so it never swallows a sibling.
-                if spec.get("exact_enum") and remainder.strip() not in spec.values:
+                if control.get("exact_enum") and remainder.strip() not in control.values:
                     continue
-                return self._set_feature(spec, remainder, state)
+                return self._set_feature(control, remainder, state)
 
         return False
 
@@ -773,7 +774,7 @@ class TelnetParser:
         self._discovery.configured_channels = configured
 
     def _set_readonly(
-        self, control_id: str, spec: dict, remainder: str, state: AvrState
+        self, control_id: str, spec: dict[str, Any], remainder: str, state: AvrState
     ) -> bool:
         kind = spec.get("kind", "passthrough")
         if kind == "sample_rate":
@@ -787,7 +788,7 @@ class TelnetParser:
             state.readonly[control_id] = remainder.strip() or None
         return True
 
-    def _set_feature(self, spec, remainder: str, state: AvrState) -> bool:
+    def _set_feature(self, spec: ControlSpec, remainder: str, state: AvrState) -> bool:
         kind = spec.kind
         remainder = remainder.strip()
         if kind == "onoff":

@@ -64,7 +64,7 @@ class WebConfigClient:
         select the graphic-EQ channel to read.
         """
 
-        params = {"type": type_id}
+        params: dict[str, object] = {"type": type_id}
         if extra:
             params.update(extra)
         return await self._get(f"/ajax/{section}/get_config", params)

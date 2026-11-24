@@ -92,10 +92,10 @@ def control_sub_device(spec: ControlSpec) -> str | None:
 
     explicit = spec.get("subdevice")
     if explicit is not None:
-        return explicit
+        return str(explicit)
     if spec.id in _MAIN_DEVICE_CONTROLS:
         return None
-    return _GROUP_SUB_DEVICE.get(spec.group)
+    return _GROUP_SUB_DEVICE.get(spec.group or "")
 
 
 def group_name(discovery: Discovery, channels: list[str]) -> str:

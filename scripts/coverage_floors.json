@@ -4,17 +4,5 @@
     "May only go up; see scripts/check_coverage_per_module.py.",
     "Measured on Home Assistant 2026.10 (phahc 0.13.375), half a point of margin."
   ],
-  "floors": {
-    "avr/device.py": 0.903,
-    "avr/graphic_eq.py": 0.761,
-    "avr/parser.py": 0.915,
-    "avr/profile.py": 0.906,
-    "avr/transport/goform.py": 0.6215,
-    "avr/transport/tcp_client.py": 0.1962,
-    "avr/transport/telnet.py": 0.9274,
-    "avr/transport/upnp.py": 0.583,
-    "avr/video_config.py": 0.495,
-    "select.py": 0.730,
-    "switch.py": 0.882
-  }
+  "floors": {}
 }

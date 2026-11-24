@@ -23,9 +23,7 @@ def _parse(name: str) -> Discovery:
     profile = load_profile()
     features = {s.feature for s in profile.controls.values() if s.feature}
     enums = {
-        s.feature
-        for s in profile.controls.values()
-        if s.kind == "enum" and s.feature
+        s.feature for s in profile.controls.values() if s.kind == "enum" and s.feature
     }
     return parse_device_info(
         deviceinfo(name), features, enums, receiver_type=profile.receiver_type
@@ -53,7 +51,9 @@ def test_parse_device_info_real_receivers(
     assert discovery.device.model_name == model
     assert len(discovery.zones) == zones
     assert discovery.zones[0].is_main
-    assert [z.id for z in discovery.zones[1:]] == [f"zone{i}" for i in range(2, zones + 1)]
+    assert [z.id for z in discovery.zones[1:]] == [
+        f"zone{i}" for i in range(2, zones + 1)
+    ]
     assert len(discovery.sources) == sources
 
 
@@ -127,7 +127,9 @@ def parser_and_state() -> tuple[TelnetParser, AvrState]:
     return TelnetParser(load_profile(), discovery), AvrState()
 
 
-def test_feed_core_main_zone_lines(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+def test_feed_core_main_zone_lines(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
     parser, state = parser_and_state
     for line in ("PWON", "ZMON", "MV505", "MVMAX 98", "MUOFF", "SITV"):
         assert parser.feed(line, state)
@@ -172,7 +174,14 @@ def test_zone2_replies_that_are_no_source(
     """Seen on an AVR-X2600H (3.139.175): zone 2 showed the source "QUICK0"."""
     parser, state = parser_and_state
     parser.feed("Z2CD", state)
-    for line in ("Z2QUICK0", "Z2SMART1", "Z2SLP060", "Z2HPFOFF", "Z2STBYOFF", "Z2CVFL 50"):
+    for line in (
+        "Z2QUICK0",
+        "Z2SMART1",
+        "Z2SLP060",
+        "Z2HPFOFF",
+        "Z2STBYOFF",
+        "Z2CVFL 50",
+    ):
         parser.feed(line, state)
         assert state.zone("zone2").source == "CD", line
     # SOURCE: zone 2 follows the main zone.
@@ -180,14 +189,18 @@ def test_zone2_replies_that_are_no_source(
     assert state.zone("zone2").source == "SOURCE"
 
 
-def test_feed_ignores_empty_and_unknown(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+def test_feed_ignores_empty_and_unknown(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
     parser, state = parser_and_state
     assert not parser.feed("", state)
     assert not parser.feed("\r", state)
     assert not parser.feed("XYZZY", state)
 
 
-def test_feed_volume_not_a_number(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+def test_feed_volume_not_a_number(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
     parser, state = parser_and_state
     assert not parser.feed("MVOFF", state)
     assert state.zone("main").volume_raw is None
@@ -290,13 +303,20 @@ def test_now_playing_from_the_on_screen_list(
     ):
         parser.feed(line, state)
     now = state.now_playing
-    assert (now.state, now.title, now.artist, now.album) == ("play", "Song title", "Artist", "Album")
+    assert (now.state, now.title, now.artist, now.album) == (
+        "play",
+        "Song title",
+        "Artist",
+        "Album",
+    )
     # Line 0 without "Now Playing": a menu, nothing plays.
     parser.feed("NSE0Internet Radio", state)
     assert state.now_playing.state is None and state.now_playing.title is None
 
 
-def test_tuner_frequency_and_station(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+def test_tuner_frequency_and_station(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
     """TFAN009290 is FM 92.90 MHz (both receivers answer TFAN?)."""
     parser, state = parser_and_state
     parser.feed("TFAN009290", state)
@@ -305,7 +325,9 @@ def test_tuner_frequency_and_station(parser_and_state: tuple[TelnetParser, AvrSt
     assert state.values["tuner_station"] == "Bayern 3"
 
 
-def test_the_recalled_tuner_preset(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+def test_the_recalled_tuner_preset(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
     """TPAN01 (an AVR-X2600H) and TPANOFF (an AVR-X2000), from their capability checks."""
     parser, state = parser_and_state
     parser.feed("TPAN01", state)
@@ -324,7 +346,10 @@ def test_the_recalled_tuner_preset(parser_and_state: tuple[TelnetParser, AvrStat
 )
 @pytest.mark.parametrize(("line", "control_id", "value"), ANSWERED_REPLIES)
 def test_model_dependent_controls_read_their_reply(
-    parser_and_state: tuple[TelnetParser, AvrState], line: str, control_id: str, value: object
+    parser_and_state: tuple[TelnetParser, AvrState],
+    line: str,
+    control_id: str,
+    value: object,
 ) -> None:
     parser, state = parser_and_state
     assert parser.feed(line, state)
@@ -357,3 +382,78 @@ def test_a_shared_prefix_leaves_the_switch_alone(
     assert not parser.feed(line, state)
     assert state.values["bluetooth_transmitter"] is True
     assert state.values["tactile_transducer"] is True
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "",
+        "MVMAXxx",
+        "MSQUICKx",
+        "MSQUICK1 SMART",
+        "MSSMART1",
+        "SSLEVFL",
+        "SSLEVFL xx",
+        "SSLEV END",
+        "SSSDEFL",
+        "SSSDESTP 12",
+        "SSSDE END",
+        "SSCFR",
+        "SSCFR XYZ",
+        "SSCFRFRO 80 90",
+        "SSCFRFRO xx",
+        "SSSMG",
+        "SSSMG END",
+        "SSQSNZMAQS1",
+        "SSQSNZMAQSx Name",
+        "SSSPCFRO",
+        "OPSMLALL",
+        "OPSMLALLMOVx",
+        "OPSMLALLMOV1",
+        "OPSML x",
+        "OPSML 1",
+        "Z2",
+        "Z2SLPxx",
+        "PSBAS xx",
+        "PVCN xx",
+        "PSLFE xx",
+    ],
+)
+def test_lines_that_do_not_fit_are_ignored(
+    parser_and_state: tuple[TelnetParser, AvrState], line: str
+) -> None:
+    parser, state = parser_and_state
+    assert parser.feed(line, state) is False
+    assert state.values == {} or set(state.values) <= {"quick_select"}
+
+
+def test_settings_of_every_kind_are_decoded(
+    parser_and_state: tuple[TelnetParser, AvrState],
+) -> None:
+    parser, state = parser_and_state
+    for line in ("Z2SLPOFF", "PSLFE -5", "PVCN 52", "MVMAX 855"):
+        assert parser.feed(line, state), line
+    assert state.values["zone2_sleep_timer"] == 0
+    assert state.values["lfe"] == -5
+    assert state.values["contrast"] == 2
+    assert state.zone("main").volume_max_raw == 85.5
+
+
+def test_sound_mode_lists_are_published_at_their_end() -> None:
+    discovery = Discovery()
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
+    for line in (
+        "OPSMLALL MOV071Virtual",
+        "OPSMLALL MUS011Stereo",
+        "OPSMLALL MOV071Virtual",
+        "OPSMLALL END",
+        "OPSML 011Direct",
+        "OPSML 020Stereo",
+        "OPSML END",
+    ):
+        assert parser.feed(line, state), line
+
+    assert discovery.all_sound_modes == ["Virtual", "Stereo"]
+    assert discovery.sound_mode_groups == {"MOV": ["Virtual"], "MUS": ["Stereo"]}
+    assert discovery.current_sound_modes == ["Direct", "Stereo"]
+    assert state.values["sound_mode_display"] == "Direct"

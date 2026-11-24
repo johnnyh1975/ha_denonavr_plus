@@ -103,7 +103,7 @@ class HeosClient:
     def __init__(
         self,
         host: str,
-        on_update: Callable[[dict], None],
+        on_update: Callable[[dict[str, Any]], None],
         port: int = DEFAULT_PORT,
     ) -> None:
         self._host = host
@@ -113,13 +113,13 @@ class HeosClient:
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
         self._queue: asyncio.Queue[str] = asyncio.Queue()
-        self._manager_task: asyncio.Task | None = None
+        self._manager_task: asyncio.Task[None] | None = None
         self._stopped = False
         self._pid: int | None = None
         # Loop time of the last message received, for the heartbeat.
         self._last_received = 0.0
         # Current snapshot; only re-broadcast when something actually changes.
-        self._snapshot: dict = {
+        self._snapshot: dict[str, Any] = {
             "state": None,
             "media_type": None,
             "title": None,
@@ -707,7 +707,7 @@ class HeosClient:
         if self._pid is not None:
             self._queue.put_nowait(f"heos://player/get_play_state?pid={self._pid}")
 
-    def _apply_now_playing(self, payload: dict) -> None:
+    def _apply_now_playing(self, payload: dict[str, Any]) -> None:
         # HEOS keeps answering with the last track after a stop; showing it
         # would leave a stale title in Home Assistant.
         if self._snapshot.get("state") == "stop":
@@ -760,7 +760,7 @@ class HeosClient:
             if state == "play" and self._snapshot.get("title") is None:
                 self._request_now_playing()
 
-    def _update(self, **fields) -> None:
+    def _update(self, **fields: Any) -> None:
         """Merge fields into the snapshot and broadcast if anything changed."""
 
         changed = False

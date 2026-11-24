@@ -23,7 +23,7 @@ from custom_components.denonavr_plus.avr.transport import GoformClient
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
 from .common import registry_entry
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
+from .test_init import FakeHeos, FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
 
@@ -566,3 +566,91 @@ async def test_a_preset_switches_to_the_tuner_first(
     with patch("custom_components.denonavr_plus.avr.device.TUNER_SWITCH_WAIT", 0.05):
         await device.async_tuner_preset("main", "A3")
     assert telnet.sent == ["SITUNER", "TPANA3"]
+
+
+async def test_media_transport_goes_over_heos_where_there_is_heos(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    for action in (
+        device.async_media_play,
+        device.async_media_pause,
+        device.async_media_stop,
+        device.async_media_next,
+        device.async_media_previous,
+    ):
+        await action()
+    assert [call for call, _ in FakeHeos.instances[-1].calls] == [
+        "play",
+        "pause",
+        "stop",
+        "next",
+        "previous",
+    ]
+
+
+async def test_settings_are_encoded_for_their_kind(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+
+    await device.async_set_control("lfe", -5)
+    await device.async_set_control("auro_matic_strength", 7)
+    await device.async_set_control("zone2_sleep_timer", 0)
+    await device.async_set_control("zone2_sleep_timer", 30)
+    await device.async_set_control("does_not_exist", 1)
+    await device.async_select_sound_mode_group("PUR")
+    await device.async_volume_step("zone2", up=True)
+
+    assert telnet.sent[:5] == ["PSLFE -5", "PSAUROST 07", "Z2SLPOFF", "Z2SLP030", "MSPURE DIRECT"]
+
+
+async def test_receiver_facts_for_the_ui(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    assert device.host == "192.0.2.10"
+    assert device.volume_display == "Relative"
+    assert device.setup_url == "https://192.0.2.10:10443/"
+
+
+async def test_a_command_over_http_reads_the_zones_again(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, freezer: FrozenDateTimeFactory
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = False
+    assert telnet._on_availability is not None
+    telnet._on_availability(False)
+    status = AsyncMock(return_value={"power": True, "volume_db": -30.0})
+    send = AsyncMock(return_value=True)
+    with (
+        patch.object(GoformClient, "async_get_status", status),
+        patch.object(GoformClient, "async_send_command", send),
+        patch("custom_components.denonavr_plus.avr.device._HTTP_COMMAND_SETTLE", 0),
+    ):
+        freezer.tick(timedelta(seconds=11))
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+        reads = status.await_count
+        await loaded_entry.runtime_data.device.async_send_command("PSDYNEQ ON")
+        # The read runs as a task after a settle time, here zero.
+        for _ in range(5):
+            await asyncio.sleep(0)
+        await hass.async_block_till_done()
+    send.assert_awaited_once_with("PSDYNEQ ON")
+    assert status.await_count > reads
+
+
+async def test_channel_trims_and_distances_are_sent_in_wire_units(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+
+    await device.async_set_channel_trim("FL", -1.5)
+    await device.async_set_channel_distance("FL", 3.45)
+
+    assert telnet.sent[:2] == ["CVFL 485", "SSSDEFL 0345"]
