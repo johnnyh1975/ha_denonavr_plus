@@ -11,6 +11,7 @@ import asyncio
 import logging
 from datetime import datetime
 from collections.abc import Awaitable, Callable
+from contextlib import suppress
 from typing import Any
 
 from homeassistant.components import media_source
@@ -81,6 +82,7 @@ TURN_ON_SETTLE = 1.0
 #: streams, as Music Assistant's HEOS provider learnt), and the longest it may
 #: play before the zone is put back.
 ANNOUNCE_START_WAIT = 10.0
+ANNOUNCE_POLL = 0.25
 ANNOUNCE_STOP_GRACE = 3.0
 ANNOUNCE_MAX_LENGTH = 300.0
 
@@ -186,14 +188,6 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         )
         if zone.is_main:
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
-            if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
-                # HEOS queues albums and playlists now, next or at the end,
-                # and plays announcements, after which the zone is put back.
-                features |= (
-                    MediaPlayerEntityFeature.MEDIA_ENQUEUE
-                    | MediaPlayerEntityFeature.MEDIA_ANNOUNCE
-                    | MediaPlayerEntityFeature.CLEAR_PLAYLIST
-                )
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
         # device_trigger.py.
@@ -235,6 +229,15 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if self._network_media:
             # Play, pause and skip only where they reach what plays.
             features |= self._media_features(self.coordinator)
+        if self._zone.is_main and self._device.heos is not None:
+            # HEOS queues albums and playlists now, next or at the end, and
+            # plays announcements, after which the zone is put back. Only
+            # while HEOS answers: a receiver without HEOS never offers them.
+            features |= (
+                MediaPlayerEntityFeature.MEDIA_ENQUEUE
+                | MediaPlayerEntityFeature.MEDIA_ANNOUNCE
+                | MediaPlayerEntityFeature.CLEAR_PLAYLIST
+            )
         if self._device.is_tuner(self._source_code):
             # Skip steps through the tuner presets.
             features |= _SKIP
@@ -1042,6 +1045,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 translation_key="play_url_main_zone",
                 translation_placeholders={"model": self._model},
             )
+        if self._device.heos is None:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="heos_unavailable",
+                translation_placeholders={"model": self._model},
+            )
         if media_source.is_media_source_id(media_id):
             item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
             media_id = item.url
@@ -1104,7 +1113,13 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     async def _heos_call(self, call: Callable[[HeosClient], Awaitable[None]]) -> None:
         """A HEOS command of the main zone, with its failures as translated errors."""
 
-        heos = self._device.heos if self._zone.is_main else None
+        if not self._zone.is_main:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="heos_main_zone",
+                translation_placeholders={"model": self._model},
+            )
+        heos = self._device.heos
         if heos is None:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
@@ -1163,14 +1178,32 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         else:
             self._announce_snapshot = self._device.zone_snapshot(self._zone.id)
         was_playing = self._heos_state() == "play"
-        await self._ensure_on()
-        raw = self._announce_volume(extra)
-        if raw is not None:
-            await self._device.async_set_volume_raw(self._zone.id, raw)
-        if media_source.is_media_source_id(media_id):
-            item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
-            media_id = item.url
-        await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
+        if self._device.heos is None:
+            # Nothing would play: say so before switching anything.
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="heos_unavailable",
+                translation_placeholders={"model": self._model},
+            )
+        try:
+            await self._ensure_on()
+            raw = self._announce_volume(extra)
+            if raw is not None:
+                await self._device.async_set_volume_raw(self._zone.id, raw)
+            if self._zone_state.muted:
+                # A muted zone would swallow it; the restore mutes it again.
+                await self._device.async_set_mute(self._zone.id, False)
+            if media_source.is_media_source_id(media_id):
+                item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
+                media_id = item.url
+            await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
+        except BaseException:
+            # It did not start: put the zone back now instead of after it.
+            snapshot, self._announce_snapshot = self._announce_snapshot, None
+            if snapshot is not None:
+                with suppress(CommandNotSent):
+                    await self._device.async_restore(self._zone.id, snapshot)
+            raise
         self._announce_task = self.hass.async_create_background_task(
             self._async_restore_after_announcement(was_playing),
             f"{DOMAIN} restore after announcement",
@@ -1195,7 +1228,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     async def _until(self, condition: Callable[[str | None], bool]) -> None:
         while not condition(self._heos_state()):
-            await asyncio.sleep(0.25)
+            await asyncio.sleep(ANNOUNCE_POLL)
 
     async def _async_restore_after_announcement(self, was_playing: bool) -> None:
         """Wait for the announcement to start and to end, then restore. Never raises."""
@@ -1235,17 +1268,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         A receiver in standby ignores a quick select, a source or a preset.
         """
 
-        if self._zone_state.power is not False:
-            return
-        await self._device.async_set_power(self._zone.id, True)
-        try:
-            async with asyncio.timeout(TURN_ON_WAIT):
-                while not self._zone_state.power:
-                    await asyncio.sleep(0.25)
-        except TimeoutError:
-            _LOGGER.debug("Zone %s did not report on; playing anyway", self._zone.id)
-            return
-        await asyncio.sleep(TURN_ON_SETTLE)
+        await _volume.async_zone_on(
+            self._device, self._zone.id, self._entry_options, TURN_ON_WAIT, TURN_ON_SETTLE
+        )
 
     # Zones as a group: a zone joins the main zone by playing its source ----
 

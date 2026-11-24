@@ -141,8 +141,11 @@ class HeosClient:
         # The receiver's last answer to each command this client sent (result,
         # and eid and text on a failure), for the diagnostics.
         self.command_results: dict[str, dict[str, str]] = {}
-        # Requests waiting for their answer, per command, oldest first.
+        # Requests waiting for their answer, per command, oldest first, and by
+        # their SEQUENCE number (the CLI repeats it in the answer).
         self._pending: dict[str, deque[asyncio.Future[dict[str, Any]]]] = {}
+        self._by_sequence: dict[str, asyncio.Future[dict[str, Any]]] = {}
+        self._sequence = 0
         # Names of the HEOS favorites (play_preset numbers from 1), empty while
         # the HEOS system is not signed in.
         self.favorites: list[str] = []
@@ -315,7 +318,7 @@ class HeosClient:
 
         try:
             names = {item.sid: item.name for item in await self.async_music_sources()}
-        except (ConnectionError, TimeoutError, HeosCommandError) as err:
+        except Exception as err:  # noqa: BLE001 - a background task; an odd answer too
             _LOGGER.debug("HEOS music sources of %s not read: %s", self._host, err)
         else:
             if names != self._source_names:
@@ -329,7 +332,7 @@ class HeosClient:
             else:
                 items, _ = await self.async_browse(FAVORITES_SID)
                 favorites = [item.name for item in items]
-        except (ConnectionError, TimeoutError, HeosCommandError) as err:
+        except Exception as err:  # noqa: BLE001 - a background task; an odd answer too
             _LOGGER.debug("HEOS favorites of %s not read: %s", self._host, err)
             return
         if favorites != self.favorites:
@@ -353,12 +356,19 @@ class HeosClient:
         future: asyncio.Future[dict[str, Any]] = asyncio.get_running_loop().create_future()
         waiting = self._pending.setdefault(command, deque())
         waiting.append(future)
-        await self._queue.put(f"heos://{command}" + (f"?{query}" if query else ""))
+        self._sequence += 1
+        sequence = str(self._sequence)
+        self._by_sequence[sequence] = future
+        # The SEQUENCE comes back in the answer, so a late answer to a request
+        # that timed out never reaches the next one (as pyheos matches them).
+        query = f"SEQUENCE={sequence}" + (f"&{query}" if query else "")
+        await self._queue.put(f"heos://{command}?{query}")
         try:
             message = await asyncio.wait_for(future, REQUEST_TIMEOUT)
         finally:
             if future in waiting:
                 waiting.remove(future)
+            self._by_sequence.pop(sequence, None)
         heos = message.get("heos", {})
         if heos.get("result") == "fail":
             attrs = _parse_message(heos.get("message", ""))
@@ -368,14 +378,29 @@ class HeosClient:
     def _answer(self, command: str, heos: dict[str, Any], message: dict[str, Any]) -> None:
         """Hand an answer to the oldest request waiting for it."""
 
-        waiting = self._pending.get(command)
-        if not waiting or "command under process" in str(heos.get("message", "")):
+        text = str(heos.get("message", ""))
+        if "command under process" in text:
             return
-        future = waiting.popleft()
+        sequence = _parse_message(text).get("SEQUENCE")
+        if sequence is not None:
+            # An answer that names its request goes to that one only, or to
+            # none when it has given up waiting.
+            future = self._by_sequence.pop(sequence, None)
+            if future is None:
+                return
+            waiting = self._pending.get(command)
+            if waiting and future in waiting:
+                waiting.remove(future)
+        else:
+            waiting = self._pending.get(command)
+            if not waiting:
+                return
+            future = waiting.popleft()
         if not future.done():
             future.set_result(message)
 
     def _fail_pending(self) -> None:
+        self._by_sequence.clear()
         for waiting in self._pending.values():
             while waiting:
                 future = waiting.popleft()

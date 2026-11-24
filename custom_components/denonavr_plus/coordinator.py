@@ -153,6 +153,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
 
         await self.device.async_stop()
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id)
+        # A playback error is about the session that ends here.
+        ir.async_delete_issue(self.hass, DOMAIN, self._playback_issue_id)
         self.capabilities.async_delete_check_issue()
         await super().async_shutdown()
 
@@ -205,7 +207,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         if error == self._playback_error:
             return
         self._playback_error = error
-        issue_id = f"heos_playback_error_{self.config_entry.entry_id}"
+        issue_id = self._playback_issue_id
         if error is None:
             ir.async_delete_issue(self.hass, DOMAIN, issue_id)
             return
@@ -221,6 +223,11 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
                 "error": error,
             },
         )
+
+    @property
+    def _playback_issue_id(self) -> str:
+        assert self.config_entry is not None
+        return f"heos_playback_error_{self.config_entry.entry_id}"
 
     @property
     def _issue_id(self) -> str:

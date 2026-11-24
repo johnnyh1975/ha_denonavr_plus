@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
+from collections import deque
 from collections.abc import Callable
 from typing import Any
 from unittest.mock import patch
@@ -199,6 +201,11 @@ def test_the_outcome_of_a_command_is_kept_without_the_url() -> None:
     }
 
 
+def _plain(commands: list[str]) -> list[str]:
+    """The commands without their SEQUENCE number."""
+    return [re.sub(r"SEQUENCE=\d+&?", "", command).rstrip("?") for command in commands]
+
+
 class _HeosServer:
     """A HEOS stand-in on localhost that records commands and connections."""
 
@@ -236,7 +243,15 @@ class _HeosServer:
                 scripted = self.replies(name, command) if self.replies else None
                 if scripted is None:
                     scripted = [{"heos": {"command": name, "result": "success", "message": ""}}]
+                sequence = re.search(r"SEQUENCE=(\d+)", command)
                 for reply in scripted:
+                    if sequence and "command under process" not in reply["heos"]["message"]:
+                        # The CLI repeats the SEQUENCE of a request in its answer.
+                        message = reply["heos"]["message"]
+                        reply = {**reply, "heos": {**reply["heos"], "message": (
+                            f"{message}&SEQUENCE={sequence.group(1)}" if message
+                            else f"SEQUENCE={sequence.group(1)}"
+                        )}}
                     writer.write(json.dumps(reply).encode() + b"\r\n")
                 await writer.drain()
         except ConnectionError:
@@ -357,6 +372,11 @@ def _browse_replies(name: str, command: str) -> list[dict] | None:
 
 
 @pytest.mark.usefixtures("socket_enabled")
+@pytest.mark.assumed(
+    "browse/get_music_sources, browse/browse with range, play_preset, play_stream "
+    "with sid/mid/name, add_to_queue with aid and check_account follow the HEOS CLI "
+    "specification; not yet sent to an AVR-X2600H"
+)
 async def test_browse_asks_and_waits_for_the_answer() -> None:
     """Sources, a page past an interim answer, favorites once signed in, a failure."""
     server = _HeosServer(answer_heartbeat=True, replies=_browse_replies)
@@ -377,12 +397,12 @@ async def test_browse_asks_and_waits_for_the_answer() -> None:
         ]
         items, total = await client.async_browse(4, "Albums&More", 50)
         assert (items[0].name, items[0].mid, total) == ("Track", "m1", 120)
-        assert "heos://browse/browse?sid=4&cid=Albums%26More&range=50,99" in server.received
+        assert "heos://browse/browse?sid=4&cid=Albums%26More&range=50,99" in _plain(server.received)
 
         await client.async_play_preset(2)
         await client.async_play_station(3, "CID-1", "s=1", "Q & A")
         await client.async_add_to_queue(4, "Albums&More", heos.PLAY_NEXT, mid="m1")
-        assert server.received[-3:] == [
+        assert _plain(server.received[-3:]) == [
             "heos://browse/play_preset?pid=202&preset=2",
             "heos://browse/play_stream?pid=202&sid=3&cid=CID-1&mid=s%3D1&name=Q %26 A",
             "heos://browse/add_to_queue?pid=202&sid=4&cid=Albums%26More&mid=m1&aid=2",
@@ -444,6 +464,10 @@ def test_a_sources_change_reads_the_favorites_again() -> None:
     assert schedule.call_count == 2
 
 
+@pytest.mark.assumed(
+    "the error attribute of event/player_playback_error follows Music Assistant's "
+    "HEOS provider; a recorded event would settle it"
+)
 def test_a_playback_error_is_kept_for_the_diagnostics() -> None:
     client, _ = _client()
     _feed(client, "player/get_players", payload=[RECEIVER])
@@ -456,6 +480,11 @@ def test_a_playback_error_is_kept_for_the_diagnostics() -> None:
 
 
 
+@pytest.mark.assumed(
+    "sid, station and qid in get_now_playing_media and the 'Url Stream' title follow "
+    "the HEOS CLI specification and Music Assistant; a recording from an AVR-X2600H "
+    "would settle them"
+)
 def test_service_station_and_queue_place_of_what_plays() -> None:
     """The music source by name, the station of a radio, no "Url Stream" as a title."""
     client, updates = _client()
@@ -484,6 +513,10 @@ def test_a_playback_error_lasts_until_something_plays() -> None:
 
 
 @pytest.mark.usefixtures("socket_enabled")
+@pytest.mark.assumed(
+    "get_queue, play_queue, clear_queue, remove_from_queue and move_queue_item "
+    "(sqid/dqid) follow the HEOS CLI specification; not yet sent to an AVR-X2600H"
+)
 async def test_the_queue_commands() -> None:
     def replies(name: str, command: str) -> list[dict] | None:
         if name == "player/get_players":
@@ -512,7 +545,7 @@ async def test_the_queue_commands() -> None:
         await client.async_clear_queue()
         await client.async_remove_from_queue([2, 3])
         await client.async_move_queue_item([4], 1)
-        assert server.received[-4:] == [
+        assert _plain(server.received[-4:]) == [
             "heos://player/play_queue?pid=202&qid=1",
             "heos://player/clear_queue?pid=202",
             "heos://player/remove_from_queue?pid=202&qid=2,3",
@@ -521,3 +554,22 @@ async def test_the_queue_commands() -> None:
     finally:
         await client.async_stop()
         await server.stop()
+
+
+def test_a_late_answer_goes_to_its_own_request_only() -> None:
+    """A request that timed out must not hand its answer to the next one."""
+
+    async def scenario() -> None:
+        client, _ = _client()
+        loop = asyncio.get_running_loop()
+        current: asyncio.Future[dict[str, Any]] = loop.create_future()
+        client._pending["browse/browse"] = deque([current])
+        client._by_sequence["2"] = current
+        # The answer to request 1, which gave up waiting, arrives first.
+        _feed(client, "browse/browse", "sid=3&SEQUENCE=1", [{"name": "TuneIn item"}])
+        assert not current.done()
+        _feed(client, "browse/browse", "sid=1028&SEQUENCE=2", [{"name": "Favorite"}])
+        assert current.result()["payload"] == [{"name": "Favorite"}]
+
+    asyncio.run(scenario())
+

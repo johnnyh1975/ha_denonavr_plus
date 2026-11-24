@@ -589,7 +589,7 @@ class DenonAvrDevice:
     def transport_available(self) -> bool:
         """Whether play, pause and skip can reach the network player."""
 
-        return self.telnet_media or self._heos_enabled
+        return self.telnet_media or self.heos is not None
 
     def media_art_url(self) -> str | None:
         """The cover of what plays, on receivers without HEOS (changes with the track)."""

@@ -60,3 +60,38 @@ def test_the_example_dashboard_is_a_sections_view() -> None:
         if "entity" in card
     ]
     assert entities and all(".avr_x2600h" in entity for entity in entities)
+
+
+async def test_a_tv_that_drops_off_the_network_leaves_the_receiver_alone(
+    hass: HomeAssistant,
+) -> None:
+    """off -> unavailable is no "TV on", unavailable -> off no "TV off"; off -> on is."""
+    from homeassistant.setup import async_setup_component
+    from pytest_homeassistant_custom_component.common import async_mock_service
+
+    path = ROOT / "blueprints" / "automation" / "denonavr_plus" / "tv_on.yaml"
+    blueprint = models.Blueprint(
+        yaml.load_yaml(str(path)), expected_domain="automation", schema=BLUEPRINT_SCHEMA
+    )
+    config = models.BlueprintInputs(
+        blueprint, {"use_blueprint": {"path": path.name, "input": _INPUTS["tv_on.yaml"]}}
+    ).async_substitute()
+    config["id"] = "tv_on"
+    select = async_mock_service(hass, "media_player", "select_source")
+    turn_off = async_mock_service(hass, "media_player", "turn_off")
+    hass.states.async_set("media_player.tv", "off")
+    hass.states.async_set("media_player.avr_x2600h", "on", {"source": "TV AUDIO"})
+    assert await async_setup_component(hass, "automation", {"automation": [config]})
+    await hass.async_block_till_done()
+
+    for state in ("unavailable", "off"):
+        hass.states.async_set("media_player.tv", state)
+        await hass.async_block_till_done()
+    assert select == [] and turn_off == []
+
+    hass.states.async_set("media_player.tv", "on")
+    await hass.async_block_till_done()
+    assert len(select) == 1
+    hass.states.async_set("media_player.tv", "off")
+    await hass.async_block_till_done()
+    assert len(turn_off) == 1

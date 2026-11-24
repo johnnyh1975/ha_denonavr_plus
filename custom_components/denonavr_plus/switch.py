@@ -17,12 +17,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import choices
+from . import choices, volume
 from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device
+from .media_player import TURN_ON_SETTLE, TURN_ON_WAIT
 
 
 # Some switches write the setup interface, which takes one write at a time.
@@ -82,8 +83,13 @@ class DenonAvrMusicSwitch(DenonAvrEntity, SwitchEntity):
     @receiver_action
     async def async_turn_on(self, **kwargs: Any) -> None:
         device = self.coordinator.device
-        if not device.state.zone(self._zone.id).power:
-            await device.async_set_power(self._zone.id, True)
+        await volume.async_zone_on(
+            device,
+            self._zone.id,
+            dict(entry.options) if (entry := self.coordinator.config_entry) else {},
+            TURN_ON_WAIT,
+            TURN_ON_SETTLE,
+        )
         source = device.network_source
         if source and device.zone_source(self._zone.id) != source:
             await device.async_select_source(self._zone.id, source)

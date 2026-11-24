@@ -199,6 +199,11 @@ def _child(item: HeosItem, sid: int, parent: str | None, index: int) -> BrowseMe
         # Favorites play by their position (play_preset), counted from 1.
         content_id = _id(_FAVORITE, index + 1)
         return _item(content_id, item, MediaClass.CHANNEL, can_play=True, can_expand=False)
+    if not item.cid and not item.mid and item.sid != sid:
+        # A source within a source: a media server or USB stick under Local
+        # Music, an input device under AUX inputs. HEOS lists it with its own
+        # sid and no cid (CLI spec 4.4.3); it opens by that sid.
+        return _item(_id(_PAGE, item.sid, "", 0, item.name), item, MediaClass.DIRECTORY, False, True)
     if item.container:
         if item.playable:
             return _expandable_playable(item, sid, media_class)

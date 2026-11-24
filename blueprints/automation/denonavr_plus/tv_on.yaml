@@ -42,13 +42,21 @@ blueprint:
           unit_of_measurement: "%"
 mode: restart
 trigger:
+  # A TV that drops off the network (unavailable) neither turns the receiver
+  # on nor off.
   - trigger: state
     entity_id: !input tv
     from: "off"
+    not_to:
+      - unavailable
+      - unknown
     id: "on"
   - trigger: state
     entity_id: !input tv
     to: "off"
+    not_from:
+      - unavailable
+      - unknown
     id: "off"
 variables:
   source: !input source

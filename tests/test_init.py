@@ -89,7 +89,8 @@ class FakeHeos:
         self.host = host
         self.on_update = on_update
         self.calls: list[tuple[str, Any]] = []
-        self.connected = False
+        # A HEOS receiver whose HEOS link is up; tests of a missing link set False.
+        self.connected = True
         self.command_results: dict[str, dict[str, str]] = {}
         self.favorites: list[str] = []
         FakeHeos.instances.append(self)

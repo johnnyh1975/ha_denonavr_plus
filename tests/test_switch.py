@@ -62,7 +62,11 @@ async def test_the_music_switch_never_ends_a_film(
     await hass.async_block_till_done()
     assert hass.states.get(music).state == "off"
     telnet.sent.clear()
-    await hass.services.async_call("switch", "turn_on", {"entity_id": music}, blocking=True)
+    from unittest.mock import patch
+
+    # A zone that does not report on in time still gets the network input.
+    with patch("custom_components.denonavr_plus.switch.TURN_ON_WAIT", 0.05):
+        await hass.services.async_call("switch", "turn_on", {"entity_id": music}, blocking=True)
     assert telnet.sent == ["ZMON", "SINET"]
 
     telnet.push("ZMON", "SINET")
@@ -85,3 +89,35 @@ async def test_the_music_switch_never_ends_a_film(
     await hass.async_block_till_done()
     await hass.services.async_call("switch", "turn_off", {"entity_id": music}, blocking=True)
     assert telnet.sent == ["ZMOFF"]
+
+
+async def test_the_music_switch_turns_on_at_the_turn_on_volume(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+    from unittest.mock import patch
+
+    from custom_components.denonavr_plus import volume
+
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"main": {volume.OPT_TURN_ON_VOLUME: -30.0}}
+    )
+    await hass.async_block_till_done()
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMOFF")
+    await asyncio.sleep(0.15)
+    music = entity_id(hass, loaded_entry, "switch_music_main")
+    telnet.sent.clear()
+
+    async def answer() -> None:
+        while "ZMON" not in telnet.sent:
+            await asyncio.sleep(0.01)
+        telnet.push("ZMON")
+
+    task = asyncio.create_task(answer())
+    with patch("custom_components.denonavr_plus.switch.TURN_ON_SETTLE", 0):
+        await asyncio.wait_for(
+            hass.services.async_call("switch", "turn_on", {"entity_id": music}, blocking=True), 5
+        )
+    await task
+    assert telnet.sent == ["ZMON", "MV50", "SINET"]

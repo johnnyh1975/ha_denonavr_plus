@@ -62,7 +62,9 @@ def _heos() -> _Heos:
             (1028, None, 0): ([HeosItem("Bayern 3", 1028, mid="s1", type="station", playable=True)], 1),
             (1024, None, 0): (
                 [
-                    HeosItem("Server", 1024, cid="srv/1", container=True, type="container"),
+                    # A media server: its own sid and no cid, as HEOS lists it (CLI spec 4.4.3).
+                    HeosItem("Server", 123456789, type="heos_server"),
+                    HeosItem("Folders", 1024, cid="srv/1", container=True, type="container"),
                     HeosItem("Album / Live", 1024, cid="a&1", container=True, playable=True, type="album"),
                     HeosItem("Radio", 1024, mid="r1", type="station", playable=True),
                 ],
@@ -94,9 +96,10 @@ async def test_the_music_sources_and_their_pages() -> None:
     ]
 
     local = await heos_media.async_browse(heos, local_id, "HEOS", "More")  # type: ignore[arg-type]
-    server, album, radio, more = local.children or []
+    server, folders, album, radio, more = local.children or []
+    assert folders.media_content_id == "heos/1024/srv%2F1/0/Folders" and folders.can_expand
     assert (server.can_expand, server.can_play) == (True, False)
-    assert server.media_content_id.startswith("heos/1024/srv%2F1/0/")
+    assert server.media_content_id == "heos/123456789//0/Server"
     assert (album.can_expand, album.can_play) == (True, True)
     assert album.media_content_id == "heos_container/1024/a%261/Album%20%2F%20Live"
     assert radio.media_content_id == "heos_station/1024//r1/Radio"

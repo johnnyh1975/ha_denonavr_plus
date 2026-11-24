@@ -1038,6 +1038,9 @@
     },
     "unknown_favorite": {
       "message": "{favorite} não é um favorito HEOS deste recetor."
+    },
+    "heos_main_zone": {
+      "message": "O {model} reproduz a música HEOS e a sua fila na zona principal; use o leitor da zona principal."
     }
   },
   "issues": {

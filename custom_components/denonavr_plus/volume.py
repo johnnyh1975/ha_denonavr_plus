@@ -19,10 +19,14 @@ announcements.
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from dataclasses import dataclass
 from typing import Any
 
 from .avr import DenonAvrDevice
+
+_LOGGER = logging.getLogger(__name__)
 
 OPT_OFFICIAL_SCALE = "official_volume_scale"
 OPT_MAX_VOLUME = "max_volume"
@@ -112,3 +116,35 @@ def clamp_raw(
     step = device.volume_step or 0.5
     raw = round(raw / step) * step
     return max(0.0, min(raw, ceiling_raw(device, zone_id, options)))
+
+
+async def async_zone_on(
+    device: DenonAvrDevice,
+    zone_id: str,
+    options: dict[str, Any],
+    wait: float,
+    settle: float,
+) -> None:
+    """Turn a zone in standby on, wait until it reports so, set the turn-on volume.
+
+    For everything that switches a zone on on the way (a source, play_media,
+    a group, the Music switch), so the turn-on volume applies there too. A
+    zone that does not report on within `wait` gets the commands anyway.
+    """
+
+    zone = device.state.zone(zone_id)
+    if zone.power is not False:
+        return
+    await device.async_set_power(zone_id, True)
+    try:
+        async with asyncio.timeout(wait):
+            while not zone.power:
+                await asyncio.sleep(0.25)
+    except TimeoutError:
+        _LOGGER.debug("Zone %s did not report on; going on anyway", zone_id)
+        return
+    await asyncio.sleep(settle)
+    turn_on_db = zone_options(options, zone_id).turn_on_db
+    if turn_on_db is not None:
+        raw = clamp_raw(device, zone_id, device.volume_reference + turn_on_db, options)
+        await device.async_set_volume_raw(zone_id, raw)

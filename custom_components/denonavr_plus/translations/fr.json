@@ -1038,6 +1038,9 @@
     },
     "unknown_favorite": {
       "message": "{favorite} n'est pas un favori HEOS de cet ampli-tuner."
+    },
+    "heos_main_zone": {
+      "message": "Le {model} lit la musique HEOS et sa file d'attente dans la zone principale ; utilisez le lecteur de la zone principale."
     }
   },
   "issues": {

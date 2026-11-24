@@ -388,3 +388,19 @@ async def test_a_heos_playback_error_is_a_repair_until_something_plays(
     await asyncio.sleep(0.15)
     await hass.async_block_till_done()
     assert registry.async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_unloading_clears_the_playback_error_repair(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A playback error belongs to the session: a reload must not leave it standing."""
+    heos = FakeHeos.instances[-1]
+    issue_id = f"heos_playback_error_{loaded_entry.entry_id}"
+    registry = ir.async_get(hass)
+    heos.on_update({"state": "stop", "error": "Could not download"})
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert registry.async_get_issue(DOMAIN, issue_id) is not None
+    await hass.config_entries.async_unload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert registry.async_get_issue(DOMAIN, issue_id) is None

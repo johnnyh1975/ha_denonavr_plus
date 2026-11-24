@@ -117,7 +117,10 @@ async def test_official_scale_sets_db_plus_80_over_100(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
-        "media_player", "volume_set", {"entity_id": main, "volume_level": 0.4}, blocking=True
+        "media_player",
+        "volume_set",
+        {"entity_id": main, "volume_level": 0.4},
+        blocking=True,
     )
     # 0.4 is -40 dB on the official scale: raw 40.
     assert "MV40" in telnet.sent
@@ -133,7 +136,9 @@ async def test_volume_up_stops_at_the_zone_limit(
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
-    await hass.services.async_call("media_player", "volume_up", {"entity_id": main}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "volume_up", {"entity_id": main}, blocking=True
+    )
     assert telnet.sent == ["MV50"]
     assert "MVUP" not in telnet.sent
 
@@ -149,7 +154,9 @@ async def test_turn_on_applies_the_turn_on_volume(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     with patch("custom_components.denonavr_plus.media_player.TURN_ON_SETTLE", 0):
-        await hass.services.async_call("media_player", "turn_on", {"entity_id": main}, blocking=True)
+        await hass.services.async_call(
+            "media_player", "turn_on", {"entity_id": main}, blocking=True
+        )
         # Nothing before the zone reports that it is on.
         assert "MV45" not in telnet.sent
         await _push(hass, "ZMON")
@@ -179,7 +186,10 @@ async def test_sources_follow_the_selection_and_names(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
-        "media_player", "select_source", {"entity_id": main, "source": "Player"}, blocking=True
+        "media_player",
+        "select_source",
+        {"entity_id": main, "source": "Player"},
+        blocking=True,
     )
     assert "SIDVD" in telnet.sent
 
@@ -199,8 +209,10 @@ async def test_a_renamed_sound_mode_is_sent_under_the_receiver_name(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
-        "media_player", "select_sound_mode",
-        {"entity_id": main, "sound_mode": "Two channels"}, blocking=True,
+        "media_player",
+        "select_sound_mode",
+        {"entity_id": main, "sound_mode": "Two channels"},
+        blocking=True,
     )
     assert "MSSTEREO" in telnet.sent
 
@@ -287,8 +299,10 @@ async def test_an_avr_x2000_offers_the_sound_modes_it_lists(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
-        "media_player", "select_sound_mode",
-        {"entity_id": main, "sound_mode": "MULTI CH STEREO"}, blocking=True,
+        "media_player",
+        "select_sound_mode",
+        {"entity_id": main, "sound_mode": "MULTI CH STEREO"},
+        blocking=True,
     )
     assert "MSMCH STEREO" in telnet.sent
 
@@ -328,10 +342,16 @@ async def test_position_repeat_and_shuffle_come_from_heos(
     features = MediaPlayerEntityFeature(state.attributes["supported_features"])
     assert features & MediaPlayerEntityFeature.REPEAT_SET
     await hass.services.async_call(
-        "media_player", "repeat_set", {"entity_id": main, "repeat": "all"}, blocking=True
+        "media_player",
+        "repeat_set",
+        {"entity_id": main, "repeat": "all"},
+        blocking=True,
     )
     await hass.services.async_call(
-        "media_player", "shuffle_set", {"entity_id": main, "shuffle": False}, blocking=True
+        "media_player",
+        "shuffle_set",
+        {"entity_id": main, "shuffle": False},
+        blocking=True,
     )
     assert heos_client.calls == [("repeat", "on_all"), ("shuffle", False)]
 
@@ -384,14 +404,20 @@ async def test_the_browser_offers_sources_and_home_assistant_media(
     assert any(content_id.startswith("media-source://") for content_id in ids)
     sources = await entity.async_browse_media(None, "sources")
     assert isinstance(sources, BrowseMedia)
-    assert any(child.media_content_id == "source/CD" for child in sources.children or [])
+    assert any(
+        child.media_content_id == "source/CD" for child in sources.children or []
+    )
 
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
         "media_player",
         "play_media",
-        {"entity_id": main, "media_content_type": "channel", "media_content_id": "source/CD"},
+        {
+            "entity_id": main,
+            "media_content_type": "channel",
+            "media_content_id": "source/CD",
+        },
         blocking=True,
     )
     assert "SICD" in telnet.sent
@@ -447,14 +473,20 @@ async def test_quick_selects_and_home_assistant_media_play(
         "custom_components.denonavr_plus.media_player.media_source.async_browse_media",
         AsyncMock(return_value=stub),
     ):
-        assert (await entity.async_browse_media(None, "media-source://media_source")) is stub
+        assert (
+            await entity.async_browse_media(None, "media-source://media_source")
+        ) is stub
 
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
         "media_player",
         "play_media",
-        {"entity_id": main, "media_content_type": "music", "media_content_id": "quick_select/2"},
+        {
+            "entity_id": main,
+            "media_content_type": "music",
+            "media_content_id": "quick_select/2",
+        },
         blocking=True,
     )
     assert "MSQUICK2" in telnet.sent
@@ -462,7 +494,11 @@ async def test_quick_selects_and_home_assistant_media_play(
     # Home Assistant's media (a TTS message, say) resolves to a URL for HEOS.
     with patch(
         "custom_components.denonavr_plus.media_player.media_source.async_resolve_media",
-        AsyncMock(return_value=SimpleNamespace(url="http://192.0.2.1:8123/api/tts_proxy/x.mp3")),
+        AsyncMock(
+            return_value=SimpleNamespace(
+                url="http://192.0.2.1:8123/api/tts_proxy/x.mp3"
+            )
+        ),
     ):
         await hass.services.async_call(
             "media_player",
@@ -474,7 +510,9 @@ async def test_quick_selects_and_home_assistant_media_play(
             },
             blocking=True,
         )
-    assert ("url", "http://192.0.2.1:8123/api/tts_proxy/x.mp3") in FakeHeos.instances[-1].calls
+    assert ("url", "http://192.0.2.1:8123/api/tts_proxy/x.mp3") in FakeHeos.instances[
+        -1
+    ].calls
 
 
 def _player(hass: HomeAssistant, entity: str) -> Any:
@@ -545,7 +583,9 @@ async def test_zone_2_shows_what_the_main_zone_plays(
     features = MediaPlayerEntityFeature(state.attributes["supported_features"])
     assert features & MediaPlayerEntityFeature.PAUSE
     assert features & MediaPlayerEntityFeature.REPEAT_SET
-    await hass.services.async_call("media_player", "media_pause", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "media_pause", {"entity_id": zone2}, blocking=True
+    )
     assert ("pause", None) in FakeHeos.instances[-1].calls
 
 
@@ -597,7 +637,11 @@ async def test_the_browser_recalls_a_tuner_preset(
     await hass.services.async_call(
         "media_player",
         "play_media",
-        {"entity_id": main, "media_content_type": "channel", "media_content_id": "tuner_preset/05"},
+        {
+            "entity_id": main,
+            "media_content_type": "channel",
+            "media_content_id": "tuner_preset/05",
+        },
         blocking=True,
     )
     assert telnet.sent == ["TPAN05"]
@@ -605,11 +649,19 @@ async def test_the_browser_recalls_a_tuner_preset(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": main, "media_content_type": "channel", "media_content_id": "tuner_preset/99"},
+            {
+                "entity_id": main,
+                "media_content_type": "channel",
+                "media_content_id": "tuner_preset/99",
+            },
             blocking=True,
         )
 
 
+@pytest.mark.assumed(
+    "Z2SOURCE (zone 2 follows the main zone) is in the X-series documents and "
+    "answered nowhere yet; a join on an AVR-X2600H would settle it"
+)
 async def test_zone_2_joins_the_main_zone_as_a_group(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -631,10 +683,15 @@ async def test_zone_2_joins_the_main_zone_as_a_group(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     # A zone that follows nothing has nothing to leave.
-    await hass.services.async_call("media_player", "unjoin", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "unjoin", {"entity_id": zone2}, blocking=True
+    )
     assert telnet.sent == []
     await hass.services.async_call(
-        "media_player", "join", {"entity_id": main, "group_members": [main, zone2]}, blocking=True
+        "media_player",
+        "join",
+        {"entity_id": main, "group_members": [main, zone2]},
+        blocking=True,
     )
     assert telnet.sent == ["Z2SOURCE"]
     await _push(hass, "Z2SOURCE")
@@ -642,17 +699,24 @@ async def test_zone_2_joins_the_main_zone_as_a_group(
         assert hass.states.get(player).attributes["group_members"] == [main, zone2]
 
     telnet.sent.clear()
-    await hass.services.async_call("media_player", "unjoin", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "unjoin", {"entity_id": zone2}, blocking=True
+    )
     assert telnet.sent == ["Z2DVD"]
     await _push(hass, "Z2SOURCE")
     telnet.sent.clear()
-    await hass.services.async_call("media_player", "unjoin", {"entity_id": main}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "unjoin", {"entity_id": main}, blocking=True
+    )
     assert telnet.sent == ["Z2DVD"]
 
     # Only the main zone leads, and only the receiver's own zones join.
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            "media_player", "join", {"entity_id": zone2, "group_members": [main]}, blocking=True
+            "media_player",
+            "join",
+            {"entity_id": zone2, "group_members": [main]},
+            blocking=True,
         )
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
@@ -671,10 +735,14 @@ async def test_transport_only_while_the_network_plays(
 
     main = entity_id(hass, loaded_entry, "media_player_main")
     await _push(hass, "PWON", "ZMON", "SIDVD")
-    features = MediaPlayerEntityFeature(hass.states.get(main).attributes["supported_features"])
+    features = MediaPlayerEntityFeature(
+        hass.states.get(main).attributes["supported_features"]
+    )
     assert not features & MediaPlayerEntityFeature.PAUSE
     await _push(hass, "SINET")
-    features = MediaPlayerEntityFeature(hass.states.get(main).attributes["supported_features"])
+    features = MediaPlayerEntityFeature(
+        hass.states.get(main).attributes["supported_features"]
+    )
     assert features & MediaPlayerEntityFeature.PAUSE
 
 
@@ -698,7 +766,11 @@ async def test_play_media_turns_the_zone_on_first(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": main, "media_content_type": "channel", "media_content_id": "source/CD"},
+            {
+                "entity_id": main,
+                "media_content_type": "channel",
+                "media_content_id": "source/CD",
+            },
             blocking=True,
         )
     await task
@@ -711,7 +783,11 @@ async def test_play_media_turns_the_zone_on_first(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": main, "media_content_type": "channel", "media_content_id": "source/CD"},
+            {
+                "entity_id": main,
+                "media_content_type": "channel",
+                "media_content_id": "source/CD",
+            },
             blocking=True,
         )
     assert telnet.sent == ["ZMON", "SICD"]
@@ -768,7 +844,10 @@ async def test_zone_2_browses_and_plays_its_own_items(
     assert ids[:2] == ["quick_select", "sources"]
     assert not any(content_id.startswith("media-source://") for content_id in ids)
     folder = await player.async_browse_media(None, "quick_select")
-    assert [child.title for child in folder.children or []] == ["Quick Select 1", "Quick Select 2"]
+    assert [child.title for child in folder.children or []] == [
+        "Quick Select 1",
+        "Quick Select 2",
+    ]
 
     telnet = FakeTelnet.instances[-1]
     telnet.connected = True
@@ -776,7 +855,11 @@ async def test_zone_2_browses_and_plays_its_own_items(
     await hass.services.async_call(
         "media_player",
         "play_media",
-        {"entity_id": zone2, "media_content_type": "playlist", "media_content_id": "quick_select/2"},
+        {
+            "entity_id": zone2,
+            "media_content_type": "playlist",
+            "media_content_id": "quick_select/2",
+        },
         blocking=True,
     )
     assert telnet.sent == ["Z2QUICK2"]
@@ -784,7 +867,11 @@ async def test_zone_2_browses_and_plays_its_own_items(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": zone2, "media_content_type": "playlist", "media_content_id": "quick_select/9"},
+            {
+                "entity_id": zone2,
+                "media_content_type": "playlist",
+                "media_content_id": "quick_select/9",
+            },
             blocking=True,
         )
 
@@ -799,7 +886,11 @@ async def test_a_url_plays_on_the_main_zone_only(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": zone2, "media_content_type": "music", "media_content_id": "http://example.com/a.mp3"},
+            {
+                "entity_id": zone2,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/a.mp3",
+            },
             blocking=True,
         )
     assert err.value.translation_key == "play_url_main_zone"
@@ -810,7 +901,10 @@ async def test_volume_steps_by_the_zones_option(
 ) -> None:
     hass.config_entries.async_update_entry(
         loaded_entry,
-        options={"main": {volume.OPT_VOLUME_STEP: 2.0}, "zone2": {volume.OPT_VOLUME_STEP: 1.0}},
+        options={
+            "main": {volume.OPT_VOLUME_STEP: 2.0},
+            "zone2": {volume.OPT_VOLUME_STEP: 1.0},
+        },
     )
     await hass.async_block_till_done()
     await _push(hass, "PWON", "ZMON", "MV50", "Z2ON", "Z240")
@@ -818,9 +912,15 @@ async def test_volume_steps_by_the_zones_option(
     telnet.sent.clear()
     main = entity_id(hass, loaded_entry, "media_player_main")
     zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
-    await hass.services.async_call("media_player", "volume_up", {"entity_id": main}, blocking=True)
-    await hass.services.async_call("media_player", "volume_down", {"entity_id": main}, blocking=True)
-    await hass.services.async_call("media_player", "volume_down", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "volume_up", {"entity_id": main}, blocking=True
+    )
+    await hass.services.async_call(
+        "media_player", "volume_down", {"entity_id": main}, blocking=True
+    )
+    await hass.services.async_call(
+        "media_player", "volume_down", {"entity_id": zone2}, blocking=True
+    )
     assert telnet.sent == ["MV52", "MV48", "Z239"]
 
 
@@ -833,7 +933,10 @@ async def test_choosing_a_source_turns_the_zone_on_first(
     telnet.sent.clear()
     with patch("custom_components.denonavr_plus.media_player.TURN_ON_WAIT", 0.05):
         await hass.services.async_call(
-            "media_player", "select_source", {"entity_id": main, "source": "CD"}, blocking=True
+            "media_player",
+            "select_source",
+            {"entity_id": main, "source": "CD"},
+            blocking=True,
         )
     assert telnet.sent[0] == "ZMON" and telnet.sent[-1] == "SICD"
 
@@ -855,7 +958,10 @@ async def test_quick_selects_sit_in_the_source_menu(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
-        "media_player", "select_source", {"entity_id": main, "source": "Radio"}, blocking=True
+        "media_player",
+        "select_source",
+        {"entity_id": main, "source": "Radio"},
+        blocking=True,
     )
     assert telnet.sent == ["MSQUICK3"]
 
@@ -863,15 +969,23 @@ async def test_quick_selects_sit_in_the_source_menu(
 async def test_an_input_shows_its_signal_below(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    await _push(hass, "PWON", "ZMON", "SIDVD", "SYSDA DOLBY TRUEHD   ", "SSINFAISFSV48K")
+    await _push(
+        hass, "PWON", "ZMON", "SIDVD", "SYSDA DOLBY TRUEHD   ", "SSINFAISFSV48K"
+    )
     main = entity_id(hass, loaded_entry, "media_player_main")
-    assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD · 48 kHz"
+    assert (
+        hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD · 48 kHz"
+    )
     await _push(hass, "SSINFAISFSVNON")
     assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD"
     await _push(hass, "SSINFAISFSV2.8M")
     assert hass.states.get(main).attributes["media_album_name"] == "DOLBY TRUEHD · 2.8M"
 
 
+@pytest.mark.assumed(
+    "PWSTANDBY puts the whole receiver in standby per the documents; not yet sent "
+    "from the option on a receiver"
+)
 async def test_main_off_can_put_the_whole_receiver_in_standby(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -879,16 +993,22 @@ async def test_main_off_can_put_the_whole_receiver_in_standby(
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
-    await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "turn_off", {"entity_id": main}, blocking=True
+    )
     assert telnet.sent == ["ZMOFF"]
 
-    hass.config_entries.async_update_entry(loaded_entry, options={"main_off_standby": True})
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"main_off_standby": True}
+    )
     await hass.async_block_till_done()
     await _push(hass, "PWON", "ZMON", "Z2ON")
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
-    await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "turn_off", {"entity_id": main}, blocking=True
+    )
     assert telnet.sent == ["PWSTANDBY"]
 
 
@@ -924,7 +1044,10 @@ async def test_heos_music_and_favorites_on_a_heos_receiver(
     assert [child.title for child in sources.children or []] == ["Favorites", "Queue"]
 
     await hass.services.async_call(
-        "media_player", "select_source", {"entity_id": main, "source": "Bayern 3"}, blocking=True
+        "media_player",
+        "select_source",
+        {"entity_id": main, "source": "Bayern 3"},
+        blocking=True,
     )
     await hass.services.async_call(
         "media_player",
@@ -937,7 +1060,10 @@ async def test_heos_music_and_favorites_on_a_heos_receiver(
         },
         blocking=True,
     )
-    assert heos.calls[-2:] == [("play_preset", 1), ("add_to_queue", (1024, "a&1", 2, None))]
+    assert heos.calls[-2:] == [
+        ("play_preset", 1),
+        ("add_to_queue", (1024, "a&1", 2, None)),
+    ]
 
     # Without the HEOS link there is nothing to browse or play from it.
     heos.connected = False
@@ -947,7 +1073,11 @@ async def test_heos_music_and_favorites_on_a_heos_receiver(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": main, "media_content_type": "music", "media_content_id": "heos_favorite/1"},
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "heos_favorite/1",
+            },
             blocking=True,
         )
 
@@ -968,6 +1098,13 @@ def _heos_state(state: str | None) -> dict[str, Any]:
     }
 
 
+async def _eventually(condition: Any, timeout: float = 3.0) -> None:
+    """Wait until a condition holds (fails the test after `timeout` seconds)."""
+    async with asyncio.timeout(timeout):
+        while not condition():
+            await asyncio.sleep(0.01)
+
+
 async def test_an_announcement_puts_the_zone_back(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -982,8 +1119,76 @@ async def test_an_announcement_puts_the_zone_back(
     heos = FakeHeos.instances[-1]
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
+
+    def restored() -> list[str]:
+        # The receiver's own queries may run in between (a resync after the input change).
+        return [c for c in telnet.sent if c[:2] in ("SI", "MV", "MU", "ZM", "PW")]
+
+    async def announce(extra: dict[str, Any] | None = None) -> None:
+        data = {
+            "entity_id": main,
+            "media_content_type": "music",
+            "media_content_id": "http://example.com/tts.mp3",
+            "announce": True,
+        }
+        if extra:
+            data["extra"] = extra
+        await hass.services.async_call(
+            "media_player", "play_media", data, blocking=True
+        )
+
     telnet.sent.clear()
-    with patch("custom_components.denonavr_plus.media_player.ANNOUNCE_STOP_GRACE", 0.3):
+    with (
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_POLL", 0.01),
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_STOP_GRACE", 0.5),
+    ):
+        await announce()
+        # Loud enough, and a muted zone is unmuted for it.
+        assert telnet.sent == ["MV70", "MUOFF"]
+        assert heos.calls[-1] == ("url", "http://example.com/tts.mp3")
+        await _push(hass, "SINET", "MV70", "MUOFF")
+        heos.on_update(_heos_state("play"))
+        # A second announcement while the first plays keeps the first snapshot.
+        await announce({"volume": 0.5})
+        # HEOS stops the first stream, then plays the second: a play before
+        # that stop is still the first one.
+        heos.on_update(_heos_state("stop"))
+        await asyncio.sleep(0.05)
+        heos.on_update(_heos_state("play"))
+        await asyncio.sleep(0.05)
+        telnet.sent.clear()
+        # A short stop while HEOS switches is no end.
+        heos.on_update(_heos_state("stop"))
+        await asyncio.sleep(0.05)
+        heos.on_update(_heos_state("play"))
+        await asyncio.sleep(0.6)
+        assert restored() == []
+        heos.on_update(_heos_state("stop"))
+        await _eventually(lambda: restored() == ["SITV", "MV50", "MUON"])
+
+
+async def test_an_announcement_that_does_not_start_puts_the_zone_back_at_once(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """HEOS refuses the URL: the zone is put back before the error is reported."""
+    from .test_init import FakeHeos
+
+    await _push(hass, "PWON", "ZMOFF", "SITV", "MV50")
+    heos = FakeHeos.instances[-1]
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+
+    async def answer() -> None:
+        await _eventually(lambda: "ZMON" in telnet.sent)
+        telnet.push("ZMON")
+
+    task = asyncio.create_task(answer())
+    with (
+        patch.object(heos, "async_play_url", AsyncMock(return_value=False)),
+        patch("custom_components.denonavr_plus.media_player.TURN_ON_SETTLE", 0),
+        pytest.raises(HomeAssistantError),
+    ):
         await hass.services.async_call(
             "media_player",
             "play_media",
@@ -995,46 +1200,25 @@ async def test_an_announcement_puts_the_zone_back(
             },
             blocking=True,
         )
-        assert telnet.sent == ["MV70"]
-        assert heos.calls[-1] == ("url", "http://example.com/tts.mp3")
-        # HEOS takes the receiver to its network input and plays.
-        await _push(hass, "SINET", "MV70", "MUOFF")
-        heos.on_update(_heos_state("play"))
-        await asyncio.sleep(0.4)
-        # A second announcement while the first plays keeps the first snapshot.
+    await task
+    assert telnet.sent[0] == "ZMON" and telnet.sent[-1] == "ZMOFF"
+
+    # Without a HEOS link nothing is switched at all.
+    heos.connected = False
+    telnet.sent.clear()
+    with pytest.raises(HomeAssistantError):
         await hass.services.async_call(
             "media_player",
             "play_media",
             {
                 "entity_id": main,
                 "media_content_type": "music",
-                "media_content_id": "http://example.com/tts2.mp3",
+                "media_content_id": "http://example.com/tts.mp3",
                 "announce": True,
-                "extra": {"volume": 0.5},
             },
             blocking=True,
         )
-        # HEOS stops the first stream, then plays the second: a play before
-        # that stop is still the first one.
-        await asyncio.sleep(0.3)
-        heos.on_update(_heos_state("stop"))
-        await asyncio.sleep(0.3)
-        heos.on_update(_heos_state("play"))
-        await asyncio.sleep(0.3)
-        telnet.sent.clear()
-        # A short stop while HEOS switches is no end.
-        heos.on_update(_heos_state("stop"))
-        await asyncio.sleep(0.1)
-        heos.on_update(_heos_state("play"))
-        await asyncio.sleep(0.4)
-        assert telnet.sent == []
-        heos.on_update(_heos_state("stop"))
-        await asyncio.sleep(0.8)
-        await hass.async_block_till_done()
-    # The receiver's own queries may run in between (a resync after the input change).
-    assert [c for c in telnet.sent if c[:2] in ("SI", "MV", "MU", "ZM", "PW")] == [
-        "SITV", "MV50", "MUON"
-    ]
+    assert telnet.sent == []
 
 
 async def test_snapshot_and_restore_actions(
@@ -1046,19 +1230,29 @@ async def test_snapshot_and_restore_actions(
 
     zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
     with pytest.raises(ServiceValidationError):
-        await hass.services.async_call(DOMAIN, "restore", {"entity_id": zone2}, blocking=True)
+        await hass.services.async_call(
+            DOMAIN, "restore", {"entity_id": zone2}, blocking=True
+        )
     await _push(hass, "PWON", "Z2OFF")
-    await hass.services.async_call(DOMAIN, "snapshot", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        DOMAIN, "snapshot", {"entity_id": zone2}, blocking=True
+    )
     await _push(hass, "Z2ON", "Z2CD", "Z240")
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
-    await hass.services.async_call(DOMAIN, "restore", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        DOMAIN, "restore", {"entity_id": zone2}, blocking=True
+    )
     assert telnet.sent == ["Z2OFF"]
 
-    await hass.services.async_call(DOMAIN, "snapshot", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        DOMAIN, "snapshot", {"entity_id": zone2}, blocking=True
+    )
     await _push(hass, "Z2OFF")
     telnet.sent.clear()
-    await hass.services.async_call(DOMAIN, "restore", {"entity_id": zone2}, blocking=True)
+    await hass.services.async_call(
+        DOMAIN, "restore", {"entity_id": zone2}, blocking=True
+    )
     assert telnet.sent == ["Z2ON"]
 
 
@@ -1070,7 +1264,9 @@ async def test_an_announcement_that_never_starts_still_puts_the_zone_back(
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
     device = loaded_entry.runtime_data.device
-    with patch("custom_components.denonavr_plus.media_player.ANNOUNCE_START_WAIT", 0.05):
+    with patch(
+        "custom_components.denonavr_plus.media_player.ANNOUNCE_START_WAIT", 0.05
+    ):
         telnet.sent.clear()
         await hass.services.async_call(
             "media_player",
@@ -1111,13 +1307,18 @@ async def test_an_announcement_that_never_starts_still_puts_the_zone_back(
 
     from custom_components.denonavr_plus.const import DOMAIN
 
-    await hass.services.async_call(DOMAIN, "snapshot", {"entity_id": main}, blocking=True)
+    await hass.services.async_call(
+        DOMAIN, "snapshot", {"entity_id": main}, blocking=True
+    )
     with (
-        patch.object(type(device), "async_restore", AsyncMock(side_effect=CommandNotSent("gone"))),
+        patch.object(
+            type(device), "async_restore", AsyncMock(side_effect=CommandNotSent("gone"))
+        ),
         pytest.raises(_Error),
     ):
-        await hass.services.async_call(DOMAIN, "restore", {"entity_id": main}, blocking=True)
-
+        await hass.services.async_call(
+            DOMAIN, "restore", {"entity_id": main}, blocking=True
+        )
 
 
 async def test_search_finds_by_name_for_voice(
@@ -1136,7 +1337,9 @@ async def test_search_finds_by_name_for_voice(
     entity = _player(hass, entity_id(hass, loaded_entry, "media_player_main"))
     found = await entity.async_search_media(SearchMediaQuery(search_query=" kino "))
     assert [item.media_content_id for item in found.result] == [
-        "quick_select/1", "quick_select/2", "heos_favorite/1"
+        "quick_select/1",
+        "quick_select/2",
+        "heos_favorite/1",
     ]
     found = await entity.async_search_media(
         SearchMediaQuery(search_query="kino", media_filter_classes=[MediaClass.CHANNEL])
@@ -1144,7 +1347,9 @@ async def test_search_finds_by_name_for_voice(
     assert [item.title for item in found.result] == ["Radio Kino"]
     found = await entity.async_search_media(SearchMediaQuery(search_query="cd"))
     assert [item.media_content_id for item in found.result] == ["source/CD"]
-    assert (await entity.async_search_media(SearchMediaQuery(search_query=""))).result == []
+    assert (
+        await entity.async_search_media(SearchMediaQuery(search_query=""))
+    ).result == []
 
 
 async def test_an_input_gets_its_own_artwork(
@@ -1190,7 +1395,11 @@ async def test_favorites_and_quick_selects_play_by_name(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": main, "media_content_type": media_type, "media_content_id": media_id},
+            {
+                "entity_id": main,
+                "media_content_type": media_type,
+                "media_content_id": media_id,
+            },
             blocking=True,
         )
     assert heos.calls[-2:] == [("play_preset", 2), ("play_preset", 1)]
@@ -1199,7 +1408,11 @@ async def test_favorites_and_quick_selects_play_by_name(
         await hass.services.async_call(
             "media_player",
             "play_media",
-            {"entity_id": main, "media_content_type": "favorite", "media_content_id": "Nope"},
+            {
+                "entity_id": main,
+                "media_content_type": "favorite",
+                "media_content_id": "Nope",
+            },
             blocking=True,
         )
 
@@ -1242,13 +1455,18 @@ async def test_the_heos_queue_and_what_plays_from_where(
         {"entity_id": main, "media_content_type": "queue", "media_content_id": "2"},
         blocking=True,
     )
-    await hass.services.async_call("media_player", "clear_playlist", {"entity_id": main}, blocking=True)
+    await hass.services.async_call(
+        "media_player", "clear_playlist", {"entity_id": main}, blocking=True
+    )
     response = await hass.services.async_call(
         DOMAIN, "get_queue", {"entity_id": main}, blocking=True, return_response=True
     )
     assert [item["queue_id"] for item in response[main]["items"]] == [1, 2]
     await hass.services.async_call(
-        DOMAIN, "remove_from_queue", {"entity_id": main, "queue_ids": [2]}, blocking=True
+        DOMAIN,
+        "remove_from_queue",
+        {"entity_id": main, "queue_ids": [2]},
+        blocking=True,
     )
     await hass.services.async_call(
         DOMAIN,
@@ -1274,7 +1492,11 @@ async def test_the_heos_queue_and_what_plays_from_where(
     zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
     with pytest.raises(HomeAssistantError):
         await hass.services.async_call(
-            DOMAIN, "get_queue", {"entity_id": zone2}, blocking=True, return_response=True
+            DOMAIN,
+            "get_queue",
+            {"entity_id": zone2},
+            blocking=True,
+            return_response=True,
         )
 
 
@@ -1283,9 +1505,86 @@ async def test_the_source_menu_can_leave_out_quick_selects_and_favorites(
 ) -> None:
     device = loaded_entry.runtime_data.device
     device.discovery.quick_select_names = {1: "Kino"}
-    hass.config_entries.async_update_entry(loaded_entry, options={"source_shortcuts": False})
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"source_shortcuts": False}
+    )
     await hass.async_block_till_done()
     await _push(hass, "PWON", "ZMON")
     main = entity_id(hass, loaded_entry, "media_player_main")
     assert "Kino" not in hass.states.get(main).attributes["source_list"]
 
+
+async def test_the_turn_on_volume_applies_however_a_zone_is_turned_on(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Not only turn_on: picking a source in standby turns on at the turn-on volume too."""
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"main": {volume.OPT_TURN_ON_VOLUME: -30.0}}
+    )
+    await hass.async_block_till_done()
+    await _push(hass, "PWON", "ZMOFF")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+
+    async def answer() -> None:
+        await _eventually(lambda: "ZMON" in telnet.sent)
+        telnet.push("ZMON")
+
+    task = asyncio.create_task(answer())
+    with patch("custom_components.denonavr_plus.media_player.TURN_ON_SETTLE", 0):
+        await hass.services.async_call(
+            "media_player",
+            "select_source",
+            {"entity_id": main, "source": "CD"},
+            blocking=True,
+        )
+    await task
+    assert telnet.sent == ["ZMON", "MV50", "SICD"]
+
+
+async def test_heos_features_wait_for_the_heos_link(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A receiver whose HEOS does not answer (a 2015 X-series has none) offers no HEOS features."""
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+
+    from custom_components.denonavr_plus.const import DOMAIN
+
+    from .test_init import FakeHeos
+
+    heos = FakeHeos.instances[-1]
+    heos.connected = False
+    await _push(hass, "PWON", "ZMON", "SINET")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    features = MediaPlayerEntityFeature(
+        hass.states.get(main).attributes["supported_features"]
+    )
+    for feature in (
+        MediaPlayerEntityFeature.MEDIA_ANNOUNCE,
+        MediaPlayerEntityFeature.MEDIA_ENQUEUE,
+        MediaPlayerEntityFeature.CLEAR_PLAYLIST,
+        MediaPlayerEntityFeature.PAUSE,
+    ):
+        assert not features & feature, feature
+    with pytest.raises(HomeAssistantError) as err:
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/a.mp3",
+            },
+            blocking=True,
+        )
+    assert err.value.translation_key == "heos_unavailable"
+    with pytest.raises(HomeAssistantError) as err:
+        await hass.services.async_call(
+            DOMAIN,
+            "get_queue",
+            {"entity_id": main},
+            blocking=True,
+            return_response=True,
+        )
+    assert err.value.translation_key == "heos_unavailable"

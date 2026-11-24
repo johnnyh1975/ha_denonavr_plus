@@ -1038,6 +1038,9 @@
     },
     "unknown_favorite": {
       "message": "{favorite} non è un preferito HEOS di questo sintoamplificatore."
+    },
+    "heos_main_zone": {
+      "message": "Il {model} riproduce la musica HEOS e la sua coda nella zona principale; usa il lettore della zona principale."
     }
   },
   "issues": {

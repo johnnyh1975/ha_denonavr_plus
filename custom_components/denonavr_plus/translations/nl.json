@@ -1038,6 +1038,9 @@
     },
     "unknown_favorite": {
       "message": "{favorite} is geen HEOS-favoriet van deze receiver."
+    },
+    "heos_main_zone": {
+      "message": "De {model} speelt HEOS-muziek en de wachtrij in de hoofdzone; gebruik de mediaspeler van de hoofdzone."
     }
   },
   "issues": {
