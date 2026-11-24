@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator, Callable
+from unittest.mock import patch
 
 import pytest
 
@@ -12,6 +13,7 @@ from custom_components.denonavr_plus.avr.const import (
     POWER_ON_SETTLE,
     REPLY_TIMEOUT_MAX,
 )
+from custom_components.denonavr_plus.avr.transport import telnet
 from custom_components.denonavr_plus.avr.transport.telnet import (
     TelnetClient,
     async_probe,
@@ -205,6 +207,53 @@ async def test_nothing_is_queued_while_the_link_is_down() -> None:
     client = TelnetClient(LOOPBACK, on_line=lambda line: None)
     await client.async_send("MVUP")
     assert client.queued == 0
+
+
+async def _sessions(server: FakeReceiver, commands: list[str], seconds: float) -> int:
+    """How many sessions the client opens while it sends `commands`."""
+    opened = 0
+
+    async def _connected() -> None:
+        nonlocal opened
+        opened += 1
+        if opened == 1:
+            for command in commands:
+                await client.async_send(command)
+
+    await server.start()
+    client = TelnetClient(
+        LOOPBACK, on_line=lambda line: None, on_connected=_connected, port=server.port
+    )
+    with patch.object(telnet, "SILENCE_TIMEOUT", 1.0):
+        await client.async_start()
+        try:
+            await asyncio.sleep(seconds)
+        finally:
+            await client.async_stop()
+            await server.stop()
+    return opened
+
+
+async def test_a_receiver_that_stops_answering_gets_a_new_session() -> None:
+    """An AVR-X2600H kept the socket open and answered nothing more."""
+    answered = 0
+
+    def reply(line: str) -> str | None:
+        nonlocal answered
+        answered += 1
+        return f"{line[:2]}X" if answered <= 1 else None
+
+    assert await _sessions(FakeReceiver(reply), ["MSALL ZONE STEREO", "MNZST OFF"], 3.0) >= 2
+
+
+async def test_queries_without_answer_are_not_a_silent_receiver() -> None:
+    """Many models leave some queries unanswered; the power query still is."""
+
+    def reply(line: str) -> str | None:
+        return "PWON" if line == "PW?" else None
+
+    unknown = [f"PSX{number} ?" for number in range(5)]
+    assert await _sessions(FakeReceiver(reply), unknown, 3.0) == 1
 
 
 class BusyReceiver(FakeReceiver):

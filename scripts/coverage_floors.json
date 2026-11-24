@@ -11,7 +11,7 @@
     "avr/profile.py": 0.906,
     "avr/transport/goform.py": 0.6215,
     "avr/transport/tcp_client.py": 0.1962,
-    "avr/transport/telnet.py": 0.891,
+    "avr/transport/telnet.py": 0.9274,
     "avr/transport/upnp.py": 0.583,
     "avr/video_config.py": 0.495,
     "select.py": 0.730,

@@ -15,6 +15,9 @@ commands. Robustness features:
   queued while it is down: stale commands are never sent after a reconnect.
 * A keepalive probe is sent when the link is idle so a silently dropped socket
   is detected quickly.
+* A receiver that stops answering while the socket stays open is noticed:
+  when nothing came back for SILENCE_TIMEOUT after a command, the session is
+  closed and opened again (which resynchronises the state).
 * On every (re)connection a callback is invoked so the owner can resynchronise
   the full state.
 
@@ -39,6 +42,7 @@ from ..const import (
     RECONNECT_BACKOFF_MIN,
     REPLY_TIMEOUT_MAX,
     REPLY_TIMEOUT_MIN,
+    SILENCE_TIMEOUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -171,6 +175,9 @@ class TelnetClient:
         self._connected = False
         self._stopped = False
         self._last_activity = 0.0
+        # Since when commands went out with nothing coming back, if they did.
+        self._silent_since: float | None = None
+        self._silence_probed = False
 
     @property
     def connected(self) -> bool:
@@ -271,6 +278,8 @@ class TelnetClient:
             asyncio.open_connection(self._host, self._port), timeout=CONNECT_TIMEOUT
         )
         self._last_activity = asyncio.get_running_loop().time()
+        self._silent_since = None
+        self._silence_probed = False
         await self._set_connected(True)
         _LOGGER.debug("Telnet connected to %s:%s", self._host, self._port)
         # Let the owner resynchronise the full state on (re)connect.
@@ -347,6 +356,8 @@ class TelnetClient:
         line = raw.decode("utf-8", errors="replace").strip("\r\n")
         if not line:
             return
+        self._silent_since = None
+        self._silence_probed = False
         if self._awaiting is not None and line.startswith(self._awaiting):
             self._replied.set()
         self._on_line(line)
@@ -364,6 +375,8 @@ class TelnetClient:
             await self._writer.drain()
             sent = loop.time()
             self._last_activity = sent
+            if self._silent_since is None:
+                self._silent_since = sent
             await self._await_reply(sent)
             self._awaiting = None
             gap = POWER_ON_SETTLE if command == _POWER_ON_COMMAND else COMMAND_SPACING
@@ -407,10 +420,24 @@ class TelnetClient:
             self._response_time += _RESPONSE_SMOOTHING * (sample - self._response_time)
 
     async def _keepalive_loop(self) -> None:
-        """Send a light probe when the link has been idle for too long."""
+        """Probe an idle link; end the session when the receiver stays silent."""
 
+        loop = asyncio.get_running_loop()
         while True:
-            await asyncio.sleep(KEEPALIVE_INTERVAL / 2)
-            idle = asyncio.get_running_loop().time() - self._last_activity
-            if idle >= KEEPALIVE_INTERVAL:
+            await asyncio.sleep(min(1.0, KEEPALIVE_INTERVAL / 2, SILENCE_TIMEOUT / 4))
+            now = loop.time()
+            if self._silent_since is not None:
+                silent = now - self._silent_since
+                if silent >= SILENCE_TIMEOUT:
+                    _LOGGER.warning(
+                        "%s answered nothing for %.0f s; reconnecting telnet", self._host, silent
+                    )
+                    raise ConnectionError("Receiver stopped answering")
+                if silent >= SILENCE_TIMEOUT / 2 and not self._silence_probed:
+                    # Ahead of everything queued: a run of queries this model
+                    # does not answer must not look like a silent receiver.
+                    self._silence_probed = True
+                    self._commands.appendleft(_KEEPALIVE_COMMAND)
+                    self._queued.set()
+            elif now - self._last_activity >= KEEPALIVE_INTERVAL:
                 await self.async_send(_KEEPALIVE_COMMAND)

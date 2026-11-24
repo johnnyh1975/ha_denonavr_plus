@@ -54,7 +54,8 @@ the list.
   bands, HDMI/OSD/format setup, amp assign) are read and written over the setup
   config API (HTTPS 10443, or HTTP 11080 on newer firmware); everything else is telnet.
 - **Stability** Auto reconnect with backoff, keepalive probe, teardown on
-  unload. A command queue that sends your commands before pending queries,
+  unload. A receiver that keeps the connection open but stops answering
+  gets a new session after 10 s. A command queue that sends your commands before pending queries,
   waits for each reply (paced by the receiver's measured response time) and
   is cleared when the link drops, so stale commands are never sent later.
 - **Eight languages, English entity ids.** Texts and entity names in English,

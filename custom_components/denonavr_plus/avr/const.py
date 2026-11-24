@@ -48,6 +48,11 @@ HTTP_TIMEOUT: Final = 8.0
 # If nothing arrives for this long we send a light probe to keep the socket
 # alive and to detect a silently dropped link.
 KEEPALIVE_INTERVAL: Final = 30.0
+# A receiver can stop answering while the socket stays open (an AVR-X2600H
+# did after All Zone Stereo). When nothing has come back this long after a
+# command, the session is closed and opened again; halfway there, a power
+# query (always answered) checks whether it is only quiet.
+SILENCE_TIMEOUT: Final = 10.0
 
 # Reconnect backoff grows from MIN to MAX after each failed attempt.
 RECONNECT_BACKOFF_MIN: Final = 1.0

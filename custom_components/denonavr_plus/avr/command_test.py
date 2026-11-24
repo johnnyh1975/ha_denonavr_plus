@@ -58,9 +58,15 @@ ZONE_SETTLE = 3.0
 POWER_WAIT = 15.0
 POWER_SETTLE = 3.0
 #: How long to wait for a receiver that stopped answering, before the
-#: settings it did not take back are written again (seconds).
-RECOVER_WAIT = 30.0
+#: settings it did not take back are written again (seconds). The telnet
+#: client opens a new session after SILENCE_TIMEOUT, so this covers that.
+RECOVER_WAIT = 60.0
 RECOVER_POLL = 1.0
+#: After a test that reloads the sound path (the audible ones, the EQs), a
+#: pause and then an answer to the power query before anything else is
+#: written; up to SETTLE_WAIT for that answer.
+SETTLE = 1.0
+SETTLE_WAIT = 10.0
 
 #: Controls that are never written by the test.
 NEVER = frozenset(
@@ -178,6 +184,9 @@ _AREA_OF_GROUP = {
     "video": "video",
     "zone": "zone2",
 }
+#: Quiet tests that also reload the sound path.
+_HEAVY = frozenset({"dynamic_eq", "graphic_eq"})
+
 #: Controls that belong to another part than their command group: All Zone
 #: Stereo switches Zone 2 on, and right after a MultEQ change an AVR-X2600H
 #: took it and then stopped answering.
@@ -610,7 +619,11 @@ async def async_run(
             results[probe.key] = {"group": probe.group, "result": "interrupted"}
         else:
             entry = await _run_probe(device, probe, undo)
-            if _unanswered(entry) and not await _answers(device):
+            if _heavy(probe) and "written" in entry:
+                answering = await _settled(device)
+            else:
+                answering = not _unanswered(entry) or await _answers(device)
+            if not answering:
                 silent = True
                 if entry["result"] == "no_value":
                     entry = {"group": probe.group, "result": "interrupted", "reason": SILENT}
@@ -624,6 +637,25 @@ async def async_run(
 
 #: Why tests did not run: the receiver no longer answered.
 SILENT = "receiver_silent"
+
+
+def _heavy(probe: Probe) -> bool:
+    """Whether the test makes the receiver reload its sound path."""
+
+    return probe.group == AUDIBLE or probe.key in _HEAVY
+
+
+async def _settled(device: DenonAvrDevice) -> bool:
+    """Give the receiver a moment, then wait until it answers again."""
+
+    await asyncio.sleep(SETTLE)
+    loop = asyncio.get_running_loop()
+    until = loop.time() + SETTLE_WAIT
+    while not await _answers(device):
+        if loop.time() >= until:
+            return False
+        await asyncio.sleep(RECOVER_POLL)
+    return True
 
 
 def _unanswered(entry: dict[str, Any]) -> bool:
@@ -653,12 +685,22 @@ async def _recover(
     results: dict[str, dict[str, Any]],
     undo: dict[str, tuple[Probe, Any, dict[str, Any]]],
 ) -> None:
-    """Write what did not come back again, once the receiver answers."""
+    """Write what did not come back again, once the receiver answers.
+
+    When it does not answer over telnet in time and the link is down, the
+    old values go out over HTTP; nothing confirms them there, so they still
+    count as not put back.
+    """
 
     loop = asyncio.get_running_loop()
     until = loop.time() + RECOVER_WAIT
     while not await _answers(device):
         if loop.time() >= until:
+            if not device.telnet_connected:
+                for key, (probe, before, snapshots) in undo.items():
+                    with contextlib.suppress(CommandNotSent):
+                        await _put_back(device, probe, before, snapshots)
+                        results[key]["put_back_over_http"] = True
             return
         await asyncio.sleep(RECOVER_POLL)
     for key, (probe, before, snapshots) in undo.items():
@@ -760,6 +802,9 @@ async def _test(
         after = probe.read(answer)
         entry["after"] = after
         entry["result"] = _classify(echoed, same(after, target), echo + answer)
+        if _heavy(probe):
+            # Not straight back: the receiver may still be switching.
+            await _settled(device)
         entry["restored"] = await _restore(device, probe, before, snapshots, log)
         written = False
     except CommandNotSent:

@@ -117,6 +117,8 @@ def fast() -> Iterator[None]:
         patch.object(command_test, "POWER_SETTLE", 0.01),
         patch.object(command_test, "RECOVER_WAIT", 2.0),
         patch.object(command_test, "RECOVER_POLL", 0.05),
+        patch.object(command_test, "SETTLE", 0.01),
+        patch.object(command_test, "SETTLE_WAIT", 0.3),
         patch("custom_components.denonavr_plus.avr.device.REPLY_COLLECT_QUIET", 0.02),
     ):
         yield
@@ -511,6 +513,62 @@ async def test_a_value_the_receiver_does_not_report_now_is_not_written(
     assert "DIM DIM" not in receiver.telnet.sent
     # It still answers its power query: the next test runs.
     assert result["tests"]["main_volume"]["result"] != "interrupted"
+
+
+async def test_after_a_change_of_the_sound_path_the_receiver_is_given_time(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    """MultEQ and the like reload the sound path: nothing more until it answers."""
+    receiver = Receiver(
+        hass,
+        {"ZM": "ON", "PSMULTEQ:": "AUDYSSEY", "DIM ": "BRI"},
+        {"ZM?": ["ZM"], "PSMULTEQ: ?": ["PSMULTEQ:"], "DIM ?": ["DIM "]},
+    )
+    receiver.telnet.push("ZMON", "PSMULTEQ:AUDYSSEY")
+    result = await _run(hass, loaded_entry, receiver, "multeq", "dimmer")
+    assert result["tests"]["multeq"]["restored"] is True
+    sent = receiver.telnet.sent
+    changed, back, dimmer = (
+        sent.index("PSMULTEQ:BYP.LR"),
+        sent.index("PSMULTEQ:AUDYSSEY"),
+        sent.index("DIM DIM"),
+    )
+    # A power query before the way back, and again before the next setting.
+    assert "PW?" in sent[changed:back]
+    assert "PW?" in sent[back:dimmer]
+
+
+async def test_what_does_not_come_back_goes_out_over_http_when_telnet_stays_away() -> None:
+    written: list[Any] = []
+
+    async def write(value: Any) -> None:
+        written.append(value)
+
+    class Device:
+        telnet_connected = False
+
+        async def async_send_command(self, command: str) -> list[str]:
+            raise CommandNotSent("query_needs_telnet")
+
+        async def async_collect(self, wanted: Any, action: Any, first: float) -> list[str]:
+            await action()
+            return []
+
+    probe = Probe(
+        key="dimmer",
+        group=QUIET,
+        query="DIM ?",
+        prefixes=("DIM ",),
+        read=lambda lines: None,
+        write=write,
+        alternative=lambda value: value,
+    )
+    results: dict[str, dict[str, Any]] = {"dimmer": {"result": "confirmed", "restored": False}}
+    with patch.object(command_test, "RECOVER_WAIT", 0.0):
+        await command_test._recover(Device(), results, {"dimmer": (probe, "BRI", {})})  # type: ignore[arg-type]
+    assert written == ["BRI"]
+    # Nothing confirms it over HTTP: still to be checked on the receiver.
+    assert results["dimmer"] == {"result": "confirmed", "restored": False, "put_back_over_http": True}
 
 
 # The tests that are not a profile control -------------------------------
