@@ -214,6 +214,7 @@ async def test_each_outcome(
         "PSBAS ": "50",
         "PSTRE ": "50",
         "PSTONE CTRL ": "OFF",
+        "PSDRC ": "OFF",
         "PSDYNEQ ": "ON",
         "PSLOM ": "OFF",
         "DIM ": "BRI",
@@ -224,6 +225,7 @@ async def test_each_outcome(
         "PSBAS ?": ["PSBAS "],
         "PSTRE ?": ["PSTRE "],
         "PSTONE CTRL ?": ["PSTONE CTRL "],
+        "PSDRC ?": ["PSDRC "],
         "PSDYNEQ ?": ["PSDYNEQ "],
         "PSLOM ?": ["PSLOM "],
         "DIM ?": ["DIM "],
@@ -235,15 +237,15 @@ async def test_each_outcome(
         settings,
         queries,
         silent=("PSTRE ",),
-        ignored=("PSTONE CTRL ",),
+        ignored=("PSDRC ",),
         rejected=("PSDYNEQ ",),
         echo_only=("PSLOM ",),
         once=("DIM ",),
     )
-    receiver.telnet.push("ZMON")
+    receiver.telnet.push("ZMON", "PSTONE CTRL OFF")
     progress: list[float] = []
     device = loaded_entry.runtime_data.device
-    keys = ("bass", "treble", "tone_control", "dynamic_eq", "loudness_management")
+    keys = ("bass", "treble", "dynamic_compression", "dynamic_eq", "loudness_management")
     keys += ("dimmer", "lfe", "main_volume")
     with patch.object(receiver.telnet, "async_send", receiver.send), _only(*keys):
         result = await device.async_command_test([QUIET], progress.append)
@@ -252,7 +254,7 @@ async def test_each_outcome(
     assert {key: item["result"] for key, item in tests.items()} == {
         "bass": "confirmed",
         "treble": "query_only",
-        "tone_control": "no_effect",
+        "dynamic_compression": "no_effect",
         "dynamic_eq": "rejected",
         "loudness_management": "echo_only",
         "dimmer": "confirmed",
@@ -266,12 +268,18 @@ async def test_each_outcome(
         "written": 0.5,
         "after": 0.5,
         "restored": True,
+        # Bass and treble are only taken with tone control on.
+        "requires": {"tone_control": True},
         "lines": [],
     }
     assert tests["bass"]["lines"] == ["PSBAS 50", "PSBAS 505", "PSBAS 505", "PSBAS 50", "PSBAS 50"]
     # The dimmer took the change but not the way back.
     assert tests["dimmer"]["restored"] is False
-    assert tests["tone_control"]["restored"] is True
+    assert tests["dynamic_compression"]["restored"] is True
+    # Tone control on for bass, then off again; on again for treble, off again.
+    assert receiver.telnet.sent.count("PSTONE CTRL ON") == 2
+    assert receiver.settings["PSTONE CTRL "] == "OFF"
+    assert result["context"]["tone_control"] is False
     assert receiver.settings["MV"] == "50"
     assert tests["main_volume"]["written"] == 49.5
     assert progress[-1] == 1.0 and len(progress) == len(keys)
@@ -284,13 +292,13 @@ async def test_a_main_zone_that_is_off_is_turned_on_for_the_test(
     hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
 ) -> None:
     """In standby an AVR-X2000 ignored every setting (its first quiet test)."""
-    receiver = Receiver(hass, {"ZM": "OFF", "PSBAS ": "50"}, {"PSBAS ?": ["PSBAS "]})
+    receiver = Receiver(hass, {"ZM": "OFF", "DIM ": "BRI"}, {"DIM ?": ["DIM "]})
     receiver.telnet.push("ZMOFF")
-    result = await _run(hass, loaded_entry, receiver, "bass")
-    assert result["tests"]["bass"]["result"] == "confirmed"
+    result = await _run(hass, loaded_entry, receiver, "dimmer", "lfe")
+    assert result["tests"]["dimmer"]["result"] == "confirmed"
     assert (result["main_zone_on"], result["turned_on_for_test"]) == (False, True)
     sent = receiver.telnet.sent
-    assert sent.index("ZMON") < sent.index("PSBAS 505")
+    assert sent.index("ZMON") < sent.index("DIM DIM")
     # Off again as it was.
     assert sent[-1] == "ZMOFF"
     assert receiver.settings["ZM"] == "OFF"
@@ -575,3 +583,101 @@ async def test_the_tuner_is_tested_only_while_it_plays(
     result = await _run(hass, loaded_entry, receiver, "tuner_frequency")
     # AM is not tested.
     assert result["tests"]["tuner_frequency"]["reason"] == "no_alternative"
+
+
+
+# Settings that depend on others --------------------------------------------
+
+
+async def test_a_setting_the_receiver_needs_does_not_come(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    """Tone control is not taken: bass is not tested, and reported so."""
+    settings = {"PSTONE CTRL ": "OFF", "PSBAS ": "50"}
+    receiver = Receiver(hass, settings, {"PSBAS ?": ["PSBAS "]}, ignored=("PSTONE CTRL ",))
+    receiver.telnet.push("ZMON", "PSTONE CTRL OFF")
+    result = await _run(hass, loaded_entry, receiver, "bass")
+    assert result["tests"]["bass"] == {
+        "group": QUIET,
+        "result": "precondition",
+        "reason": "tone_control_not_set",
+    }
+    assert "PSBAS 505" not in receiver.telnet.sent
+    # Put back even so: the command went out.
+    assert receiver.telnet.sent[-1] == "PSTONE CTRL OFF"
+
+
+async def test_a_setting_already_as_needed_is_left_alone(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    settings = {"PSTONE CTRL ": "ON", "PSBAS ": "50"}
+    receiver = Receiver(hass, settings, {"PSBAS ?": ["PSBAS "]})
+    receiver.telnet.push("ZMON", "PSTONE CTRL ON")
+    result = await _run(hass, loaded_entry, receiver, "bass")
+    assert result["tests"]["bass"]["result"] == "confirmed"
+    assert "requires" not in result["tests"]["bass"]
+    assert not any(command.startswith("PSTONE CTRL O") for command in receiver.telnet.sent)
+
+
+@pytest.mark.parametrize(
+    ("key", "state", "reason"),
+    [
+        ("dynamic_eq", ("PSMULTEQ:OFF",), "audyssey_off"),
+        ("zone2_channel_level_fl", ("Z2OFF",), "zone2_off"),
+    ],
+)
+async def test_what_cannot_be_set_quietly_is_a_missing_precondition(
+    hass: HomeAssistant,
+    loaded_entry: MockConfigEntry,
+    fast: None,
+    key: str,
+    state: tuple[str, ...],
+    reason: str,
+) -> None:
+    """MultEQ needs a calibration; Zone 2 on would play. Neither is set."""
+    receiver = Receiver(hass, {}, {})
+    receiver.telnet.push("ZMON", *state)
+    device = loaded_entry.runtime_data.device
+    # The recording does not answer the Zone 2 settings; as one that does.
+    device.discovery.answered.add(key)
+    probe = next(p for p in command_test.probes_for(device, [QUIET]) if p.key == key)
+    with patch.object(receiver.telnet, "async_send", receiver.send):
+        result = await command_test._run_probe(device, probe)
+    assert result == {"group": QUIET, "result": "precondition", "reason": reason}
+
+
+async def test_a_cancelled_test_puts_back_what_it_needed(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    settings = {"PSTONE CTRL ": "OFF", "PSBAS ": "50"}
+    receiver = Receiver(hass, settings, {"PSBAS ?": ["PSBAS "]}, silent=("PSBAS ",))
+    device = loaded_entry.runtime_data.device
+    with (
+        patch.object(receiver.telnet, "async_send", receiver.send),
+        _only("bass"),
+        patch.object(command_test, "QUERY_WAIT", 0.05),
+        patch("custom_components.denonavr_plus.avr.device.REPLY_COLLECT_QUIET", 0.02),
+    ):
+        receiver.telnet.push("ZMON", "PSTONE CTRL OFF")
+        task = hass.async_create_task(device.async_command_test([QUIET]))
+        for _ in range(100):
+            if "PSBAS 505" in receiver.telnet.sent:
+                break
+            await asyncio.sleep(0.01)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    assert receiver.telnet.sent[-2:] == ["PSBAS 50", "PSTONE CTRL OFF"]
+    assert receiver.settings["PSTONE CTRL "] == "OFF"
+
+
+async def test_the_picture_adjustments_need_the_custom_picture_mode(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    picture = {"contrast", "brightness", "saturation", "enhancer", "noise_reduction"}
+    for key in picture:
+        assert command_test.REQUIRES[key] == ("picture_mode", "CTM")
+    probes = {p.key: p for p in command_test.probes_for(device, [QUIET])}
+    # Only where the receiver has the setting the other one needs.
+    assert probes["bass"].requires == (("tone_control", True),)

@@ -89,7 +89,10 @@ async def test_the_capability_check_asks_every_query(
         patch("custom_components.denonavr_plus.avr.device.CHECK_REPLY_FIRST", 0.02),
         patch("custom_components.denonavr_plus.avr.device.REPLY_COLLECT_QUIET", 0.02),
     ):
-        result = await device.async_check_capabilities(progress.append)
+        groups: list[str] = []
+        result = await device.async_check_capabilities(progress.append, groups.append)
+    # Each part is named once, as it starts.
+    assert groups == ["Power", "Volume", "Test"]
     assert {command: item["result"] for command, item in result["queries"].items()} == {
         "PW?": "answered",
         "MV?": "answered",

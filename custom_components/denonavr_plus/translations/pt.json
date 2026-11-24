@@ -69,10 +69,10 @@
           "sound_modes": "Modos de som",
           "connection": "Ligação",
           "entities": "Entidades",
-          "tests": "Testar o recetor"
+          "tests_start": "Testar o recetor"
         },
         "menu_option_descriptions": {
-          "tests": "Verifica as funções, testa comandos em silêncio e depois pergunta antes de testar o que se ouve e vê. Os resultados vão para o ficheiro de diagnóstico."
+          "tests_start": "Três passos, cerca de seis minutos; tudo é reposto."
         }
       },
       "volume": {
@@ -236,17 +236,35 @@
           "diagnostic": "{n_diagnostic} entidades: sinal, descodificador, recuperar áudio"
         }
       },
+      "tests_start": {
+        "title": "Testar o recetor",
+        "description": "Três passos, cerca de seis minutos. Tudo o que muda é reposto.\n\n1. **Ler funções**: só lê, cerca de minuto e meio.\n2. **Testar em silêncio**: tom, imagem, temporizadores e visor mudam por um momento. Cerca de 4 minutos.\n3. **Testar o que se ouve e vê**: é perguntado antes.\n\nUma zona principal desligada é ligada para o teste e depois desligada de novo. Fechar a janela interrompe o teste e repõe tudo.",
+        "submit": "Iniciar"
+      },
+      "tests_check": {
+        "title": "Passo 1 de 3"
+      },
+      "tests_quiet": {
+        "title": "Passo 2 de 3"
+      },
+      "tests_audible": {
+        "title": "Passo 3 de 3"
+      },
       "tests_ask": {
-        "title": "Testar o que se ouve e vê?",
-        "description": "A parte silenciosa terminou. A seguir, silêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fique em frente à televisão; demora alguns minutos.",
+        "title": "Passo 3 de 3",
+        "description": "**Testar o que se ouve e vê?**\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fique em frente à televisão; demora cerca de dois minutos.",
         "menu_options": {
-          "tests_audible": "Iniciar",
+          "tests_audible": "Testar agora",
           "tests_done": "Saltar"
         }
       },
       "tests_done": {
-        "title": "Teste do recetor concluído",
-        "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Não confirmados: {unconfirmed}\n- Saltados: {skipped}\n- Não repostos: {not_restored} (verifique-os no recetor se não for 0)\n\nOs detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Para ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro. Leia-o antes de o anexar; os endereços já estão substituídos."
+        "title": "Tudo reposto",
+        "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
+      },
+      "tests_done_check": {
+        "title": "Verifique o recetor",
+        "description": "Nem todas as definições voltaram: {not_restored_list}. Reponha-as no recetor como estavam.\n\n{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
       }
     },
     "error": {
@@ -261,8 +279,9 @@
       "no_hidden_entities": "Este recetor não tem entidades ocultas."
     },
     "progress": {
-      "capability_check": "A consultar o recetor. Demora até minuto e meio.",
-      "command_test": "A testar comandos e a repor cada um. Isto demora alguns minutos."
+      "test_part_1": "**Ler funções**\n\nAgora: {current}\n\n- → Ler funções\n- ○ Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nSó lê; nada muda.",
+      "test_part_2": "**Testar em silêncio**\n\nAgora: {current}\n\n- ✓ Ler funções\n- → Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nTom, imagem, temporizadores e visor mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo.",
+      "test_part_3": "**Testar o que se ouve e vê**\n\nAgora: {current}\n\n- ✓ Ler funções\n- ✓ Testar em silêncio\n- → Testar o que se ouve e vê\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo."
     }
   },
   "entity": {
@@ -1095,24 +1114,39 @@
         "step": {
           "tests_start": {
             "title": "Testar o recetor",
-            "description": "Três partes, uma após a outra:\n\n1. **Verificar funções**: só lê, até minuto e meio.\n2. **Testar comandos em silêncio**: tom, Audyssey, imagem, temporizadores e visor mudam por um momento e são repostos. Alguns minutos.\n3. **Testar o que se ouve e vê**: só se o escolher nessa altura.\n\nUma zona principal desligada é ligada para os testes e depois desligada de novo. Os resultados vão para o ficheiro de diagnóstico."
+            "description": "Três passos, cerca de seis minutos. Tudo o que muda é reposto.\n\n1. **Ler funções**: só lê, cerca de minuto e meio.\n2. **Testar em silêncio**: tom, imagem, temporizadores e visor mudam por um momento. Cerca de 4 minutos.\n3. **Testar o que se ouve e vê**: é perguntado antes.\n\nUma zona principal desligada é ligada para o teste e depois desligada de novo. Fechar a janela interrompe o teste e repõe tudo.",
+            "submit": "Iniciar"
+          },
+          "tests_check": {
+            "title": "Passo 1 de 3"
+          },
+          "tests_quiet": {
+            "title": "Passo 2 de 3"
+          },
+          "tests_audible": {
+            "title": "Passo 3 de 3"
           },
           "tests_ask": {
-            "title": "Testar o que se ouve e vê?",
-            "description": "A parte silenciosa terminou. A seguir, silêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fique em frente à televisão; demora alguns minutos.",
+            "title": "Passo 3 de 3",
+            "description": "**Testar o que se ouve e vê?**\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fique em frente à televisão; demora cerca de dois minutos.",
             "menu_options": {
-              "tests_audible": "Iniciar",
+              "tests_audible": "Testar agora",
               "tests_done": "Saltar"
             }
           },
           "tests_done": {
-            "title": "Teste do recetor concluído",
-            "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Não confirmados: {unconfirmed}\n- Saltados: {skipped}\n- Não repostos: {not_restored} (verifique-os no recetor se não for 0)\n\nOs detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Para ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro. Leia-o antes de o anexar; os endereços já estão substituídos."
+            "title": "Tudo reposto",
+            "description": "{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
+          },
+          "tests_done_check": {
+            "title": "Verifique o recetor",
+            "description": "Nem todas as definições voltaram: {not_restored_list}. Reponha-as no recetor como estavam.\n\n{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
           }
         },
         "progress": {
-          "capability_check": "A consultar o recetor. Demora até minuto e meio.",
-          "command_test": "A testar comandos e a repor cada um. Isto demora alguns minutos."
+          "test_part_1": "**Ler funções**\n\nAgora: {current}\n\n- → Ler funções\n- ○ Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nSó lê; nada muda.",
+          "test_part_2": "**Testar em silêncio**\n\nAgora: {current}\n\n- ✓ Ler funções\n- → Testar em silêncio\n- ○ Testar o que se ouve e vê\n\nTom, imagem, temporizadores e visor mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo.",
+          "test_part_3": "**Testar o que se ouve e vê**\n\nAgora: {current}\n\n- ✓ Ler funções\n- ✓ Testar em silêncio\n- → Testar o que se ouve e vê\n\nSilêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos. Fechar a janela interrompe o teste e repõe tudo."
         },
         "abort": {
           "test_not_connected": "O recetor não está ligado. O teste de comandos precisa da sua ligação telnet; tente novamente quando estiver ligado."
@@ -1146,6 +1180,20 @@
         "tuner_presets": "Predefinições do sintonizador",
         "more": "Mais",
         "queue": "Fila"
+      }
+    },
+    "receiver_test_item": {
+      "options": {
+        "power_and_zones": "Alimentação e zonas",
+        "volume_and_input": "Volume e entrada",
+        "surround": "Surround",
+        "audio": "Áudio",
+        "video": "Vídeo",
+        "tuner": "Sintonizador",
+        "network_audio": "Áudio em rede",
+        "signal_and_setup": "Sinal e configuração",
+        "setup_menu": "Menu de configuração na televisão",
+        "zone2_follow_main": "A Zona 2 segue a zona principal"
       }
     }
   },

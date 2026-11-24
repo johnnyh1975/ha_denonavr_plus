@@ -69,10 +69,10 @@
           "sound_modes": "Klangmodi",
           "connection": "Verbindung",
           "entities": "Entitäten",
-          "tests": "Receiver prüfen"
+          "tests_start": "Receiver prüfen"
         },
         "menu_option_descriptions": {
-          "tests": "Prüft die Fähigkeiten, testet Befehle leise und fragt dann, bevor Hörbares und Sichtbares getestet wird. Die Ergebnisse stehen in der Diagnose-Datei."
+          "tests_start": "Drei Schritte, rund sechs Minuten; alles wird zurückgestellt."
         }
       },
       "volume": {
@@ -236,17 +236,35 @@
           "diagnostic": "{n_diagnostic} Entitäten: Signal, Decoder, Ton wiederherstellen"
         }
       },
+      "tests_start": {
+        "title": "Receiver prüfen",
+        "description": "Drei Schritte, rund sechs Minuten. Alles, was sich ändert, wird zurückgestellt.\n\n1. **Fähigkeiten lesen**: liest nur, rund anderthalb Minuten.\n2. **Leise testen**: Klang, Bild, Timer und Display ändern sich kurz. Rund 4 Minuten.\n3. **Hörbar und sichtbar testen**: wird vorher gefragt.\n\nEine ausgeschaltete Hauptzone wird für den Test eingeschaltet und danach wieder ausgeschaltet. Schließen bricht den Test ab und stellt alles zurück.",
+        "submit": "Starten"
+      },
+      "tests_check": {
+        "title": "Schritt 1 von 3"
+      },
+      "tests_quiet": {
+        "title": "Schritt 2 von 3"
+      },
+      "tests_audible": {
+        "title": "Schritt 3 von 3"
+      },
       "tests_ask": {
-        "title": "Hörbares und Sichtbares testen?",
-        "description": "Der leise Teil ist fertig. Als Nächstes ändern sich Stumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher kurz und werden zurückgestellt. Bleib vor dem Fernseher; es dauert einige Minuten.",
+        "title": "Schritt 3 von 3",
+        "description": "**Hörbar und sichtbar testen?**\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Bleib vor dem Fernseher; es dauert rund zwei Minuten.",
         "menu_options": {
-          "tests_audible": "Starten",
+          "tests_audible": "Jetzt testen",
           "tests_done": "Überspringen"
         }
       },
       "tests_done": {
-        "title": "Receiver-Prüfung abgeschlossen",
-        "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Nicht bestätigt: {unconfirmed}\n- Übersprungen: {skipped}\n- Nicht zurückgestellt: {not_restored} (wenn nicht 0, am Receiver prüfen)\n\nDie Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Um die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Datei an. Lies sie, bevor du sie anhängst; Adressen sind bereits ersetzt."
+        "title": "Alles zurückgestellt",
+        "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
+      },
+      "tests_done_check": {
+        "title": "Am Receiver prüfen",
+        "description": "Nicht alle Einstellungen kamen zurück: {not_restored_list}. Stell sie am Receiver wieder so ein, wie sie waren.\n\n{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
       }
     },
     "error": {
@@ -261,8 +279,9 @@
       "no_hidden_entities": "Dieser Receiver hat keine ausgeblendeten Entitäten."
     },
     "progress": {
-      "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten.",
-      "command_test": "Die Befehle werden getestet und jeweils zurückgestellt. Das dauert einige Minuten."
+      "test_part_1": "**Fähigkeiten lesen**\n\nGerade: {current}\n\n- → Fähigkeiten lesen\n- ○ Leise testen\n- ○ Hörbar und sichtbar testen\n\nLiest nur; nichts ändert sich.",
+      "test_part_2": "**Leise testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- → Leise testen\n- ○ Hörbar und sichtbar testen\n\nKlang, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück.",
+      "test_part_3": "**Hörbar und sichtbar testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- ✓ Leise testen\n- → Hörbar und sichtbar testen\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück."
     }
   },
   "entity": {
@@ -1095,24 +1114,39 @@
         "step": {
           "tests_start": {
             "title": "Receiver prüfen",
-            "description": "Drei Teile nacheinander:\n\n1. **Fähigkeiten prüfen**: liest nur, bis zu anderthalb Minuten.\n2. **Befehle leise testen**: Klang, Audyssey, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Einige Minuten.\n3. **Hörbares und Sichtbares testen**: nur, wenn du es dann wählst.\n\nEine ausgeschaltete Hauptzone wird für die Tests eingeschaltet und danach wieder ausgeschaltet. Die Ergebnisse stehen in der Diagnose-Datei."
+            "description": "Drei Schritte, rund sechs Minuten. Alles, was sich ändert, wird zurückgestellt.\n\n1. **Fähigkeiten lesen**: liest nur, rund anderthalb Minuten.\n2. **Leise testen**: Klang, Bild, Timer und Display ändern sich kurz. Rund 4 Minuten.\n3. **Hörbar und sichtbar testen**: wird vorher gefragt.\n\nEine ausgeschaltete Hauptzone wird für den Test eingeschaltet und danach wieder ausgeschaltet. Schließen bricht den Test ab und stellt alles zurück.",
+            "submit": "Starten"
+          },
+          "tests_check": {
+            "title": "Schritt 1 von 3"
+          },
+          "tests_quiet": {
+            "title": "Schritt 2 von 3"
+          },
+          "tests_audible": {
+            "title": "Schritt 3 von 3"
           },
           "tests_ask": {
-            "title": "Hörbares und Sichtbares testen?",
-            "description": "Der leise Teil ist fertig. Als Nächstes ändern sich Stumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher kurz und werden zurückgestellt. Bleib vor dem Fernseher; es dauert einige Minuten.",
+            "title": "Schritt 3 von 3",
+            "description": "**Hörbar und sichtbar testen?**\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Bleib vor dem Fernseher; es dauert rund zwei Minuten.",
             "menu_options": {
-              "tests_audible": "Starten",
+              "tests_audible": "Jetzt testen",
               "tests_done": "Überspringen"
             }
           },
           "tests_done": {
-            "title": "Receiver-Prüfung abgeschlossen",
-            "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Nicht bestätigt: {unconfirmed}\n- Übersprungen: {skipped}\n- Nicht zurückgestellt: {not_restored} (wenn nicht 0, am Receiver prüfen)\n\nDie Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Um die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Datei an. Lies sie, bevor du sie anhängst; Adressen sind bereits ersetzt."
+            "title": "Alles zurückgestellt",
+            "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
+          },
+          "tests_done_check": {
+            "title": "Am Receiver prüfen",
+            "description": "Nicht alle Einstellungen kamen zurück: {not_restored_list}. Stell sie am Receiver wieder so ein, wie sie waren.\n\n{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
           }
         },
         "progress": {
-          "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten.",
-          "command_test": "Die Befehle werden getestet und jeweils zurückgestellt. Das dauert einige Minuten."
+          "test_part_1": "**Fähigkeiten lesen**\n\nGerade: {current}\n\n- → Fähigkeiten lesen\n- ○ Leise testen\n- ○ Hörbar und sichtbar testen\n\nLiest nur; nichts ändert sich.",
+          "test_part_2": "**Leise testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- → Leise testen\n- ○ Hörbar und sichtbar testen\n\nKlang, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück.",
+          "test_part_3": "**Hörbar und sichtbar testen**\n\nGerade: {current}\n\n- ✓ Fähigkeiten lesen\n- ✓ Leise testen\n- → Hörbar und sichtbar testen\n\nStumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt. Schließen bricht den Test ab und stellt alles zurück."
         },
         "abort": {
           "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist."
@@ -1146,6 +1180,20 @@
         "tuner_presets": "Tuner-Presets",
         "more": "Mehr",
         "queue": "Warteschlange"
+      }
+    },
+    "receiver_test_item": {
+      "options": {
+        "power_and_zones": "Power und Zonen",
+        "volume_and_input": "Lautstärke und Eingang",
+        "surround": "Surround",
+        "audio": "Audio",
+        "video": "Video",
+        "tuner": "Tuner",
+        "network_audio": "Netzwerk-Audio",
+        "signal_and_setup": "Signal und Einrichtung",
+        "setup_menu": "Setup-Menü am Fernseher",
+        "zone2_follow_main": "Zone 2 folgt der Hauptzone"
       }
     }
   },

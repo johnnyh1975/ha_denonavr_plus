@@ -69,10 +69,10 @@
           "sound_modes": "Modos de sonido",
           "connection": "Conexión",
           "entities": "Entidades",
-          "tests": "Probar el receptor"
+          "tests_start": "Probar el receptor"
         },
         "menu_option_descriptions": {
-          "tests": "Comprueba las funciones, prueba comandos en silencio y luego pregunta antes de probar lo que se oye y se ve. Los resultados van al archivo de diagnóstico."
+          "tests_start": "Tres pasos, unos seis minutos; todo se restablece."
         }
       },
       "volume": {
@@ -236,17 +236,35 @@
           "diagnostic": "{n_diagnostic} entidades: señal, decodificador, recuperar audio"
         }
       },
+      "tests_start": {
+        "title": "Probar el receptor",
+        "description": "Tres pasos, unos seis minutos. Todo lo que cambia se restablece.\n\n1. **Leer funciones**: solo lee, cerca de minuto y medio.\n2. **Probar en silencio**: tono, imagen, temporizadores y pantalla cambian un momento. Unos 4 minutos.\n3. **Probar lo que se oye y se ve**: se pregunta antes.\n\nUna zona principal apagada se enciende para la prueba y después se vuelve a apagar. Cerrar la ventana detiene la prueba y restablece todo.",
+        "submit": "Iniciar"
+      },
+      "tests_check": {
+        "title": "Paso 1 de 3"
+      },
+      "tests_quiet": {
+        "title": "Paso 2 de 3"
+      },
+      "tests_audible": {
+        "title": "Paso 3 de 3"
+      },
       "tests_ask": {
-        "title": "¿Probar lo que se oye y se ve?",
-        "description": "La parte silenciosa ha terminado. A continuación, silencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Quédate frente al televisor; tarda unos minutos.",
+        "title": "Paso 3 de 3",
+        "description": "**¿Probar lo que se oye y se ve?**\n\nSilencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Quédate frente al televisor; tarda unos dos minutos.",
         "menu_options": {
-          "tests_audible": "Iniciar",
+          "tests_audible": "Probar ahora",
           "tests_done": "Omitir"
         }
       },
       "tests_done": {
-        "title": "Prueba del receptor terminada",
-        "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- No confirmados: {unconfirmed}\n- Omitidos: {skipped}\n- No restablecidos: {not_restored} (compruébalos en el receptor si no es 0)\n\nLos detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Para ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo. Léelo antes de adjuntarlo; las direcciones ya están sustituidas."
+        "title": "Todo restablecido",
+        "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
+      },
+      "tests_done_check": {
+        "title": "Comprueba el receptor",
+        "description": "No todos los ajustes volvieron: {not_restored_list}. Ajústalos en el receptor como estaban.\n\n{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
       }
     },
     "error": {
@@ -261,8 +279,9 @@
       "no_hidden_entities": "Este receptor no tiene entidades ocultas."
     },
     "progress": {
-      "capability_check": "Consultando al receptor. Tarda hasta minuto y medio.",
-      "command_test": "Probando comandos y restableciendo cada uno. Esto tarda unos minutos."
+      "test_part_1": "**Leer funciones**\n\nAhora: {current}\n\n- → Leer funciones\n- ○ Probar en silencio\n- ○ Probar lo que se oye y se ve\n\nSolo lee; nada cambia.",
+      "test_part_2": "**Probar en silencio**\n\nAhora: {current}\n\n- ✓ Leer funciones\n- → Probar en silencio\n- ○ Probar lo que se oye y se ve\n\nTono, imagen, temporizadores y pantalla cambian un momento y se restablecen. Cerrar la ventana detiene la prueba y restablece todo.",
+      "test_part_3": "**Probar lo que se oye y se ve**\n\nAhora: {current}\n\n- ✓ Leer funciones\n- ✓ Probar en silencio\n- → Probar lo que se oye y se ve\n\nSilencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Cerrar la ventana detiene la prueba y restablece todo."
     }
   },
   "entity": {
@@ -1095,24 +1114,39 @@
         "step": {
           "tests_start": {
             "title": "Probar el receptor",
-            "description": "Tres partes, una tras otra:\n\n1. **Comprobar funciones**: solo lee, hasta minuto y medio.\n2. **Probar comandos en silencio**: tono, Audyssey, imagen, temporizadores y pantalla cambian un momento y se restablecen. Unos minutos.\n3. **Probar lo que se oye y se ve**: solo si lo eliges entonces.\n\nUna zona principal apagada se enciende para las pruebas y después se vuelve a apagar. Los resultados van al archivo de diagnóstico."
+            "description": "Tres pasos, unos seis minutos. Todo lo que cambia se restablece.\n\n1. **Leer funciones**: solo lee, cerca de minuto y medio.\n2. **Probar en silencio**: tono, imagen, temporizadores y pantalla cambian un momento. Unos 4 minutos.\n3. **Probar lo que se oye y se ve**: se pregunta antes.\n\nUna zona principal apagada se enciende para la prueba y después se vuelve a apagar. Cerrar la ventana detiene la prueba y restablece todo.",
+            "submit": "Iniciar"
+          },
+          "tests_check": {
+            "title": "Paso 1 de 3"
+          },
+          "tests_quiet": {
+            "title": "Paso 2 de 3"
+          },
+          "tests_audible": {
+            "title": "Paso 3 de 3"
           },
           "tests_ask": {
-            "title": "¿Probar lo que se oye y se ve?",
-            "description": "La parte silenciosa ha terminado. A continuación, silencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Quédate frente al televisor; tarda unos minutos.",
+            "title": "Paso 3 de 3",
+            "description": "**¿Probar lo que se oye y se ve?**\n\nSilencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Quédate frente al televisor; tarda unos dos minutos.",
             "menu_options": {
-              "tests_audible": "Iniciar",
+              "tests_audible": "Probar ahora",
               "tests_done": "Omitir"
             }
           },
           "tests_done": {
-            "title": "Prueba del receptor terminada",
-            "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- No confirmados: {unconfirmed}\n- Omitidos: {skipped}\n- No restablecidos: {not_restored} (compruébalos en el receptor si no es 0)\n\nLos detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Para ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo. Léelo antes de adjuntarlo; las direcciones ya están sustituidas."
+            "title": "Todo restablecido",
+            "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
+          },
+          "tests_done_check": {
+            "title": "Comprueba el receptor",
+            "description": "No todos los ajustes volvieron: {not_restored_list}. Ajústalos en el receptor como estaban.\n\n{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltaba un requisito: {precondition}\n- Sin efecto: {no_effect}\n- Omitidos: {skipped}\n\nAdjunta el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos) a [esta incidencia prerrellenada en GitHub]({url}). Léelo antes; las direcciones ya están sustituidas."
           }
         },
         "progress": {
-          "capability_check": "Consultando al receptor. Tarda hasta minuto y medio.",
-          "command_test": "Probando comandos y restableciendo cada uno. Esto tarda unos minutos."
+          "test_part_1": "**Leer funciones**\n\nAhora: {current}\n\n- → Leer funciones\n- ○ Probar en silencio\n- ○ Probar lo que se oye y se ve\n\nSolo lee; nada cambia.",
+          "test_part_2": "**Probar en silencio**\n\nAhora: {current}\n\n- ✓ Leer funciones\n- → Probar en silencio\n- ○ Probar lo que se oye y se ve\n\nTono, imagen, temporizadores y pantalla cambian un momento y se restablecen. Cerrar la ventana detiene la prueba y restablece todo.",
+          "test_part_3": "**Probar lo que se oye y se ve**\n\nAhora: {current}\n\n- ✓ Leer funciones\n- ✓ Probar en silencio\n- → Probar lo que se oye y se ve\n\nSilencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Cerrar la ventana detiene la prueba y restablece todo."
         },
         "abort": {
           "test_not_connected": "El receptor no está conectado. La prueba de comandos necesita su conexión telnet; inténtalo de nuevo cuando esté encendido."
@@ -1146,6 +1180,20 @@
         "tuner_presets": "Presintonías del sintonizador",
         "more": "Más",
         "queue": "Cola"
+      }
+    },
+    "receiver_test_item": {
+      "options": {
+        "power_and_zones": "Encendido y zonas",
+        "volume_and_input": "Volumen y entrada",
+        "surround": "Surround",
+        "audio": "Audio",
+        "video": "Vídeo",
+        "tuner": "Sintonizador",
+        "network_audio": "Audio en red",
+        "signal_and_setup": "Señal y configuración",
+        "setup_menu": "Menú de configuración en el televisor",
+        "zone2_follow_main": "La Zona 2 sigue a la zona principal"
       }
     }
   },

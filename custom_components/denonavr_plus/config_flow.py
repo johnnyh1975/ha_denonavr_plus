@@ -447,7 +447,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 "sound_modes",
                 "connection",
                 "entities",
-                "tests",
+                "tests_start",
             ],
         )
 

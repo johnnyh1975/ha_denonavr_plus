@@ -116,6 +116,38 @@ _ZONE_RESTORE = {
 }
 _NO_WRITE_BACK = frozenset({"zone2_quick_select"})
 
+#: Settings a control only takes while another one is set: the test sets it
+#: for the moment and back. An AVR-X2000 ignored bass and treble with tone
+#: control off, and the picture adjustments outside the custom picture mode.
+REQUIRES: dict[str, tuple[str, Any]] = {
+    "bass": ("tone_control", True),
+    "treble": ("tone_control", True),
+    "contrast": ("picture_mode", "CTM"),
+    "brightness": ("picture_mode", "CTM"),
+    "saturation": ("picture_mode", "CTM"),
+    "enhancer": ("picture_mode", "CTM"),
+    "noise_reduction": ("picture_mode", "CTM"),
+}
+
+#: Settings that need what the test cannot set quietly: Audyssey on (MultEQ
+#: needs a calibration), Zone 2 on (it would play). Reported as a missing
+#: precondition instead of "no effect".
+_AUDYSSEY_SETTINGS = frozenset(
+    {
+        "dynamic_eq",
+        "dynamic_volume",
+        "reference_level_offset",
+        "low_frequency_containment",
+        "containment_amount",
+    }
+)
+_ZONE2_SETTINGS = frozenset(
+    {"zone2_sleep_timer", "zone2_auto_standby", "zone2_channel_level_fl", "zone2_channel_level_fr"}
+)
+
+#: What the receiver was doing when the test started, for reading the results.
+CONTEXT = ("sound_mode", "multeq", "tone_control", "picture_mode", "input_mode")
+
 #: FM band in the tuner's unit (MHz x 100) and its step.
 _FM_LOW, _FM_HIGH, _FM_STEP = 8750, 10800, 5
 
@@ -137,6 +169,10 @@ class Probe:
     alternative: Callable[[Any], Any]
     #: Why the test cannot run now, or None.
     condition: Callable[[], str | None] = lambda: None
+    #: A missing precondition the test cannot set quietly, or None.
+    precondition: Callable[[], str | None] = lambda: None
+    #: (control, value) set for the moment before the test and put back.
+    requires: tuple[tuple[str, Any], ...] = ()
     #: Put back another way than by writing the old value.
     restore: Callable[[Any], Awaitable[Any]] | None = None
     #: Zones whose power, input, volume and mute are put back afterwards.
@@ -235,6 +271,9 @@ def _control_probe(device: DenonAvrDevice, spec: ControlSpec) -> Probe:
     condition: Callable[[], str | None] = lambda: None
     if spec.group in _MAIN_ZONE_GROUPS:
         condition = _main_zone_on(device)
+    requires: tuple[tuple[str, Any], ...] = ()
+    if (required := REQUIRES.get(spec.id)) and _applies(device, required[0]):
+        requires = (required,)
     return Probe(
         key=spec.id,
         group=AUDIBLE if spec.id in AUDIBLE_CONTROLS else QUIET,
@@ -246,7 +285,45 @@ def _control_probe(device: DenonAvrDevice, spec: ControlSpec) -> Probe:
         condition=condition,
         zones=tuple(zone for zone in _ZONE_RESTORE.get(spec.id, ()) if _has_zone(device, zone)),
         write_back=spec.id not in _NO_WRITE_BACK,
+        precondition=_precondition(device, spec.id),
+        requires=requires,
     )
+
+
+def _applies(device: DenonAvrDevice, control_id: str) -> bool:
+    spec = device.profile.control(control_id)
+    return spec is not None and device.discovery.has_control(spec.scope, spec.feature, spec.id)
+
+
+def _precondition(device: DenonAvrDevice, control_id: str) -> Callable[[], str | None]:
+    def missing() -> str | None:
+        values = device.state.values
+        if control_id in _AUDYSSEY_SETTINGS and values.get("multeq") == "OFF":
+            return "audyssey_off"
+        if control_id in _ZONE2_SETTINGS and not device.state.zone("zone2").power:
+            return "zone2_off"
+        return None
+
+    return missing
+
+
+def _wanted(device: DenonAvrDevice, control_id: str) -> Callable[[str], bool]:
+    spec = device.profile.control(control_id)
+    prefixes = tuple(
+        prefix
+        for prefix in ((spec.prefix.strip() if spec else ""), reply_prefix((spec and spec.query) or ""))
+        if prefix
+    )
+    return lambda line: bool(prefixes) and line.startswith(prefixes)
+
+
+def context(device: DenonAvrDevice) -> dict[str, Any]:
+    """What the receiver was doing, to read the results by."""
+
+    found: dict[str, Any] = {key: device.state.values.get(key) for key in CONTEXT}
+    found["source"] = device.state.zone("main").source
+    found["zone2_power"] = device.state.zone("zone2").power
+    return found
 
 
 def special_probes(device: DenonAvrDevice) -> list[Probe]:
@@ -454,8 +531,11 @@ async def async_run(
     device: DenonAvrDevice,
     groups: tuple[str, ...] | list[str],
     on_progress: Callable[[float], None] | None = None,
+    on_current: Callable[[str], None] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Run the tests one after the other; each puts back what it changed.
+
+    `on_current` learns the key of each test as it starts.
 
     When the telnet connection drops, the remaining tests are marked
     interrupted; the one that ran is still put back (over HTTP if need be).
@@ -464,6 +544,8 @@ async def async_run(
     probes = probes_for(device, groups)
     results: dict[str, dict[str, Any]] = {}
     for index, probe in enumerate(probes):
+        if on_current is not None:
+            on_current(probe.key)
         if not device.telnet_connected:
             results[probe.key] = {"group": probe.group, "result": "interrupted"}
         else:
@@ -478,6 +560,51 @@ async def _run_probe(device: DenonAvrDevice, probe: Probe) -> dict[str, Any]:
     reason = probe.condition()
     if reason is not None:
         return entry | {"result": "skipped", "reason": reason}
+    reason = probe.precondition()
+    if reason is not None:
+        return entry | {"result": "precondition", "reason": reason}
+    changed: list[tuple[str, Any]] = []
+    try:
+        reason = await _prepare(device, probe, changed)
+        if reason is not None:
+            return entry | {"result": "precondition", "reason": reason}
+        if changed:
+            entry["requires"] = dict(probe.requires)
+        return await _test(device, probe, entry)
+    finally:
+        # Also when the test is stopped: the setting it needed goes back.
+        with contextlib.suppress(CommandNotSent):
+            for control_id, value in reversed(changed):
+                await _set(device, control_id, value)
+
+
+async def _prepare(
+    device: DenonAvrDevice, probe: Probe, changed: list[tuple[str, Any]]
+) -> str | None:
+    """Set what the probe needs; the reason when the receiver does not take it."""
+
+    for control_id, value in probe.requires:
+        old = device.state.values.get(control_id)
+        if same(old, value):
+            continue
+        changed.append((control_id, old))
+        await _set(device, control_id, value)
+        if not same(device.state.values.get(control_id), value):
+            return f"{control_id}_not_set"
+    return None
+
+
+async def _set(device: DenonAvrDevice, control_id: str, value: Any) -> None:
+    """Set a control and wait for its echo."""
+
+    await device.async_collect(
+        _wanted(device, control_id),
+        lambda: device.async_set_control(control_id, value),
+        CONFIRM_WAIT,
+    )
+
+
+async def _test(device: DenonAvrDevice, probe: Probe, entry: dict[str, Any]) -> dict[str, Any]:
     snapshots: dict[str, Any] = {}
     log: list[str] = []
     written = False

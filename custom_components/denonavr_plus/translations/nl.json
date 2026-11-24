@@ -69,10 +69,10 @@
           "sound_modes": "Geluidsmodi",
           "connection": "Verbinding",
           "entities": "Entiteiten",
-          "tests": "Receiver testen"
+          "tests_start": "Receiver testen"
         },
         "menu_option_descriptions": {
-          "tests": "Controleert de functies, test commando's stil en vraagt dan voordat wat je hoort en ziet getest wordt. De resultaten komen in het diagnosebestand."
+          "tests_start": "Drie stappen, ongeveer zes minuten; alles wordt teruggezet."
         }
       },
       "volume": {
@@ -236,17 +236,35 @@
           "diagnostic": "{n_diagnostic} entiteiten: signaal, decoder, geluid herstellen"
         }
       },
+      "tests_start": {
+        "title": "Receiver testen",
+        "description": "Drie stappen, ongeveer zes minuten. Alles wat verandert, wordt teruggezet.\n\n1. **Functies lezen**: leest alleen, ongeveer anderhalve minuut.\n2. **Stil testen**: klank, beeld, timers en display veranderen even. Ongeveer 4 minuten.\n3. **Testen wat je hoort en ziet**: wordt eerst gevraagd.\n\nEen uitgeschakelde hoofdzone wordt voor de test ingeschakeld en daarna weer uitgeschakeld. Het venster sluiten stopt de test en zet alles terug.",
+        "submit": "Starten"
+      },
+      "tests_check": {
+        "title": "Stap 1 van 3"
+      },
+      "tests_quiet": {
+        "title": "Stap 2 van 3"
+      },
+      "tests_audible": {
+        "title": "Stap 3 van 3"
+      },
       "tests_ask": {
-        "title": "Testen wat je hoort en ziet?",
-        "description": "Het stille deel is klaar. Nu veranderen dempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv even en worden teruggezet. Blijf voor de tv; het duurt enkele minuten.",
+        "title": "Stap 3 van 3",
+        "description": "**Testen wat je hoort en ziet?**\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Blijf voor de tv; het duurt ongeveer twee minuten.",
         "menu_options": {
-          "tests_audible": "Starten",
+          "tests_audible": "Nu testen",
           "tests_done": "Overslaan"
         }
       },
       "tests_done": {
-        "title": "Receivertest voltooid",
-        "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Niet bevestigd: {unconfirmed}\n- Overgeslagen: {skipped}\n- Niet teruggezet: {not_restored} (controleer ze op de receiver als dit niet 0 is)\n\nDe details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Om dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het bestand toe. Lees het voordat je het toevoegt; adressen zijn al vervangen."
+        "title": "Alles teruggezet",
+        "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
+      },
+      "tests_done_check": {
+        "title": "Controleer de receiver",
+        "description": "Niet alle instellingen kwamen terug: {not_restored_list}. Zet ze op de receiver terug zoals ze waren.\n\n{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
       }
     },
     "error": {
@@ -261,8 +279,9 @@
       "no_hidden_entities": "Deze receiver heeft geen verborgen entiteiten."
     },
     "progress": {
-      "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut.",
-      "command_test": "Commando's worden getest en elk teruggezet. Dit duurt enkele minuten."
+      "test_part_1": "**Functies lezen**\n\nNu: {current}\n\n- → Functies lezen\n- ○ Stil testen\n- ○ Testen wat je hoort en ziet\n\nLeest alleen; er verandert niets.",
+      "test_part_2": "**Stil testen**\n\nNu: {current}\n\n- ✓ Functies lezen\n- → Stil testen\n- ○ Testen wat je hoort en ziet\n\nKlank, beeld, timers en display veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug.",
+      "test_part_3": "**Testen wat je hoort en ziet**\n\nNu: {current}\n\n- ✓ Functies lezen\n- ✓ Stil testen\n- → Testen wat je hoort en ziet\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug."
     }
   },
   "entity": {
@@ -1095,24 +1114,39 @@
         "step": {
           "tests_start": {
             "title": "Receiver testen",
-            "description": "Drie delen na elkaar:\n\n1. **Functies controleren**: leest alleen, tot anderhalve minuut.\n2. **Commando's stil testen**: klank, Audyssey, beeld, timers en display veranderen even en worden teruggezet. Enkele minuten.\n3. **Testen wat je hoort en ziet**: alleen als je dat dan kiest.\n\nEen uitgeschakelde hoofdzone wordt voor de tests ingeschakeld en daarna weer uitgeschakeld. De resultaten komen in het diagnosebestand."
+            "description": "Drie stappen, ongeveer zes minuten. Alles wat verandert, wordt teruggezet.\n\n1. **Functies lezen**: leest alleen, ongeveer anderhalve minuut.\n2. **Stil testen**: klank, beeld, timers en display veranderen even. Ongeveer 4 minuten.\n3. **Testen wat je hoort en ziet**: wordt eerst gevraagd.\n\nEen uitgeschakelde hoofdzone wordt voor de test ingeschakeld en daarna weer uitgeschakeld. Het venster sluiten stopt de test en zet alles terug.",
+            "submit": "Starten"
+          },
+          "tests_check": {
+            "title": "Stap 1 van 3"
+          },
+          "tests_quiet": {
+            "title": "Stap 2 van 3"
+          },
+          "tests_audible": {
+            "title": "Stap 3 van 3"
           },
           "tests_ask": {
-            "title": "Testen wat je hoort en ziet?",
-            "description": "Het stille deel is klaar. Nu veranderen dempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv even en worden teruggezet. Blijf voor de tv; het duurt enkele minuten.",
+            "title": "Stap 3 van 3",
+            "description": "**Testen wat je hoort en ziet?**\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Blijf voor de tv; het duurt ongeveer twee minuten.",
             "menu_options": {
-              "tests_audible": "Starten",
+              "tests_audible": "Nu testen",
               "tests_done": "Overslaan"
             }
           },
           "tests_done": {
-            "title": "Receivertest voltooid",
-            "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Niet bevestigd: {unconfirmed}\n- Overgeslagen: {skipped}\n- Niet teruggezet: {not_restored} (controleer ze op de receiver als dit niet 0 is)\n\nDe details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Om dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het bestand toe. Lees het voordat je het toevoegt; adressen zijn al vervangen."
+            "title": "Alles teruggezet",
+            "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
+          },
+          "tests_done_check": {
+            "title": "Controleer de receiver",
+            "description": "Niet alle instellingen kwamen terug: {not_restored_list}. Zet ze op de receiver terug zoals ze waren.\n\n{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
           }
         },
         "progress": {
-          "capability_check": "De receiver wordt bevraagd. Dit duurt tot anderhalve minuut.",
-          "command_test": "Commando's worden getest en elk teruggezet. Dit duurt enkele minuten."
+          "test_part_1": "**Functies lezen**\n\nNu: {current}\n\n- → Functies lezen\n- ○ Stil testen\n- ○ Testen wat je hoort en ziet\n\nLeest alleen; er verandert niets.",
+          "test_part_2": "**Stil testen**\n\nNu: {current}\n\n- ✓ Functies lezen\n- → Stil testen\n- ○ Testen wat je hoort en ziet\n\nKlank, beeld, timers en display veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug.",
+          "test_part_3": "**Testen wat je hoort en ziet**\n\nNu: {current}\n\n- ✓ Functies lezen\n- ✓ Stil testen\n- → Testen wat je hoort en ziet\n\nDempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet. Het venster sluiten stopt de test en zet alles terug."
         },
         "abort": {
           "test_not_connected": "De receiver is niet verbonden. De commandotest heeft zijn telnetverbinding nodig; probeer het opnieuw als hij aan staat."
@@ -1146,6 +1180,20 @@
         "tuner_presets": "Tunervoorkeuzes",
         "more": "Meer",
         "queue": "Wachtrij"
+      }
+    },
+    "receiver_test_item": {
+      "options": {
+        "power_and_zones": "Aan/uit en zones",
+        "volume_and_input": "Volume en ingang",
+        "surround": "Surround",
+        "audio": "Audio",
+        "video": "Video",
+        "tuner": "Tuner",
+        "network_audio": "Netwerkaudio",
+        "signal_and_setup": "Signaal en instellingen",
+        "setup_menu": "Instelmenu op de tv",
+        "zone2_follow_main": "Zone 2 volgt de hoofdzone"
       }
     }
   },

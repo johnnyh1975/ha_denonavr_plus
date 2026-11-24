@@ -82,6 +82,7 @@ class CapabilityResults:
         on_progress: Callable[[float], None] | None = None,
         *,
         report: bool = True,
+        on_current: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         """Run the check, keep the result and point to the GitHub issue.
 
@@ -91,7 +92,7 @@ class CapabilityResults:
         """
 
         async with self.lock:
-            result = await coordinator.device.async_check_capabilities(on_progress)
+            result = await coordinator.device.async_check_capabilities(on_progress, on_current)
         result["checked_at"] = dt_util.utcnow().isoformat()
         if self._hass.config_entries.async_get_entry(self._entry_id) is None:
             # Removed while the check ran: keep nothing behind.

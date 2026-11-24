@@ -526,7 +526,7 @@ async def _options_step(hass: HomeAssistant, entry: MockConfigEntry, step: str) 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.MENU
     assert result["menu_options"] == [
-        "volume", "zones", "sources", "sound_modes", "connection", "entities", "tests"
+        "volume", "zones", "sources", "sound_modes", "connection", "entities", "tests_start"
     ]
     return await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": step}
@@ -747,21 +747,30 @@ async def _through_progress(hass: HomeAssistant, result: Any) -> Any:
 async def test_the_receiver_test_runs_its_parts_in_sequence(
     hass: HomeAssistant, loaded_entry: MockConfigEntry, audible: bool
 ) -> None:
-    async def command_test(self: Any, groups: list[str], on_progress: Any = None) -> Any:
+    async def command_test(self: Any, groups: list[str], on_progress: Any = None, on_current: Any = None) -> Any:
+        on_progress(0.5)
         return _command_test(groups)
 
     check = AsyncMock(return_value=dict(CHECK))
     options_before = dict(loaded_entry.options)
+    shown: list[float] = []
     with (
         patch.object(DenonAvrDevice, "async_check_capabilities", check),
         patch.object(DenonAvrDevice, "async_command_test", command_test),
+        patch(
+            "homeassistant.config_entries.OptionsFlow.async_update_progress",
+            lambda self, progress: shown.append(progress),
+        ),
     ):
-        # One entry starts it, without a further question.
-        result = await _options_step(hass, loaded_entry, "tests")
-        assert result["progress_action"] == "capability_check"
+        # A start page says what happens; Start begins.
+        result = await _options_step(hass, loaded_entry, "tests_start")
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "tests_start"
+        result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+        assert (result["step_id"], result["progress_action"]) == ("tests_check", "test_part_1")
         result = await _through_progress(hass, result)
         # The quiet part follows by itself.
-        assert result["progress_action"] == "command_test"
+        assert (result["step_id"], result["progress_action"]) == ("tests_quiet", "test_part_2")
         result = await _through_progress(hass, result)
         # Then the question, with a button each.
         assert result["type"] is FlowResultType.MENU
@@ -772,18 +781,24 @@ async def test_the_receiver_test_runs_its_parts_in_sequence(
             result["flow_id"], {"next_step_id": choice}
         )
         if audible:
+            assert result["progress_action"] == "test_part_3"
             result = await _through_progress(hass, result)
     check.assert_awaited_once()
-    assert result["step_id"] == "tests_done"
+    # One progress over the whole test, not starting again for every part.
+    expected_shares = [0.0, 0.25, 0.5] + ([0.75, 0.875] if audible else [])
+    assert shown == expected_shares
+    # A setting did not come back: the result says so in its title.
+    assert result["step_id"] == "tests_done_check"
     placeholders = result["description_placeholders"]
     assert (placeholders["answered"], placeholders["total"]) == ("1", "2")
     expected = ("3", "1", "2", "1") if audible else ("2", "1", "1", "1")
     assert (
         placeholders["confirmed"],
-        placeholders["unconfirmed"],
+        placeholders["no_effect"],
         placeholders["skipped"],
         placeholders["not_restored"],
     ) == expected
+    assert placeholders["not_restored_list"] == "dimmer"
     assert "template=device_support.yml" in placeholders["url"]
     result = await hass.config_entries.options.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -794,12 +809,37 @@ async def test_the_receiver_test_runs_its_parts_in_sequence(
     assert "bass" in kept["tests"]
 
 
+async def test_everything_put_back_is_the_result_title(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    tested = {"model": "AVC-X3700H", "groups": ["quiet"], "tests": {
+        "bass": {"group": "quiet", "result": "confirmed", "restored": True},
+        "dynamic_eq": {"group": "quiet", "result": "precondition", "reason": "audyssey_off"},
+    }}
+    with (
+        patch.object(DenonAvrDevice, "async_check_capabilities", AsyncMock(return_value=dict(CHECK))),
+        patch.object(DenonAvrDevice, "async_command_test", AsyncMock(return_value=tested)),
+    ):
+        result = await _options_step(hass, loaded_entry, "tests_start")
+        result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+        result = await _through_progress(hass, result)
+        result = await _through_progress(hass, result)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {"next_step_id": "tests_done"}
+        )
+    assert result["step_id"] == "tests_done"
+    placeholders = result["description_placeholders"]
+    assert (placeholders["confirmed"], placeholders["precondition"]) == ("1", "1")
+    assert (placeholders["not_restored"], placeholders["not_restored_list"]) == ("0", "-")
+
+
 async def test_the_receiver_test_needs_the_receiver(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, data={CONF_HOST: "192.0.2.10"}
     )
     entry.add_to_hass(hass)
-    result = await _options_step(hass, entry, "tests")
+    result = await _options_step(hass, entry, "tests_start")
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "test_not_connected"
 
@@ -812,8 +852,59 @@ async def test_the_receiver_test_ends_when_a_part_fails(
         patch.object(DenonAvrDevice, "async_check_capabilities", AsyncMock(return_value=dict(CHECK))),
         patch.object(DenonAvrDevice, "async_command_test", AsyncMock(side_effect=error)),
     ):
-        result = await _options_step(hass, loaded_entry, "tests")
+        result = await _options_step(hass, loaded_entry, "tests_start")
+        result = await hass.config_entries.options.async_configure(result["flow_id"], {})
         result = await _through_progress(hass, result)
         result = await _through_progress(hass, result)
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "test_not_connected"
+
+
+async def test_the_progress_names_what_runs(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The step is reloaded with the name of each test as it starts."""
+    gates = {key: asyncio.Event() for key in ("check", "bass", "main_volume", "something_new")}
+
+    async def check(self: Any, on_progress: Any = None, on_current: Any = None) -> Any:
+        on_current("Signal and setup")
+        await gates["check"].wait()
+        return dict(CHECK)
+
+    async def command_test(
+        self: Any, groups: list[str], on_progress: Any = None, on_current: Any = None
+    ) -> Any:
+        for key in ("bass", "main_volume", "something_new"):
+            on_current(key)
+            await gates[key].wait()
+        return _command_test(groups)
+
+    changed: list[Any] = []
+    hass.bus.async_listen("data_entry_flow_progressed", changed.append)
+
+    async def shown(flow_id: str) -> str:
+        # What the frontend does on the event: load the step again.
+        for _ in range(5):
+            await asyncio.sleep(0)
+        result = await hass.config_entries.options.async_configure(flow_id)
+        return str(result["description_placeholders"]["current"])
+
+    names: list[str] = []
+    with (
+        patch.object(DenonAvrDevice, "async_check_capabilities", check),
+        patch.object(DenonAvrDevice, "async_command_test", command_test),
+    ):
+        result = await _options_step(hass, loaded_entry, "tests_start")
+        result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+        flow_id = result["flow_id"]
+        names.append(await shown(flow_id))
+        gates["check"].set()
+        await hass.async_block_till_done()
+        result = await hass.config_entries.options.async_configure(flow_id)
+        assert result["step_id"] == "tests_quiet"
+        for key in ("bass", "main_volume", "something_new"):
+            names.append(await shown(flow_id))
+            gates[key].set()
+    # Entity names, a name of its own, and a readable key for anything new.
+    assert names == ["Signal and setup", "Bass", "Volume", "Something new"]
+    assert changed and all(event.data["refresh"] for event in changed)

@@ -69,10 +69,10 @@
           "sound_modes": "Modalità audio",
           "connection": "Connessione",
           "entities": "Entità",
-          "tests": "Prova il ricevitore"
+          "tests_start": "Prova il ricevitore"
         },
         "menu_option_descriptions": {
-          "tests": "Verifica le funzioni, prova i comandi in silenzio, poi chiede prima di provare ciò che si sente e si vede. I risultati finiscono nel file di diagnostica."
+          "tests_start": "Tre passi, circa sei minuti; tutto viene ripristinato."
         }
       },
       "volume": {
@@ -236,17 +236,35 @@
           "diagnostic": "{n_diagnostic} entità: segnale, decoder, ripristina audio"
         }
       },
+      "tests_start": {
+        "title": "Prova il ricevitore",
+        "description": "Tre passi, circa sei minuti. Tutto ciò che cambia viene ripristinato.\n\n1. **Leggi funzioni**: solo lettura, circa un minuto e mezzo.\n2. **Prova in silenzio**: toni, immagine, timer e display cambiano per un momento. Circa 4 minuti.\n3. **Prova ciò che si sente e si vede**: viene chiesto prima.\n\nUna zona principale spenta viene accesa per la prova e poi spenta di nuovo. Chiudere la finestra interrompe la prova e ripristina tutto.",
+        "submit": "Avvia"
+      },
+      "tests_check": {
+        "title": "Passo 1 di 3"
+      },
+      "tests_quiet": {
+        "title": "Passo 2 di 3"
+      },
+      "tests_audible": {
+        "title": "Passo 3 di 3"
+      },
       "tests_ask": {
-        "title": "Provare ciò che si sente e si vede?",
-        "description": "La parte silenziosa è finita. Ora muto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Resta davanti al televisore; richiede alcuni minuti.",
+        "title": "Passo 3 di 3",
+        "description": "**Provare ciò che si sente e si vede?**\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Resta davanti al televisore; richiede circa due minuti.",
         "menu_options": {
-          "tests_audible": "Avvia",
+          "tests_audible": "Prova ora",
           "tests_done": "Salta"
         }
       },
       "tests_done": {
-        "title": "Prova del ricevitore terminata",
-        "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Non confermati: {unconfirmed}\n- Saltati: {skipped}\n- Non ripristinati: {not_restored} (controllali sul ricevitore se non è 0)\n\nI dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Per aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file. Leggilo prima di allegarlo; gli indirizzi sono già sostituiti."
+        "title": "Tutto ripristinato",
+        "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
+      },
+      "tests_done_check": {
+        "title": "Controlla il ricevitore",
+        "description": "Non tutte le impostazioni sono tornate: {not_restored_list}. Reimpostale sul ricevitore com'erano.\n\n{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
       }
     },
     "error": {
@@ -261,8 +279,9 @@
       "no_hidden_entities": "Questo ricevitore non ha entità nascoste."
     },
     "progress": {
-      "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo.",
-      "command_test": "Prova dei comandi, ognuno poi ripristinato. Richiede alcuni minuti."
+      "test_part_1": "**Leggi funzioni**\n\nOra: {current}\n\n- → Leggi funzioni\n- ○ Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nSolo lettura; nulla cambia.",
+      "test_part_2": "**Prova in silenzio**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- → Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nToni, immagine, timer e display cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto.",
+      "test_part_3": "**Prova ciò che si sente e si vede**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- ✓ Prova in silenzio\n- → Prova ciò che si sente e si vede\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto."
     }
   },
   "entity": {
@@ -1095,24 +1114,39 @@
         "step": {
           "tests_start": {
             "title": "Prova il ricevitore",
-            "description": "Tre parti, una dopo l'altra:\n\n1. **Verifica funzioni**: solo lettura, fino a un minuto e mezzo.\n2. **Prova comandi in silenzio**: toni, Audyssey, immagine, timer e display cambiano per un momento e vengono ripristinati. Alcuni minuti.\n3. **Prova ciò che si sente e si vede**: solo se lo scegli in quel momento.\n\nUna zona principale spenta viene accesa per le prove e poi spenta di nuovo. I risultati finiscono nel file di diagnostica."
+            "description": "Tre passi, circa sei minuti. Tutto ciò che cambia viene ripristinato.\n\n1. **Leggi funzioni**: solo lettura, circa un minuto e mezzo.\n2. **Prova in silenzio**: toni, immagine, timer e display cambiano per un momento. Circa 4 minuti.\n3. **Prova ciò che si sente e si vede**: viene chiesto prima.\n\nUna zona principale spenta viene accesa per la prova e poi spenta di nuovo. Chiudere la finestra interrompe la prova e ripristina tutto.",
+            "submit": "Avvia"
+          },
+          "tests_check": {
+            "title": "Passo 1 di 3"
+          },
+          "tests_quiet": {
+            "title": "Passo 2 di 3"
+          },
+          "tests_audible": {
+            "title": "Passo 3 di 3"
           },
           "tests_ask": {
-            "title": "Provare ciò che si sente e si vede?",
-            "description": "La parte silenziosa è finita. Ora muto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Resta davanti al televisore; richiede alcuni minuti.",
+            "title": "Passo 3 di 3",
+            "description": "**Provare ciò che si sente e si vede?**\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Resta davanti al televisore; richiede circa due minuti.",
             "menu_options": {
-              "tests_audible": "Avvia",
+              "tests_audible": "Prova ora",
               "tests_done": "Salta"
             }
           },
           "tests_done": {
-            "title": "Prova del ricevitore terminata",
-            "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Non confermati: {unconfirmed}\n- Saltati: {skipped}\n- Non ripristinati: {not_restored} (controllali sul ricevitore se non è 0)\n\nI dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Per aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file. Leggilo prima di allegarlo; gli indirizzi sono già sostituiti."
+            "title": "Tutto ripristinato",
+            "description": "{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
+          },
+          "tests_done_check": {
+            "title": "Controlla il ricevitore",
+            "description": "Non tutte le impostazioni sono tornate: {not_restored_list}. Reimpostale sul ricevitore com'erano.\n\n{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
           }
         },
         "progress": {
-          "capability_check": "Interrogazione del sintoamplificatore. Richiede fino a un minuto e mezzo.",
-          "command_test": "Prova dei comandi, ognuno poi ripristinato. Richiede alcuni minuti."
+          "test_part_1": "**Leggi funzioni**\n\nOra: {current}\n\n- → Leggi funzioni\n- ○ Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nSolo lettura; nulla cambia.",
+          "test_part_2": "**Prova in silenzio**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- → Prova in silenzio\n- ○ Prova ciò che si sente e si vede\n\nToni, immagine, timer e display cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto.",
+          "test_part_3": "**Prova ciò che si sente e si vede**\n\nOra: {current}\n\n- ✓ Leggi funzioni\n- ✓ Prova in silenzio\n- → Prova ciò che si sente e si vede\n\nMuto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati. Chiudere la finestra interrompe la prova e ripristina tutto."
         },
         "abort": {
           "test_not_connected": "Il ricevitore non è connesso. La prova dei comandi richiede la sua connessione telnet; riprova quando è acceso."
@@ -1146,6 +1180,20 @@
         "tuner_presets": "Preselezioni del sintonizzatore",
         "more": "Altro",
         "queue": "Coda"
+      }
+    },
+    "receiver_test_item": {
+      "options": {
+        "power_and_zones": "Accensione e zone",
+        "volume_and_input": "Volume e ingresso",
+        "surround": "Surround",
+        "audio": "Audio",
+        "video": "Video",
+        "tuner": "Sintonizzatore",
+        "network_audio": "Audio di rete",
+        "signal_and_setup": "Segnale e configurazione",
+        "setup_menu": "Menu di configurazione sul televisore",
+        "zone2_follow_main": "La Zona 2 segue la zona principale"
       }
     }
   },

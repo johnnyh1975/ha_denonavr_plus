@@ -56,6 +56,7 @@ class CommandTestResults:
         coordinator: DenonAvrCoordinator,
         groups: list[str],
         on_progress: Callable[[float], None] | None = None,
+        on_current: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         """Run the test and keep the result.
 
@@ -63,7 +64,7 @@ class CommandTestResults:
         """
 
         async with self._lock:
-            result = await coordinator.device.async_command_test(groups, on_progress)
+            result = await coordinator.device.async_command_test(groups, on_progress, on_current)
         result["tested_at"] = dt_util.utcnow().isoformat()
         # The other group's last results stay: the quiet and the audible part
         # run one after the other, and the diagnostics hold both.

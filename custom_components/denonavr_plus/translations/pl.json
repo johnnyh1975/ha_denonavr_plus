@@ -69,10 +69,10 @@
           "sound_modes": "Tryby dźwięku",
           "connection": "Połączenie",
           "entities": "Encje",
-          "tests": "Testuj amplituner"
+          "tests_start": "Testuj amplituner"
         },
         "menu_option_descriptions": {
-          "tests": "Sprawdza funkcje, testuje polecenia po cichu, a potem pyta przed testem tego, co słychać i widać. Wyniki trafiają do pliku diagnostycznego."
+          "tests_start": "Trzy kroki, około sześciu minut; wszystko jest przywracane."
         }
       },
       "volume": {
@@ -236,17 +236,35 @@
           "diagnostic": "{n_diagnostic} encji: sygnał, dekoder, przywróć dźwięk"
         }
       },
+      "tests_start": {
+        "title": "Testuj amplituner",
+        "description": "Trzy kroki, około sześciu minut. Wszystko, co się zmienia, jest przywracane.\n\n1. **Odczytaj funkcje**: tylko odczyt, około półtorej minuty.\n2. **Testuj po cichu**: barwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę. Około 4 minut.\n3. **Testuj to, co słychać i widać**: najpierw pytanie.\n\nWyłączona strefa główna jest włączana na czas testu, a potem znowu wyłączana. Zamknięcie okna przerywa test i przywraca wszystko.",
+        "submit": "Start"
+      },
+      "tests_check": {
+        "title": "Krok 1 z 3"
+      },
+      "tests_quiet": {
+        "title": "Krok 2 z 3"
+      },
+      "tests_audible": {
+        "title": "Krok 3 z 3"
+      },
       "tests_ask": {
-        "title": "Testować to, co słychać i widać?",
-        "description": "Cicha część zakończona. Teraz wyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmienią się na chwilę i zostaną przywrócone. Zostań przed telewizorem; potrwa to kilka minut.",
+        "title": "Krok 3 z 3",
+        "description": "**Testować to, co słychać i widać?**\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zostań przed telewizorem; potrwa to około dwóch minut.",
         "menu_options": {
-          "tests_audible": "Start",
+          "tests_audible": "Testuj teraz",
           "tests_done": "Pomiń"
         }
       },
       "tests_done": {
-        "title": "Test amplitunera zakończony",
-        "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Niepotwierdzone: {unconfirmed}\n- Pominięte: {skipped}\n- Nieprzywrócone: {not_restored} (jeśli to nie 0, sprawdź je na amplitunerze)\n\nSzczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Aby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik. Przeczytaj go przed dołączeniem; adresy są już zastąpione."
+        "title": "Wszystko przywrócone",
+        "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
+      },
+      "tests_done_check": {
+        "title": "Sprawdź amplituner",
+        "description": "Nie wszystkie ustawienia wróciły: {not_restored_list}. Ustaw je na amplitunerze tak, jak były.\n\n{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
       }
     },
     "error": {
@@ -261,8 +279,9 @@
       "no_hidden_entities": "Ten amplituner nie ma ukrytych encji."
     },
     "progress": {
-      "capability_check": "Odpytywanie amplitunera. Trwa to do półtorej minuty.",
-      "command_test": "Testowanie poleceń, każde jest potem przywracane. To potrwa kilka minut."
+      "test_part_1": "**Odczytaj funkcje**\n\nTeraz: {current}\n\n- → Odczytaj funkcje\n- ○ Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nTylko odczyt; nic się nie zmienia.",
+      "test_part_2": "**Testuj po cichu**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- → Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nBarwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko.",
+      "test_part_3": "**Testuj to, co słychać i widać**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- ✓ Testuj po cichu\n- → Testuj to, co słychać i widać\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko."
     }
   },
   "entity": {
@@ -1095,24 +1114,39 @@
         "step": {
           "tests_start": {
             "title": "Testuj amplituner",
-            "description": "Trzy części, jedna po drugiej:\n\n1. **Sprawdź funkcje**: tylko odczyt, do półtorej minuty.\n2. **Testuj polecenia po cichu**: barwa dźwięku, Audyssey, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Kilka minut.\n3. **Testuj to, co słychać i widać**: tylko jeśli wtedy to wybierzesz.\n\nWyłączona strefa główna jest włączana na czas testów, a potem znowu wyłączana. Wyniki trafiają do pliku diagnostycznego."
+            "description": "Trzy kroki, około sześciu minut. Wszystko, co się zmienia, jest przywracane.\n\n1. **Odczytaj funkcje**: tylko odczyt, około półtorej minuty.\n2. **Testuj po cichu**: barwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę. Około 4 minut.\n3. **Testuj to, co słychać i widać**: najpierw pytanie.\n\nWyłączona strefa główna jest włączana na czas testu, a potem znowu wyłączana. Zamknięcie okna przerywa test i przywraca wszystko.",
+            "submit": "Start"
+          },
+          "tests_check": {
+            "title": "Krok 1 z 3"
+          },
+          "tests_quiet": {
+            "title": "Krok 2 z 3"
+          },
+          "tests_audible": {
+            "title": "Krok 3 z 3"
           },
           "tests_ask": {
-            "title": "Testować to, co słychać i widać?",
-            "description": "Cicha część zakończona. Teraz wyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmienią się na chwilę i zostaną przywrócone. Zostań przed telewizorem; potrwa to kilka minut.",
+            "title": "Krok 3 z 3",
+            "description": "**Testować to, co słychać i widać?**\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zostań przed telewizorem; potrwa to około dwóch minut.",
             "menu_options": {
-              "tests_audible": "Start",
+              "tests_audible": "Testuj teraz",
               "tests_done": "Pomiń"
             }
           },
           "tests_done": {
-            "title": "Test amplitunera zakończony",
-            "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Niepotwierdzone: {unconfirmed}\n- Pominięte: {skipped}\n- Nieprzywrócone: {not_restored} (jeśli to nie 0, sprawdź je na amplitunerze)\n\nSzczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Aby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik. Przeczytaj go przed dołączeniem; adresy są już zastąpione."
+            "title": "Wszystko przywrócone",
+            "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
+          },
+          "tests_done_check": {
+            "title": "Sprawdź amplituner",
+            "description": "Nie wszystkie ustawienia wróciły: {not_restored_list}. Ustaw je na amplitunerze tak, jak były.\n\n{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
           }
         },
         "progress": {
-          "capability_check": "Odpytywanie amplitunera. Trwa to do półtorej minuty.",
-          "command_test": "Testowanie poleceń, każde jest potem przywracane. To potrwa kilka minut."
+          "test_part_1": "**Odczytaj funkcje**\n\nTeraz: {current}\n\n- → Odczytaj funkcje\n- ○ Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nTylko odczyt; nic się nie zmienia.",
+          "test_part_2": "**Testuj po cichu**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- → Testuj po cichu\n- ○ Testuj to, co słychać i widać\n\nBarwa dźwięku, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko.",
+          "test_part_3": "**Testuj to, co słychać i widać**\n\nTeraz: {current}\n\n- ✓ Odczytaj funkcje\n- ✓ Testuj po cichu\n- → Testuj to, co słychać i widać\n\nWyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane. Zamknięcie okna przerywa test i przywraca wszystko."
         },
         "abort": {
           "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony."
@@ -1146,6 +1180,20 @@
         "tuner_presets": "Stacje zapisane w tunerze",
         "more": "Więcej",
         "queue": "Kolejka"
+      }
+    },
+    "receiver_test_item": {
+      "options": {
+        "power_and_zones": "Zasilanie i strefy",
+        "volume_and_input": "Głośność i wejście",
+        "surround": "Surround",
+        "audio": "Audio",
+        "video": "Wideo",
+        "tuner": "Tuner",
+        "network_audio": "Audio sieciowe",
+        "signal_and_setup": "Sygnał i konfiguracja",
+        "setup_menu": "Menu konfiguracji na telewizorze",
+        "zone2_follow_main": "Strefa 2 podąża za strefą główną"
       }
     }
   },

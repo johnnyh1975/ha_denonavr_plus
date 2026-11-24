@@ -1,6 +1,6 @@
 # Denon AVR Plus
 
-[![Version](https://img.shields.io/badge/Version-0.7.1-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
+[![Version](https://img.shields.io/badge/Version-0.7.2-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
 [![HA Version](https://img.shields.io/badge/HA-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
 [![Local Push](https://img.shields.io/badge/IoT%20Class-Local%20Push-green.svg)](https://www.home-assistant.io/blog/2016/02/12/classifying-the-internet-of-things/)
@@ -628,21 +628,26 @@ protocol facts. For a receiver that is not fully supported, the
 diagnostics file is what makes support possible; the issue form asks
 for it.
 
-**Test the receiver.** Configure → **Test the receiver** runs three parts one
-after the other, with a progress bar:
+**Test the receiver.** Configure → **Test the receiver** opens a page that
+says what happens: three steps, about six minutes, and everything that changes
+is put back. **Start** begins:
 
-1. **Check capabilities**: about 150 read-only questions over the
+1. **Read capabilities**: about 150 read-only questions over the
    integration's own connection (nothing is changed, commands from Home
-   Assistant still go first), up to a minute and a half.
-2. **Test commands quietly**: settings change for a moment and are put back
-   (see below), a few minutes.
+   Assistant still go first), about a minute and a half.
+2. **Test quietly**: settings change for a moment and are put back (see
+   below), about four minutes.
 3. **Test what you hear and see**: asked for after the quiet part, with
-   **Start** and **Skip**. It needs someone in front of the TV.
+   **Test now** and **Skip**. It needs someone in front of the TV.
 
-One page then shows how many questions were answered, how many commands were
-confirmed, not confirmed or skipped, and how many settings did not come back,
-with a link to a prefilled issue on GitHub; attach the diagnostics file there
-(addresses are replaced). Nothing is sent anywhere by itself.
+Each step has its own page (step x of 3) with a checklist, the setting being
+tested right now, and one progress for the whole test. Closing the window
+stops the test and puts back what it changed. The result page is titled
+**Everything put back**, or **Check the receiver** with the settings that did
+not come back. It counts the questions answered and the commands confirmed,
+with a missing precondition, without effect, or skipped, and links to a
+prefilled issue on GitHub; attach the diagnostics file there (addresses are
+replaced). Nothing is sent anywhere by itself.
 
 For a model that has not been checked yet, setup offers to test the receiver
 once it is connected (on by default; the first two parts, in the
@@ -651,7 +656,11 @@ points to the issue.
 
 **Command test.** Each command test reads a setting, writes a different valid
 value, waits up to 2 seconds for the receiver to confirm it, asks again, then
-writes the old value back and checks that it is back.
+writes the old value back and checks that it is back. Some settings need
+another one: bass and treble are tested with tone control on for the moment,
+the picture adjustments in the custom picture mode. What cannot be set quietly
+counts as a missing precondition instead of a failure: Audyssey settings with
+MultEQ off (it needs a calibration), Zone 2 settings with Zone 2 off.
 
 - **Quiet tests**: settings you hardly notice for a few seconds: tone,
   Audyssey, surround and picture settings, timers, the display, ECO, Zone 2

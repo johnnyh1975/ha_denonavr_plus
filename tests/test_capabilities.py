@@ -130,7 +130,7 @@ async def test_checks_run_one_at_a_time(
     running = 0
     most = 0
 
-    async def check(self: DenonAvrDevice, on_progress: Any = None) -> dict[str, Any]:
+    async def check(self: DenonAvrDevice, on_progress: Any = None, on_current: Any = None) -> dict[str, Any]:
         nonlocal running, most
         running += 1
         most = max(most, running)
@@ -153,7 +153,7 @@ async def test_a_check_ending_after_removal_keeps_nothing(
     coordinator = loaded_entry.runtime_data
     key = f"{DOMAIN}.{loaded_entry.entry_id}.capabilities"
 
-    async def check(self: DenonAvrDevice, on_progress: Any = None) -> dict[str, Any]:
+    async def check(self: DenonAvrDevice, on_progress: Any = None, on_current: Any = None) -> dict[str, Any]:
         assert await hass.config_entries.async_remove(loaded_entry.entry_id)
         return dict(RESULT)
 

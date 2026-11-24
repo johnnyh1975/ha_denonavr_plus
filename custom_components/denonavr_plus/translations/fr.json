@@ -69,10 +69,10 @@
           "sound_modes": "Modes son",
           "connection": "Connexion",
           "entities": "Entités",
-          "tests": "Tester le récepteur"
+          "tests_start": "Tester le récepteur"
         },
         "menu_option_descriptions": {
-          "tests": "Vérifie les fonctions, teste les commandes discrètement, puis demande avant de tester ce qui s'entend et se voit. Les résultats vont dans le fichier de diagnostic."
+          "tests_start": "Trois étapes, environ six minutes ; tout est rétabli."
         }
       },
       "volume": {
@@ -236,17 +236,35 @@
           "diagnostic": "{n_diagnostic} entités : signal, décodeur, rétablir le son"
         }
       },
+      "tests_start": {
+        "title": "Tester le récepteur",
+        "description": "Trois étapes, environ six minutes. Tout ce qui change est rétabli.\n\n1. **Lire les fonctions** : lecture seule, environ une minute et demie.\n2. **Tester discrètement** : tonalité, image, minuteries et afficheur changent un instant. Environ 4 minutes.\n3. **Tester ce qui s'entend et se voit** : demandé avant de commencer.\n\nUne zone principale éteinte est allumée pour le test puis éteinte à nouveau. Fermer la fenêtre arrête le test et rétablit tout.",
+        "submit": "Démarrer"
+      },
+      "tests_check": {
+        "title": "Étape 1 sur 3"
+      },
+      "tests_quiet": {
+        "title": "Étape 2 sur 3"
+      },
+      "tests_audible": {
+        "title": "Étape 3 sur 3"
+      },
       "tests_ask": {
-        "title": "Tester ce qui s'entend et se voit ?",
-        "description": "La partie discrète est terminée. Ensuite, sourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Restez devant le téléviseur ; cela prend quelques minutes.",
+        "title": "Étape 3 sur 3",
+        "description": "**Tester ce qui s'entend et se voit ?**\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Restez devant le téléviseur ; cela prend environ deux minutes.",
         "menu_options": {
-          "tests_audible": "Démarrer",
+          "tests_audible": "Tester maintenant",
           "tests_done": "Passer"
         }
       },
       "tests_done": {
-        "title": "Test du récepteur terminé",
-        "description": "{model} :\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Non confirmées : {unconfirmed}\n- Ignorées : {skipped}\n- Non rétablies : {not_restored} (vérifiez-les sur le récepteur si ce n'est pas 0)\n\nLes détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Pour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier. Lisez-le avant de le joindre ; les adresses sont déjà remplacées."
+        "title": "Tout est rétabli",
+        "description": "{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
+      },
+      "tests_done_check": {
+        "title": "Vérifiez le récepteur",
+        "description": "Tous les réglages ne sont pas revenus : {not_restored_list}. Remettez-les sur le récepteur comme ils étaient.\n\n{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
       }
     },
     "error": {
@@ -261,8 +279,9 @@
       "no_hidden_entities": "Ce récepteur n'a pas d'entités masquées."
     },
     "progress": {
-      "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie.",
-      "command_test": "Test des commandes, chacune rétablie ensuite. Cela prend quelques minutes."
+      "test_part_1": "**Lire les fonctions**\n\nEn cours : {current}\n\n- → Lire les fonctions\n- ○ Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nLecture seule ; rien ne change.",
+      "test_part_2": "**Tester discrètement**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- → Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nTonalité, image, minuteries et afficheur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout.",
+      "test_part_3": "**Tester ce qui s'entend et se voit**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- ✓ Tester discrètement\n- → Tester ce qui s'entend et se voit\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout."
     }
   },
   "entity": {
@@ -1095,24 +1114,39 @@
         "step": {
           "tests_start": {
             "title": "Tester le récepteur",
-            "description": "Trois parties, l'une après l'autre :\n\n1. **Vérifier les fonctions** : lecture seule, jusqu'à une minute et demie.\n2. **Tester les commandes discrètement** : tonalité, Audyssey, image, minuteries et afficheur changent un instant puis sont rétablis. Quelques minutes.\n3. **Tester ce qui s'entend et se voit** : seulement si vous le choisissez à ce moment.\n\nUne zone principale éteinte est allumée pour les tests puis éteinte à nouveau. Les résultats vont dans le fichier de diagnostic."
+            "description": "Trois étapes, environ six minutes. Tout ce qui change est rétabli.\n\n1. **Lire les fonctions** : lecture seule, environ une minute et demie.\n2. **Tester discrètement** : tonalité, image, minuteries et afficheur changent un instant. Environ 4 minutes.\n3. **Tester ce qui s'entend et se voit** : demandé avant de commencer.\n\nUne zone principale éteinte est allumée pour le test puis éteinte à nouveau. Fermer la fenêtre arrête le test et rétablit tout.",
+            "submit": "Démarrer"
+          },
+          "tests_check": {
+            "title": "Étape 1 sur 3"
+          },
+          "tests_quiet": {
+            "title": "Étape 2 sur 3"
+          },
+          "tests_audible": {
+            "title": "Étape 3 sur 3"
           },
           "tests_ask": {
-            "title": "Tester ce qui s'entend et se voit ?",
-            "description": "La partie discrète est terminée. Ensuite, sourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Restez devant le téléviseur ; cela prend quelques minutes.",
+            "title": "Étape 3 sur 3",
+            "description": "**Tester ce qui s'entend et se voit ?**\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Restez devant le téléviseur ; cela prend environ deux minutes.",
             "menu_options": {
-              "tests_audible": "Démarrer",
+              "tests_audible": "Tester maintenant",
               "tests_done": "Passer"
             }
           },
           "tests_done": {
-            "title": "Test du récepteur terminé",
-            "description": "{model} :\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Non confirmées : {unconfirmed}\n- Ignorées : {skipped}\n- Non rétablies : {not_restored} (vérifiez-les sur le récepteur si ce n'est pas 0)\n\nLes détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Pour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier. Lisez-le avant de le joindre ; les adresses sont déjà remplacées."
+            "title": "Tout est rétabli",
+            "description": "{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
+          },
+          "tests_done_check": {
+            "title": "Vérifiez le récepteur",
+            "description": "Tous les réglages ne sont pas revenus : {not_restored_list}. Remettez-les sur le récepteur comme ils étaient.\n\n{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
           }
         },
         "progress": {
-          "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie.",
-          "command_test": "Test des commandes, chacune rétablie ensuite. Cela prend quelques minutes."
+          "test_part_1": "**Lire les fonctions**\n\nEn cours : {current}\n\n- → Lire les fonctions\n- ○ Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nLecture seule ; rien ne change.",
+          "test_part_2": "**Tester discrètement**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- → Tester discrètement\n- ○ Tester ce qui s'entend et se voit\n\nTonalité, image, minuteries et afficheur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout.",
+          "test_part_3": "**Tester ce qui s'entend et se voit**\n\nEn cours : {current}\n\n- ✓ Lire les fonctions\n- ✓ Tester discrètement\n- → Tester ce qui s'entend et se voit\n\nSourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Fermer la fenêtre arrête le test et rétablit tout."
         },
         "abort": {
           "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé."
@@ -1146,6 +1180,20 @@
         "tuner_presets": "Présélections du tuner",
         "more": "Plus",
         "queue": "File d'attente"
+      }
+    },
+    "receiver_test_item": {
+      "options": {
+        "power_and_zones": "Alimentation et zones",
+        "volume_and_input": "Volume et entrée",
+        "surround": "Surround",
+        "audio": "Audio",
+        "video": "Vidéo",
+        "tuner": "Tuner",
+        "network_audio": "Audio réseau",
+        "signal_and_setup": "Signal et configuration",
+        "setup_menu": "Menu de configuration sur le téléviseur",
+        "zone2_follow_main": "La Zone 2 suit la zone principale"
       }
     }
   },

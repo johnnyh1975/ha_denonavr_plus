@@ -78,11 +78,11 @@ async def test_the_check_runs_before_the_test(
 ) -> None:
     order: list[str] = []
 
-    async def check(self: DenonAvrDevice, on_progress: Any = None) -> dict[str, Any]:
+    async def check(self: DenonAvrDevice, on_progress: Any = None, on_current: Any = None) -> dict[str, Any]:
         order.append("check")
         return dict(CHECK_RESULT)
 
-    async def test(self: DenonAvrDevice, groups: Any, on_progress: Any = None) -> dict[str, Any]:
+    async def test(self: DenonAvrDevice, groups: Any, on_progress: Any = None, on_current: Any = None) -> dict[str, Any]:
         # One message for both: the check has not sent its own yet.
         order.append("message" if _issue(hass, entries()[0]) else "test")
         return dict(RESULT)
@@ -181,11 +181,11 @@ async def test_the_test_and_the_check_run_one_at_a_time(
         await asyncio.sleep(0.02)
         running -= 1
 
-    async def check(self: DenonAvrDevice, on_progress: Any = None) -> dict[str, Any]:
+    async def check(self: DenonAvrDevice, on_progress: Any = None, on_current: Any = None) -> dict[str, Any]:
         await busy()
         return dict(CHECK_RESULT)
 
-    async def test(self: DenonAvrDevice, groups: Any, on_progress: Any = None) -> dict[str, Any]:
+    async def test(self: DenonAvrDevice, groups: Any, on_progress: Any = None, on_current: Any = None) -> dict[str, Any]:
         await busy()
         return dict(RESULT)
 
@@ -206,7 +206,7 @@ async def test_a_test_ending_after_removal_keeps_nothing(
 ) -> None:
     coordinator = loaded_entry.runtime_data
 
-    async def test(self: DenonAvrDevice, groups: Any, on_progress: Any = None) -> dict[str, Any]:
+    async def test(self: DenonAvrDevice, groups: Any, on_progress: Any = None, on_current: Any = None) -> dict[str, Any]:
         assert await hass.config_entries.async_remove(loaded_entry.entry_id)
         return dict(RESULT)
 

@@ -1205,7 +1205,9 @@ class DenonAvrDevice:
         return replies
 
     async def async_check_capabilities(
-        self, on_progress: Callable[[float], None] | None = None
+        self,
+        on_progress: Callable[[float], None] | None = None,
+        on_current: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         """Ask every query of the capability check and return what came back.
 
@@ -1218,7 +1220,11 @@ class DenonAvrDevice:
         if not self._telnet.connected:
             raise CommandNotSent("query_needs_telnet")
         results: dict[str, dict[str, Any]] = {}
+        current: str | None = None
         for index, (command, group) in enumerate(capability_check.QUERIES):
+            if on_current is not None and group != current:
+                current = group
+                on_current(group)
             lines = await self._send_and_collect(
                 command, _reply_or_error(capability_check.reply_prefix(command)), CHECK_REPLY_FIRST
             )
@@ -1249,7 +1255,10 @@ class DenonAvrDevice:
         }
 
     async def async_command_test(
-        self, groups: Sequence[str], on_progress: Callable[[float], None] | None = None
+        self,
+        groups: Sequence[str],
+        on_progress: Callable[[float], None] | None = None,
+        on_current: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         """Write settings, check the receiver confirms them, put them back.
 
@@ -1262,9 +1271,10 @@ class DenonAvrDevice:
             raise CommandNotSent("query_needs_telnet")
         main_on = bool(self._state.zone("main").power)
         snapshot = self.zone_snapshot("main")
+        found = command_test.context(self)
         turned_on = await command_test.async_power_on(self)
         try:
-            results = await command_test.async_run(self, list(groups), on_progress)
+            results = await command_test.async_run(self, list(groups), on_progress, on_current)
         finally:
             if turned_on:
                 # Off again as it was; also when the test is stopped.
@@ -1277,6 +1287,7 @@ class DenonAvrDevice:
             "groups": [group for group in command_test.GROUPS if group in groups],
             "main_zone_on": main_on,
             "turned_on_for_test": turned_on,
+            "context": found,
             "tests": results,
         }
 
