@@ -167,6 +167,12 @@
               "sources": "Seleziona tutto per mostrare anche le sorgenti aggiunte in seguito sul sintoamplificatore."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick Select e preferiti nel menu delle sorgenti"
+        },
+        "data_description": {
+          "source_shortcuts": "I Quick Select e i preferiti HEOS della zona principale seguono gli ingressi nel suo menu delle sorgenti."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Aiuta a supportare il {model}",
       "description": "La verifica del {model} è terminata; le risposte sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Apri la segnalazione precompilata con «Ulteriori informazioni» e allega lì il file. Ignora questo messaggio se non vuoi condividerlo."
+    },
+    "heos_playback_error": {
+      "title": "Il {model} non è riuscito a riprodurlo",
+      "description": "HEOS sul {model} ha segnalato un errore di riproduzione: {error}\n\nCause frequenti: un indirizzo che il sintoamplificatore non raggiunge, un formato che non riproduce o un servizio che richiede l'accesso nell'app HEOS. Il messaggio scompare da solo appena si riproduce di nuovo qualcosa."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Quick Select",
         "sources": "Sorgenti",
         "tuner_presets": "Preselezioni del sintonizzatore",
-        "more": "Altro"
+        "more": "Altro",
+        "queue": "Coda"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Ripristina",
       "description": "Riporta la zona allo stato dell'ultima istantanea."
+    },
+    "get_queue": {
+      "name": "Leggi la coda",
+      "description": "La coda HEOS del sintoamplificatore: id, titolo, artista, album e immagine di ogni elemento (i primi 100)."
+    },
+    "remove_from_queue": {
+      "name": "Rimuovi dalla coda",
+      "description": "Rimuove elementi dalla coda HEOS.",
+      "fields": {
+        "queue_ids": {
+          "name": "Id della coda",
+          "description": "Gli id degli elementi, come li restituisce get_queue."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Sposta elementi della coda",
+      "description": "Sposta elementi della coda HEOS in un'altra posizione.",
+      "fields": {
+        "queue_ids": {
+          "name": "Id della coda",
+          "description": "Gli id degli elementi, come li restituisce get_queue."
+        },
+        "destination": {
+          "name": "Destinazione",
+          "description": "La posizione in cui spostarli, contando da 1."
+        }
+      }
     }
   },
   "device_automation": {

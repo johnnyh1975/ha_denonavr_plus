@@ -15,6 +15,7 @@ Media content ids, each part percent-encoded:
 - ``heos_container/<sid>/<cid>/<title>`` a playable container:
   browse/add_to_queue, and its first page when browsed
 - ``heos_track/<sid>/<cid>/<mid>`` a track of a container: add_to_queue with mid
+- ``heos_queue`` the queue; ``heos_queue/<qid>`` an item of it: player/play_queue
 """
 
 from __future__ import annotations
@@ -45,12 +46,14 @@ from .avr.transport.heos import (
 from .const import DOMAIN
 
 ROOT = "heos"
+QUEUE = "heos_queue"
 _PAGE = "heos/"
+_QUEUE_ITEM = "heos_queue/"
 _FAVORITE = "heos_favorite/"
 _STATION = "heos_station/"
 _CONTAINER = "heos_container/"
 _TRACK = "heos_track/"
-PREFIXES = (_FAVORITE, _STATION, _CONTAINER, _TRACK)
+PREFIXES = (_FAVORITE, _STATION, _CONTAINER, _TRACK, _QUEUE_ITEM)
 
 #: Home Assistant's enqueue choices -> HEOS add criteria (as the HEOS
 #: integration maps them: no choice replaces the queue and plays).
@@ -90,25 +93,29 @@ def _parts(media_id: str, prefix: str, count: int) -> list[str]:
 def is_heos_id(media_id: str | None) -> bool:
     if not media_id:
         return False
-    return media_id == ROOT or media_id.startswith((_PAGE, *PREFIXES))
+    return media_id in (ROOT, QUEUE) or media_id.startswith((_PAGE, *PREFIXES))
 
 
-async def async_browse(heos: HeosClient, media_id: str, title: str, more: str) -> BrowseMedia:
-    """The music sources (``heos``) or one page of a source or container.
+async def async_browse(
+    heos: HeosClient, media_id: str, title: str, more: str, queue: str = "Queue"
+) -> BrowseMedia:
+    """The music sources (``heos``), the queue, or one page of a source or container.
 
-    `title` names the music sources; a page carries its own name. `more`
-    names the entry of the next page.
+    `title` names the music sources and `queue` the queue; a page carries its
+    own name. `more` names the entry of the next page.
     """
 
     try:
         if media_id == ROOT:
             sources = await heos.async_music_sources()
-            return _directory(
-                ROOT,
-                title,
-                [_source(item) for item in sources if item.available or item.sid == TUNEIN_SID],
-                thumbnail=None,
-            )
+            children = [
+                _source(item) for item in sources if item.available or item.sid == TUNEIN_SID
+            ]
+            children.append(_directory(QUEUE, queue, [], thumbnail=None, listed=False))
+            return _directory(ROOT, title, children, thumbnail=None)
+        if media_id == QUEUE:
+            queued = await heos.async_get_queue()
+            return _directory(QUEUE, queue, [_queue_item(item) for item in queued], thumbnail=None)
         if media_id.startswith(_CONTAINER):
             media_id = page_of(media_id)
         sid_text, cid, start_text, title = _parts(media_id, _PAGE, 4)
@@ -137,8 +144,14 @@ async def async_browse(heos: HeosClient, media_id: str, title: str, more: str) -
 
 
 def _directory(
-    media_id: str, title: str, children: list[BrowseMedia], thumbnail: str | None
+    media_id: str,
+    title: str,
+    children: list[BrowseMedia],
+    thumbnail: str | None,
+    listed: bool = True,
 ) -> BrowseMedia:
+    """A folder; `listed` False for an entry in a list (its children load on opening)."""
+
     return BrowseMedia(
         media_class=MediaClass.DIRECTORY,
         media_content_id=media_id,
@@ -146,9 +159,23 @@ def _directory(
         title=title,
         can_play=False,
         can_expand=True,
-        children=children,
+        children=children if listed else None,
         children_media_class=MediaClass.DIRECTORY,
         thumbnail=thumbnail,
+    )
+
+
+def _queue_item(item: dict[str, object]) -> BrowseMedia:
+    artist = item.get("artist")
+    title = str(item.get("title") or "")
+    return BrowseMedia(
+        media_class=MediaClass.TRACK,
+        media_content_id=_id(_QUEUE_ITEM, item["queue_id"]),
+        media_content_type=MediaType.MUSIC,
+        title=f"{title} – {artist}" if artist else title,
+        can_play=True,
+        can_expand=False,
+        thumbnail=item.get("image_url"),  # type: ignore[arg-type]
     )
 
 
@@ -225,7 +252,10 @@ async def async_play(
 
     criteria = _CRITERIA.get(enqueue, REPLACE_AND_PLAY)
     try:
-        if media_id.startswith(_FAVORITE):
+        if media_id.startswith(_QUEUE_ITEM):
+            (queue_id,) = _parts(media_id, _QUEUE_ITEM, 1)
+            await heos.async_play_queue_item(int(queue_id))
+        elif media_id.startswith(_FAVORITE):
             (number,) = _parts(media_id, _FAVORITE, 1)
             await heos.async_play_preset(int(number))
         elif media_id.startswith(_STATION):

@@ -167,6 +167,12 @@
               "sources": "Selecione todas para mostrar também as fontes adicionadas mais tarde no recetor."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick Selects e favoritos no menu de fontes"
+        },
+        "data_description": {
+          "source_shortcuts": "Os Quick Selects e os favoritos HEOS da zona principal seguem as entradas no seu menu de fontes."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Ajude a suportar o {model}",
       "description": "A verificação do {model} terminou; as respostas estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Abra o problema pré-preenchido com «Saber mais» e anexe lá o ficheiro. Ignore esta mensagem se não o quiser partilhar."
+    },
+    "heos_playback_error": {
+      "title": "O {model} não conseguiu reproduzi-lo",
+      "description": "O HEOS no {model} comunicou um erro de reprodução: {error}\n\nCausas comuns: um endereço que o recetor não alcança, um formato que não reproduz ou um serviço que exige sessão iniciada na app HEOS. A mensagem desaparece sozinha assim que algo voltar a tocar."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Quick Select",
         "sources": "Fontes",
         "tuner_presets": "Predefinições do sintonizador",
-        "more": "Mais"
+        "more": "Mais",
+        "queue": "Fila"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Restaurar",
       "description": "Repõe a zona como o último instantâneo a encontrou."
+    },
+    "get_queue": {
+      "name": "Obter fila",
+      "description": "A fila HEOS do recetor: id, título, artista, álbum e imagem de cada item (os 100 primeiros)."
+    },
+    "remove_from_queue": {
+      "name": "Remover da fila",
+      "description": "Remove itens da fila HEOS.",
+      "fields": {
+        "queue_ids": {
+          "name": "Ids da fila",
+          "description": "Os ids dos itens, tal como get_queue os dá."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Mover itens da fila",
+      "description": "Move itens da fila HEOS para outra posição.",
+      "fields": {
+        "queue_ids": {
+          "name": "Ids da fila",
+          "description": "Os ids dos itens, tal como get_queue os dá."
+        },
+        "destination": {
+          "name": "Destino",
+          "description": "A posição para onde os mover, contada a partir de 1."
+        }
+      }
     }
   },
   "device_automation": {

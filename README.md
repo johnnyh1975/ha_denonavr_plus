@@ -135,7 +135,9 @@ which sources the media player offers, then a name for each in Home
 Assistant. The names and hidden inputs set on the receiver are already taken
 over; this narrows down and renames on top. Selecting all keeps sources the
 receiver gains later. Renamed sources can still be selected by their receiver
-name, so older automations keep working.
+name, so older automations keep working. **Quick selects and favorites in the
+source menu** (on by default) adds the main zone's quick selects and HEOS
+favorites after the inputs.
 
 **Sound modes** (needs the receiver connected): which sound modes the main
 zone's media player offers, and their names. The receiver only offers the
@@ -265,6 +267,11 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   favorites also follow the quick selects in the source menu. Favorites need
   the HEOS system signed in to a HEOS account, which the HEOS app normally has
   done; this integration asks for no account.
+  The HEOS folder also holds the **queue**: an item plays from it, the media
+  player's clear playlist empties it, and actions read and change it (see
+  Actions). The player names the HEOS service it plays from (`app_name`, such
+  as TuneIn) and the station of a radio (`media_channel`). A playback error
+  HEOS reports shows as a repair until something plays again.
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,
@@ -422,6 +429,20 @@ media players do; a query cannot, because its answer only comes back over
 telnet, so the action reports an error. It also reports one when the receiver
 cannot be reached. This replaces `denonavr.get_command` of the official
 integration.
+
+### HEOS queue (`denonavr_plus.get_queue`, `remove_from_queue`, `move_queue_item`)
+
+As the HEOS integration's actions: `get_queue` returns the queue (queue id,
+title, artist, album, image; the first 100), `remove_from_queue` removes items
+by their `queue_ids`, `move_queue_item` moves them to `destination` (from 1).
+They work on the main zone of a receiver with HEOS.
+
+```yaml
+action: denonavr_plus.get_queue
+target:
+  entity_id: media_player.avr_x2600h
+response_variable: queue
+```
 
 ### Snapshot and restore (`denonavr_plus.snapshot`, `denonavr_plus.restore`)
 

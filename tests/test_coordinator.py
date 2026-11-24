@@ -369,3 +369,22 @@ async def test_the_capability_check_stands_in_for_the_setup_probe(
     answered = entry.runtime_data.device.discovery.answered
     assert {"multeq", "dynamic_eq", "dynamic_volume", "cinema_eq"} <= answered
     assert "auto_standby" not in answered  # STBY? got no reply
+
+
+async def test_a_heos_playback_error_is_a_repair_until_something_plays(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    heos = FakeHeos.instances[-1]
+    issue_id = f"heos_playback_error_{loaded_entry.entry_id}"
+    registry = ir.async_get(hass)
+    state: dict[str, Any] = {"state": "stop", "error": "Could not download"}
+    heos.on_update(state)
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    issue = registry.async_get_issue(DOMAIN, issue_id)
+    assert issue is not None
+    assert issue.translation_placeholders["error"] == "Could not download"
+    heos.on_update({"state": "play", "error": None})
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert registry.async_get_issue(DOMAIN, issue_id) is None

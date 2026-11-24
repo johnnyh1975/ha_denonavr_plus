@@ -167,6 +167,12 @@
               "sources": "Sélectionnez tout pour afficher aussi les sources ajoutées plus tard sur l'ampli-tuner."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick Selects et favoris dans le menu des sources"
+        },
+        "data_description": {
+          "source_shortcuts": "Les Quick Selects et les favoris HEOS de la zone principale suivent les entrées dans son menu des sources."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Aidez à prendre en charge le {model}",
       "description": "La vérification du {model} est terminée ; ses réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le ticket prérempli avec « En savoir plus » et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager."
+    },
+    "heos_playback_error": {
+      "title": "Le {model} n'a pas pu le lire",
+      "description": "HEOS sur le {model} a signalé une erreur de lecture : {error}\n\nCauses fréquentes : une adresse que l'ampli-tuner n'atteint pas, un format qu'il ne lit pas ou un service qui demande une connexion dans l'app HEOS. Le message disparaît de lui-même dès que la lecture reprend."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Quick Select",
         "sources": "Sources",
         "tuner_presets": "Présélections du tuner",
-        "more": "Plus"
+        "more": "Plus",
+        "queue": "File d'attente"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Restaurer",
       "description": "Remet la zone dans l'état du dernier instantané."
+    },
+    "get_queue": {
+      "name": "Lire la file d'attente",
+      "description": "La file d'attente HEOS de l'ampli-tuner : id, titre, artiste, album et image de chaque élément (les 100 premiers)."
+    },
+    "remove_from_queue": {
+      "name": "Retirer de la file d'attente",
+      "description": "Retire des éléments de la file d'attente HEOS.",
+      "fields": {
+        "queue_ids": {
+          "name": "Ids de la file",
+          "description": "Les ids des éléments, tels que get_queue les donne."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Déplacer des éléments",
+      "description": "Déplace des éléments de la file d'attente HEOS à un autre endroit.",
+      "fields": {
+        "queue_ids": {
+          "name": "Ids de la file",
+          "description": "Les ids des éléments, tels que get_queue les donne."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "La position où les placer, comptée à partir de 1."
+        }
+      }
     }
   },
   "device_automation": {

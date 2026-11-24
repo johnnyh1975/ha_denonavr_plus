@@ -167,6 +167,12 @@
               "sources": "Kies alles om ook bronnen te tonen die later op de receiver worden toegevoegd."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick Selects en favorieten in het bronnenmenu"
+        },
+        "data_description": {
+          "source_shortcuts": "De Quick Selects en HEOS-favorieten van de hoofdzone volgen de ingangen in het bronnenmenu."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Help de {model} te ondersteunen",
       "description": "De functiecontrole van de {model} is klaar; de antwoorden staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Open via 'Meer informatie' de vooraf ingevulde issue en voeg het bestand daar toe. Negeer deze melding als je het niet wilt delen."
+    },
+    "heos_playback_error": {
+      "title": "De {model} kon het niet afspelen",
+      "description": "HEOS op de {model} meldde een afspeelfout: {error}\n\nVeelvoorkomende oorzaken zijn een adres dat de receiver niet bereikt, een formaat dat hij niet afspeelt of een dienst die een aanmelding in de HEOS-app vraagt. De melding verdwijnt vanzelf zodra er weer iets speelt."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Snelkeuze",
         "sources": "Bronnen",
         "tuner_presets": "Tunervoorkeuzes",
-        "more": "Meer"
+        "more": "Meer",
+        "queue": "Wachtrij"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Herstellen",
       "description": "Zet de zone terug zoals de laatste momentopname haar aantrof."
+    },
+    "get_queue": {
+      "name": "Wachtrij ophalen",
+      "description": "De HEOS-wachtrij van de receiver: id, titel, artiest, album en afbeelding van elk item (de eerste 100)."
+    },
+    "remove_from_queue": {
+      "name": "Uit de wachtrij verwijderen",
+      "description": "Verwijdert items uit de HEOS-wachtrij.",
+      "fields": {
+        "queue_ids": {
+          "name": "Wachtrij-ids",
+          "description": "De ids van de items, zoals get_queue ze geeft."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Items verplaatsen",
+      "description": "Verplaatst items van de HEOS-wachtrij naar een andere plek.",
+      "fields": {
+        "queue_ids": {
+          "name": "Wachtrij-ids",
+          "description": "De ids van de items, zoals get_queue ze geeft."
+        },
+        "destination": {
+          "name": "Bestemming",
+          "description": "De plek waar ze heen gaan, geteld vanaf 1."
+        }
+      }
     }
   },
   "device_automation": {

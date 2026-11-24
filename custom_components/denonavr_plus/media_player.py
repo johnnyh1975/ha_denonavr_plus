@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from homeassistant.components import media_source
@@ -44,6 +44,7 @@ from . import artwork, choices, heos_media
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent
+from .avr.transport.heos import HeosClient, HeosCommandError
 from .const import DOMAIN
 from .avr.models import NowPlaying, ZoneDescriptor, ZoneSnapshot
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -191,6 +192,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 features |= (
                     MediaPlayerEntityFeature.MEDIA_ENQUEUE
                     | MediaPlayerEntityFeature.MEDIA_ANNOUNCE
+                    | MediaPlayerEntityFeature.CLEAR_PLAYLIST
                 )
         self._attr_supported_features = features
         # Automations with the "Turn on requested" device trigger; see
@@ -373,6 +375,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         """
 
         sources = choices.source_list(self._device.discovery, self._entry_options, self._zone.id)
+        if not self._entry_options.get(choices.OPT_SOURCE_SHORTCUTS, True):
+            return sources
         extra = [*self._quick_select_sources(), *self._favorite_sources()]
         return sources + [name for name in dict.fromkeys(extra) if name not in sources]
 
@@ -478,7 +482,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def media_content_type(self) -> str | None:
         now = self._now_playing
         if now and now.active:
-            return MediaType.MUSIC
+            # A radio station is a channel, the rest music.
+            return MediaType.CHANNEL if now.media_type == "station" else MediaType.MUSIC
         return MediaType.CHANNEL if self._tuner_title else None
 
     @property
@@ -556,9 +561,19 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def media_channel(self) -> str | None:
-        """The station (or frequency) while the tuner plays."""
+        """The radio station: over HEOS, or the tuner's station or frequency."""
 
+        now = self._now_playing
+        if now and now.active and now.station:
+            return now.station
         return self._tuner_title
+
+    @property
+    def app_name(self) -> str | None:
+        """The HEOS music source it plays from (TuneIn, Spotify, a media server)."""
+
+        now = self._now_playing
+        return now.service if now and now.active else None
 
     @property
     def media_position(self) -> int | None:
@@ -771,7 +786,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                     translation_placeholders={"model": self._model},
                 )
             return await heos_media.async_browse(
-                heos, str(media_content_id), "HEOS", names["more"]
+                heos, str(media_content_id), "HEOS", names["more"], names["queue"]
             )
         if media_content_id == "quick_select":
             return self._folder("quick_select", names["quick_select"], self._quick_select_items())
@@ -833,6 +848,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 ("sources", "Sources"),
                 ("tuner_presets", "Tuner presets"),
                 ("more", "More"),
+                ("queue", "Queue"),
             )
         }
 
@@ -1062,6 +1078,48 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     # Announcements -----------------------------------------------------------
 
+    @receiver_action
+    async def async_clear_playlist(self) -> None:
+        """Empty the HEOS queue."""
+
+        await self._heos_call(lambda heos: heos.async_clear_queue())
+
+    async def async_get_queue(self) -> list[dict[str, Any]]:
+        """The HEOS queue (denonavr_plus.get_queue)."""
+
+        result: list[dict[str, Any]] = []
+
+        async def read(heos: HeosClient) -> None:
+            result.extend(await heos.async_get_queue())
+
+        await self._heos_call(read)
+        return result
+
+    async def async_remove_from_queue(self, queue_ids: list[int]) -> None:
+        await self._heos_call(lambda heos: heos.async_remove_from_queue(queue_ids))
+
+    async def async_move_queue_item(self, queue_ids: list[int], destination: int) -> None:
+        await self._heos_call(lambda heos: heos.async_move_queue_item(queue_ids, destination))
+
+    async def _heos_call(self, call: Callable[[HeosClient], Awaitable[None]]) -> None:
+        """A HEOS command of the main zone, with its failures as translated errors."""
+
+        heos = self._device.heos if self._zone.is_main else None
+        if heos is None:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="heos_unavailable",
+                translation_placeholders={"model": self._model},
+            )
+        try:
+            await call(heos)
+        except (HeosCommandError, ConnectionError, TimeoutError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="heos_failed",
+                translation_placeholders={"error": str(err)},
+            ) from err
+
     def _named_media(self, media_type: str, media_id: str) -> str:
         """A favorite or a quick select by name or number, as the HEOS integration takes them.
 
@@ -1082,6 +1140,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                     translation_placeholders={"favorite": media_id},
                 )
             return f"heos_favorite/{number}"
+        if media_type == "queue" and media_id.isdigit():
+            return f"heos_queue/{media_id}"
         if media_type == "quick_select" and not media_id.startswith(_QUICK_SELECT):
             names = {name: number for number, name in self._quick_select_numbers().items()}
             number = int(media_id) if media_id.isdigit() else names.get(media_id)

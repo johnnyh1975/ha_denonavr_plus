@@ -80,9 +80,12 @@ async def test_the_music_sources_and_their_pages() -> None:
     heos = _heos()
     root = await heos_media.async_browse(heos, "heos", "HEOS", "More")  # type: ignore[arg-type]
     titles = [child.title for child in root.children or []]
-    # A source that is not available stays out; TuneIn plays even so.
-    assert titles == ["Favorites", "Local Music", "TuneIn"]
-    favorites_id, local_id, _tunein = (child.media_content_id for child in root.children or [])
+    # A source that is not available stays out; TuneIn plays even so. The queue follows.
+    assert titles == ["Favorites", "Local Music", "TuneIn", "Queue"]
+    favorites_id, local_id, _tunein, queue_id = (
+        child.media_content_id for child in root.children or []
+    )
+    assert queue_id == "heos_queue"
 
     favorites = await heos_media.async_browse(heos, favorites_id, "HEOS", "More")  # type: ignore[arg-type]
     assert favorites.title == "Favorites"

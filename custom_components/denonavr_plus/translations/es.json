@@ -167,6 +167,12 @@
               "sources": "Selecciona todas para mostrar también las fuentes que se añadan después en el receptor."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick Selects y favoritos en el menú de fuentes"
+        },
+        "data_description": {
+          "source_shortcuts": "Los Quick Selects y los favoritos HEOS de la zona principal siguen a las entradas en su menú de fuentes."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Ayuda a dar soporte al {model}",
       "description": "La comprobación del {model} ha terminado; sus respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Abre la incidencia prerrellenada con «Más información» y adjunta allí el archivo. Ignora este mensaje si no quieres compartirlo."
+    },
+    "heos_playback_error": {
+      "title": "El {model} no pudo reproducirlo",
+      "description": "HEOS en el {model} informó de un error de reproducción: {error}\n\nCausas habituales: una dirección que el receptor no alcanza, un formato que no reproduce o un servicio que requiere iniciar sesión en la app HEOS. El mensaje desaparece solo en cuanto algo vuelve a sonar."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Quick Select",
         "sources": "Fuentes",
         "tuner_presets": "Presintonías del sintonizador",
-        "more": "Más"
+        "more": "Más",
+        "queue": "Cola"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Restaurar",
       "description": "Devuelve la zona al estado de la última instantánea."
+    },
+    "get_queue": {
+      "name": "Obtener cola",
+      "description": "La cola HEOS del receptor: id, título, artista, álbum e imagen de cada elemento (los 100 primeros)."
+    },
+    "remove_from_queue": {
+      "name": "Quitar de la cola",
+      "description": "Quita elementos de la cola HEOS.",
+      "fields": {
+        "queue_ids": {
+          "name": "Ids de la cola",
+          "description": "Los ids de los elementos, tal como los da get_queue."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Mover elementos de la cola",
+      "description": "Mueve elementos de la cola HEOS a otra posición.",
+      "fields": {
+        "queue_ids": {
+          "name": "Ids de la cola",
+          "description": "Los ids de los elementos, tal como los da get_queue."
+        },
+        "destination": {
+          "name": "Destino",
+          "description": "La posición a la que moverlos, contando desde 1."
+        }
+      }
     }
   },
   "device_automation": {

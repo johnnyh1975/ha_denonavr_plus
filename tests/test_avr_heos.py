@@ -409,7 +409,7 @@ async def test_requests_fail_when_the_link_drops_and_favorites_clear_when_signed
             return [_answer(name, payload=[{"pid": 202, "name": "AVR", "ip": "127.0.0.1"}])]
         if name == "system/check_account":
             return [_answer(name, "signed_out")]
-        if name == "browse/get_music_sources":
+        if name == "player/get_queue":
             return []  # never answered
         return None
 
@@ -425,8 +425,8 @@ async def test_requests_fail_when_the_link_drops_and_favorites_clear_when_signed
             await asyncio.sleep(0.01)
         assert client.favorites == []
         with patch.object(heos, "REQUEST_TIMEOUT", 0.05), pytest.raises(TimeoutError):
-            await client.async_music_sources()
-        pending = asyncio.ensure_future(client.async_music_sources())
+            await client.async_get_queue()
+        pending = asyncio.ensure_future(client.async_get_queue())
         await asyncio.sleep(0.05)
         await client.async_stop()
         with pytest.raises(ConnectionError):
@@ -454,3 +454,70 @@ def test_a_playback_error_is_kept_for_the_diagnostics() -> None:
         "text": "Could not download",
     }
 
+
+
+def test_service_station_and_queue_place_of_what_plays() -> None:
+    """The music source by name, the station of a radio, no "Url Stream" as a title."""
+    client, updates = _client()
+    client._source_names = {3: "TuneIn"}
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    _feed(
+        client,
+        "player/get_now_playing_media",
+        "pid=202",
+        {"type": "station", "song": "Song", "station": "Bayern 3", "sid": 3, "qid": 7},
+    )
+    assert updates[-1]["service"] == "TuneIn"
+    assert updates[-1]["station"] == "Bayern 3"
+    assert updates[-1]["queue_id"] == 7
+    _feed(client, "player/get_now_playing_media", "pid=202", {"type": "song", "song": "Url Stream"})
+    assert updates[-1]["title"] is None and updates[-1]["station"] is None
+
+
+def test_a_playback_error_lasts_until_something_plays() -> None:
+    client, updates = _client()
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    _feed(client, "event/player_playback_error", "pid=202&error=Could not download")
+    assert updates[-1]["error"] == "Could not download"
+    _feed(client, "event/player_state_changed", "pid=202&state=play")
+    assert updates[-1]["error"] is None
+
+
+@pytest.mark.usefixtures("socket_enabled")
+async def test_the_queue_commands() -> None:
+    def replies(name: str, command: str) -> list[dict] | None:
+        if name == "player/get_players":
+            return [_answer(name, payload=[{"pid": 202, "name": "AVR", "ip": "127.0.0.1"}])]
+        if name == "player/get_queue":
+            payload = [
+                {"song": "Song", "artist": "Band", "album": "LP", "image_url": "", "qid": "1"},
+                {"song": "Broken", "qid": "x"},
+            ]
+            return [_answer(name, "pid=202&range=0,99", payload)]
+        return None
+
+    server = _HeosServer(answer_heartbeat=True, replies=replies)
+    port = await server.start()
+    client = HeosClient("127.0.0.1", on_update=lambda _: None, port=port)
+    await client.async_start()
+    try:
+        for _ in range(100):
+            if client.connected:
+                break
+            await asyncio.sleep(0.01)
+        assert await client.async_get_queue() == [
+            {"queue_id": 1, "title": "Song", "artist": "Band", "album": "LP", "image_url": None}
+        ]
+        await client.async_play_queue_item(1)
+        await client.async_clear_queue()
+        await client.async_remove_from_queue([2, 3])
+        await client.async_move_queue_item([4], 1)
+        assert server.received[-4:] == [
+            "heos://player/play_queue?pid=202&qid=1",
+            "heos://player/clear_queue?pid=202",
+            "heos://player/remove_from_queue?pid=202&qid=2,3",
+            "heos://player/move_queue_item?pid=202&sqid=4&dqid=1",
+        ]
+    finally:
+        await client.async_stop()
+        await server.stop()

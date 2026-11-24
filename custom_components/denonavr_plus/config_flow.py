@@ -57,6 +57,7 @@ from .coordinator import connection_options
 from . import choices
 from .choices import (
     OPT_MAIN_OFF_STANDBY,
+    OPT_SOURCE_SHORTCUTS,
     OPT_SOUND_MODE_NAMES,
     OPT_SOUND_MODES,
     OPT_SOURCE_NAMES,
@@ -596,11 +597,18 @@ class DenonAvrOptionsFlow(CapabilityCheckSteps, OptionsFlow):
                 chosen = list(user_input.get(zone, {}).get(OPT_SOURCES, []))
                 # All of them means all, also sources the receiver adds later.
                 selection_in[zone] = [] if set(chosen) >= every else chosen
-            self._pending = {OPT_SOURCES: selection_in}
+            self._pending = {
+                OPT_SOURCES: selection_in,
+                OPT_SOURCE_SHORTCUTS: bool(user_input.get(OPT_SOURCE_SHORTCUTS, True)),
+            }
             return await self.async_step_source_names()
         stored = options.get(OPT_SOURCES)
         selection: dict[str, Any] = stored if isinstance(stored, dict) else {}
-        fields: dict[Any, Any] = {}
+        fields: dict[Any, Any] = {
+            vol.Required(
+                OPT_SOURCE_SHORTCUTS, default=bool(options.get(OPT_SOURCE_SHORTCUTS, True))
+            ): BooleanSelector()
+        }
         for zone in zones:
             chosen = selection.get(zone) or [option["value"] for option in visible]
             fields[vol.Required(zone)] = section(

@@ -106,6 +106,24 @@ class FakeHeos:
     async def async_play_preset(self, number: int) -> None:
         self.calls.append(("play_preset", number))
 
+    async def async_get_queue(self) -> list[dict[str, Any]]:
+        return [
+            {"queue_id": 1, "title": "Song", "artist": "Band", "album": None, "image_url": None},
+            {"queue_id": 2, "title": "Other", "artist": None, "album": None, "image_url": None},
+        ]
+
+    async def async_play_queue_item(self, queue_id: int) -> None:
+        self.calls.append(("play_queue", queue_id))
+
+    async def async_clear_queue(self) -> None:
+        self.calls.append(("clear_queue", None))
+
+    async def async_remove_from_queue(self, queue_ids: list[int]) -> None:
+        self.calls.append(("remove_from_queue", queue_ids))
+
+    async def async_move_queue_item(self, queue_ids: list[int], destination: int) -> None:
+        self.calls.append(("move_queue_item", (queue_ids, destination)))
+
     async def async_add_to_queue(
         self, sid: int, cid: str, criteria: int, mid: str | None = None
     ) -> None:

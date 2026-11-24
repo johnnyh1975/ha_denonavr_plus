@@ -167,6 +167,12 @@
               "sources": "Select all to also show sources added on the receiver later."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick selects and favorites in the source menu"
+        },
+        "data_description": {
+          "source_shortcuts": "The main zone's quick selects and HEOS favorites follow the inputs in its source menu."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Help support the {model}",
       "description": "The capability check of the {model} has finished; its answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it."
+    },
+    "heos_playback_error": {
+      "title": "{model} could not play it",
+      "description": "HEOS on the {model} reported a playback error: {error}\n\nCommon causes are an address the receiver cannot reach, a format it does not play, or a service that needs a sign-in in the HEOS app. The message disappears by itself as soon as something plays again."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Quick Select",
         "sources": "Sources",
         "tuner_presets": "Tuner presets",
-        "more": "More"
+        "more": "More",
+        "queue": "Queue"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Restore",
       "description": "Puts the zone back as the last snapshot found it."
+    },
+    "get_queue": {
+      "name": "Get queue",
+      "description": "The HEOS queue of the receiver: queue id, title, artist, album and image of each item (the first 100)."
+    },
+    "remove_from_queue": {
+      "name": "Remove from queue",
+      "description": "Removes items from the HEOS queue.",
+      "fields": {
+        "queue_ids": {
+          "name": "Queue ids",
+          "description": "The queue ids of the items, as get_queue lists them."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Move queue items",
+      "description": "Moves items of the HEOS queue to another place.",
+      "fields": {
+        "queue_ids": {
+          "name": "Queue ids",
+          "description": "The queue ids of the items, as get_queue lists them."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "The place to move them to, counted from 1."
+        }
+      }
     }
   },
   "device_automation": {

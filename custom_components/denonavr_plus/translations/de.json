@@ -167,6 +167,12 @@
               "sources": "Alle wählen, damit auch Quellen erscheinen, die später am Receiver dazukommen."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick Selects und Favoriten in der Quellenliste"
+        },
+        "data_description": {
+          "source_shortcuts": "Die Quick Selects und HEOS-Favoriten der Hauptzone folgen in ihrer Quellenliste auf die Eingänge."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Hilf bei der Unterstützung des {model}",
       "description": "Der Prüflauf des {model} ist abgeschlossen; die Antworten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne über „Mehr erfahren“ das vorausgefüllte Issue und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest."
+    },
+    "heos_playback_error": {
+      "title": "{model} konnte es nicht abspielen",
+      "description": "HEOS im {model} meldet einen Wiedergabefehler: {error}\n\nHäufige Ursachen sind eine Adresse, die der Receiver nicht erreicht, ein Format, das er nicht abspielt, oder ein Dienst, der eine Anmeldung in der HEOS-App braucht. Die Meldung verschwindet von selbst, sobald wieder etwas spielt."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Quick Select",
         "sources": "Quellen",
         "tuner_presets": "Tuner-Presets",
-        "more": "Mehr"
+        "more": "Mehr",
+        "queue": "Warteschlange"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Wiederherstellen",
       "description": "Stellt die Zone so zurück, wie der letzte Schnappschuss sie vorfand."
+    },
+    "get_queue": {
+      "name": "Warteschlange abrufen",
+      "description": "Die HEOS-Warteschlange des Receivers: ID, Titel, Künstler, Album und Bild jedes Eintrags (die ersten 100)."
+    },
+    "remove_from_queue": {
+      "name": "Aus der Warteschlange entfernen",
+      "description": "Entfernt Einträge aus der HEOS-Warteschlange.",
+      "fields": {
+        "queue_ids": {
+          "name": "Einträge",
+          "description": "Die IDs der Einträge, wie get_queue sie liefert."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Einträge verschieben",
+      "description": "Verschiebt Einträge der HEOS-Warteschlange an eine andere Stelle.",
+      "fields": {
+        "queue_ids": {
+          "name": "Einträge",
+          "description": "Die IDs der Einträge, wie get_queue sie liefert."
+        },
+        "destination": {
+          "name": "Ziel",
+          "description": "Die Stelle, an die sie kommen, ab 1 gezählt."
+        }
+      }
     }
   },
   "device_automation": {

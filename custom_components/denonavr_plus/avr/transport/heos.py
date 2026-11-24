@@ -61,6 +61,8 @@ REPEAT_MODES = ("off", "on_all", "on_one")
 REQUEST_TIMEOUT = 10.0
 #: Items per browse page (the CLI returns at most 50 or 100).
 BROWSE_PAGE = 50
+#: The title HEOS gives a stream it cannot read the metadata of.
+_URL_STREAM = "url stream"
 #: The HEOS favorites source.
 FAVORITES_SID = 1028
 #: TuneIn, which can report itself unavailable and still play (as the HEOS
@@ -129,6 +131,10 @@ class HeosClient:
             "position_at": None,
             "repeat": None,
             "shuffle": None,
+            "service": None,
+            "station": None,
+            "queue_id": None,
+            "error": None,
         }
         # Wall clock, replaceable in tests.
         self._clock: Callable[[], float] = time.time
@@ -140,6 +146,8 @@ class HeosClient:
         # Names of the HEOS favorites (play_preset numbers from 1), empty while
         # the HEOS system is not signed in.
         self.favorites: list[str] = []
+        # Music source names by source id, for the now-playing service.
+        self._source_names: dict[int, str] = {}
         self._favorites_task: asyncio.Task[None] | None = None
 
     @property
@@ -268,9 +276,52 @@ class HeosClient:
             query += f"&mid={_quote(mid)}"
         await self._request("browse/add_to_queue", f"{query}&aid={criteria}")
 
+    # The HEOS queue ------------------------------------------------------
+
+    async def async_get_queue(self) -> list[dict[str, Any]]:
+        """The queue: qid, song, artist, album, image_url (the first 100)."""
+
+        message = await self._request("player/get_queue", f"pid={self._own_pid()}&range=0,99")
+        return [
+            {
+                "queue_id": int(item["qid"]),
+                "title": item.get("song"),
+                "artist": item.get("artist"),
+                "album": item.get("album"),
+                "image_url": item.get("image_url") or None,
+            }
+            for item in message.get("payload") or []
+            if str(item.get("qid", "")).isdigit()
+        ]
+
+    async def async_play_queue_item(self, queue_id: int) -> None:
+        await self._request("player/play_queue", f"pid={self._own_pid()}&qid={queue_id}")
+
+    async def async_clear_queue(self) -> None:
+        await self._request("player/clear_queue", f"pid={self._own_pid()}")
+
+    async def async_remove_from_queue(self, queue_ids: list[int]) -> None:
+        ids = ",".join(str(qid) for qid in queue_ids)
+        await self._request("player/remove_from_queue", f"pid={self._own_pid()}&qid={ids}")
+
+    async def async_move_queue_item(self, queue_ids: list[int], destination: int) -> None:
+        ids = ",".join(str(qid) for qid in queue_ids)
+        await self._request(
+            "player/move_queue_item", f"pid={self._own_pid()}&sqid={ids}&dqid={destination}"
+        )
+
     async def async_refresh_favorites(self) -> None:
         """Read the favorites' names if the HEOS system is signed in. Never raises."""
 
+        try:
+            names = {item.sid: item.name for item in await self.async_music_sources()}
+        except (ConnectionError, TimeoutError, HeosCommandError) as err:
+            _LOGGER.debug("HEOS music sources of %s not read: %s", self._host, err)
+        else:
+            if names != self._source_names:
+                self._source_names = names
+                # Name the service of what plays now.
+                self._request_now_playing()
         try:
             account = await self._request("system/check_account")
             if "signed_in" not in account.get("heos", {}).get("message", "").split("&")[0]:
@@ -507,6 +558,7 @@ class HeosClient:
                 "result": "fail",
                 "text": attrs.get("error", ""),
             }
+            self._update(error=attrs.get("error") or "unknown")
             return
 
         if command in ("player/get_play_mode", "player/set_play_mode"):
@@ -622,12 +674,21 @@ class HeosClient:
         if self._snapshot.get("state") == "stop":
             return
         image = (payload.get("image_url") or "").strip() or None
+        title = payload.get("song") or payload.get("station")
+        if str(title or "").strip().casefold() == _URL_STREAM:
+            # HEOS's name for a stream it cannot read (an announcement, a URL),
+            # as Music Assistant's HEOS provider notes: no title is better.
+            title = None
+        sid, qid = str(payload.get("sid", "")), str(payload.get("qid", ""))
         self._update(
             media_type=payload.get("type"),
-            title=payload.get("song") or payload.get("station"),
+            title=title,
             artist=payload.get("artist"),
             album=payload.get("album"),
             image_url=image,
+            service=self._source_names.get(int(sid)) if sid.isdigit() else None,
+            station=(payload.get("station") or None) if payload.get("type") == "station" else None,
+            queue_id=int(qid) if qid.isdigit() else None,
         )
 
     def _apply_state(self, state: str | None) -> None:
@@ -642,6 +703,9 @@ class HeosClient:
                 position=None,
                 duration=None,
                 position_at=None,
+                service=None,
+                station=None,
+                queue_id=None,
             )
         elif state:
             # Freeze or restart the position where it stands now.
@@ -650,6 +714,9 @@ class HeosClient:
                 self._update(state=state, position=expected, position_at=self._clock())
             else:
                 self._update(state=state)
+            if state == "play" and self._snapshot.get("error"):
+                # Something plays again: the last error is over.
+                self._update(error=None)
             # Playback resumed after a stop: the track was cleared, read it again.
             if state == "play" and self._snapshot.get("title") is None:
                 self._request_now_playing()

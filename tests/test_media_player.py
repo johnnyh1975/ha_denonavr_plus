@@ -921,7 +921,7 @@ async def test_heos_music_and_favorites_on_a_heos_receiver(
         root = await entity.async_browse_media()
     assert "heos" in [child.media_content_id for child in root.children or []]
     sources = await entity.async_browse_media(None, "heos")
-    assert [child.title for child in sources.children or []] == ["Favorites"]
+    assert [child.title for child in sources.children or []] == ["Favorites", "Queue"]
 
     await hass.services.async_call(
         "media_player", "select_source", {"entity_id": main, "source": "Bayern 3"}, blocking=True
@@ -1202,3 +1202,90 @@ async def test_favorites_and_quick_selects_play_by_name(
             {"entity_id": main, "media_content_type": "favorite", "media_content_id": "Nope"},
             blocking=True,
         )
+
+
+async def test_the_heos_queue_and_what_plays_from_where(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Service and station of HEOS, the queue in the browser and as actions, clearing it."""
+    from homeassistant.components.media_player import MediaPlayerEntityFeature
+
+    from custom_components.denonavr_plus.const import DOMAIN
+
+    from .test_init import FakeHeos
+
+    heos = FakeHeos.instances[-1]
+    heos.connected = True
+    await _push(hass, "PWON", "ZMON", "SINET")
+    station = _heos_state("play") | {"service": "TuneIn", "station": "Bayern 3"}
+    heos.on_update(station)
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    state = hass.states.get(main)
+    assert state.attributes["app_name"] == "TuneIn"
+    assert state.attributes["media_channel"] == "Bayern 3"
+    assert state.attributes["media_content_type"] == "channel"
+    assert MediaPlayerEntityFeature(state.attributes["supported_features"]) & (
+        MediaPlayerEntityFeature.CLEAR_PLAYLIST
+    )
+
+    entity = _player(hass, main)
+    queue = await entity.async_browse_media(None, "heos_queue")
+    assert [(c.title, c.media_content_id) for c in queue.children or []] == [
+        ("Song – Band", "heos_queue/1"),
+        ("Other", "heos_queue/2"),
+    ]
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {"entity_id": main, "media_content_type": "queue", "media_content_id": "2"},
+        blocking=True,
+    )
+    await hass.services.async_call("media_player", "clear_playlist", {"entity_id": main}, blocking=True)
+    response = await hass.services.async_call(
+        DOMAIN, "get_queue", {"entity_id": main}, blocking=True, return_response=True
+    )
+    assert [item["queue_id"] for item in response[main]["items"]] == [1, 2]
+    await hass.services.async_call(
+        DOMAIN, "remove_from_queue", {"entity_id": main, "queue_ids": [2]}, blocking=True
+    )
+    await hass.services.async_call(
+        DOMAIN,
+        "move_queue_item",
+        {"entity_id": main, "queue_ids": [1], "destination": 2},
+        blocking=True,
+    )
+    assert heos.calls[-4:] == [
+        ("play_queue", 2),
+        ("clear_queue", None),
+        ("remove_from_queue", [2]),
+        ("move_queue_item", ([1], 2)),
+    ]
+
+    # A failing HEOS command is reported, and zone 2 has no queue.
+    with (
+        patch.object(heos, "async_clear_queue", AsyncMock(side_effect=TimeoutError)),
+        pytest.raises(HomeAssistantError),
+    ):
+        await hass.services.async_call(
+            "media_player", "clear_playlist", {"entity_id": main}, blocking=True
+        )
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            DOMAIN, "get_queue", {"entity_id": zone2}, blocking=True, return_response=True
+        )
+
+
+async def test_the_source_menu_can_leave_out_quick_selects_and_favorites(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    device.discovery.quick_select_names = {1: "Kino"}
+    hass.config_entries.async_update_entry(loaded_entry, options={"source_shortcuts": False})
+    await hass.async_block_till_done()
+    await _push(hass, "PWON", "ZMON")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    assert "Kino" not in hass.states.get(main).attributes["source_list"]
+

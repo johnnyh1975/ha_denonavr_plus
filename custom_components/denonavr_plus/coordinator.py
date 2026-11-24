@@ -92,6 +92,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # long outage has already been reported (log once, repair while it lasts).
         self._link_down_since: datetime | None = None
         self._outage_reported = False
+        self._playback_error: str | None = None
         # Set when the receiver did not answer at setup and the media players
         # were built from the last discovery; the entry reloads once it answers.
         self.started_offline = False
@@ -190,7 +191,34 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """Forward a pushed state change to the entities."""
 
         self._check_link()
+        self._check_playback_error()
         self.async_set_updated_data(self.device.state)
+
+    @callback
+    def _check_playback_error(self) -> None:
+        """Show HEOS's last playback error as a repair, until something plays again."""
+
+        assert self.config_entry is not None
+        error = self.device.state.now_playing.error
+        if error == self._playback_error:
+            return
+        self._playback_error = error
+        issue_id = f"heos_playback_error_{self.config_entry.entry_id}"
+        if error is None:
+            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+            return
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="heos_playback_error",
+            translation_placeholders={
+                "model": self.device.discovery.device.model_name or "Denon AVR",
+                "error": error,
+            },
+        )
 
     @property
     def _issue_id(self) -> str:

@@ -8,6 +8,9 @@ Asked for a response, it returns the receiver's replies.
 `denonavr_plus.store_tuner_preset` stores the station that plays as a tuner
 preset (TPANMEM), as yamaha_ynca's store_preset does.
 
+`denonavr_plus.get_queue`, `remove_from_queue` and `move_queue_item` read
+and change the HEOS queue, as the HEOS integration's actions do.
+
 `denonavr_plus.snapshot` keeps what a zone does (power, input, volume,
 mute) and `denonavr_plus.restore` puts it back, as announcements do on their
 own.
@@ -35,6 +38,11 @@ if TYPE_CHECKING:
 SERVICE_SEND_COMMAND = "send_command"
 ATTR_COMMAND = "command"
 SERVICE_STORE_TUNER_PRESET = "store_tuner_preset"
+SERVICE_GET_QUEUE = "get_queue"
+SERVICE_REMOVE_FROM_QUEUE = "remove_from_queue"
+SERVICE_MOVE_QUEUE_ITEM = "move_queue_item"
+ATTR_QUEUE_IDS = "queue_ids"
+ATTR_DESTINATION = "destination"
 SERVICE_SNAPSHOT = "snapshot"
 SERVICE_RESTORE = "restore"
 ATTR_PRESET = "preset"
@@ -120,6 +128,28 @@ async def _async_store_tuner_preset(entity: DenonAvrEntity, call: ServiceCall) -
         ) from err
 
 
+_QUEUE_IDS = vol.All(cv.ensure_list, [vol.All(vol.Coerce(int), vol.Range(min=1))])
+_REMOVE_SCHEMA: VolDictType = {vol.Required(ATTR_QUEUE_IDS): _QUEUE_IDS}
+_MOVE_SCHEMA: VolDictType = {
+    vol.Required(ATTR_QUEUE_IDS): _QUEUE_IDS,
+    vol.Required(ATTR_DESTINATION): vol.All(vol.Coerce(int), vol.Range(min=1)),
+}
+
+
+async def _async_get_queue(entity: DenonAvrEntity, call: ServiceCall) -> ServiceResponse:
+    return {"items": await entity.async_get_queue()}  # type: ignore[attr-defined]
+
+
+async def _async_remove_from_queue(entity: DenonAvrEntity, call: ServiceCall) -> None:
+    await entity.async_remove_from_queue(call.data[ATTR_QUEUE_IDS])  # type: ignore[attr-defined]
+
+
+async def _async_move_queue_item(entity: DenonAvrEntity, call: ServiceCall) -> None:
+    await entity.async_move_queue_item(  # type: ignore[attr-defined]
+        call.data[ATTR_QUEUE_IDS], call.data[ATTR_DESTINATION]
+    )
+
+
 async def _async_snapshot(entity: DenonAvrEntity, call: ServiceCall) -> None:
     entity.take_snapshot()  # type: ignore[attr-defined]
 
@@ -158,3 +188,28 @@ def async_setup_services(hass: HomeAssistant) -> None:
             schema=None,
             func=func,
         )
+    service.async_register_platform_entity_service(
+        hass,
+        DOMAIN,
+        SERVICE_GET_QUEUE,
+        entity_domain=MEDIA_PLAYER_DOMAIN,
+        schema=None,
+        func=_async_get_queue,
+        supports_response=SupportsResponse.ONLY,
+    )
+    service.async_register_platform_entity_service(
+        hass,
+        DOMAIN,
+        SERVICE_REMOVE_FROM_QUEUE,
+        entity_domain=MEDIA_PLAYER_DOMAIN,
+        schema=_REMOVE_SCHEMA,
+        func=_async_remove_from_queue,
+    )
+    service.async_register_platform_entity_service(
+        hass,
+        DOMAIN,
+        SERVICE_MOVE_QUEUE_ITEM,
+        entity_domain=MEDIA_PLAYER_DOMAIN,
+        schema=_MOVE_SCHEMA,
+        func=_async_move_queue_item,
+    )

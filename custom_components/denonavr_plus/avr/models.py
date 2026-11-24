@@ -285,6 +285,13 @@ class NowPlaying:
     # off / on_all / on_one, and shuffle on or off.
     repeat: str | None = None
     shuffle: bool | None = None
+    # The HEOS music source it comes from (TuneIn, Spotify, Local Music ...),
+    # the station of a radio, and its place in the HEOS queue.
+    service: str | None = None
+    station: str | None = None
+    queue_id: int | None = None
+    # The last playback error HEOS reported, until something plays again.
+    error: str | None = None
 
     @property
     def active(self) -> bool:

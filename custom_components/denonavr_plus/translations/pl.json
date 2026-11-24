@@ -167,6 +167,12 @@
               "sources": "Wybierz wszystkie, aby pokazywać także źródła dodane później w amplitunerze."
             }
           }
+        },
+        "data": {
+          "source_shortcuts": "Quick Select i ulubione w menu źródeł"
+        },
+        "data_description": {
+          "source_shortcuts": "Quick Select i ulubione HEOS strefy głównej pojawiają się w jej menu źródeł po wejściach."
         }
       },
       "source_names": {
@@ -1036,6 +1042,10 @@
     "capability_report": {
       "title": "Pomóż w obsłudze {model}",
       "description": "Sprawdzenie {model} zakończyło się; odpowiedzi są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Otwórz wstępnie wypełnione zgłoszenie przez „Dowiedz się więcej” i dołącz tam plik. Zignoruj ten komunikat, jeśli nie chcesz go udostępniać."
+    },
+    "heos_playback_error": {
+      "title": "{model} nie mógł tego odtworzyć",
+      "description": "HEOS w {model} zgłosił błąd odtwarzania: {error}\n\nCzęste przyczyny to adres, którego amplituner nie osiąga, format, którego nie odtwarza, lub usługa wymagająca logowania w aplikacji HEOS. Komunikat zniknie sam, gdy coś znów zacznie grać."
     }
   },
   "selector": {
@@ -1050,7 +1060,8 @@
         "quick_select": "Quick Select",
         "sources": "Źródła",
         "tuner_presets": "Stacje zapisane w tunerze",
-        "more": "Więcej"
+        "more": "Więcej",
+        "queue": "Kolejka"
       }
     }
   },
@@ -1082,6 +1093,34 @@
     "restore": {
       "name": "Przywróć",
       "description": "Przywraca strefę do stanu z ostatniej migawki."
+    },
+    "get_queue": {
+      "name": "Pobierz kolejkę",
+      "description": "Kolejka HEOS amplitunera: id, tytuł, wykonawca, album i obraz każdej pozycji (pierwsze 100)."
+    },
+    "remove_from_queue": {
+      "name": "Usuń z kolejki",
+      "description": "Usuwa pozycje z kolejki HEOS.",
+      "fields": {
+        "queue_ids": {
+          "name": "Id pozycji",
+          "description": "Id pozycji, tak jak podaje je get_queue."
+        }
+      }
+    },
+    "move_queue_item": {
+      "name": "Przenieś pozycje kolejki",
+      "description": "Przenosi pozycje kolejki HEOS w inne miejsce.",
+      "fields": {
+        "queue_ids": {
+          "name": "Id pozycji",
+          "description": "Id pozycji, tak jak podaje je get_queue."
+        },
+        "destination": {
+          "name": "Miejsce docelowe",
+          "description": "Miejsce, w które je przenieść, liczone od 1."
+        }
+      }
     }
   },
   "device_automation": {
