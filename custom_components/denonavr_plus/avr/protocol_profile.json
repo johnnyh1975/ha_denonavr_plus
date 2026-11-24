@@ -373,7 +373,7 @@
     "network_restart": "NSRBT"
   },
   "remote": {
-    "doc": "Remote entity commands: name -> telnet command. Cursor, enter, return, option, info, channel level menu and the setup menu, documented in the AVR-X2000, AVR-x1x13, AVR-x1x12 and 2015 X-series protocol documents (MNOPT, MNINF and MNCHL not in the 2012 one). Command only; the receiver sends no reply. Not yet tried on a receiver by this integration.",
+    "doc": "Remote entity commands: name -> telnet command. Cursor, enter, return, option, info, channel level menu and the setup menu, documented in the AVR-X2000, AVR-x1x13, AVR-x1x12 and 2015 X-series protocol documents (MNOPT, MNINF and MNCHL not in the 2012 one). The setup menu (MNMEN ON / OFF) is confirmed on an AVR-X2600H, which echoes it and answers MNMEN? (tests/fixtures/command_test); the cursor, enter, return, option, info and channel level commands are not yet tried on a receiver.",
     "commands": {
       "up": "MNCUP",
       "down": "MNCDN",
@@ -1096,7 +1096,7 @@
       "set_prefix": "CV",
       "doc": "Per channel volume trim. Configured channels, their names and their dB ranges are all discovered from the receiver; live trims are read/written via CV<code>."
     },
-    "auto_standby": {"group": "system", "scope": "answered", "kind": "enum", "query": "STBY?", "prefix": "STBY", "values": ["OFF", "15M", "30M", "60M", "2H", "4H", "8H"], "labels": ["Off", "15 min", "30 min", "60 min", "2 h", "4 h", "8 h"], "doc": "Auto standby. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
+    "auto_standby": {"group": "system", "scope": "answered", "kind": "enum", "query": "STBY?", "prefix": "STBY", "values": ["OFF", "15M", "30M", "60M", "2H", "4H", "8H"], "labels": ["Off", "15 min", "30 min", "60 min", "2 h", "4 h", "8 h"], "doc": "Auto standby. Command format from the denonavr library (const.py, TelnetCommands). An AVR-X2600H answers STBY15M and ignored STBY8H in the command test (tests/fixtures/command_test): 2H/4H/8H may be Zone 2 values only; unconfirmed. Shown only when the receiver answers the query at setup."},
     "trigger_1": {"group": "system", "scope": "answered", "kind": "onoff", "query": "TR?", "prefix": "TR1 ", "on": "ON", "off": "OFF", "exact_onoff": true, "doc": "12 V trigger 1. TR? answers both triggers. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "trigger_2": {"group": "system", "scope": "answered", "kind": "onoff", "query": "TR?", "prefix": "TR2 ", "on": "ON", "off": "OFF", "exact_onoff": true, "doc": "12 V trigger 2. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "speaker_preset": {"group": "speaker", "scope": "answered", "kind": "enum", "query": "SPPR ?", "prefix": "SPPR ", "values": ["1", "2"], "labels": ["Preset 1", "Preset 2"], "doc": "Speaker preset. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},

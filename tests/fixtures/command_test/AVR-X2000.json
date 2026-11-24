@@ -1,0 +1,511 @@
+{
+  "test_version": 1,
+  "model": "AVR-X2000",
+  "firmware": null,
+  "groups": [
+    "quiet"
+  ],
+  "main_zone_on": false,
+  "turned_on_for_test": true,
+  "tests": {
+    "bass": {
+      "group": "quiet",
+      "before": 0.0,
+      "written": 0.5,
+      "after": 0.0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSBAS 50",
+        "PSBAS 50",
+        "PSBAS 50"
+      ]
+    },
+    "treble": {
+      "group": "quiet",
+      "before": 0.0,
+      "written": 0.5,
+      "after": 0.0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSTRE 50",
+        "PSTRE 50",
+        "PSTRE 50"
+      ]
+    },
+    "tone_control": {
+      "group": "quiet",
+      "before": false,
+      "written": true,
+      "after": true,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSTONE CTRL OFF",
+        "PSTONE CTRL ON",
+        "PSTONE CTRL ON",
+        "PSTONE CTRL OFF",
+        "PSTONE CTRL OFF"
+      ]
+    },
+    "dynamic_compression": {
+      "group": "quiet",
+      "before": "OFF",
+      "written": "LOW",
+      "after": "OFF",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSDRC OFF",
+        "PSDRC OFF",
+        "PSDRC OFF"
+      ]
+    },
+    "lfe": {
+      "group": "quiet",
+      "before": 0,
+      "written": -1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSLFE 00",
+        "PSLFE 00",
+        "PSLFE 00"
+      ]
+    },
+    "dynamic_eq": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": true,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSDYNEQ ON",
+        "PSDYNEQ ON",
+        "PSDYNEQ ON"
+      ]
+    },
+    "room_size": {
+      "group": "quiet",
+      "before": "N",
+      "written": "S",
+      "after": "N",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSRSZ N",
+        "PSRSZ N",
+        "PSRSZ N"
+      ]
+    },
+    "auto_lip_sync": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": false,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSHOSPAS OFF",
+        "SSHOSCON ON",
+        "SSHOSALS ON",
+        "SSHOSCONSTS LAS",
+        "SSHOSIPS ATH",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT",
+        "SSHOSALS OFF",
+        "SSHOSCON ON",
+        "SSHOSALS OFF",
+        "SSHOSCONSTS LAS",
+        "SSHOSIPS ATH",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT",
+        "SSHOSPAS OFF",
+        "SSHOSALS ON",
+        "SSHOSPAS OFF",
+        "SSHOSCON ON",
+        "SSHOSALS ON",
+        "SSHOSCONSTS LAS",
+        "SSHOSIPS ATH",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT"
+      ]
+    },
+    "dynamic_volume": {
+      "group": "quiet",
+      "before": "MED",
+      "written": "HEV",
+      "after": "MED",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSDYNVOL MED",
+        "PSDYNVOL MED",
+        "PSDYNVOL MED"
+      ]
+    },
+    "reference_level_offset": {
+      "group": "quiet",
+      "before": "0",
+      "written": "5",
+      "after": "0",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSREFLEV 0",
+        "PSREFLEV 0",
+        "PSREFLEV 0"
+      ]
+    },
+    "loudness_management": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": true,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSLOM ON",
+        "PSLOM ON",
+        "PSLOM ON"
+      ]
+    },
+    "cinema_eq": {
+      "group": "quiet",
+      "before": false,
+      "written": true,
+      "after": false,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSCINEMA EQ.OFF",
+        "PSCINEMA EQ.OFF",
+        "PSCINEMA EQ.OFF"
+      ]
+    },
+    "restorer": {
+      "group": "quiet",
+      "before": "LOW",
+      "written": "OFF",
+      "after": "OFF",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSRSTR LOW",
+        "PSRSTR OFF",
+        "PSRSTR OFF",
+        "PSRSTR LOW",
+        "PSRSTR LOW"
+      ]
+    },
+    "subwoofer_switch": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": true,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSSWR ON",
+        "PSSWR ON",
+        "PSSWR ON"
+      ]
+    },
+    "volume_scale": {
+      "group": "quiet",
+      "before": "ABS",
+      "written": "REL",
+      "after": "REL",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS REL",
+        "SSVCTZMADIS REL",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
+    "muting_level": {
+      "group": "quiet",
+      "before": "MUT",
+      "written": "040",
+      "after": "040",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV 040",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV 040",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF"
+      ]
+    },
+    "subwoofer_mode": {
+      "group": "quiet",
+      "before": "LFE",
+      "written": "L+M",
+      "after": "L+M",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSSWM LFE",
+        "SSSWM L+M",
+        "SSSWM L+M",
+        "SSSWM LFE",
+        "SSSWM LFE"
+      ]
+    },
+    "lpf_for_lfe": {
+      "group": "quiet",
+      "before": "120",
+      "written": "150",
+      "after": "150",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSLFL 120",
+        "SSLFL 150",
+        "SSLFL 150",
+        "SSLFL 120",
+        "SSLFL 120"
+      ]
+    },
+    "zone2_sleep_timer": {
+      "group": "quiet",
+      "before": 0,
+      "written": 120,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "Z2SLPOFF",
+        "Z2SLPOFF",
+        "Z2SLPOFF"
+      ]
+    },
+    "zone2_channel_level_fl": {
+      "group": "quiet",
+      "before": 0.0,
+      "written": 0.5,
+      "after": 0.0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "Z2CVFL 50",
+        "Z2CVFR 50",
+        "Z2CVFL 50",
+        "Z2CVFR 50",
+        "Z2CVFL 50",
+        "Z2CVFR 50"
+      ]
+    },
+    "zone2_channel_level_fr": {
+      "group": "quiet",
+      "before": 0.0,
+      "written": 0.5,
+      "after": 0.0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "Z2CVFL 50",
+        "Z2CVFR 50",
+        "Z2CVFL 50",
+        "Z2CVFR 50",
+        "Z2CVFL 50",
+        "Z2CVFR 50"
+      ]
+    },
+    "sleep_timer": {
+      "group": "quiet",
+      "before": 0,
+      "written": 120,
+      "after": 120,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SLPOFF",
+        "SLP120",
+        "SLP120",
+        "SLPOFF",
+        "SLPOFF"
+      ]
+    },
+    "effect_level": {
+      "group": "quiet",
+      "before": 0,
+      "written": 1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSEFF 00",
+        "PSEFF 00",
+        "PSEFF 00"
+      ]
+    },
+    "audio_delay": {
+      "group": "quiet",
+      "before": 0,
+      "written": 10,
+      "after": 10,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSDELAY 000",
+        "PSDELAY 010",
+        "PSDELAY 010",
+        "PSDELAY 000",
+        "PSDELAY 000"
+      ]
+    },
+    "video_mode": {
+      "group": "quiet",
+      "before": "AUTO",
+      "written": "GAME",
+      "after": "AUTO",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "VSVPMAUTO",
+        "VSVPMAUTO",
+        "VSVPMAUTO"
+      ]
+    },
+    "picture_mode": {
+      "group": "quiet",
+      "before": "STM",
+      "written": "CTM",
+      "after": "CTM",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PVSTM",
+        "PVCTM",
+        "PVCTM",
+        "PVSTM",
+        "PVSTM"
+      ]
+    },
+    "contrast": {
+      "group": "quiet",
+      "before": 0,
+      "written": 1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PVCN 50",
+        "PVCN 50",
+        "PVCN 50"
+      ]
+    },
+    "brightness": {
+      "group": "quiet",
+      "before": 0,
+      "written": 1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PVBR 00",
+        "PVBR 00",
+        "PVBR 00"
+      ]
+    },
+    "saturation": {
+      "group": "quiet",
+      "before": 0,
+      "written": 1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PVST 50",
+        "PVST 50",
+        "PVST 50"
+      ]
+    },
+    "enhancer": {
+      "group": "quiet",
+      "before": 0,
+      "written": 1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PVENH 00",
+        "PVENH 00",
+        "PVENH 00"
+      ]
+    },
+    "noise_reduction": {
+      "group": "quiet",
+      "before": "OFF",
+      "written": "LOW",
+      "after": "OFF",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PVDNR OFF",
+        "PVDNR OFF",
+        "PVDNR OFF"
+      ]
+    },
+    "aspect_ratio": {
+      "group": "quiet",
+      "before": "FUL",
+      "written": "NRM",
+      "after": "NRM",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "VSASPFUL",
+        "VSASPNRM",
+        "VSASPNRM",
+        "VSASPFUL",
+        "VSASPFUL"
+      ]
+    },
+    "main_volume": {
+      "group": "quiet",
+      "before": 48.5,
+      "written": 48.0,
+      "after": 48.0,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "MV485",
+        "MVMAX 98",
+        "MV48",
+        "MVMAX 98",
+        "MV48",
+        "MVMAX 98",
+        "MV485",
+        "MVMAX 98",
+        "MV485",
+        "MVMAX 98"
+      ]
+    }
+  }
+}

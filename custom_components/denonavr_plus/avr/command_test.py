@@ -96,7 +96,7 @@ KINDS = frozenset({"onoff", "enum", "level", "centered", "integer", "signed_int"
 
 #: The value written instead of the neighbour, where a neighbour would do harm
 #: if it were not put back (auto standby after 15 minutes).
-PREFERRED = {"auto_standby": "8H", "zone2_auto_standby": "8H"}
+PREFERRED = {"auto_standby": "60M", "zone2_auto_standby": "8H"}
 
 #: Control groups that act on the main zone's sound or picture.
 _MAIN_ZONE_GROUPS = frozenset(
@@ -119,14 +119,26 @@ _NO_WRITE_BACK = frozenset({"zone2_quick_select"})
 #: Settings a control only takes while another one is set: the test sets it
 #: for the moment and back. An AVR-X2000 ignored bass and treble with tone
 #: control off, and the picture adjustments outside the custom picture mode.
-REQUIRES: dict[str, tuple[str, Any]] = {
-    "bass": ("tone_control", True),
-    "treble": ("tone_control", True),
-    "contrast": ("picture_mode", "CTM"),
-    "brightness": ("picture_mode", "CTM"),
-    "saturation": ("picture_mode", "CTM"),
-    "enhancer": ("picture_mode", "CTM"),
-    "noise_reduction": ("picture_mode", "CTM"),
+#: An AVR-X2600H with Audyssey on did not take tone control while Dynamic EQ
+#: was on, so tone control (and bass and treble with it) need Dynamic EQ off.
+_TONE = (("dynamic_eq", False), ("tone_control", True))
+_CUSTOM_PICTURE = (("picture_mode", "CTM"),)
+REQUIRES: dict[str, tuple[tuple[str, Any], ...]] = {
+    "bass": _TONE,
+    "treble": _TONE,
+    "tone_control": (("dynamic_eq", False),),
+    "contrast": _CUSTOM_PICTURE,
+    "brightness": _CUSTOM_PICTURE,
+    "saturation": _CUSTOM_PICTURE,
+    "enhancer": _CUSTOM_PICTURE,
+    "noise_reduction": _CUSTOM_PICTURE,
+}
+
+#: A requirement that only matters in some states: Dynamic EQ does nothing
+#: with MultEQ off (an AVR-X2000 took tone control with Dynamic EQ "on"
+#: and MultEQ off, and ignored a Dynamic EQ change there).
+_ONLY_WHEN: dict[str, Callable[[dict[str, Any]], bool]] = {
+    "dynamic_eq": lambda values: values.get("multeq") not in (None, "OFF"),
 }
 
 #: Settings that need what the test cannot set quietly: Audyssey on (MultEQ
@@ -141,6 +153,8 @@ _AUDYSSEY_SETTINGS = frozenset(
         "containment_amount",
     }
 )
+#: The graphic EQ works only with MultEQ off; switching MultEQ is heard.
+_NEEDS_AUDYSSEY_OFF = frozenset({"graphic_eq"})
 _ZONE2_SETTINGS = frozenset(
     {"zone2_sleep_timer", "zone2_auto_standby", "zone2_channel_level_fl", "zone2_channel_level_fr"}
 )
@@ -271,9 +285,11 @@ def _control_probe(device: DenonAvrDevice, spec: ControlSpec) -> Probe:
     condition: Callable[[], str | None] = lambda: None
     if spec.group in _MAIN_ZONE_GROUPS:
         condition = _main_zone_on(device)
-    requires: tuple[tuple[str, Any], ...] = ()
-    if (required := REQUIRES.get(spec.id)) and _applies(device, required[0]):
-        requires = (required,)
+    requires = tuple(
+        (control_id, value)
+        for control_id, value in REQUIRES.get(spec.id, ())
+        if _applies(device, control_id)
+    )
     return Probe(
         key=spec.id,
         group=AUDIBLE if spec.id in AUDIBLE_CONTROLS else QUIET,
@@ -300,6 +316,8 @@ def _precondition(device: DenonAvrDevice, control_id: str) -> Callable[[], str |
         values = device.state.values
         if control_id in _AUDYSSEY_SETTINGS and values.get("multeq") == "OFF":
             return "audyssey_off"
+        if control_id in _NEEDS_AUDYSSEY_OFF and values.get("multeq") not in (None, "OFF"):
+            return "audyssey_on"
         if control_id in _ZONE2_SETTINGS and not device.state.zone("zone2").power:
             return "zone2_off"
         return None
@@ -585,7 +603,8 @@ async def _prepare(
 
     for control_id, value in probe.requires:
         old = device.state.values.get(control_id)
-        if same(old, value):
+        when = _ONLY_WHEN.get(control_id)
+        if same(old, value) or (when is not None and not when(device.state.values)):
             continue
         changed.append((control_id, old))
         await _set(device, control_id, value)

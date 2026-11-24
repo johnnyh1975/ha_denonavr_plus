@@ -1,0 +1,760 @@
+{
+  "test_version": 1,
+  "model": "AVR-X2600H",
+  "firmware": "3.139.175",
+  "groups": [
+    "quiet",
+    "audible"
+  ],
+  "main_zone_on": false,
+  "turned_on_for_test": true,
+  "context": {
+    "sound_mode": "MCH STEREO",
+    "multeq": "AUDYSSEY",
+    "tone_control": false,
+    "picture_mode": "OFF",
+    "input_mode": "NO",
+    "source": "TV",
+    "zone2_power": false
+  },
+  "tests": {
+    "bass": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "tone_control_not_set"
+    },
+    "treble": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "tone_control_not_set"
+    },
+    "tone_control": {
+      "group": "quiet",
+      "before": false,
+      "written": true,
+      "after": false,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSTONE CTRL OFF",
+        "PSTONE CTRL OFF",
+        "PSTONE CTRL OFF"
+      ]
+    },
+    "dynamic_compression": {
+      "group": "quiet",
+      "before": "OFF",
+      "written": "LOW",
+      "after": "OFF",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSDRC OFF",
+        "PSDRC OFF",
+        "PSDRC OFF"
+      ]
+    },
+    "lfe": {
+      "group": "quiet",
+      "before": 0,
+      "written": -1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSLFE 00",
+        "PSLFE 00",
+        "PSLFE 00"
+      ]
+    },
+    "dynamic_eq": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": false,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSDYNEQ ON",
+        "PSDYNEQ OFF",
+        "PSDYNEQ OFF",
+        "PSDYNEQ ON",
+        "PSDYNEQ ON"
+      ]
+    },
+    "graphic_eq": {
+      "group": "quiet",
+      "before": false,
+      "written": true,
+      "after": false,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSGEQ OFF",
+        "PSGEQ OFF",
+        "PSGEQ OFF"
+      ]
+    },
+    "room_size": {
+      "group": "quiet",
+      "result": "no_value",
+      "lines": []
+    },
+    "dialog_level": {
+      "group": "quiet",
+      "result": "no_value",
+      "lines": []
+    },
+    "headphone_eq": {
+      "group": "quiet",
+      "before": false,
+      "written": true,
+      "after": false,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSHEQ OFF",
+        "PSHEQ OFF",
+        "PSHEQ OFF"
+      ]
+    },
+    "auto_lip_sync": {
+      "group": "quiet",
+      "result": "no_value",
+      "lines": [
+        "SSHOSCONARC OFF",
+        "SSHOSCONPSV OFF",
+        "SSHOSSMN OFF",
+        "SSHOSRSS POS",
+        "SSHOSCON ON",
+        "SSHOSCONSTS LAS",
+        "SSHOSIPS ATH",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT",
+        "SSHOSPAS OFF",
+        "SSHOSTAS ON",
+        "SSHOS END"
+      ]
+    },
+    "dynamic_volume": {
+      "group": "quiet",
+      "before": "OFF",
+      "written": "LIT",
+      "after": "LIT",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSDYNVOL OFF",
+        "PSDYNVOL LIT",
+        "PSDYNVOL LIT",
+        "PSDYNVOL OFF",
+        "PSDYNVOL OFF"
+      ]
+    },
+    "reference_level_offset": {
+      "group": "quiet",
+      "before": "0",
+      "written": "5",
+      "after": "5",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSREFLEV 0",
+        "PSREFLEV 5",
+        "PSREFLEV 5",
+        "PSREFLEV 0",
+        "PSREFLEV 0"
+      ]
+    },
+    "loudness_management": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": true,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSLOM ON",
+        "PSLOM ON",
+        "PSLOM ON"
+      ]
+    },
+    "cinema_eq": {
+      "group": "quiet",
+      "before": false,
+      "written": true,
+      "after": true,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSCINEMA EQ.OFF",
+        "PSCINEMA EQ.ON",
+        "PSCINEMA EQ.ON",
+        "PSCINEMA EQ.OFF",
+        "PSCINEMA EQ.OFF"
+      ]
+    },
+    "restorer": {
+      "group": "quiet",
+      "before": "OFF",
+      "written": "LOW",
+      "after": "OFF",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSRSTR OFF",
+        "PSRSTR OFF",
+        "PSRSTR OFF"
+      ]
+    },
+    "subwoofer_switch": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": true,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSSWR ON",
+        "PSSWR ON",
+        "PSSWR ON"
+      ]
+    },
+    "subwoofer_level": {
+      "group": "quiet",
+      "before": -12.0,
+      "written": -11.5,
+      "after": -12.0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSSWL 38",
+        "PSSWL 38",
+        "PSSWL 38"
+      ]
+    },
+    "volume_scale": {
+      "group": "quiet",
+      "before": "ABS",
+      "written": "REL",
+      "after": "REL",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS REL",
+        "SSVCTZMADIS REL",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
+    "muting_level": {
+      "group": "quiet",
+      "before": "MUT",
+      "written": "040",
+      "after": "040",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMAMLV 040",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV 040",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
+    "subwoofer_mode": {
+      "group": "quiet",
+      "before": "LFE",
+      "written": "L+M",
+      "after": "L+M",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSSWM LFE",
+        "SSSWM L+M",
+        "SSSWM L+M",
+        "SSSWM LFE",
+        "SSSWM LFE"
+      ]
+    },
+    "lpf_for_lfe": {
+      "group": "quiet",
+      "before": "120",
+      "written": "150",
+      "after": "150",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSLFL 120",
+        "SSLFL 150",
+        "SSLFL 150",
+        "SSLFL 120",
+        "SSLFL 120"
+      ]
+    },
+    "zone2_sleep_timer": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
+    },
+    "zone2_auto_standby": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
+    },
+    "zone2_channel_level_fl": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
+    },
+    "zone2_channel_level_fr": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "zone2_off"
+    },
+    "sleep_timer": {
+      "group": "quiet",
+      "before": 0,
+      "written": 120,
+      "after": 120,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SLPOFF",
+        "SLP120",
+        "SLP120",
+        "SLPOFF",
+        "SLPOFF"
+      ]
+    },
+    "eco_mode": {
+      "group": "quiet",
+      "before": "ON",
+      "written": "AUTO",
+      "after": "AUTO",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "ECOON",
+        "ECOAUTO",
+        "ECOAUTO",
+        "ECOON",
+        "ECOON"
+      ]
+    },
+    "speaker_virtualizer": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": false,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSSPV ON",
+        "PSSPV OFF",
+        "PSSPV OFF",
+        "PSSPV ON",
+        "PSSPV ON"
+      ]
+    },
+    "center_spread": {
+      "group": "quiet",
+      "before": false,
+      "written": true,
+      "after": false,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSCES OFF",
+        "PSCES OFF",
+        "PSCES OFF"
+      ]
+    },
+    "dts_neural_x": {
+      "group": "quiet",
+      "before": true,
+      "written": false,
+      "after": true,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSNEURAL ON",
+        "PSNEURAL ON",
+        "PSNEURAL ON"
+      ]
+    },
+    "effect_level": {
+      "group": "quiet",
+      "before": 0,
+      "written": 1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSEFF 00",
+        "PSEFF 00",
+        "PSEFF 00"
+      ]
+    },
+    "audio_delay": {
+      "group": "quiet",
+      "before": 0,
+      "written": 10,
+      "after": 10,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSDELAY 000",
+        "PSDELAY 010",
+        "PSDELAY 010",
+        "PSDELAY 000",
+        "PSDELAY 000"
+      ]
+    },
+    "dialog_control": {
+      "group": "quiet",
+      "before": 0,
+      "written": 1,
+      "after": 0,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSDIC 00",
+        "PSDIC 00",
+        "PSDIC 00"
+      ]
+    },
+    "dimmer": {
+      "group": "quiet",
+      "before": "DIM",
+      "written": "DAR",
+      "after": "DAR",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "DIM DIM",
+        "DIM DAR",
+        "DIM DAR",
+        "DIM DIM",
+        "DIM DIM"
+      ]
+    },
+    "video_mode": {
+      "group": "quiet",
+      "before": "AUTO",
+      "written": "GAME",
+      "after": "AUTO",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "VSVPMAUTO",
+        "VSVPMAUTO",
+        "VSVPMAUTO"
+      ]
+    },
+    "picture_mode": {
+      "group": "quiet",
+      "before": "OFF",
+      "written": "STD",
+      "after": "OFF",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PVOFF",
+        "PVOFF",
+        "PVOFF"
+      ]
+    },
+    "contrast": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "picture_mode_not_set"
+    },
+    "brightness": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "picture_mode_not_set"
+    },
+    "saturation": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "picture_mode_not_set"
+    },
+    "enhancer": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "picture_mode_not_set"
+    },
+    "noise_reduction": {
+      "group": "quiet",
+      "result": "precondition",
+      "reason": "picture_mode_not_set"
+    },
+    "aspect_ratio": {
+      "group": "quiet",
+      "before": "FUL",
+      "written": "NRM",
+      "after": "FUL",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "VSASPFUL",
+        "VSASPFUL",
+        "VSASPFUL"
+      ]
+    },
+    "auto_standby": {
+      "group": "quiet",
+      "before": "15M",
+      "written": "8H",
+      "after": "15M",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "STBY15M",
+        "STBY15M",
+        "STBY15M"
+      ]
+    },
+    "main_volume": {
+      "group": "quiet",
+      "before": 32.5,
+      "written": 32.0,
+      "after": 32.0,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "MV325",
+        "MVMAX 98",
+        "MV32",
+        "MVMAX 98",
+        "MV32",
+        "MVMAX 98",
+        "MV325",
+        "MVMAX 98",
+        "MV325",
+        "MVMAX 98"
+      ]
+    },
+    "main_mute": {
+      "group": "audible",
+      "before": false,
+      "written": true,
+      "after": false,
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "MUOFF",
+        "MUON",
+        "MUOFF",
+        "MUOFF",
+        "MUOFF"
+      ]
+    },
+    "multeq": {
+      "group": "audible",
+      "before": "AUDYSSEY",
+      "written": "BYP.LR",
+      "after": "BYP.LR",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PSMULTEQ:AUDYSSEY",
+        "PSMULTEQ:BYP.LR",
+        "PSMULTEQ:BYP.LR",
+        "PSMULTEQ:AUDYSSEY",
+        "PSMULTEQ:AUDYSSEY"
+      ]
+    },
+    "volume_limit": {
+      "group": "audible",
+      "before": "OFF",
+      "written": "060",
+      "after": "060",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMALIM 060",
+        "SSVCTZMALIM 060",
+        "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS"
+      ]
+    },
+    "all_zone_stereo": {
+      "group": "audible",
+      "before": false,
+      "written": true,
+      "after": true,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "MSMCH STEREO",
+        "MNZST ON",
+        "MSALL ZONE STEREO",
+        "MSMCH STEREO",
+        "MNZST OFF",
+        "MSMCH STEREO",
+        "MSMCH STEREO"
+      ]
+    },
+    "front_speaker": {
+      "group": "audible",
+      "before": "SPA",
+      "written": "SPB",
+      "after": "SPA",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "PSFRONT SPA",
+        "PSFRONT SPA",
+        "PSFRONT SPA"
+      ]
+    },
+    "zone2_quick_select": {
+      "group": "audible",
+      "before": "0",
+      "written": "1",
+      "after": "0",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "Z2QUICK0",
+        "Z2QUICK0"
+      ]
+    },
+    "hdmi_video_output": {
+      "group": "audible",
+      "before": "AUTO",
+      "written": "1",
+      "after": "1",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "VSMONIAUTO",
+        "VSMONI1",
+        "VSMONI1",
+        "VSMONIAUTO",
+        "VSMONIAUTO"
+      ]
+    },
+    "hdmi_audio_out": {
+      "group": "audible",
+      "before": "AMP",
+      "written": "TV",
+      "after": "TV",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "VSAUDIO AMP",
+        "VSAUDIO TV",
+        "VSAUDIO TV",
+        "VSAUDIO AMP",
+        "VSAUDIO AMP"
+      ]
+    },
+    "resolution_hdmi": {
+      "group": "audible",
+      "before": "AUTO",
+      "written": "48P",
+      "after": "AUTO",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "VSSCHAUTO",
+        "VSSCHAUTO",
+        "VSSCHAUTO"
+      ]
+    },
+    "input_mode": {
+      "group": "audible",
+      "before": "NO",
+      "written": "AUTO",
+      "after": "NO",
+      "result": "no_effect",
+      "restored": true,
+      "lines": [
+        "SDNO",
+        "SDNO",
+        "SDNO"
+      ]
+    },
+    "setup_menu": {
+      "group": "audible",
+      "before": "OFF",
+      "written": "ON",
+      "after": "ON",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "MNMEN OFF",
+        "MNMEN ON",
+        "MNMEN ON",
+        "MNMEN OFF",
+        "MNMEN OFF"
+      ]
+    },
+    "zone2_follow_main": {
+      "group": "audible",
+      "before": "NET",
+      "written": "SOURCE",
+      "after": "SOURCE",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "Z2OFF",
+        "Z2NET",
+        "Z232",
+        "Z2ON",
+        "Z2SOURCE",
+        "Z2SLPOFF",
+        "Z2ON",
+        "Z2SOURCE",
+        "Z232",
+        "Z2SLPOFF",
+        "Z2NET",
+        "Z2OFF",
+        "Z2NET",
+        "Z232"
+      ]
+    },
+    "tuner_frequency": {
+      "group": "audible",
+      "result": "skipped",
+      "reason": "tuner_not_playing"
+    },
+    "tuner_preset": {
+      "group": "audible",
+      "result": "skipped",
+      "reason": "tuner_not_playing"
+    }
+  }
+}

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
@@ -143,8 +145,9 @@ def test_a_different_value_for_each_kind(profile: Any) -> None:
     assert alternative(control("dimmer"), "OFF") == "DAR"
     assert alternative(control("dimmer"), "XYZ") == "BRI"
     # Not 15 minutes: the receiver would switch off if it were not put back.
-    assert alternative(control("auto_standby"), "OFF") == "8H"
-    assert alternative(control("auto_standby"), "8H") == "4H"
+    # 60 minutes, not 8 hours: an AVR-X2600H ignored STBY8H.
+    assert alternative(control("auto_standby"), "OFF") == "60M"
+    assert alternative(control("auto_standby"), "60M") == "2H"
     assert alternative(control("effect_level"), 3) == 4
     assert alternative(control("effect_level"), 15) == 14
     assert alternative(control("lfe"), 0) == -1
@@ -268,8 +271,9 @@ async def test_each_outcome(
         "written": 0.5,
         "after": 0.5,
         "restored": True,
-        # Bass and treble are only taken with tone control on.
-        "requires": {"tone_control": True},
+        # Bass and treble are only taken with tone control on (and with it
+        # Dynamic EQ off, which the recording does not report: left alone).
+        "requires": {"dynamic_eq": False, "tone_control": True},
         "lines": [],
     }
     assert tests["bass"]["lines"] == ["PSBAS 50", "PSBAS 505", "PSBAS 505", "PSBAS 50", "PSBAS 50"]
@@ -404,10 +408,6 @@ async def test_a_cancelled_test_puts_the_value_back(
 # The tests that are not a profile control -------------------------------
 
 
-@pytest.mark.assumed(
-    "MNMEN ON / MNMEN OFF with a space, from the protocol documents; "
-    "settled by the command test on a receiver"
-)
 async def test_the_setup_menu_is_opened_and_closed(
     hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
 ) -> None:
@@ -677,7 +677,85 @@ async def test_the_picture_adjustments_need_the_custom_picture_mode(
     device = loaded_entry.runtime_data.device
     picture = {"contrast", "brightness", "saturation", "enhancer", "noise_reduction"}
     for key in picture:
-        assert command_test.REQUIRES[key] == ("picture_mode", "CTM")
+        assert command_test.REQUIRES[key] == (("picture_mode", "CTM"),)
     probes = {p.key: p for p in command_test.probes_for(device, [QUIET])}
     # Only where the receiver has the setting the other one needs.
-    assert probes["bass"].requires == (("tone_control", True),)
+    assert probes["bass"].requires == (("dynamic_eq", False), ("tone_control", True))
+
+
+async def test_tone_control_needs_dynamic_eq_off_with_audyssey_on(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    """An AVR-X2600H with Audyssey on ignored tone control while Dynamic EQ was on."""
+    settings = {"PSDYNEQ ": "ON", "PSTONE CTRL ": "OFF", "PSBAS ": "50"}
+    receiver = Receiver(hass, settings, {"PSBAS ?": ["PSBAS "]})
+    receiver.telnet.push("ZMON", "PSMULTEQ:AUDYSSEY", "PSDYNEQ ON", "PSTONE CTRL OFF")
+    result = await _run(hass, loaded_entry, receiver, "bass")
+    assert result["tests"]["bass"]["result"] == "confirmed"
+    assert result["tests"]["bass"]["requires"] == {"dynamic_eq": False, "tone_control": True}
+    sent = receiver.telnet.sent
+    assert sent.index("PSDYNEQ OFF") < sent.index("PSTONE CTRL ON") < sent.index("PSBAS 505")
+    # Put back in the other order.
+    assert sent[-2:] == ["PSTONE CTRL OFF", "PSDYNEQ ON"]
+    assert (receiver.settings["PSDYNEQ "], receiver.settings["PSTONE CTRL "]) == ("ON", "OFF")
+
+
+async def test_dynamic_eq_is_left_alone_with_audyssey_off(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    """With MultEQ off, Dynamic EQ does nothing; an AVR-X2000 took tone control so."""
+    settings = {"PSDYNEQ ": "ON", "PSTONE CTRL ": "OFF", "PSBAS ": "50"}
+    receiver = Receiver(hass, settings, {"PSBAS ?": ["PSBAS "]})
+    receiver.telnet.push("ZMON", "PSMULTEQ:OFF", "PSDYNEQ ON", "PSTONE CTRL OFF")
+    result = await _run(hass, loaded_entry, receiver, "bass")
+    assert result["tests"]["bass"]["requires"] == {"dynamic_eq": False, "tone_control": True}
+    assert "PSDYNEQ OFF" not in receiver.telnet.sent
+
+
+@pytest.mark.assumed(
+    "the graphic EQ works only with MultEQ off, per the receivers' menus; an "
+    "AVR-X2600H with Audyssey on ignored PSGEQ ON, a test with MultEQ off "
+    "would settle it"
+)
+async def test_the_graphic_eq_needs_audyssey_off(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    receiver = Receiver(hass, {}, {})
+    receiver.telnet.push("ZMON", "PSMULTEQ:AUDYSSEY")
+    device = loaded_entry.runtime_data.device
+    device.discovery.answered.add("graphic_eq")
+    probe = next(p for p in command_test.probes_for(device, [QUIET]) if p.key == "graphic_eq")
+    with patch.object(receiver.telnet, "async_send", receiver.send):
+        result = await command_test._run_probe(device, probe)
+    assert result == {"group": QUIET, "result": "precondition", "reason": "audyssey_on"}
+
+
+# What receivers confirmed --------------------------------------------------
+
+RECORDED = Path(__file__).parent / "fixtures" / "command_test"
+
+
+@pytest.mark.parametrize("model", ["AVR-X2600H", "AVR-X2000"])
+async def test_what_receivers_confirmed_is_what_the_integration_sends(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, model: str
+) -> None:
+    """Each setting a receiver confirmed in its command test.
+
+    The integration writes it in the form the receiver echoed, and reads that
+    echo back as the value written. The recordings are the command tests of
+    the maintainer's receivers (tests/fixtures/command_test).
+    """
+    run = json.loads((RECORDED / f"{model}.json").read_text(encoding="utf-8"))
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    checked = []
+    for key, item in run["tests"].items():
+        spec = device.profile.control(key)
+        if item["result"] != "confirmed" or spec is None or spec.kind not in command_test.KINDS:
+            continue
+        sent = f"{spec.prefix}{device._encode_control_value(spec, item['written'])}"
+        assert sent in item["lines"], key
+        telnet.push(sent)
+        assert same(device.state.values[key], item["written"]), key
+        checked.append(key)
+    assert len(checked) >= 10
