@@ -73,5 +73,6 @@ Only accepted while the source is `TUNER`.
 DAB: an AVR-X2600H DAB variant exists for Europe. No DAB command is in any
 document available here. Unverified.
 
-The tuner is read-only in the `denonavr` library and absent from this
-integration's profile; roadmap item 37 depends on testing these commands.
+The integration reads the frequency, station name and preset (`TFAN?`,
+`TFANNAME?`, `TPAN?`) while the source is `TUNER`, and recalls and steps
+presets with `TPAN`. Frequency entry, band and tuning mode are not used.

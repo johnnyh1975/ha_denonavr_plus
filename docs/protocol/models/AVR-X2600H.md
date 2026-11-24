@@ -80,6 +80,46 @@ What the answers show:
 - **Video mode.** The receiver lists Auto, Game, Movie and Bypass;
   `VSVPM` answered `AUTO`. The token for Bypass is not known yet.
 
+## Compared with the protocol documents
+
+The closest document is the 2015 one for the AVR-X1200W to X4200W. Most
+queries without a reply are not meant for this class of receiver:
+
+- **Larger models only.** Zone 2 tone, high-pass filter, channel setting and
+  HDMI audio, triggers (`TR`): AVR-X3200W and X4200W. Zone 3, `PSLFC`,
+  `PSCNTAMT`, `PSDSX`, `PSSTW`, `PSSTH`, `PSSP:` and Auro: AVR-X4200W.
+- **Not in any of the four.** `PSMODE:` (Pro Logic modes), `PSPAN`,
+  `PSDIM`, `PSCEN`, `PSCEI`, `PSCEG`, `PSPHG`, `PSBSC`, `PSDEH`, `PSLFL`,
+  `VSVST`, `PVHUE`; `PSDCO`, `PSATT` and `PSSB:` are in older documents
+  only.
+- **Other models or regions.** HD Radio (North America), IMAX, Dirac, DAC
+  filter, M-DAX, `MSSMART`, `SPPR`, `SSTTR`, `ILB` (newer models or
+  Marantz). `VSSC` (analog resolution): the AVR-X2600H has no analog video
+  output.
+- **Documented for all four, but no reply:** `PSDIL`, `PSRSZ`,
+  `TFANNAME?` and `MNZST ?`. The receiver itself calls dialog level "Center
+  Level Adjust". Room size probably answers in some sound modes only, the
+  station name only while the tuner plays. All Zone Stereo comes in `MS`.
+- **Auto Lip Sync** is in neither document. The receiver answers `SSALS ?`
+  with `SSALSSET ON`, `SSALSDSP OFF` and `SSALSVAL 000`. The AVR-X2000
+  reports it inside `SSHOS ?` as `SSHOSALS`.
+
+A command test (firmware 3.139.175, an Apple TV on HDMI sending PCM)
+confirmed bass, treble, subwoofer level, video mode, picture mode with its
+picture settings and aspect ratio. Several settings were taken without an
+effect, as the documents lead one to expect:
+
+- Dynamic compression, Loudness Management, LFE and Dialog Control act on
+  Dolby and DTS bitstreams; the source sent PCM.
+- The subwoofer switch acts in two-channel modes only; the command test now
+  skips it in other modes.
+- Headphone EQ needs headphones; Restorer acts on compressed two-channel
+  sound, the effect level in DSP modes, Center Spread in the Dolby Surround
+  upmix.
+- Front speaker B cannot be chosen while amp assign is Zone 2.
+- Digital input mode does not exist on an HDMI-only input; the command test
+  now chooses Auto.
+
 ## Open points
 
 | Point | Status |
@@ -88,7 +128,12 @@ What the answers show:
 | Concurrent telnet sessions | To test |
 | `SW2` with two subwoofers configured | To test |
 | `VSMONI` values other than `AUTO` | To test |
-| Independent `NET` playback in Zone 2 | To test |
+| Independent `NET` playback in Zone 2 | Confirmed: Zone 2 played Amazon Music through HEOS while the main zone played an HDMI source |
+| Zone 2 playing an HDMI source | To test |
+| `PSDIL`, `PSRSZ` (documented for all four 2015 models, no reply) | To test in a surround mode |
+| `TFANNAME?` while the tuner plays | To test |
+| Writing `SSALSSET ON` and `OFF` | To test |
+| DRC, Loudness, LFE, Dialog Control with a Dolby or DTS bitstream | To test |
 | Token for video mode Bypass | To test |
 | `MNZST ?` in another state (All Zone Stereo on) | To test |
 | HEOS: URL playback, Quick Select commands, `serial`, volume mapping | To test |

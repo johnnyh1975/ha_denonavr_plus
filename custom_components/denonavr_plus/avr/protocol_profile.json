@@ -570,11 +570,12 @@
       "scope": "feature",
       "feature": "AutoLipSync",
       "kind": "onoff",
-      "query": "SSHOS ?",
-      "prefix": "SSHOSALS ",
+      "query": "SSALS ?",
+      "prefix": "SSALSSET ",
       "on": "ON",
       "off": "OFF",
-      "doc": "Auto lip sync (automatic A/V delay), token SSHOSALS. Read from the HDMI setup list (SSHOS ?): an AVR-X2000 reports SSHOSALS ON there and answers no SSHOSALS ? (capability check); the AVR-X2600H answers neither with this token, but answers SSALS ? with SSALSSET ON, SSALSDSP OFF, SSALSVAL 000 (likely its auto lip sync; unconfirmed by a write). Gated on the advertised AutoLipSync capability or an answer."
+      "doc": "Auto lip sync (automatic A/V delay). An AVR-X2600H (3.139.175) answers SSALS ? with SSALSSET ON, SSALSDSP OFF and SSALSVAL 000, and has no SSHOSALS (neither SSHOSALS ? nor a line in SSHOS ?); SSALSSET is read as the setting. Writing 'SSALSSET ON|OFF' is unconfirmed: no document names it. Receivers on port 80 report it as SSHOSALS in the HDMI setup list instead (older variant). Gated on the advertised AutoLipSync capability or an answer.",
+      "older": {"query": "SSHOS ?", "prefix": "SSHOSALS ", "doc": "AVR-X2000: SSHOSALS ON inside SSHOS ?, no answer to SSHOSALS ?; SSHOSALS OFF confirmed in its command test."}
     },
     "dynamic_volume": {
       "group": "audyssey",

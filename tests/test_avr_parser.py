@@ -14,7 +14,7 @@ from custom_components.denonavr_plus.avr.parser import (
     parse_device_info,
     parse_upnp_description,
 )
-from custom_components.denonavr_plus.avr.profile import load_profile
+from custom_components.denonavr_plus.avr.profile import load_profile, profile_variant
 
 from .conftest import all_deviceinfo_files, deviceinfo
 
@@ -457,3 +457,19 @@ def test_sound_mode_lists_are_published_at_their_end() -> None:
     assert discovery.sound_mode_groups == {"MOV": ["Virtual"], "MUS": ["Stereo"]}
     assert discovery.current_sound_modes == ["Direct", "Stereo"]
     assert state.values["sound_mode_display"] == "Direct"
+
+
+@pytest.mark.assumed(
+    "an AVR-X2600H answered SSALS ? with SSALSSET ON; that SSALSSET OFF switches "
+    "it off is unconfirmed: a command test that changes Auto Lip Sync would settle it"
+)
+def test_auto_lip_sync_by_receiver_generation() -> None:
+    """Newer receivers report it as SSALSSET, the AVR-X2000 inside SSHOS."""
+    newer, state = TelnetParser(load_profile(), Discovery()), AvrState()
+    assert newer.feed("SSALSSET ON", state)
+    assert state.values["auto_lip_sync"] is True
+    older = TelnetParser(profile_variant(load_profile(), "older"), Discovery())
+    state = AvrState()
+    older.feed("SSHOSALS OFF", state)
+    assert state.values["auto_lip_sync"] is False
+    assert load_profile().control("auto_lip_sync").query == "SSALS ?"

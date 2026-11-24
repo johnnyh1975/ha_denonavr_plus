@@ -106,7 +106,13 @@ KINDS = frozenset({"onoff", "enum", "level", "centered", "integer", "signed_int"
 
 #: The value written instead of the neighbour, where a neighbour would do harm
 #: if it were not put back (auto standby after 15 minutes).
-PREFERRED = {"auto_standby": "60M", "zone2_auto_standby": "8H"}
+PREFERRED = {
+    "auto_standby": "60M",
+    "zone2_auto_standby": "8H",
+    # Every input takes Auto; an AVR-X2600H kept HDMI on an HDMI-only input
+    # when the test chose Digital.
+    "input_mode": "AUTO",
+}
 
 #: Control groups that act on the main zone's sound or picture.
 _MAIN_ZONE_GROUPS = frozenset(
@@ -165,6 +171,16 @@ _AUDYSSEY_SETTINGS = frozenset(
 )
 #: The graphic EQ works only with MultEQ off; switching MultEQ is heard.
 _NEEDS_AUDYSSEY_OFF = frozenset({"graphic_eq"})
+
+#: The subwoofer can only be switched off in two-channel modes (2015
+#: protocol document: "SWR OFF: DIRECT, STEREO (2ch) mode"); an AVR-X2600H
+#: in Multi Ch Stereo kept PSSWR ON.
+_TWO_CHANNEL_MODES = frozenset({"DIRECT", "PURE DIRECT", "STEREO"})
+_NEEDS_TWO_CHANNEL = frozenset({"subwoofer_switch"})
+
+#: Sources Zone 2 plays on every receiver: an AVR-X2600H kept Z2SOURCE when
+#: the test chose the main zone's HDMI input (AUX2) for Zone 2.
+_ZONE2_SOURCES = ("NET", "TUNER")
 _ZONE2_SETTINGS = frozenset(
     {
         "zone2_sleep_timer",
@@ -177,6 +193,7 @@ _ZONE2_SETTINGS = frozenset(
 
 #: What the receiver was doing when the test started, for reading the results.
 CONTEXT = ("sound_mode", "multeq", "tone_control", "picture_mode", "input_mode")
+SIGNAL = ("decoder", "audio_format", "sample_rate")
 
 #: The parts of the receiver the tests are ordered and announced by, in
 #: this order; a control's command group decides its part.
@@ -363,6 +380,8 @@ def _precondition(device: DenonAvrDevice, control_id: str) -> Callable[[], str |
             return "audyssey_on"
         if control_id in _ZONE2_SETTINGS and not device.state.zone("zone2").power:
             return "zone2_off"
+        if control_id in _NEEDS_TWO_CHANNEL and values.get("sound_mode") not in _TWO_CHANNEL_MODES:
+            return "not_two_channel"
         return None
 
     return missing
@@ -391,6 +410,10 @@ def context(device: DenonAvrDevice) -> dict[str, Any]:
     found: dict[str, Any] = {key: device.state.values.get(key) for key in CONTEXT}
     found["source"] = device.state.zone("main").source
     found["zone2_power"] = device.state.zone("zone2").power
+    # The signal decides what some settings do (Dynamic Compression and
+    # Loudness Management act on Dolby and DTS, Dialog Control on DTS:X).
+    readonly = device.state.readonly
+    found["signal"] = {key: readonly.get(key) for key in SIGNAL}
     return found
 
 
@@ -474,7 +497,8 @@ def _zone2_follow_probe(device: DenonAvrDevice) -> Probe:
     def other(source: Any) -> Any:
         if source != FOLLOW_MAIN:
             return FOLLOW_MAIN
-        return device.state.zone("main").source
+        codes = {item.code for item in device.discovery.sources}
+        return next((code for code in _ZONE2_SOURCES if code in codes), device.state.zone("main").source)
 
     return Probe(
         key="zone2_follow_main",

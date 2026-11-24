@@ -6,15 +6,15 @@
     "quiet",
     "audible"
   ],
-  "main_zone_on": false,
-  "turned_on_for_test": true,
+  "main_zone_on": true,
+  "turned_on_for_test": false,
   "context": {
     "sound_mode": "MCH STEREO",
     "multeq": "AUDYSSEY",
     "tone_control": false,
     "picture_mode": "OFF",
-    "input_mode": "NO",
-    "source": "TV",
+    "input_mode": "HDMI",
+    "source": "AUX2",
     "zone2_power": false
   },
   "tests": {
@@ -25,13 +25,14 @@
         "tone_control": true
       },
       "before": 0.0,
-      "written": 0.5,
-      "after": 0.0,
-      "result": "no_effect",
+      "written": 1.0,
+      "after": 1.0,
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "PSBAS 50",
-        "PSBAS 50",
+        "PSBAS 51",
+        "PSBAS 51",
         "PSBAS 50",
         "PSBAS 50"
       ]
@@ -43,13 +44,14 @@
         "tone_control": true
       },
       "before": 0.0,
-      "written": 0.5,
-      "after": 0.0,
-      "result": "no_effect",
+      "written": 1.0,
+      "after": 1.0,
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "PSTRE 50",
-        "PSTRE 50",
+        "PSTRE 51",
+        "PSTRE 51",
         "PSTRE 50",
         "PSTRE 50"
       ]
@@ -311,11 +313,13 @@
       "group": "quiet",
       "before": -12.0,
       "written": -11.5,
-      "after": -12.0,
-      "result": "no_effect",
+      "after": -11.5,
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "PSSWL 38",
+        "PSSWL 385",
+        "PSSWL 385",
         "PSSWL 38",
         "PSSWL 38"
       ]
@@ -354,17 +358,17 @@
       "group": "quiet",
       "result": "no_value",
       "lines": [
+        "SSHOSIPS OFF",
+        "SSHOSCONPOF ALL",
+        "SSHOSIPM AUT",
+        "SSHOSPAS OFF",
+        "SSHOSTAS ON",
         "SSHOSCONARC OFF",
         "SSHOSCONPSV OFF",
         "SSHOSSMN OFF",
         "SSHOSRSS POS",
         "SSHOSCON ON",
         "SSHOSCONSTS LAS",
-        "SSHOSIPS ATH",
-        "SSHOSCONPOF ALL",
-        "SSHOSIPM AUT",
-        "SSHOSPAS OFF",
-        "SSHOSTAS ON",
         "SSHOS END"
       ]
     },
@@ -372,11 +376,13 @@
       "group": "quiet",
       "before": "AUTO",
       "written": "GAME",
-      "after": "AUTO",
-      "result": "no_effect",
+      "after": "GAME",
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "VSVPMAUTO",
+        "VSVPMGAME",
+        "VSVPMGAME",
         "VSVPMAUTO",
         "VSVPMAUTO"
       ]
@@ -385,49 +391,118 @@
       "group": "quiet",
       "before": "OFF",
       "written": "STD",
-      "after": "OFF",
-      "result": "no_effect",
+      "after": "STD",
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "PVOFF",
+        "PVSTD",
+        "PVSTD",
         "PVOFF",
         "PVOFF"
       ]
     },
     "contrast": {
       "group": "quiet",
-      "result": "precondition",
-      "reason": "picture_mode_not_set"
+      "requires": {
+        "picture_mode": "CTM"
+      },
+      "before": 0,
+      "written": 1,
+      "after": 1,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PVCN 050",
+        "PVCN 051",
+        "PVCN 051",
+        "PVCN 050",
+        "PVCN 050"
+      ]
     },
     "brightness": {
       "group": "quiet",
-      "result": "precondition",
-      "reason": "picture_mode_not_set"
+      "requires": {
+        "picture_mode": "CTM"
+      },
+      "before": 0,
+      "written": 1,
+      "after": 1,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PVBR 050",
+        "PVBR 051",
+        "PVBR 051",
+        "PVBR 050",
+        "PVBR 050"
+      ]
     },
     "saturation": {
       "group": "quiet",
-      "result": "precondition",
-      "reason": "picture_mode_not_set"
+      "requires": {
+        "picture_mode": "CTM"
+      },
+      "before": 0,
+      "written": 1,
+      "after": 1,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PVST 050",
+        "PVST 051",
+        "PVST 051",
+        "PVST 050",
+        "PVST 050"
+      ]
     },
     "enhancer": {
       "group": "quiet",
-      "result": "precondition",
-      "reason": "picture_mode_not_set"
+      "requires": {
+        "picture_mode": "CTM"
+      },
+      "before": 0,
+      "written": 1,
+      "after": 1,
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PVENH 00",
+        "PVENH 01",
+        "PVENH 01",
+        "PVENH 00",
+        "PVENH 00"
+      ]
     },
     "noise_reduction": {
       "group": "quiet",
-      "result": "precondition",
-      "reason": "picture_mode_not_set"
+      "requires": {
+        "picture_mode": "CTM"
+      },
+      "before": "OFF",
+      "written": "LOW",
+      "after": "LOW",
+      "result": "confirmed",
+      "restored": true,
+      "lines": [
+        "PVDNR OFF",
+        "PVDNR LOW",
+        "PVDNR LOW",
+        "PVDNR OFF",
+        "PVDNR OFF"
+      ]
     },
     "aspect_ratio": {
       "group": "quiet",
       "before": "FUL",
       "written": "NRM",
-      "after": "FUL",
-      "result": "no_effect",
+      "after": "NRM",
+      "result": "confirmed",
       "restored": true,
       "lines": [
         "VSASPFUL",
+        "VSASPNRM",
+        "VSASPNRM",
         "VSASPFUL",
         "VSASPFUL"
       ]
@@ -469,10 +544,10 @@
         "SSVCTZMALIM OFF",
         "SSVCTZMAPON LAS",
         "SSVCTZMAMLV 040",
-        "SSVCTZMADIS ABS",
-        "SSVCTZMAMLV 040",
         "SSVCTZMALIM OFF",
         "SSVCTZMAPON LAS",
+        "SSVCTZMADIS ABS",
+        "SSVCTZMAMLV 040",
         "SSVCTZMAMLV MUT",
         "SSVCTZMADIS ABS",
         "SSVCTZMAMLV MUT",
@@ -549,15 +624,15 @@
       "restored": true,
       "lines": [
         "MV325",
-        "MVMAX 98",
+        "MVMAX 615",
         "MV32",
-        "MVMAX 98",
+        "MVMAX 615",
         "MV32",
-        "MVMAX 98",
+        "MVMAX 615",
         "MV325",
-        "MVMAX 98",
+        "MVMAX 615",
         "MV325",
-        "MVMAX 98"
+        "MVMAX 615"
       ]
     },
     "zone2_sleep_timer": {
@@ -674,10 +749,10 @@
       "result": "confirmed",
       "restored": true,
       "lines": [
-        "SSVCTZMALIM OFF",
-        "SSVCTZMAPON LAS",
         "SSVCTZMADIS ABS",
         "SSVCTZMAMLV MUT",
+        "SSVCTZMALIM OFF",
+        "SSVCTZMAPON LAS",
         "SSVCTZMALIM 060",
         "SSVCTZMADIS ABS",
         "SSVCTZMAMLV MUT",
@@ -692,15 +767,15 @@
     },
     "input_mode": {
       "group": "audible",
-      "before": "NO",
-      "written": "AUTO",
-      "after": "NO",
+      "before": "HDMI",
+      "written": "DIGITAL",
+      "after": "HDMI",
       "result": "no_effect",
       "restored": true,
       "lines": [
-        "SDNO",
-        "SDNO",
-        "SDNO"
+        "SDHDMI",
+        "SDHDMI",
+        "SDHDMI"
       ]
     },
     "setup_menu": {
@@ -737,20 +812,13 @@
     },
     "zone2_quick_select": {
       "group": "audible",
-      "before": "0",
-      "written": "1",
-      "after": "0",
-      "result": "no_effect",
-      "restored": true,
-      "lines": [
-        "Z2QUICK0",
-        "Z2QUICK0"
-      ]
+      "result": "precondition",
+      "reason": "zone2_off"
     },
     "zone2_follow_main": {
       "group": "audible",
       "before": "SOURCE",
-      "written": "TV",
+      "written": "AUX2",
       "after": "SOURCE",
       "result": "no_effect",
       "restored": true,
@@ -778,5 +846,6 @@
       "result": "skipped",
       "reason": "tuner_not_playing"
     }
-  }
+  },
+  "tested_at": "2026-11-24T16:38:42.276910+00:00"
 }

@@ -24,7 +24,9 @@ from custom_components.denonavr_plus.avr.command_test import (
     summary,
 )
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
-from custom_components.denonavr_plus.avr.profile import ControlSpec, load_profile
+from custom_components.denonavr_plus.avr.models import AvrState, Discovery
+from custom_components.denonavr_plus.avr.parser import TelnetParser
+from custom_components.denonavr_plus.avr.profile import ControlSpec, load_profile, profile_variant
 
 from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
@@ -167,6 +169,8 @@ def test_a_different_value_for_each_kind(profile: Any) -> None:
     # 60 minutes, not 8 hours: an AVR-X2600H ignored STBY8H.
     assert alternative(control("auto_standby"), "OFF") == "60M"
     assert alternative(control("auto_standby"), "60M") == "2H"
+    # Auto: an AVR-X2600H refused Digital on its HDMI-only input.
+    assert alternative(control("input_mode"), "HDMI") == "AUTO"
     assert alternative(control("effect_level"), 3) == 4
     assert alternative(control("effect_level"), 15) == 14
     assert alternative(control("lfe"), 0) == -1
@@ -349,6 +353,8 @@ async def test_each_outcome(
     assert receiver.telnet.sent.count("PSTONE CTRL ON") == 2
     assert receiver.settings["PSTONE CTRL "] == "OFF"
     assert result["context"]["tone_control"] is False
+    # The signal is recorded: it decides what Dolby and DTS settings do.
+    assert set(result["context"]["signal"]) == set(command_test.SIGNAL)
     assert receiver.settings["MV"] == "50"
     assert tests["main_volume"]["written"] == 49.5
     assert progress[-1] == 1.0 and len(progress) == len(keys)
@@ -637,7 +643,8 @@ async def test_zone2_that_follows_takes_the_main_input_and_back(
     receiver = Receiver(hass, {"Z2": "SOURCE"}, {"Z2?": ["Z2"]})
     receiver.telnet.push("SIDVD")
     result = await _run(hass, loaded_entry, receiver, "zone2_follow_main")
-    assert result["tests"]["zone2_follow_main"]["written"] == "DVD"
+    # Not the main zone's input: Zone 2 may not play it (HDMI on an AVR-X2600H).
+    assert result["tests"]["zone2_follow_main"]["written"] == "TUNER"
     assert receiver.settings["Z2"] == "SOURCE"
 
 
@@ -803,6 +810,8 @@ async def test_a_setting_already_as_needed_is_left_alone(
         ("zone2_channel_level_fl", ("Z2OFF",), "zone2_off"),
         # An AVR-X2600H with Zone 2 off did not take Z2QUICK1.
         ("zone2_quick_select", ("Z2OFF",), "zone2_off"),
+        # The subwoofer switch acts in two-channel modes only.
+        ("subwoofer_switch", ("MSDOLBY SURROUND",), "not_two_channel"),
     ],
 )
 async def test_what_cannot_be_set_quietly_is_a_missing_precondition(
@@ -926,15 +935,17 @@ async def test_what_receivers_confirmed_is_what_the_integration_sends(
     """
     run = json.loads((RECORDED / f"{model}.json").read_text(encoding="utf-8"))
     device = loaded_entry.runtime_data.device
-    telnet = FakeTelnet.instances[-1]
+    # The AVR-X2000 answers on port 80 and speaks the older variant.
+    profile = profile_variant(load_profile(), "older") if model == "AVR-X2000" else load_profile()
+    parser, state = TelnetParser(profile, Discovery()), AvrState()
     checked = []
     for key, item in run["tests"].items():
-        spec = device.profile.control(key)
+        spec = profile.control(key)
         if item["result"] != "confirmed" or spec is None or spec.kind not in command_test.KINDS:
             continue
         sent = f"{spec.prefix}{device._encode_control_value(spec, item['written'])}"
         assert sent in item["lines"], key
-        telnet.push(sent)
-        assert same(device.state.values[key], item["written"]), key
+        parser.feed(sent, state)
+        assert same(state.values[key], item["written"]), key
         checked.append(key)
     assert len(checked) >= 10
