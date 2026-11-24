@@ -1,6 +1,6 @@
 # Denon AVR Plus
 
-[![Version](https://img.shields.io/badge/Version-0.7.0-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
+[![Version](https://img.shields.io/badge/Version-0.7.1-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
 [![HA Version](https://img.shields.io/badge/HA-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
 [![Local Push](https://img.shields.io/badge/IoT%20Class-Local%20Push-green.svg)](https://www.home-assistant.io/blog/2016/02/12/classifying-the-internet-of-things/)
@@ -99,8 +99,8 @@ address must belong to the same receiver.
 
 **Configure** on the integration entry opens a menu: volume, zones, sources,
 sound modes, connection, entities, and **Test the receiver** (see
-Contributing). Apart from the command tests, nothing in it changes the
-receiver; it changes what Home Assistant shows and does.
+Contributing). Apart from that test, nothing in it changes the receiver; it
+changes what Home Assistant shows and does.
 
 **Volume** (works even when the receiver is off):
 
@@ -628,24 +628,30 @@ protocol facts. For a receiver that is not fully supported, the
 diagnostics file is what makes support possible; the issue form asks
 for it.
 
-**Capability check.** For a model that has not been checked with this
-integration yet, setup offers to run the capability check once the receiver is
-connected, and a repair asks for it later. You can also run it any time under
-Configure → **Test the receiver** → **Check capabilities**. It asks the receiver about 150 read-only
-questions over the integration's own connection (nothing is changed, commands
-from Home Assistant still go first) and takes up to a minute and a half. The
-answers go into the diagnostics file, with addresses replaced. A repair then
-links to a prefilled issue on GitHub; attach the diagnostics file there. Nothing
-is sent anywhere by itself.
+**Test the receiver.** Configure → **Test the receiver** runs three parts one
+after the other, with a progress bar:
 
-**Command test.** The capability check only asks; the command test writes. Each
-test reads a setting, writes a different valid value, waits up to 2 seconds for
-the receiver to confirm it, asks again, then writes the old value back and
-checks that it is back. Configure → **Test the receiver** has an entry for
-each group, which starts the test at once. When a model that has not been
-checked yet is added, setup offers both next to the capability check (off
-unless you choose them; they then run once the receiver is connected, after
-the capability check).
+1. **Check capabilities**: about 150 read-only questions over the
+   integration's own connection (nothing is changed, commands from Home
+   Assistant still go first), up to a minute and a half.
+2. **Test commands quietly**: settings change for a moment and are put back
+   (see below), a few minutes.
+3. **Test what you hear and see**: asked for after the quiet part, with
+   **Start** and **Skip**. It needs someone in front of the TV.
+
+One page then shows how many questions were answered, how many commands were
+confirmed, not confirmed or skipped, and how many settings did not come back,
+with a link to a prefilled issue on GitHub; attach the diagnostics file there
+(addresses are replaced). Nothing is sent anywhere by itself.
+
+For a model that has not been checked yet, setup offers to test the receiver
+once it is connected (on by default; the first two parts, in the
+background), and a repair runs the same three parts later. A message then
+points to the issue.
+
+**Command test.** Each command test reads a setting, writes a different valid
+value, waits up to 2 seconds for the receiver to confirm it, asks again, then
+writes the old value back and checks that it is back.
 
 - **Quiet tests**: settings you hardly notice for a few seconds: tone,
   Audyssey, surround and picture settings, timers, the display, ECO, Zone 2

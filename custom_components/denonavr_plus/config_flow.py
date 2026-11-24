@@ -52,8 +52,10 @@ from .const import (
     OPT_POLL_INTERVAL,
     OPT_SETUP_REFRESH,
 )
-from .capabilities import OPT_CHECK_PENDING, CapabilityCheckSteps, known_model
-from .command_test import OPT_TEST_PENDING, CommandTestSteps, chosen, groups_schema
+from .avr.command_test import QUIET
+from .capabilities import OPT_CHECK_PENDING, known_model
+from .command_test import OPT_TEST_PENDING
+from .receiver_test import ReceiverTestSteps
 from .entity_groups import OPT_ENTITY_GROUPS
 from .coordinator import connection_options
 from . import choices, entity_groups
@@ -92,7 +94,7 @@ SSDP_DEVICE_TYPES = (
     "urn:schemas-upnp-org:device:MediaServer:1",
 )
 CONF_RECEIVER = "receiver"
-CONF_CHECK = "check"
+CONF_TEST = "test"
 
 
 def _skip_reason(upnp: Any) -> str | None:
@@ -224,7 +226,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="unknown_model",
             data_schema=vol.Schema(
-                {vol.Required(CONF_CHECK, default=True): BooleanSelector(), **groups_schema()}
+                {vol.Required(CONF_TEST, default=True): BooleanSelector()}
             ),
             description_placeholders={"model": self._new_entry[0]},
         )
@@ -232,12 +234,11 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
     def _create_with_tests(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         title, data = self._new_entry
         options: dict[str, Any] = {}
-        if user_input.get(CONF_CHECK):
+        if user_input.get(CONF_TEST):
+            # The audible part needs someone at the TV: not in the background.
             options[OPT_CHECK_PENDING] = True
-        if groups := chosen(user_input):
-            options[OPT_TEST_PENDING] = groups
+            options[OPT_TEST_PENDING] = [QUIET]
         return self.async_create_entry(title=title, data=data, options=options)
-
 
     async def async_step_unknown_model(
         self, user_input: dict[str, Any] | None = None
@@ -412,7 +413,7 @@ def _zones(hass: Any, entry: ConfigEntry) -> list[str]:
     return [zone for zone in _ZONE_ORDER if zone in found] or ["main"]
 
 
-class DenonAvrOptionsFlow(CommandTestSteps, CapabilityCheckSteps, OptionsFlow):
+class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
     """Options: volume, zones, and which sources and sound modes appear, and how."""
 
     def __init__(self) -> None:
@@ -450,18 +451,7 @@ class DenonAvrOptionsFlow(CommandTestSteps, CapabilityCheckSteps, OptionsFlow):
             ],
         )
 
-    async def async_step_tests(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """The three tests, each started by its own entry."""
-
-        return self.async_show_menu(
-            step_id="tests", menu_options=["check_run", "test_quiet", "test_audible"]
-        )
-
-    # Capability check (steps in capabilities.CapabilityCheckSteps) ---------
-
-    _not_connected = "check_not_connected"
+    # Receiver test (steps in receiver_test.ReceiverTestSteps) ---------------
 
     def _check_entry(self) -> Any:
         return self.config_entry

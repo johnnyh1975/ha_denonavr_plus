@@ -35,16 +35,12 @@
       },
       "unknown_model": {
         "title": "Modell noch nicht geprüft",
-        "description": "Der {model} wurde mit dieser Integration noch nicht geprüft; einzelne Einstellungen können fehlen oder falsch gelesen werden.\n\nDie unten gewählten Tests laufen, sobald der Receiver verbunden ist. Ihre Ergebnisse stehen in der Diagnose-Datei, die du an ein vorausgefülltes Issue auf GitHub hängen kannst. Von selbst wird nichts gesendet.",
+        "description": "Der {model} wurde mit dieser Integration noch nicht geprüft; einzelne Einstellungen können fehlen oder falsch gelesen werden.\n\nDie Receiver-Prüfung läuft, sobald der Receiver verbunden ist: Sie prüft die Fähigkeiten und testet Befehle leise. Die Ergebnisse stehen in der Diagnose-Datei, die du an ein vorausgefülltes Issue auf GitHub hängen kannst. Von selbst wird nichts gesendet.",
         "data": {
-          "check": "Fähigkeiten prüfen",
-          "quiet": "Befehle leise testen",
-          "audible": "Hörbare und sichtbare Befehle testen"
+          "test": "Receiver nach der Einrichtung prüfen"
         },
         "data_description": {
-          "check": "Liest nur; rund 150 Fragen.",
-          "quiet": "Ändert Einstellungen kurz und stellt sie zurück.",
-          "audible": "Stumm, Lautsprecher, Ausgänge, Tuner und Zone 2 ändern sich kurz."
+          "test": "Liest, ändert dann Einstellungen kurz und stellt sie zurück. Hörbares und Sichtbares lässt sich später in den Optionen testen."
         }
       }
     },
@@ -74,6 +70,9 @@
           "connection": "Verbindung",
           "entities": "Entitäten",
           "tests": "Receiver prüfen"
+        },
+        "menu_option_descriptions": {
+          "tests": "Prüft die Fähigkeiten, testet Befehle leise und fragt dann, bevor Hörbares und Sichtbares getestet wird. Die Ergebnisse stehen in der Diagnose-Datei."
         }
       },
       "volume": {
@@ -215,14 +214,6 @@
           "setup_refresh": "Grafik-EQ, Video-Setup und Endstufenzuweisung werden beim Verbindungsaufbau und nach jeder Änderung aus Home Assistant gelesen. Zusätzlich alle so viele Minuten, um Änderungen im Menü des Receivers zu bemerken; 0 liest sie nur dann."
         }
       },
-      "check_done": {
-        "title": "Prüfung abgeschlossen",
-        "description": "Der {model} hat {answered} von {total} Fragen beantwortet. Die Antworten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen).\n\nUm die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Diagnose-Datei an. Lies die Datei, bevor du sie anhängst; Adressen sind bereits ersetzt."
-      },
-      "command_test_done": {
-        "title": "Befehlstest abgeschlossen",
-        "description": "{model}:\n\n- Bestätigt: {confirmed}\n- Nicht bestätigt: {unconfirmed}\n- Übersprungen: {skipped}\n- Nicht zurückgestellt: {not_restored} (wenn nicht 0, am Receiver prüfen)\n\nDie Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Um die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Datei an."
-      },
       "entities": {
         "title": "Entitäten",
         "description": "Blende die Entitäten, die ausgeblendet starten, gruppenweise ein. Was du selbst geändert hast, bleibt, wie es ist. Eingeblendete Entitäten erscheinen innerhalb einer halben Minute.",
@@ -245,19 +236,17 @@
           "diagnostic": "{n_diagnostic} Entitäten: Signal, Decoder, Ton wiederherstellen"
         }
       },
-      "tests": {
-        "title": "Receiver prüfen",
-        "description": "Die Ergebnisse stehen in der Diagnose-Datei. Für die Befehlstests wird eine ausgeschaltete Hauptzone eingeschaltet und danach wieder ausgeschaltet.",
+      "tests_ask": {
+        "title": "Hörbares und Sichtbares testen?",
+        "description": "Der leise Teil ist fertig. Als Nächstes ändern sich Stumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher kurz und werden zurückgestellt. Bleib vor dem Fernseher; es dauert einige Minuten.",
         "menu_options": {
-          "check_run": "Fähigkeiten prüfen",
-          "test_quiet": "Befehle leise testen",
-          "test_audible": "Hörbare und sichtbare Befehle testen"
-        },
-        "menu_option_descriptions": {
-          "check_run": "Liest nur: rund 150 Fragen, bis zu anderthalb Minuten.",
-          "test_quiet": "Klang, Audyssey, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Einige Minuten.",
-          "test_audible": "Stumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher ändern sich kurz und werden zurückgestellt."
+          "tests_audible": "Starten",
+          "tests_done": "Überspringen"
         }
+      },
+      "tests_done": {
+        "title": "Receiver-Prüfung abgeschlossen",
+        "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Nicht bestätigt: {unconfirmed}\n- Übersprungen: {skipped}\n- Nicht zurückgestellt: {not_restored} (wenn nicht 0, am Receiver prüfen)\n\nDie Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Um die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Datei an. Lies sie, bevor du sie anhängst; Adressen sind bereits ersetzt."
       }
     },
     "error": {
@@ -268,13 +257,12 @@
       "not_connected": "Der Receiver ist nicht verbunden. Seine Quellen und Klangmodi werden von ihm gelesen; versuche es erneut, wenn er eingeschaltet ist.",
       "no_additional_zones": "Dieser Receiver hat keine weitere Zone.",
       "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet.",
-      "check_not_connected": "Der Receiver ist nicht verbunden. Der Prüflauf fragt ihn über seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist.",
       "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist.",
       "no_hidden_entities": "Dieser Receiver hat keine ausgeblendeten Entitäten."
     },
     "progress": {
       "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten.",
-      "command_test": "Die Befehle werden getestet. Das dauert einige Minuten."
+      "command_test": "Die Befehle werden getestet und jeweils zurückgestellt. Das dauert einige Minuten."
     }
   },
   "entity": {
@@ -1105,26 +1093,35 @@
       "title": "{model} wurde noch nicht geprüft",
       "fix_flow": {
         "step": {
-          "check": {
-            "title": "Fähigkeiten prüfen",
-            "description": "Stellt dem Receiver über die bestehende Verbindung rund 150 Fragen, die nur lesen; nichts wird verändert. Das dauert bis zu anderthalb Minuten; Befehle aus Home Assistant haben weiter Vorrang. Die Antworten kommen in die Diagnose-Datei."
+          "tests_start": {
+            "title": "Receiver prüfen",
+            "description": "Drei Teile nacheinander:\n\n1. **Fähigkeiten prüfen**: liest nur, bis zu anderthalb Minuten.\n2. **Befehle leise testen**: Klang, Audyssey, Bild, Timer und Display ändern sich kurz und werden zurückgestellt. Einige Minuten.\n3. **Hörbares und Sichtbares testen**: nur, wenn du es dann wählst.\n\nEine ausgeschaltete Hauptzone wird für die Tests eingeschaltet und danach wieder ausgeschaltet. Die Ergebnisse stehen in der Diagnose-Datei."
           },
-          "check_done": {
-            "title": "Prüfung abgeschlossen",
-            "description": "Der {model} hat {answered} von {total} Fragen beantwortet. Die Antworten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen).\n\nUm die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Diagnose-Datei an. Lies die Datei, bevor du sie anhängst; Adressen sind bereits ersetzt."
+          "tests_ask": {
+            "title": "Hörbares und Sichtbares testen?",
+            "description": "Der leise Teil ist fertig. Als Nächstes ändern sich Stumm, Lautsprecher, HDMI-Ausgang, Tuner, Zone 2 und das Setup-Menü am Fernseher kurz und werden zurückgestellt. Bleib vor dem Fernseher; es dauert einige Minuten.",
+            "menu_options": {
+              "tests_audible": "Starten",
+              "tests_done": "Überspringen"
+            }
+          },
+          "tests_done": {
+            "title": "Receiver-Prüfung abgeschlossen",
+            "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Nicht bestätigt: {unconfirmed}\n- Übersprungen: {skipped}\n- Nicht zurückgestellt: {not_restored} (wenn nicht 0, am Receiver prüfen)\n\nDie Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Um die Unterstützung dieses Modells zu verbessern, öffne [dieses vorausgefüllte Issue auf GitHub]({url}) und hänge die Datei an. Lies sie, bevor du sie anhängst; Adressen sind bereits ersetzt."
           }
         },
         "progress": {
-          "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten."
+          "capability_check": "Der Receiver wird befragt. Das dauert bis zu anderthalb Minuten.",
+          "command_test": "Die Befehle werden getestet und jeweils zurückgestellt. Das dauert einige Minuten."
         },
         "abort": {
-          "not_connected": "Der Receiver ist nicht über Telnet verbunden. Die Prüfung braucht diese Verbindung; versuche es erneut, wenn er eingeschaltet ist."
+          "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist."
         }
       }
     },
     "capability_report": {
       "title": "Hilf bei der Unterstützung des {model}",
-      "description": "Der Prüflauf des {model} ist abgeschlossen; die Antworten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne über „Mehr erfahren“ das vorausgefüllte Issue und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest."
+      "description": "Die Receiver-Prüfung des {model} ist abgeschlossen; die Ergebnisse stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne über „Mehr erfahren“ das vorausgefüllte Issue und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest. Hörbares und Sichtbares lässt sich unter Konfigurieren → Receiver prüfen testen."
     },
     "heos_playback_error": {
       "title": "{model} konnte es nicht abspielen",

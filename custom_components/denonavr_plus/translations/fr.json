@@ -35,16 +35,12 @@
       },
       "unknown_model": {
         "title": "Modèle pas encore vérifié",
-        "description": "Le {model} n'a pas encore été vérifié avec cette intégration ; certains réglages peuvent manquer ou être mal lus.\n\nLes tests choisis ci-dessous s'exécutent une fois le récepteur connecté. Leurs résultats vont dans le fichier de diagnostic, que vous pouvez joindre à un ticket prérempli sur GitHub. Rien n'est envoyé de lui-même.",
+        "description": "Le {model} n'a pas encore été vérifié avec cette intégration ; certains réglages peuvent manquer ou être mal lus.\n\nLe test du récepteur s'exécute une fois celui-ci connecté : il vérifie les fonctions et teste les commandes discrètement. Ses résultats vont dans le fichier de diagnostic, que vous pouvez joindre à un ticket prérempli sur GitHub. Rien n'est envoyé de lui-même.",
         "data": {
-          "check": "Vérifier les fonctions",
-          "quiet": "Tester les commandes discrètement",
-          "audible": "Tester les commandes audibles et visibles"
+          "test": "Tester le récepteur après la configuration"
         },
         "data_description": {
-          "check": "Lecture seule ; environ 150 questions.",
-          "quiet": "Modifie des réglages un instant puis les rétablit.",
-          "audible": "Sourdine, enceintes, sorties, tuner et Zone 2 changent un instant."
+          "test": "Lit, puis modifie des réglages un instant et les rétablit. Ce qui s'entend et se voit peut être testé plus tard dans les options."
         }
       }
     },
@@ -74,6 +70,9 @@
           "connection": "Connexion",
           "entities": "Entités",
           "tests": "Tester le récepteur"
+        },
+        "menu_option_descriptions": {
+          "tests": "Vérifie les fonctions, teste les commandes discrètement, puis demande avant de tester ce qui s'entend et se voit. Les résultats vont dans le fichier de diagnostic."
         }
       },
       "volume": {
@@ -215,14 +214,6 @@
           "setup_refresh": "L'égaliseur graphique, la configuration vidéo et l'affectation des amplis sont lus à l'établissement de la connexion et après chaque modification depuis Home Assistant. Ceci les lit en plus toutes les tant de minutes, pour remarquer les modifications faites dans le menu de l'ampli-tuner ; 0 ne les lit qu'à ces moments-là."
         }
       },
-      "check_done": {
-        "title": "Vérification terminée",
-        "description": "Le {model} a répondu à {answered} questions sur {total}. Les réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic. Lisez le fichier avant de le joindre ; les adresses sont déjà remplacées."
-      },
-      "command_test_done": {
-        "title": "Test des commandes terminé",
-        "description": "{model} :\n\n- Confirmées : {confirmed}\n- Non confirmées : {unconfirmed}\n- Ignorées : {skipped}\n- Non rétablies : {not_restored} (vérifiez-les sur le récepteur si ce n'est pas 0)\n\nLes détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Pour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier."
-      },
       "entities": {
         "title": "Entités",
         "description": "Affichez par groupe les entités qui démarrent masquées. Ce que vous avez modifié vous-même reste tel quel. Les entités affichées apparaissent en une demi-minute.",
@@ -245,19 +236,17 @@
           "diagnostic": "{n_diagnostic} entités : signal, décodeur, rétablir le son"
         }
       },
-      "tests": {
-        "title": "Tester le récepteur",
-        "description": "Les résultats vont dans le fichier de diagnostic. Pour les tests de commandes, une zone principale éteinte est allumée puis éteinte à nouveau.",
+      "tests_ask": {
+        "title": "Tester ce qui s'entend et se voit ?",
+        "description": "La partie discrète est terminée. Ensuite, sourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Restez devant le téléviseur ; cela prend quelques minutes.",
         "menu_options": {
-          "check_run": "Vérifier les fonctions",
-          "test_quiet": "Tester les commandes discrètement",
-          "test_audible": "Tester les commandes audibles et visibles"
-        },
-        "menu_option_descriptions": {
-          "check_run": "Lecture seule : environ 150 questions, jusqu'à une minute et demie.",
-          "test_quiet": "Tonalité, Audyssey, image, minuteries et afficheur changent un instant puis sont rétablis. Quelques minutes.",
-          "test_audible": "Sourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis."
+          "tests_audible": "Démarrer",
+          "tests_done": "Passer"
         }
+      },
+      "tests_done": {
+        "title": "Test du récepteur terminé",
+        "description": "{model} :\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Non confirmées : {unconfirmed}\n- Ignorées : {skipped}\n- Non rétablies : {not_restored} (vérifiez-les sur le récepteur si ce n'est pas 0)\n\nLes détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Pour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier. Lisez-le avant de le joindre ; les adresses sont déjà remplacées."
       }
     },
     "error": {
@@ -268,13 +257,12 @@
       "not_connected": "L'ampli-tuner n'est pas connecté. Ses sources et modes son sont lus depuis l'appareil ; réessayez lorsqu'il est allumé.",
       "no_additional_zones": "Cet ampli-tuner n'a pas de zone supplémentaire.",
       "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son.",
-      "check_not_connected": "L'ampli-tuner n'est pas connecté. La vérification l'interroge via sa connexion telnet ; réessayez quand il est allumé.",
       "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé.",
       "no_hidden_entities": "Ce récepteur n'a pas d'entités masquées."
     },
     "progress": {
       "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie.",
-      "command_test": "Test des commandes en cours. Cela prend quelques minutes."
+      "command_test": "Test des commandes, chacune rétablie ensuite. Cela prend quelques minutes."
     }
   },
   "entity": {
@@ -1105,26 +1093,35 @@
       "title": "Le {model} n'a pas encore été vérifié",
       "fix_flow": {
         "step": {
-          "check": {
-            "title": "Vérifier les fonctions",
-            "description": "Pose à l'ampli-tuner environ 150 questions en lecture seule via la connexion existante ; rien n'est modifié. Cela prend jusqu'à une minute et demie ; les commandes de Home Assistant restent prioritaires. Les réponses vont dans le fichier de diagnostic."
+          "tests_start": {
+            "title": "Tester le récepteur",
+            "description": "Trois parties, l'une après l'autre :\n\n1. **Vérifier les fonctions** : lecture seule, jusqu'à une minute et demie.\n2. **Tester les commandes discrètement** : tonalité, Audyssey, image, minuteries et afficheur changent un instant puis sont rétablis. Quelques minutes.\n3. **Tester ce qui s'entend et se voit** : seulement si vous le choisissez à ce moment.\n\nUne zone principale éteinte est allumée pour les tests puis éteinte à nouveau. Les résultats vont dans le fichier de diagnostic."
           },
-          "check_done": {
-            "title": "Vérification terminée",
-            "description": "Le {model} a répondu à {answered} questions sur {total}. Les réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic. Lisez le fichier avant de le joindre ; les adresses sont déjà remplacées."
+          "tests_ask": {
+            "title": "Tester ce qui s'entend et se voit ?",
+            "description": "La partie discrète est terminée. Ensuite, sourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis. Restez devant le téléviseur ; cela prend quelques minutes.",
+            "menu_options": {
+              "tests_audible": "Démarrer",
+              "tests_done": "Passer"
+            }
+          },
+          "tests_done": {
+            "title": "Test du récepteur terminé",
+            "description": "{model} :\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Non confirmées : {unconfirmed}\n- Ignorées : {skipped}\n- Non rétablies : {not_restored} (vérifiez-les sur le récepteur si ce n'est pas 0)\n\nLes détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Pour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier. Lisez-le avant de le joindre ; les adresses sont déjà remplacées."
           }
         },
         "progress": {
-          "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie."
+          "capability_check": "Interrogation de l'ampli-tuner. Cela prend jusqu'à une minute et demie.",
+          "command_test": "Test des commandes, chacune rétablie ensuite. Cela prend quelques minutes."
         },
         "abort": {
-          "not_connected": "L'ampli-tuner n'est pas connecté via telnet. La vérification a besoin de cette connexion ; réessayez quand il est allumé."
+          "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé."
         }
       }
     },
     "capability_report": {
       "title": "Aidez à prendre en charge le {model}",
-      "description": "La vérification du {model} est terminée ; ses réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le ticket prérempli avec « En savoir plus » et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager."
+      "description": "Le test du récepteur {model} est terminé ; les résultats sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le ticket prérempli avec « En savoir plus » et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager. Ce qui s'entend et se voit peut être testé sous Configurer → Tester le récepteur."
     },
     "heos_playback_error": {
       "title": "Le {model} n'a pas pu le lire",

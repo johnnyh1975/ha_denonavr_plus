@@ -35,16 +35,12 @@
       },
       "unknown_model": {
         "title": "Modelo aún no comprobado",
-        "description": "El {model} aún no se ha comprobado con esta integración; algunos ajustes pueden faltar o leerse mal.\n\nLas pruebas elegidas abajo se ejecutan cuando el receptor esté conectado. Sus resultados van al archivo de diagnóstico, que puedes adjuntar a una incidencia prerrellenada en GitHub. No se envía nada por sí solo.",
+        "description": "El {model} aún no se ha comprobado con esta integración; algunos ajustes pueden faltar o leerse mal.\n\nLa prueba del receptor se ejecuta cuando esté conectado: comprueba las funciones y prueba comandos en silencio. Sus resultados van al archivo de diagnóstico, que puedes adjuntar a una incidencia prerrellenada en GitHub. No se envía nada por sí solo.",
         "data": {
-          "check": "Comprobar funciones",
-          "quiet": "Probar comandos en silencio",
-          "audible": "Probar comandos que se oyen y se ven"
+          "test": "Probar el receptor tras la configuración"
         },
         "data_description": {
-          "check": "Solo lee; unas 150 preguntas.",
-          "quiet": "Cambia ajustes un momento y los restablece.",
-          "audible": "Silencio, altavoces, salidas, sintonizador y Zona 2 cambian un momento."
+          "test": "Lee y después cambia ajustes un momento y los restablece. Lo que se oye y se ve se puede probar más tarde en las opciones."
         }
       }
     },
@@ -74,6 +70,9 @@
           "connection": "Conexión",
           "entities": "Entidades",
           "tests": "Probar el receptor"
+        },
+        "menu_option_descriptions": {
+          "tests": "Comprueba las funciones, prueba comandos en silencio y luego pregunta antes de probar lo que se oye y se ve. Los resultados van al archivo de diagnóstico."
         }
       },
       "volume": {
@@ -215,14 +214,6 @@
           "setup_refresh": "El ecualizador gráfico, la configuración de vídeo y la asignación de amplificadores se leen al establecer la conexión y después de cada cambio desde Home Assistant. Esto además los lee cada tantos minutos, para notar los cambios hechos en el menú del receptor; 0 los lee solo entonces."
         }
       },
-      "check_done": {
-        "title": "Comprobación terminada",
-        "description": "El {model} respondió {answered} de {total} preguntas. Las respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico. Lee el archivo antes de adjuntarlo; las direcciones ya están sustituidas."
-      },
-      "command_test_done": {
-        "title": "Prueba de comandos terminada",
-        "description": "{model}:\n\n- Confirmados: {confirmed}\n- No confirmados: {unconfirmed}\n- Omitidos: {skipped}\n- No restablecidos: {not_restored} (compruébalos en el receptor si no es 0)\n\nLos detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Para ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo."
-      },
       "entities": {
         "title": "Entidades",
         "description": "Muestra por grupos las entidades que empiezan ocultas. Lo que cambiaste tú mismo se queda como está. Las entidades mostradas aparecen en medio minuto.",
@@ -245,19 +236,17 @@
           "diagnostic": "{n_diagnostic} entidades: señal, decodificador, recuperar audio"
         }
       },
-      "tests": {
-        "title": "Probar el receptor",
-        "description": "Los resultados van al archivo de diagnóstico. Para las pruebas de comandos, una zona principal apagada se enciende y después se vuelve a apagar.",
+      "tests_ask": {
+        "title": "¿Probar lo que se oye y se ve?",
+        "description": "La parte silenciosa ha terminado. A continuación, silencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Quédate frente al televisor; tarda unos minutos.",
         "menu_options": {
-          "check_run": "Comprobar funciones",
-          "test_quiet": "Probar comandos en silencio",
-          "test_audible": "Probar comandos que se oyen y se ven"
-        },
-        "menu_option_descriptions": {
-          "check_run": "Solo lee: unas 150 preguntas, hasta minuto y medio.",
-          "test_quiet": "Tono, Audyssey, imagen, temporizadores y pantalla cambian un momento y se restablecen. Unos minutos.",
-          "test_audible": "Silencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen."
+          "tests_audible": "Iniciar",
+          "tests_done": "Omitir"
         }
+      },
+      "tests_done": {
+        "title": "Prueba del receptor terminada",
+        "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- No confirmados: {unconfirmed}\n- Omitidos: {skipped}\n- No restablecidos: {not_restored} (compruébalos en el receptor si no es 0)\n\nLos detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Para ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo. Léelo antes de adjuntarlo; las direcciones ya están sustituidas."
       }
     },
     "error": {
@@ -268,13 +257,12 @@
       "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
       "no_additional_zones": "Este receptor no tiene zonas adicionales.",
       "no_sound_modes": "El receptor aún no ha informado de ningún modo de sonido.",
-      "check_not_connected": "El receptor no está conectado. La comprobación lo consulta por su conexión telnet; inténtalo de nuevo cuando esté encendido.",
       "test_not_connected": "El receptor no está conectado. La prueba de comandos necesita su conexión telnet; inténtalo de nuevo cuando esté encendido.",
       "no_hidden_entities": "Este receptor no tiene entidades ocultas."
     },
     "progress": {
       "capability_check": "Consultando al receptor. Tarda hasta minuto y medio.",
-      "command_test": "Probando comandos. Esto tarda unos minutos."
+      "command_test": "Probando comandos y restableciendo cada uno. Esto tarda unos minutos."
     }
   },
   "entity": {
@@ -1105,26 +1093,35 @@
       "title": "El {model} aún no se ha comprobado",
       "fix_flow": {
         "step": {
-          "check": {
-            "title": "Comprobar funciones",
-            "description": "Hace al receptor unas 150 preguntas de solo lectura por la conexión existente; no se cambia nada. Tarda hasta minuto y medio; las órdenes de Home Assistant siguen teniendo prioridad. Las respuestas van al archivo de diagnóstico."
+          "tests_start": {
+            "title": "Probar el receptor",
+            "description": "Tres partes, una tras otra:\n\n1. **Comprobar funciones**: solo lee, hasta minuto y medio.\n2. **Probar comandos en silencio**: tono, Audyssey, imagen, temporizadores y pantalla cambian un momento y se restablecen. Unos minutos.\n3. **Probar lo que se oye y se ve**: solo si lo eliges entonces.\n\nUna zona principal apagada se enciende para las pruebas y después se vuelve a apagar. Los resultados van al archivo de diagnóstico."
           },
-          "check_done": {
-            "title": "Comprobación terminada",
-            "description": "El {model} respondió {answered} de {total} preguntas. Las respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico. Lee el archivo antes de adjuntarlo; las direcciones ya están sustituidas."
+          "tests_ask": {
+            "title": "¿Probar lo que se oye y se ve?",
+            "description": "La parte silenciosa ha terminado. A continuación, silencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen. Quédate frente al televisor; tarda unos minutos.",
+            "menu_options": {
+              "tests_audible": "Iniciar",
+              "tests_done": "Omitir"
+            }
+          },
+          "tests_done": {
+            "title": "Prueba del receptor terminada",
+            "description": "{model}:\n\n- Preguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- No confirmados: {unconfirmed}\n- Omitidos: {skipped}\n- No restablecidos: {not_restored} (compruébalos en el receptor si no es 0)\n\nLos detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Para ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo. Léelo antes de adjuntarlo; las direcciones ya están sustituidas."
           }
         },
         "progress": {
-          "capability_check": "Consultando al receptor. Tarda hasta minuto y medio."
+          "capability_check": "Consultando al receptor. Tarda hasta minuto y medio.",
+          "command_test": "Probando comandos y restableciendo cada uno. Esto tarda unos minutos."
         },
         "abort": {
-          "not_connected": "El receptor no está conectado por telnet. La comprobación necesita esa conexión; inténtalo de nuevo cuando esté encendido."
+          "test_not_connected": "El receptor no está conectado. La prueba de comandos necesita su conexión telnet; inténtalo de nuevo cuando esté encendido."
         }
       }
     },
     "capability_report": {
       "title": "Ayuda a dar soporte al {model}",
-      "description": "La comprobación del {model} ha terminado; sus respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Abre la incidencia prerrellenada con «Más información» y adjunta allí el archivo. Ignora este mensaje si no quieres compartirlo."
+      "description": "La prueba del receptor {model} ha terminado; los resultados están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Abre la incidencia prerrellenada con «Más información» y adjunta allí el archivo. Ignora este mensaje si no quieres compartirlo. Lo que se oye y se ve se puede probar en Configurar → Probar el receptor."
     },
     "heos_playback_error": {
       "title": "El {model} no pudo reproducirlo",

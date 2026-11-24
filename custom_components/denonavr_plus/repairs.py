@@ -1,4 +1,4 @@
-"""Repair flows: run the capability check for a model not checked before."""
+"""Repair flows: test a model not checked before."""
 
 from __future__ import annotations
 
@@ -8,18 +8,18 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from .capabilities import CapabilityCheckSteps
 from .coordinator import DenonAvrConfigEntry
+from .receiver_test import ReceiverTestSteps
 
 
-class CapabilityCheckRepairFlow(CapabilityCheckSteps, RepairsFlow):
-    """The repair "<model> has not been checked yet": runs the check."""
+class CapabilityCheckRepairFlow(ReceiverTestSteps, RepairsFlow):
+    """The repair "<model> has not been checked yet": runs the receiver test."""
 
     def __init__(self, entry_id: str) -> None:
         self._entry_id = entry_id
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
-        return await self.async_step_check()
+        return await self.async_step_tests_start()
 
     def _check_entry(self) -> DenonAvrConfigEntry | None:
         return self.hass.config_entries.async_get_entry(self._entry_id)

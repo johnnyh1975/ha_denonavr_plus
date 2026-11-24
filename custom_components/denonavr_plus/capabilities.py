@@ -2,7 +2,8 @@
 
 The check itself (the queries) is avr/capability_check.py. Here: the result
 is kept per entry, goes into the diagnostics, and a model that has not been
-checked gets a repair that runs the check. When a check ran, a second repair
+checked gets a repair that runs the receiver test (receiver_test.py), which
+starts with the check. When a check ran, a second repair
 points to a prefilled device-support issue on GitHub, where the user attaches
 the diagnostics file. Nothing is sent anywhere by the integration itself.
 """
@@ -11,12 +12,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
@@ -81,9 +80,13 @@ class CapabilityResults:
         self,
         coordinator: DenonAvrCoordinator,
         on_progress: Callable[[float], None] | None = None,
+        *,
+        report: bool = True,
     ) -> dict[str, Any]:
         """Run the check, keep the result and point to the GitHub issue.
 
+        Without `report`, the pointer waits for what runs after the check
+        (the command test after setup), so there is one message for both.
         Raises CommandNotSent when the receiver is not connected over telnet.
         """
 
@@ -96,7 +99,8 @@ class CapabilityResults:
         await self._store.async_save(result)
         self.result = result
         ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(ISSUE_CHECK))
-        self._report_issue(result)
+        if report:
+            self.async_report(result)
         return result
 
     def async_update_issues(self, model: str | None) -> None:
@@ -129,7 +133,9 @@ class CapabilityResults:
         for issue in (ISSUE_CHECK, ISSUE_REPORT):
             ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(issue))
 
-    def _report_issue(self, result: dict[str, Any]) -> None:
+    def async_report(self, result: dict[str, Any]) -> None:
+        """The pointer to the prefilled issue, for a model not known yet."""
+
         if known_model(result.get("model")):
             return
         ir.async_create_issue(
@@ -156,7 +162,9 @@ def summary(result: dict[str, Any] | None) -> dict[str, int]:
     return counts
 
 
-async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
+async def async_run_pending(
+    hass: HomeAssistant, entry: DenonAvrConfigEntry, *, report: bool = True
+) -> None:
     """The check asked for when the receiver was added; a background task.
 
     Runs once the integration is connected, then clears the option. When the
@@ -165,7 +173,7 @@ async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
 
     coordinator = entry.runtime_data
     try:
-        await coordinator.capabilities.async_run(coordinator)
+        await coordinator.capabilities.async_run(coordinator, report=report)
     except CommandNotSent:
         _LOGGER.info("Capability check postponed: the receiver is not connected")
         return
@@ -174,89 +182,3 @@ async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         return
     options = {k: v for k, v in entry.options.items() if k != OPT_CHECK_PENDING}
     hass.config_entries.async_update_entry(entry, options=options)
-
-
-class CapabilityCheckSteps:
-    """The steps that run the check with a progress bar and show the result.
-
-    Shared by the options flow and the repair flow; each provides the entry
-    and how to finish. Steps: check (a confirmation) -> check_run (progress)
-    -> check_done (the result and the GitHub link).
-    """
-
-    _check_task: asyncio.Task[dict[str, Any] | None] | None = None
-    _check_result: dict[str, Any] | None = None
-    #: The abort reason when the receiver is not connected.
-    _not_connected = "not_connected"
-
-    # Provided by the flow handler this is mixed into.
-    hass: HomeAssistant
-
-    def _check_entry(self) -> DenonAvrConfigEntry | None:
-        raise NotImplementedError
-
-    def _check_finished(self) -> Any:
-        """The flow's own end (a FlowResult of its kind)."""
-        raise NotImplementedError
-
-    async def async_step_check(self, user_input: dict[str, Any] | None = None) -> FlowResult:
-        if user_input is not None:
-            return await self.async_step_check_run()
-        return self.async_show_form(step_id="check")  # type: ignore[attr-defined, no-any-return]
-
-    async def async_step_check_run(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        if self._check_task is None:
-            entry = self._check_entry()
-            if entry is None or entry.state is not ConfigEntryState.LOADED:
-                return self.async_abort(reason=self._not_connected)  # type: ignore[attr-defined, no-any-return]
-            self._check_task = self.hass.async_create_task(self._run(entry.runtime_data))
-            started = True
-        else:
-            started = False
-        # Show the progress at least once, even for a task that finished at
-        # once: the next step must not receive this step's input.
-        if started or not self._check_task.done():
-            return self.async_show_progress(  # type: ignore[attr-defined, no-any-return]
-                step_id="check_run",
-                progress_action="capability_check",
-                progress_task=self._check_task,
-            )
-        self._check_result = self._check_task.result()
-        next_step = "check_done" if self._check_result is not None else "check_failed"
-        return self.async_show_progress_done(next_step_id=next_step)  # type: ignore[attr-defined, no-any-return]
-
-    async def _run(self, coordinator: DenonAvrCoordinator) -> dict[str, Any] | None:
-        try:
-            return await coordinator.capabilities.async_run(
-                coordinator,
-                self.async_update_progress,  # type: ignore[attr-defined]
-            )
-        except CommandNotSent:
-            return None
-        except Exception:  # the flow shows "not connected"; the log has the cause
-            _LOGGER.exception("Capability check failed")
-            return None
-
-    async def async_step_check_failed(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        return self.async_abort(reason=self._not_connected)  # type: ignore[attr-defined, no-any-return]
-
-    async def async_step_check_done(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        if user_input is not None:
-            return cast(FlowResult, self._check_finished())
-        result = self._check_result or {}
-        counts = summary(result)
-        return self.async_show_form(  # type: ignore[attr-defined, no-any-return]
-            step_id="check_done",
-            description_placeholders={
-                "model": result.get("model") or "Denon AVR",
-                "answered": str(counts.get("answered", 0)),
-                "total": str(sum(counts.values())),
-                "url": issue_url(result.get("model"), result.get("firmware")),
-            },
-        )

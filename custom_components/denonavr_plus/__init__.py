@@ -111,9 +111,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
 async def _async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
     """What was chosen when the receiver was added: the check, then the command test."""
 
+    test = bool(entry.options.get(OPT_TEST_PENDING))
     if entry.options.get(OPT_CHECK_PENDING):
-        await async_run_pending(hass, entry)
-    if entry.options.get(OPT_TEST_PENDING) and not entry.options.get(OPT_CHECK_PENDING):
+        # With the test after it, the pointer to GitHub comes once, after both.
+        await async_run_pending(hass, entry, report=not test)
+    if test and not entry.options.get(OPT_CHECK_PENDING):
         await command_test.async_run_pending(hass, entry)
 
 
@@ -134,9 +136,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) ->
     results = CapabilityResults(hass, entry.entry_id)
     await results.async_remove()
     results.async_delete_issues()
-    tested = command_test.CommandTestResults(hass, entry.entry_id, results.lock)
-    await tested.async_remove()
-    tested.async_delete_issues()
+    await command_test.CommandTestResults(hass, entry.entry_id, results.lock).async_remove()
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:

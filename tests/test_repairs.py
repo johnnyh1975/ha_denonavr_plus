@@ -33,22 +33,33 @@ async def test_the_repair_runs_the_check_and_points_to_github(
     assert await async_setup_component(hass, "repairs", {})
     manager = repairs_flow_manager(hass)
     assert manager is not None
-    with patch.object(
-        DenonAvrDevice, "async_check_capabilities", AsyncMock(return_value=dict(RESULT))
+    tested = {"model": "AVC-X3700H", "groups": ["quiet"], "tests": {
+        "bass": {"group": "quiet", "result": "confirmed", "restored": True},
+    }}
+    with (
+        patch.object(
+            DenonAvrDevice, "async_check_capabilities", AsyncMock(return_value=dict(RESULT))
+        ),
+        patch.object(DenonAvrDevice, "async_command_test", AsyncMock(return_value=tested)),
     ):
         result = await manager.async_init(
             DOMAIN, data={"issue_id": f"capability_check_{loaded_entry.entry_id}"}
         )
+        # The repair first says what the receiver test does.
         assert result["type"] is FlowResultType.FORM
-        assert result["step_id"] == "check"
+        assert result["step_id"] == "tests_start"
         result = await manager.async_configure(result["flow_id"], {})
-        assert result["type"] is FlowResultType.SHOW_PROGRESS
-        await hass.async_block_till_done()
-        result = await manager.async_configure(result["flow_id"])
+        for _part in ("check", "quiet"):
+            assert result["type"] is FlowResultType.SHOW_PROGRESS
+            await hass.async_block_till_done()
+            result = await manager.async_configure(result["flow_id"])
+        assert result["step_id"] == "tests_ask"
+        result = await manager.async_configure(result["flow_id"], {"next_step_id": "tests_done"})
     assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "check_done"
+    assert result["step_id"] == "tests_done"
     placeholders = result["description_placeholders"]
     assert placeholders["answered"] == "1" and placeholders["total"] == "2"
+    assert placeholders["confirmed"] == "1"
     assert "template=device_support.yml" in placeholders["url"]
     result = await manager.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -77,7 +88,7 @@ async def test_the_repair_without_a_connection(
         await hass.async_block_till_done()
         result = await manager.async_configure(result["flow_id"])
     assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "not_connected"
+    assert result["reason"] == "test_not_connected"
     assert _issue(hass, loaded_entry, "capability_check") is not None
 
 
@@ -97,4 +108,4 @@ async def test_a_failing_check_in_the_repair_aborts(
         await hass.async_block_till_done()
         result = await manager.async_configure(result["flow_id"])
     assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "not_connected"
+    assert result["reason"] == "test_not_connected"

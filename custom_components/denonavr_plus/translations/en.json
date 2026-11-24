@@ -35,16 +35,12 @@
       },
       "unknown_model": {
         "title": "Model not checked yet",
-        "description": "The {model} has not been checked with this integration yet; some settings may be missing or read wrongly.\n\nThe tests chosen below run once the receiver is connected. Their results go into the diagnostics file, which you can attach to a prefilled issue on GitHub. Nothing is sent by itself.",
+        "description": "The {model} has not been checked with this integration yet; some settings may be missing or read wrongly.\n\nThe receiver test runs once the receiver is connected: it checks capabilities and tests commands quietly. Its results go into the diagnostics file, which you can attach to a prefilled issue on GitHub. Nothing is sent by itself.",
         "data": {
-          "check": "Check capabilities",
-          "quiet": "Test commands quietly",
-          "audible": "Test commands you hear and see"
+          "test": "Test the receiver after setup"
         },
         "data_description": {
-          "check": "Only reads; about 150 questions.",
-          "quiet": "Changes settings for a moment and puts them back.",
-          "audible": "Mute, speakers, outputs, tuner and Zone 2 change for a moment."
+          "test": "Reads, then changes settings for a moment and puts them back. What you hear and see can be tested later in the options."
         }
       }
     },
@@ -74,6 +70,9 @@
           "connection": "Connection",
           "entities": "Entities",
           "tests": "Test the receiver"
+        },
+        "menu_option_descriptions": {
+          "tests": "Checks capabilities, tests commands quietly, then asks before testing what you hear and see. The results go into the diagnostics file."
         }
       },
       "volume": {
@@ -215,14 +214,6 @@
           "setup_refresh": "The graphic EQ, video setup and amp assign are read when the connection comes up and after every change from Home Assistant. This also reads them every so many minutes, to notice changes made on the receiver's menu; 0 reads them only then."
         }
       },
-      "check_done": {
-        "title": "Check finished",
-        "description": "The {model} answered {answered} of {total} questions. The answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file. Read the file before you attach it; addresses are already replaced."
-      },
-      "command_test_done": {
-        "title": "Command test finished",
-        "description": "{model}:\n\n- Confirmed: {confirmed}\n- Not confirmed: {unconfirmed}\n- Skipped: {skipped}\n- Not put back: {not_restored} (check these on the receiver if not 0)\n\nThe details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). To help support this model, open [this prefilled issue on GitHub]({url}) and attach the file."
-      },
       "entities": {
         "title": "Entities",
         "description": "Show the entities that start hidden, by group. Entities you changed yourself stay as they are. Shown entities appear within half a minute.",
@@ -245,19 +236,17 @@
           "diagnostic": "{n_diagnostic} entities: signal, decoder, recover audio"
         }
       },
-      "tests": {
-        "title": "Test the receiver",
-        "description": "The results go into the diagnostics file. For the command tests, a main zone that is off is turned on and off again afterwards.",
+      "tests_ask": {
+        "title": "Test what you hear and see?",
+        "description": "The quiet part is done. Next, mute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back. Stay in front of the TV; it takes a few minutes.",
         "menu_options": {
-          "check_run": "Check capabilities",
-          "test_quiet": "Test commands quietly",
-          "test_audible": "Test commands you hear and see"
-        },
-        "menu_option_descriptions": {
-          "check_run": "Only reads: about 150 questions, up to a minute and a half.",
-          "test_quiet": "Tone, Audyssey, picture, timers and the display change for a moment and are put back. A few minutes.",
-          "test_audible": "Mute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back."
+          "tests_audible": "Start",
+          "tests_done": "Skip"
         }
+      },
+      "tests_done": {
+        "title": "Receiver test finished",
+        "description": "{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Not confirmed: {unconfirmed}\n- Skipped: {skipped}\n- Not put back: {not_restored} (check these on the receiver if not 0)\n\nThe details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). To help support this model, open [this prefilled issue on GitHub]({url}) and attach the file. Read it before you attach it; addresses are already replaced."
       }
     },
     "error": {
@@ -268,13 +257,12 @@
       "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
       "no_additional_zones": "This receiver has no additional zone.",
       "no_sound_modes": "The receiver has not reported any sound modes yet.",
-      "check_not_connected": "The receiver is not connected. The capability check asks it over its telnet connection; try again when it is on.",
       "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on.",
       "no_hidden_entities": "This receiver has no hidden entities."
     },
     "progress": {
       "capability_check": "Asking the receiver. This takes up to a minute and a half.",
-      "command_test": "Testing commands. This takes a few minutes."
+      "command_test": "Testing commands and putting each back. This takes a few minutes."
     }
   },
   "entity": {
@@ -1105,26 +1093,35 @@
       "title": "{model} has not been checked yet",
       "fix_flow": {
         "step": {
-          "check": {
-            "title": "Check capabilities",
-            "description": "Asks the receiver about 150 read-only questions over the existing connection; nothing is changed. It takes up to a minute and a half; commands from Home Assistant still go first. The answers go into the diagnostics file."
+          "tests_start": {
+            "title": "Test the receiver",
+            "description": "Three parts, one after the other:\n\n1. **Check capabilities**: only reads, up to a minute and a half.\n2. **Test commands quietly**: tone, Audyssey, picture, timers and the display change for a moment and are put back. A few minutes.\n3. **Test what you hear and see**: only if you choose it then.\n\nA main zone that is off is turned on for the tests and off again afterwards. The results go into the diagnostics file."
           },
-          "check_done": {
-            "title": "Check finished",
-            "description": "The {model} answered {answered} of {total} questions. The answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file. Read the file before you attach it; addresses are already replaced."
+          "tests_ask": {
+            "title": "Test what you hear and see?",
+            "description": "The quiet part is done. Next, mute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back. Stay in front of the TV; it takes a few minutes.",
+            "menu_options": {
+              "tests_audible": "Start",
+              "tests_done": "Skip"
+            }
+          },
+          "tests_done": {
+            "title": "Receiver test finished",
+            "description": "{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Not confirmed: {unconfirmed}\n- Skipped: {skipped}\n- Not put back: {not_restored} (check these on the receiver if not 0)\n\nThe details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). To help support this model, open [this prefilled issue on GitHub]({url}) and attach the file. Read it before you attach it; addresses are already replaced."
           }
         },
         "progress": {
-          "capability_check": "Asking the receiver. This takes up to a minute and a half."
+          "capability_check": "Asking the receiver. This takes up to a minute and a half.",
+          "command_test": "Testing commands and putting each back. This takes a few minutes."
         },
         "abort": {
-          "not_connected": "The receiver is not connected over telnet. The check needs that connection; try again when it is on."
+          "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on."
         }
       }
     },
     "capability_report": {
       "title": "Help support the {model}",
-      "description": "The capability check of the {model} has finished; its answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it."
+      "description": "The receiver test of the {model} has finished; its results are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it. What you hear and see can be tested under Configure → Test the receiver."
     },
     "heos_playback_error": {
       "title": "{model} could not play it",

@@ -39,7 +39,8 @@ RESULT: dict[str, Any] = {
 
 
 def _issue(hass: HomeAssistant, entry: MockConfigEntry) -> ir.IssueEntry | None:
-    return ir.async_get(hass).async_get_issue(DOMAIN, f"command_test_done_{entry.entry_id}")
+    """The pointer to the prefilled issue (the recording is not a known model)."""
+    return ir.async_get(hass).async_get_issue(DOMAIN, f"capability_report_{entry.entry_id}")
 
 
 async def _setup(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
@@ -66,12 +67,7 @@ async def test_a_test_chosen_at_setup_runs_once(
     assert "command_test_pending" not in entry.options
     issue = _issue(hass, entry)
     assert issue is not None and not issue.is_fixable
-    assert issue.translation_placeholders == {
-        "model": "AVC-X3700H",
-        "confirmed": "2",
-        "total": "3",
-        "not_restored": "1",
-    }
+    assert issue.translation_placeholders == {"model": "AVC-X3700H"}
     assert issue.learn_more_url is not None and "AVC-X3700H" in issue.learn_more_url
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
     assert diagnostics["command_test"]["tests"] == RESULT["tests"]
@@ -87,9 +83,12 @@ async def test_the_check_runs_before_the_test(
         return dict(CHECK_RESULT)
 
     async def test(self: DenonAvrDevice, groups: Any, on_progress: Any = None) -> dict[str, Any]:
-        order.append("test")
+        # One message for both: the check has not sent its own yet.
+        order.append("message" if _issue(hass, entries()[0]) else "test")
         return dict(RESULT)
 
+    def entries() -> list[Any]:
+        return hass.config_entries.async_entries(DOMAIN)
     with (
         patch.object(DenonAvrDevice, "async_check_capabilities", check),
         patch.object(DenonAvrDevice, "async_command_test", test),
@@ -99,6 +98,7 @@ async def test_the_check_runs_before_the_test(
         )
     assert order == ["check", "test"]
     assert entry.options == {}
+    assert _issue(hass, entry) is not None
 
 
 async def test_a_postponed_check_postpones_the_test(
@@ -160,15 +160,12 @@ async def test_removing_the_entry_removes_the_test(
 ) -> None:
     coordinator = loaded_entry.runtime_data
     with patch.object(DenonAvrDevice, "async_command_test", AsyncMock(return_value=dict(RESULT))):
-        result = await coordinator.command_test.async_run(coordinator, ["quiet"])
-    coordinator.command_test.async_report(result)
+        await coordinator.command_test.async_run(coordinator, ["quiet"])
     key = f"{DOMAIN}.{loaded_entry.entry_id}.command_test"
     assert key in hass_storage
-    assert _issue(hass, loaded_entry) is not None
     assert await hass.config_entries.async_remove(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert key not in hass_storage
-    assert _issue(hass, loaded_entry) is None
 
 
 async def test_the_test_and_the_check_run_one_at_a_time(
@@ -228,3 +225,24 @@ async def test_the_result_is_kept_across_a_reload(
     assert await hass.config_entries.async_reload(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert loaded_entry.runtime_data.command_test.result["tests"] == RESULT["tests"]
+
+
+async def test_the_other_groups_last_result_is_kept(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Quiet, then audible: the diagnostics hold both."""
+    coordinator = loaded_entry.runtime_data
+    audible = {
+        "model": "AVC-X3700H",
+        "groups": ["audible"],
+        "tests": {"main_mute": {"group": "audible", "result": "confirmed"}},
+    }
+    run = AsyncMock(side_effect=[dict(RESULT), dict(audible), dict(RESULT)])
+    with patch.object(DenonAvrDevice, "async_command_test", run):
+        await coordinator.command_test.async_run(coordinator, ["quiet"])
+        result = await coordinator.command_test.async_run(coordinator, ["audible"])
+        assert set(result["tests"]) == {"bass", "dimmer", "lfe", "main_mute"}
+        assert result["groups"] == ["quiet", "audible"]
+        # The quiet part again replaces only the quiet results.
+        result = await coordinator.command_test.async_run(coordinator, ["quiet"])
+    assert set(result["tests"]) == {"bass", "dimmer", "lfe", "main_mute"}

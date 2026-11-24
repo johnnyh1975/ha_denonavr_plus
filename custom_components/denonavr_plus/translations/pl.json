@@ -35,16 +35,12 @@
       },
       "unknown_model": {
         "title": "Model jeszcze niesprawdzony",
-        "description": "{model} nie został jeszcze sprawdzony z tą integracją; niektórych ustawień może brakować lub mogą być źle odczytywane.\n\nWybrane poniżej testy uruchomią się po połączeniu amplitunera. Ich wyniki trafiają do pliku diagnostycznego, który możesz dołączyć do wstępnie wypełnionego zgłoszenia na GitHubie. Nic nie jest wysyłane samo.",
+        "description": "{model} nie został jeszcze sprawdzony z tą integracją; niektórych ustawień może brakować lub mogą być źle odczytywane.\n\nTest amplitunera uruchomi się po jego połączeniu: sprawdza funkcje i testuje polecenia po cichu. Wyniki trafiają do pliku diagnostycznego, który możesz dołączyć do wstępnie wypełnionego zgłoszenia na GitHubie. Nic nie jest wysyłane samo.",
         "data": {
-          "check": "Sprawdź funkcje",
-          "quiet": "Testuj polecenia po cichu",
-          "audible": "Testuj polecenia słyszalne i widoczne"
+          "test": "Testuj amplituner po konfiguracji"
         },
         "data_description": {
-          "check": "Tylko odczyt; około 150 pytań.",
-          "quiet": "Zmienia ustawienia na chwilę i je przywraca.",
-          "audible": "Wyciszenie, głośniki, wyjścia, tuner i Strefa 2 zmieniają się na chwilę."
+          "test": "Odczytuje, potem zmienia ustawienia na chwilę i je przywraca. To, co słychać i widać, można przetestować później w opcjach."
         }
       }
     },
@@ -74,6 +70,9 @@
           "connection": "Połączenie",
           "entities": "Encje",
           "tests": "Testuj amplituner"
+        },
+        "menu_option_descriptions": {
+          "tests": "Sprawdza funkcje, testuje polecenia po cichu, a potem pyta przed testem tego, co słychać i widać. Wyniki trafiają do pliku diagnostycznego."
         }
       },
       "volume": {
@@ -215,14 +214,6 @@
           "setup_refresh": "Korektor graficzny, ustawienia wideo i przypisanie wzmacniaczy są odczytywane po nawiązaniu połączenia i po każdej zmianie z Home Assistant. Dodatkowo odczytuje je co tyle minut, aby zauważyć zmiany w menu amplitunera; 0 odczytuje je tylko wtedy."
         }
       },
-      "check_done": {
-        "title": "Sprawdzenie zakończone",
-        "description": "{model} odpowiedział na {answered} z {total} pytań. Odpowiedzi są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne).\n\nAby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik diagnostyczny. Przeczytaj plik przed dołączeniem; adresy są już zastąpione."
-      },
-      "command_test_done": {
-        "title": "Test poleceń zakończony",
-        "description": "{model}:\n\n- Potwierdzone: {confirmed}\n- Niepotwierdzone: {unconfirmed}\n- Pominięte: {skipped}\n- Nieprzywrócone: {not_restored} (jeśli to nie 0, sprawdź je na amplitunerze)\n\nSzczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Aby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik."
-      },
       "entities": {
         "title": "Encje",
         "description": "Pokaż grupami encje, które startują ukryte. To, co zmieniłeś sam, pozostaje bez zmian. Pokazane encje pojawiają się w ciągu pół minuty.",
@@ -245,19 +236,17 @@
           "diagnostic": "{n_diagnostic} encji: sygnał, dekoder, przywróć dźwięk"
         }
       },
-      "tests": {
-        "title": "Testuj amplituner",
-        "description": "Wyniki trafiają do pliku diagnostycznego. Na czas testów poleceń wyłączona strefa główna jest włączana, a potem znowu wyłączana.",
+      "tests_ask": {
+        "title": "Testować to, co słychać i widać?",
+        "description": "Cicha część zakończona. Teraz wyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmienią się na chwilę i zostaną przywrócone. Zostań przed telewizorem; potrwa to kilka minut.",
         "menu_options": {
-          "check_run": "Sprawdź funkcje",
-          "test_quiet": "Testuj polecenia po cichu",
-          "test_audible": "Testuj polecenia słyszalne i widoczne"
-        },
-        "menu_option_descriptions": {
-          "check_run": "Tylko odczyt: około 150 pytań, do półtorej minuty.",
-          "test_quiet": "Barwa dźwięku, Audyssey, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Kilka minut.",
-          "test_audible": "Wyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane."
+          "tests_audible": "Start",
+          "tests_done": "Pomiń"
         }
+      },
+      "tests_done": {
+        "title": "Test amplitunera zakończony",
+        "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Niepotwierdzone: {unconfirmed}\n- Pominięte: {skipped}\n- Nieprzywrócone: {not_restored} (jeśli to nie 0, sprawdź je na amplitunerze)\n\nSzczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Aby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik. Przeczytaj go przed dołączeniem; adresy są już zastąpione."
       }
     },
     "error": {
@@ -268,13 +257,12 @@
       "not_connected": "Amplituner nie jest połączony. Jego źródła i tryby dźwięku są odczytywane z urządzenia; spróbuj ponownie, gdy będzie włączony.",
       "no_additional_zones": "Ten amplituner nie ma dodatkowych stref.",
       "no_sound_modes": "Amplituner nie zgłosił jeszcze żadnych trybów dźwięku.",
-      "check_not_connected": "Amplituner nie jest połączony. Sprawdzenie odpytuje go przez połączenie telnet; spróbuj ponownie, gdy będzie włączony.",
       "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony.",
       "no_hidden_entities": "Ten amplituner nie ma ukrytych encji."
     },
     "progress": {
       "capability_check": "Odpytywanie amplitunera. Trwa to do półtorej minuty.",
-      "command_test": "Testowanie poleceń. To potrwa kilka minut."
+      "command_test": "Testowanie poleceń, każde jest potem przywracane. To potrwa kilka minut."
     }
   },
   "entity": {
@@ -1105,26 +1093,35 @@
       "title": "{model} nie był jeszcze sprawdzany",
       "fix_flow": {
         "step": {
-          "check": {
-            "title": "Sprawdź funkcje",
-            "description": "Zadaje amplitunerowi przez istniejące połączenie około 150 pytań tylko do odczytu; nic nie jest zmieniane. Trwa to do półtorej minuty; polecenia z Home Assistant nadal mają pierwszeństwo. Odpowiedzi trafiają do pliku diagnostycznego."
+          "tests_start": {
+            "title": "Testuj amplituner",
+            "description": "Trzy części, jedna po drugiej:\n\n1. **Sprawdź funkcje**: tylko odczyt, do półtorej minuty.\n2. **Testuj polecenia po cichu**: barwa dźwięku, Audyssey, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Kilka minut.\n3. **Testuj to, co słychać i widać**: tylko jeśli wtedy to wybierzesz.\n\nWyłączona strefa główna jest włączana na czas testów, a potem znowu wyłączana. Wyniki trafiają do pliku diagnostycznego."
           },
-          "check_done": {
-            "title": "Sprawdzenie zakończone",
-            "description": "{model} odpowiedział na {answered} z {total} pytań. Odpowiedzi są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne).\n\nAby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik diagnostyczny. Przeczytaj plik przed dołączeniem; adresy są już zastąpione."
+          "tests_ask": {
+            "title": "Testować to, co słychać i widać?",
+            "description": "Cicha część zakończona. Teraz wyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmienią się na chwilę i zostaną przywrócone. Zostań przed telewizorem; potrwa to kilka minut.",
+            "menu_options": {
+              "tests_audible": "Start",
+              "tests_done": "Pomiń"
+            }
+          },
+          "tests_done": {
+            "title": "Test amplitunera zakończony",
+            "description": "{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Niepotwierdzone: {unconfirmed}\n- Pominięte: {skipped}\n- Nieprzywrócone: {not_restored} (jeśli to nie 0, sprawdź je na amplitunerze)\n\nSzczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Aby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik. Przeczytaj go przed dołączeniem; adresy są już zastąpione."
           }
         },
         "progress": {
-          "capability_check": "Odpytywanie amplitunera. Trwa to do półtorej minuty."
+          "capability_check": "Odpytywanie amplitunera. Trwa to do półtorej minuty.",
+          "command_test": "Testowanie poleceń, każde jest potem przywracane. To potrwa kilka minut."
         },
         "abort": {
-          "not_connected": "Amplituner nie jest połączony przez telnet. Sprawdzenie wymaga tego połączenia; spróbuj ponownie, gdy będzie włączony."
+          "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony."
         }
       }
     },
     "capability_report": {
       "title": "Pomóż w obsłudze {model}",
-      "description": "Sprawdzenie {model} zakończyło się; odpowiedzi są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Otwórz wstępnie wypełnione zgłoszenie przez „Dowiedz się więcej” i dołącz tam plik. Zignoruj ten komunikat, jeśli nie chcesz go udostępniać."
+      "description": "Test amplitunera {model} zakończony; wyniki są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Otwórz wstępnie wypełnione zgłoszenie przez „Dowiedz się więcej” i dołącz tam plik. Zignoruj ten komunikat, jeśli nie chcesz go udostępniać. To, co słychać i widać, można przetestować w Konfiguruj → Testuj amplituner."
     },
     "heos_playback_error": {
       "title": "{model} nie mógł tego odtworzyć",
