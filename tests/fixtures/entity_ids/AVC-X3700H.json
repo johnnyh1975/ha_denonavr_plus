@@ -320,7 +320,7 @@
     "category": "config"
   },
   "number_dialog_level": {
-    "entity_id": "number.avc_x3700h_audio_dialog_level",
+    "entity_id": "number.avc_x3700h_audio_center_level",
     "enabled": true,
     "category": "config"
   },
@@ -635,12 +635,12 @@
     "category": "config"
   },
   "switch_music_main": {
-    "entity_id": "switch.avc_x3700h_music",
+    "entity_id": "switch.avc_x3700h_network_music",
     "enabled": true,
     "category": null
   },
   "switch_music_zone2": {
-    "entity_id": "switch.avc_x3700h_zone_2_music",
+    "entity_id": "switch.avc_x3700h_zone_2_network_music",
     "enabled": true,
     "category": null
   },

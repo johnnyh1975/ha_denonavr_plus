@@ -956,7 +956,7 @@
         "name": "Körperschallwandler"
       },
       "music": {
-        "name": "Musik"
+        "name": "Netzwerk-Musik"
       }
     },
     "number": {
@@ -970,7 +970,7 @@
         "name": "LFE"
       },
       "dialog_level": {
-        "name": "Dialogpegel"
+        "name": "Center-Pegel"
       },
       "subwoofer_level": {
         "name": "Subwoofer-Pegel"

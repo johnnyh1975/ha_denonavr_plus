@@ -97,8 +97,8 @@ address) and **Download diagnostics**.
 ![The integration entry](images/guide/integration-entry.png)
 
 The **receiver device** holds what you use while listening: the media
-player, volume in dB, source and sound mode, quick selects, the Music
-switch, dimmer, sleep timer and the tuner. The settings of the receiver's
+player, volume in dB, source and sound mode, quick selects, the Network
+Music switch, dimmer, sleep timer and the tuner. The settings of the receiver's
 setup menus sit on the sub-devices, the way the receiver groups them.
 
 ![The receiver's device page](images/guide/device-page.png)
@@ -353,7 +353,7 @@ Music Assistant plays your library and streaming services on the receiver
 through its HEOS or AirPlay provider; Denon AVR Plus does the rest (power,
 input, volume, sound mode, zones).
 
-> **Recommended:** use the zone's **Music** switch as the power control of
+> **Recommended:** use the zone's **Network Music** switch as the power control of
 > the Music Assistant player. It switches the zone on and to the network
 > input to play, and off when the music stops, but never ends a film that
 > runs on another input. Volume can stay on the media player of this

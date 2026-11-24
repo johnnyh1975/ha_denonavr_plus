@@ -956,7 +956,7 @@
         "name": "Tactile Transducer"
       },
       "music": {
-        "name": "Music"
+        "name": "Network Music"
       }
     },
     "number": {
@@ -970,7 +970,7 @@
         "name": "LFE"
       },
       "dialog_level": {
-        "name": "Dialog Level"
+        "name": "Center Level"
       },
       "subwoofer_level": {
         "name": "Subwoofer Level"

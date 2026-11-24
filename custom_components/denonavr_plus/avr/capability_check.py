@@ -21,7 +21,7 @@ CHECK_VERSION = 3
 
 #: Models whose capabilities have been checked on a receiver. Others get the
 #: repair that asks for a check. Add a model once its check has been reviewed.
-KNOWN_MODELS = frozenset({"AVR-X3600H"})
+KNOWN_MODELS = frozenset({"AVR-X2000", "AVR-X2600H", "AVR-X3600H"})
 
 #: The read-only requests that do not end with "?".
 SCREEN_REQUESTS = frozenset({"NSE", "NSH"})

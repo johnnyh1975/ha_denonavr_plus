@@ -956,7 +956,7 @@
         "name": "Tactiele transducer"
       },
       "music": {
-        "name": "Muziek"
+        "name": "Netwerkmuziek"
       }
     },
     "number": {
@@ -970,7 +970,7 @@
         "name": "LFE"
       },
       "dialog_level": {
-        "name": "Dialoogniveau"
+        "name": "Centerniveau"
       },
       "subwoofer_level": {
         "name": "Subwooferniveau"

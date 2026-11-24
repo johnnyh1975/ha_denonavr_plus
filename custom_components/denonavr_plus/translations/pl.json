@@ -956,7 +956,7 @@
         "name": "Przetwornik dotykowy"
       },
       "music": {
-        "name": "Muzyka"
+        "name": "Muzyka sieciowa"
       }
     },
     "number": {
@@ -970,7 +970,7 @@
         "name": "LFE"
       },
       "dialog_level": {
-        "name": "Poziom dialogów"
+        "name": "Poziom centralnego"
       },
       "subwoofer_level": {
         "name": "Poziom subwoofera"

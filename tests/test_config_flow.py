@@ -443,13 +443,7 @@ async def test_older_receiver_is_set_up_on_port_80(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: HOST}
     )
-    # A model not checked before: the check is offered first.
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "unknown_model"
-    assert result["description_placeholders"] == {"model": "AVR-X2000"}
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"test": False}
-    )
+    # A checked model: no check is offered.
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "AVR-X2000"
     assert result["data"] == {CONF_HOST: HOST, CONF_PORT: 80}

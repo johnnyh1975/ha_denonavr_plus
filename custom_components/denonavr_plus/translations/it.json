@@ -956,7 +956,7 @@
         "name": "Trasduttore tattile"
       },
       "music": {
-        "name": "Musica"
+        "name": "Musica di rete"
       }
     },
     "number": {
@@ -970,7 +970,7 @@
         "name": "LFE"
       },
       "dialog_level": {
-        "name": "Livello dei dialoghi"
+        "name": "Livello del centrale"
       },
       "subwoofer_level": {
         "name": "Livello del subwoofer"

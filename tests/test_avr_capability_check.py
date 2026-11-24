@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
 from custom_components.denonavr_plus.avr import capability_check
 
 PROBE = Path(__file__).resolve().parent.parent / "tools" / "probe_receiver.py"
+CHECKS = Path(__file__).resolve().parent / "fixtures" / "capability_check"
 
 
 def _probe_catalogue() -> list[tuple[str, str]]:
@@ -24,6 +26,13 @@ def test_the_check_asks_what_the_probe_asks() -> None:
     """The guard: change one list and this fails until the other follows."""
     probe = [item for item in _probe_catalogue() if item[0] != "NSA"]
     assert list(capability_check.QUERIES) == probe
+
+
+def test_a_model_with_a_recorded_check_is_known() -> None:
+    """A reviewed check in the fixtures ends the repair that asks for one."""
+    models = {json.loads(path.read_text())["model"] for path in CHECKS.glob("*.json")}
+    assert models == {"AVR-X2000", "AVR-X2600H"}
+    assert models <= capability_check.KNOWN_MODELS
 
 
 def test_only_queries() -> None:

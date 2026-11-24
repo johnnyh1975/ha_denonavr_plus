@@ -249,8 +249,8 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   Switching, HDMI Power Saving, Smart Menu, HDMI Pass‑Through, On‑Screen Info.
 - **Volume** per zone in dB, settable (−80 dB up to the receiver's maximum or
   the zone's maximum from the options), next to the media player's 0–100 %.
-- **Numbers**: Bass, Treble, Subwoofer Level, LFE, Dialog Control, Center Level
-  Adjust, Audio Delay, Effect Level, Containment Amount, Sleep Timer, per channel
+- **Numbers**: Bass, Treble, Subwoofer Level, LFE, Dialog Control, Center Level,
+  Audio Delay, Effect Level, Containment Amount, Sleep Timer, per channel
   volume trim and speaker distance (m) for each configured speaker, and — on
   **Picture** — Contrast, Brightness, Saturation, Enhancer.
 - **Graphic EQ** (a sub‑device, when the receiver has one): the on/off, a
@@ -286,7 +286,7 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
 - **Buttons**: save a quick select preset (one per preset the receiver reports),
   reset all channel levels, restart the network module. They start disabled.
 - **Remote**: the on-screen menu keys (see Actions).
-- **Music** per zone, a switch for Music Assistant and automations: on turns
+- **Network Music** per zone, a switch for Music Assistant and automations: on turns
   the zone on and to the network input; off turns the zone off only while it
   still plays the network, so it never ends a film. It is on while the zone
   plays the network.
@@ -303,7 +303,7 @@ listening starts enabled:
 - the media players, the sound mode selects and quick select
 - the tuner preset and frequency
 - tone (bass, treble, tone control), Dynamic EQ, Dynamic Volume, Dynamic
-  Compression, MultEQ, Cinema EQ, dialogue level and Dialog Control
+  Compression, MultEQ, Cinema EQ, center level and Dialog Control
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
 - the trims of the speakers the receiver has configured
 - the volume of each zone in dB
@@ -523,7 +523,7 @@ its own job, so nothing is controlled twice:
 | Your music library, streaming services, queues, playing on many speakers | Music Assistant (its HEOS or AirPlay provider) |
 | Grouping the receiver with other HEOS speakers in the home | the HEOS integration of Home Assistant |
 
-With **Music Assistant**, use the Music switch of a zone as the power control
+With **Music Assistant**, use the Network Music switch of a zone as the power control
 of the Music Assistant player: Music Assistant switches it on to play (zone on,
 network input) and off when it stops, without ending a film on another input.
 Volume can stay on this integration's media player. Zone 2 plays the network
