@@ -1002,6 +1002,9 @@
     },
     "no_snapshot": {
       "message": "{entity} hat noch keinen Schnappschuss: zuerst denonavr_plus.snapshot ausführen."
+    },
+    "unknown_favorite": {
+      "message": "{favorite} ist kein HEOS-Favorit dieses Receivers."
     }
   },
   "issues": {

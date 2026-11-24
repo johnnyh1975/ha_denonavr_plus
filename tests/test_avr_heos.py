@@ -442,3 +442,15 @@ def test_a_sources_change_reads_the_favorites_again() -> None:
         _feed(client, "event/sources_changed")
         _feed(client, "event/user_changed")
     assert schedule.call_count == 2
+
+
+def test_a_playback_error_is_kept_for_the_diagnostics() -> None:
+    client, _ = _client()
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    _feed(client, "event/player_playback_error", "pid=202&error=Could not download")
+    _feed(client, "event/player_playback_error", "pid=999&error=Someone else")
+    assert client.command_results["playback_error"] == {
+        "result": "fail",
+        "text": "Could not download",
+    }
+

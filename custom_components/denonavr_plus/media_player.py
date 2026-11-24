@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime
+from collections.abc import Callable
 from typing import Any
 
 from homeassistant.components import media_source
@@ -74,11 +75,12 @@ _REPEAT_TO_HEOS = {mode: heos for heos, mode in _REPEAT_FROM_HEOS.items()}
 # (docs/protocol/02, "Timing": 1 s after PWON, 3 to 5 s for a full boot).
 TURN_ON_WAIT = 15.0
 TURN_ON_SETTLE = 1.0
-#: An announcement: how long until HEOS reports it playing, the least it is
-#: given (the previous stream may report a stop while HEOS switches), and the
-#: longest it may play before the zone is put back.
+#: An announcement: how long until HEOS reports it playing, how long a stop
+#: must last to count as its end (HEOS stops briefly while it switches
+#: streams, as Music Assistant's HEOS provider learnt), and the longest it may
+#: play before the zone is put back.
 ANNOUNCE_START_WAIT = 10.0
-ANNOUNCE_MIN_LENGTH = 2.0
+ANNOUNCE_STOP_GRACE = 3.0
 ANNOUNCE_MAX_LENGTH = 300.0
 
 # An icon-style picture of the selected input, shown when there is no album art
@@ -974,6 +976,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         ):
             await self._async_announce(media_id, kwargs.get(ATTR_MEDIA_EXTRA) or {})
             return
+        media_id = self._named_media(str(media_type), media_id)
         await self._ensure_on()
         if media_id.startswith(heos_media.PREFIXES):
             heos = self._device.heos if self._zone.is_main else None
@@ -1059,6 +1062,32 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     # Announcements -----------------------------------------------------------
 
+    def _named_media(self, media_type: str, media_id: str) -> str:
+        """A favorite or a quick select by name or number, as the HEOS integration takes them.
+
+        `media_content_type: favorite` with `media_content_id: Bayern 3` (or
+        `2`), and `quick_select` with `Kino` (or `1`), become the browser's ids.
+        """
+
+        if media_type == "favorite":
+            heos = self._device.heos
+            favorites = heos.favorites if heos is not None else []
+            number = int(media_id) if media_id.isdigit() else (
+                favorites.index(media_id) + 1 if media_id in favorites else None
+            )
+            if number is None:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="unknown_favorite",
+                    translation_placeholders={"favorite": media_id},
+                )
+            return f"heos_favorite/{number}"
+        if media_type == "quick_select" and not media_id.startswith(_QUICK_SELECT):
+            names = {name: number for number, name in self._quick_select_numbers().items()}
+            number = int(media_id) if media_id.isdigit() else names.get(media_id)
+            return f"{_QUICK_SELECT}{number if number is not None else media_id}"
+        return media_id
+
     async def _async_announce(self, media_id: str, extra: dict[str, Any]) -> None:
         """Play an announcement, then put the zone back as it was.
 
@@ -1073,6 +1102,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             self._announce_task.cancel()
         else:
             self._announce_snapshot = self._device.zone_snapshot(self._zone.id)
+        was_playing = self._heos_state() == "play"
         await self._ensure_on()
         raw = self._announce_volume(extra)
         if raw is not None:
@@ -1082,7 +1112,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             media_id = item.url
         await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
         self._announce_task = self.hass.async_create_background_task(
-            self._async_restore_after_announcement(),
+            self._async_restore_after_announcement(was_playing),
             f"{DOMAIN} restore after announcement",
         )
 
@@ -1100,18 +1130,35 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             self._entry_options,
         )
 
-    async def _async_restore_after_announcement(self) -> None:
+    def _heos_state(self) -> str | None:
+        return self.coordinator.data.now_playing.state
+
+    async def _until(self, condition: Callable[[str | None], bool]) -> None:
+        while not condition(self._heos_state()):
+            await asyncio.sleep(0.25)
+
+    async def _async_restore_after_announcement(self, was_playing: bool) -> None:
         """Wait for the announcement to start and to end, then restore. Never raises."""
 
         snapshot = self._announce_snapshot
-        await asyncio.sleep(ANNOUNCE_MIN_LENGTH)
         try:
             async with asyncio.timeout(ANNOUNCE_START_WAIT):
-                while self.coordinator.data.now_playing.state != "play":
-                    await asyncio.sleep(0.25)
+                if was_playing:
+                    # A play before the restart stop is still the previous stream.
+                    await self._until(lambda state: state != "play")
+                await self._until(lambda state: state == "play")
+        except TimeoutError:
+            _LOGGER.debug("Announcement on %s: no clear start", self._zone.id)
+        try:
             async with asyncio.timeout(ANNOUNCE_MAX_LENGTH):
-                while self.coordinator.data.now_playing.state == "play":
-                    await asyncio.sleep(0.25)
+                while self._heos_state() == "play":
+                    await self._until(lambda state: state != "play")
+                    try:
+                        # A stop counts as the end only once it lasts.
+                        async with asyncio.timeout(ANNOUNCE_STOP_GRACE):
+                            await self._until(lambda state: state == "play")
+                    except TimeoutError:
+                        break
         except TimeoutError:
             _LOGGER.debug("Announcement on %s: no clear end, restoring", self._zone.id)
         if snapshot is None:

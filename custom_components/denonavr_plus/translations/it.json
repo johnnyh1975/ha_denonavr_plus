@@ -1002,6 +1002,9 @@
     },
     "no_snapshot": {
       "message": "{entity} non ha ancora un'istantanea: creane prima una con denonavr_plus.snapshot."
+    },
+    "unknown_favorite": {
+      "message": "{favorite} non è un preferito HEOS di questo sintoamplificatore."
     }
   },
   "issues": {

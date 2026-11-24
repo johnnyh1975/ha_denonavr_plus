@@ -35,6 +35,7 @@ from .avr.transport.heos import (
     BROWSE_PAGE,
     FAVORITES_SID,
     PLAY_NEXT,
+    TUNEIN_SID,
     PLAY_NOW,
     REPLACE_AND_PLAY,
     HeosClient,
@@ -103,7 +104,10 @@ async def async_browse(heos: HeosClient, media_id: str, title: str, more: str) -
         if media_id == ROOT:
             sources = await heos.async_music_sources()
             return _directory(
-                ROOT, title, [_source(item) for item in sources if item.available], thumbnail=None
+                ROOT,
+                title,
+                [_source(item) for item in sources if item.available or item.sid == TUNEIN_SID],
+                thumbnail=None,
             )
         if media_id.startswith(_CONTAINER):
             media_id = page_of(media_id)

@@ -983,7 +983,7 @@ async def test_an_announcement_puts_the_zone_back(
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
-    with patch("custom_components.denonavr_plus.media_player.ANNOUNCE_MIN_LENGTH", 0):
+    with patch("custom_components.denonavr_plus.media_player.ANNOUNCE_STOP_GRACE", 0.3):
         await hass.services.async_call(
             "media_player",
             "play_media",
@@ -1014,11 +1014,22 @@ async def test_an_announcement_puts_the_zone_back(
             },
             blocking=True,
         )
+        # HEOS stops the first stream, then plays the second: a play before
+        # that stop is still the first one.
+        await asyncio.sleep(0.3)
+        heos.on_update(_heos_state("stop"))
+        await asyncio.sleep(0.3)
+        heos.on_update(_heos_state("play"))
+        await asyncio.sleep(0.3)
+        telnet.sent.clear()
+        # A short stop while HEOS switches is no end.
+        heos.on_update(_heos_state("stop"))
+        await asyncio.sleep(0.1)
         heos.on_update(_heos_state("play"))
         await asyncio.sleep(0.4)
-        telnet.sent.clear()
+        assert telnet.sent == []
         heos.on_update(_heos_state("stop"))
-        await asyncio.sleep(0.6)
+        await asyncio.sleep(0.8)
         await hass.async_block_till_done()
     # The receiver's own queries may run in between (a resync after the input change).
     assert [c for c in telnet.sent if c[:2] in ("SI", "MV", "MU", "ZM", "PW")] == [
@@ -1059,10 +1070,7 @@ async def test_an_announcement_that_never_starts_still_puts_the_zone_back(
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
     device = loaded_entry.runtime_data.device
-    with (
-        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_MIN_LENGTH", 0),
-        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_START_WAIT", 0.05),
-    ):
+    with patch("custom_components.denonavr_plus.media_player.ANNOUNCE_START_WAIT", 0.05):
         telnet.sent.clear()
         await hass.services.async_call(
             "media_player",
@@ -1155,3 +1163,42 @@ async def test_an_input_gets_its_own_artwork(
     assert (await response.text()).startswith("<svg")
     await _push(hass, "SICD")
     assert hass.states.get(main).attributes["entity_picture"] != picture
+
+
+async def test_favorites_and_quick_selects_play_by_name(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """As the HEOS integration takes them: media_content_type favorite or quick_select."""
+    from homeassistant.exceptions import ServiceValidationError
+
+    from .test_init import FakeHeos
+
+    device = loaded_entry.runtime_data.device
+    device.discovery.quick_select_names = {1: "Kino", 2: "Radio"}
+    heos = FakeHeos.instances[-1]
+    heos.connected = True
+    heos.favorites = ["Bayern 3", "Klassik"]
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    for media_type, media_id in (
+        ("favorite", "Klassik"),
+        ("favorite", "1"),
+        ("quick_select", "Radio"),
+        ("quick_select", "1"),
+    ):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": media_type, "media_content_id": media_id},
+            blocking=True,
+        )
+    assert heos.calls[-2:] == [("play_preset", 2), ("play_preset", 1)]
+    assert telnet.sent == ["MSQUICK2", "MSQUICK1"]
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "favorite", "media_content_id": "Nope"},
+            blocking=True,
+        )

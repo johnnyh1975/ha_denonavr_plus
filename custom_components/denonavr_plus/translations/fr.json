@@ -1002,6 +1002,9 @@
     },
     "no_snapshot": {
       "message": "{entity} n'a pas encore d'instantané : faites-en un d'abord avec denonavr_plus.snapshot."
+    },
+    "unknown_favorite": {
+      "message": "{favorite} n'est pas un favori HEOS de cet ampli-tuner."
     }
   },
   "issues": {

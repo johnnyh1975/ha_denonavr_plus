@@ -259,7 +259,9 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   holds the receiver's music sources (HEOS favorites, local media servers and
   USB, TuneIn, playlists, history, signed-in services), in pages of 50.
   Albums and playlists play as a whole, now, next, at the end or replacing the
-  queue (`enqueue` of `play_media`); tracks and stations play alone. The HEOS
+  queue (`enqueue` of `play_media`); tracks and stations play alone. As with
+  the HEOS integration, `play_media` also takes a favorite or a quick select by
+  name or number (`media_content_type: favorite`, `media_content_id: Bayern 3`). The HEOS
   favorites also follow the quick selects in the source menu. Favorites need
   the HEOS system signed in to a HEOS account, which the HEOS app normally has
   done; this integration asks for no account.

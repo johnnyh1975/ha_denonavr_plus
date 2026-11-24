@@ -1002,6 +1002,9 @@
     },
     "no_snapshot": {
       "message": "{entity} nie ma jeszcze migawki: najpierw wykonaj denonavr_plus.snapshot."
+    },
+    "unknown_favorite": {
+      "message": "{favorite} nie jest ulubionym HEOS tego amplitunera."
     }
   },
   "issues": {

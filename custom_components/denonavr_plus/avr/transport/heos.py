@@ -63,6 +63,9 @@ REQUEST_TIMEOUT = 10.0
 BROWSE_PAGE = 50
 #: The HEOS favorites source.
 FAVORITES_SID = 1028
+#: TuneIn, which can report itself unavailable and still play (as the HEOS
+#: integration of Home Assistant lists it regardless).
+TUNEIN_SID = 3
 #: Add criteria of browse/add_to_queue.
 PLAY_NOW, PLAY_NEXT, ADD_TO_END, REPLACE_AND_PLAY = 1, 2, 3, 4
 
@@ -496,6 +499,14 @@ class HeosClient:
         if command.startswith(("event/player_", "event/repeat_", "event/shuffle_")) and (
             not self._is_own(attrs)
         ):
+            return
+
+        if command == "event/player_playback_error":
+            # Kept for the diagnostics, as Music Assistant logs it.
+            self.command_results["playback_error"] = {
+                "result": "fail",
+                "text": attrs.get("error", ""),
+            }
             return
 
         if command in ("player/get_play_mode", "player/set_play_mode"):

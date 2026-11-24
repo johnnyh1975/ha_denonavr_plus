@@ -1002,6 +1002,9 @@
     },
     "no_snapshot": {
       "message": "{entity} aún no tiene instantánea: haz una primero con denonavr_plus.snapshot."
+    },
+    "unknown_favorite": {
+      "message": "{favorite} no es un favorito HEOS de este receptor."
     }
   },
   "issues": {

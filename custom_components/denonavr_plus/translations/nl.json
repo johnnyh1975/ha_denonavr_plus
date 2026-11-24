@@ -1002,6 +1002,9 @@
     },
     "no_snapshot": {
       "message": "{entity} heeft nog geen momentopname: maak er eerst een met denonavr_plus.snapshot."
+    },
+    "unknown_favorite": {
+      "message": "{favorite} is geen HEOS-favoriet van deze receiver."
     }
   },
   "issues": {

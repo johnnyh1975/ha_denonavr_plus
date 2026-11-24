@@ -32,6 +32,7 @@ class _Heos:
             HeosItem("Favorites", 1028, container=True),
             HeosItem("Local Music", 1024, container=True, image_url="http://example.com/l.png"),
             HeosItem("Pandora", 1, container=True, available=False),
+            HeosItem("TuneIn", 3, container=True, available=False),
         ]
 
     async def async_browse(
@@ -79,9 +80,9 @@ async def test_the_music_sources_and_their_pages() -> None:
     heos = _heos()
     root = await heos_media.async_browse(heos, "heos", "HEOS", "More")  # type: ignore[arg-type]
     titles = [child.title for child in root.children or []]
-    # A source that is not available stays out.
-    assert titles == ["Favorites", "Local Music"]
-    favorites_id, local_id = (child.media_content_id for child in root.children or [])
+    # A source that is not available stays out; TuneIn plays even so.
+    assert titles == ["Favorites", "Local Music", "TuneIn"]
+    favorites_id, local_id, _tunein = (child.media_content_id for child in root.children or [])
 
     favorites = await heos_media.async_browse(heos, favorites_id, "HEOS", "More")  # type: ignore[arg-type]
     assert favorites.title == "Favorites"
