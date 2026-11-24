@@ -126,7 +126,8 @@ effect, as the documents lead one to expect:
 - The HDMI resolution was not taken; the receiver reported the i/p scaler
   off (`SSHOSIPS OFF`), which probably leaves the resolution unused.
 - Zone 2 following the main zone (`Z2SOURCE`) was taken while the main zone
-  played an HDMI input. All Zone Stereo was taken and reported as
+  played an HDMI input, and Zone 2 played its sound (5.1 PCM from an Apple
+  TV). Choosing that input for Zone 2 by name (`Z2AUX2`) was not taken. All Zone Stereo was taken and reported as
   `MNZST ON` and `MSALL ZONE STEREO`, although `MNZST ?` gets no reply.
 
 ## Open points
@@ -138,7 +139,7 @@ effect, as the documents lead one to expect:
 | `SW2` with two subwoofers configured | To test |
 | `VSMONI` values other than `AUTO` | To test |
 | Independent `NET` playback in Zone 2 | Confirmed: Zone 2 played Amazon Music through HEOS while the main zone played an HDMI source |
-| Zone 2 playing an HDMI source (`Z2SOURCE` is taken; is there sound?) | To test |
+| Zone 2 playing an HDMI source | Confirmed when following the main zone (`Z2SOURCE`); by name (`Z2AUX2`) not taken |
 | HDMI resolution with the i/p scaler on | To test |
 | `PSDIL`, `PSRSZ` (documented for all four 2015 models, no reply) | To test in a surround mode |
 | `TFANNAME?` while the tuner plays | To test |

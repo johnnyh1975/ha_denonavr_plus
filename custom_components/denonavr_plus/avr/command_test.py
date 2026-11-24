@@ -178,8 +178,9 @@ _NEEDS_AUDYSSEY_OFF = frozenset({"graphic_eq"})
 _TWO_CHANNEL_MODES = frozenset({"DIRECT", "PURE DIRECT", "STEREO"})
 _NEEDS_TWO_CHANNEL = frozenset({"subwoofer_switch"})
 
-#: Sources Zone 2 plays on every receiver: an AVR-X2600H kept Z2SOURCE when
-#: the test chose the main zone's HDMI input (AUX2) for Zone 2.
+#: Sources Zone 2 takes by name on every receiver. An AVR-X2600H kept
+#: Z2SOURCE when the test chose the main zone's HDMI input (AUX2) by name,
+#: although following the main zone it plays that input.
 _ZONE2_SOURCES = ("NET", "TUNER")
 _ZONE2_SETTINGS = frozenset(
     {

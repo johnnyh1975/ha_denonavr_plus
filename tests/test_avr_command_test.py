@@ -643,7 +643,7 @@ async def test_zone2_that_follows_takes_the_main_input_and_back(
     receiver = Receiver(hass, {"Z2": "SOURCE"}, {"Z2?": ["Z2"]})
     receiver.telnet.push("SIDVD")
     result = await _run(hass, loaded_entry, receiver, "zone2_follow_main")
-    # Not the main zone's input: Zone 2 may not play it (HDMI on an AVR-X2600H).
+    # Not the main zone's input: an AVR-X2600H did not take Z2AUX2 (HDMI).
     assert result["tests"]["zone2_follow_main"]["written"] == "TUNER"
     assert receiver.settings["Z2"] == "SOURCE"
 
