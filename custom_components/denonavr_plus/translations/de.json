@@ -1060,6 +1060,9 @@
     }
   },
   "exceptions": {
+    "source_not_taken": {
+      "message": "Der {model} hat diese Zone nicht auf {source} umgeschaltet. Zone 2 spielt bei vielen Receivern keine HDMI-Eingänge. {source} fehlt bis zum Neustart von Home Assistant in der Liste dieser Zone; dauerhaft ausblenden lässt es sich in den Optionen der Integration unter Quellen."
+    },
     "setup_write_failed": {
       "message": "Der {model} hat die Einstellung nicht übernommen. Schließe das Setup-Menü am Fernseher, falls es offen ist, prüfe, ob die Setup-Sperre des Receivers aus ist, und versuche es erneut."
     },

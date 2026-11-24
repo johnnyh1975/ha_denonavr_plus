@@ -42,7 +42,8 @@ the receiver and on your network:
 | **One integration at a time** | Many receivers accept only one control connection (telnet). Two integrations on the same receiver disturb each other. | Coming from another Denon integration? Let Denon AVR Plus [take it over](#8-move-over-from-another-denon-integration). |
 | **Ports 23 and 8080 open** | Telnet (23) carries control and live updates, HTTP (8080, or 80 before 2016) discovery. | Only if Home Assistant and the receiver are in different VLANs: allow these from Home Assistant to the receiver. The optional ports are in the [reference](REFERENCE.md#network-ports-and-protocols). |
 
-Then install Denon AVR Plus through HACS and restart Home Assistant (see
+Then install Denon AVR Plus from the Marketplace (HACS before Home Assistant
+2026.11) and restart Home Assistant (see
 [Installation](../README.md#installation)).
 
 ## 2. Add the receiver
@@ -198,8 +199,10 @@ receiver are taken over already.
 >
 > **Zone 2:** smaller receivers play no HDMI input in Zone 2 (an
 > AVR-X2600H stays silent), only analog inputs, the tuner and network
-> sources. Take the HDMI inputs out of the Zone 2 list; which inputs those
-> are depends on how they are assigned on the receiver.
+> sources. When Zone 2 does not switch to an input, Home Assistant says so
+> and leaves that input out of the Zone 2 list until it restarts. Take the
+> HDMI inputs out of the Zone 2 list here to hide them for good; which inputs
+> those are depends on how they are assigned on the receiver.
 
 ### Entities
 
@@ -371,4 +374,5 @@ Who does what, including the HEOS integration, is in the
 
 Still stuck? Open an issue on GitHub with your model, its firmware version
 and the diagnostics file (**⋮ → Download diagnostics** on the integration
-entry).
+entry). Download it right after the problem shows: it holds the last 300
+lines sent to and received from the receiver.

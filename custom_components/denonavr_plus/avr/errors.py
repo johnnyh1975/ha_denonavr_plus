@@ -23,3 +23,16 @@ class CommandNotSent(Exception):
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
         self.reason = reason
+
+
+class SourceNotTaken(Exception):
+    """A zone other than the main zone did not switch to the chosen source.
+
+    Zone 2 on many receivers plays no HDMI input: an AVR-X2600H gave no reply
+    to Z2AUX2 and kept its source. `zone_id` and `source` name the choice.
+    """
+
+    def __init__(self, zone_id: str, source: str) -> None:
+        super().__init__(f"{zone_id}: {source}")
+        self.zone_id = zone_id
+        self.source = source

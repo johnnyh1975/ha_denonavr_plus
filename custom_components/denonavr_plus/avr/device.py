@@ -44,7 +44,7 @@ from .const import (
     REPLY_COLLECT_QUIET,
     REPLY_WAIT_OLDER,
 )
-from .errors import CommandNotSent
+from .errors import CommandNotSent, SourceNotTaken
 from .transport.upnp import OLDER_DESCRIPTION_PATH, OLDER_PORT
 from .transport.webconfig import HTTP_PORT as HTTP_SETUP_PORT
 from .transport import (
@@ -85,6 +85,8 @@ RECOVER_ON_WAIT = 20.0
 FOLLOW_MAIN = "SOURCE"
 #: How long a preset recall waits for the receiver to switch to the tuner.
 TUNER_SWITCH_WAIT = 3.0
+#: How long a zone other than the main zone has to confirm a new source.
+ZONE_SOURCE_WAIT = 2.0
 
 # After a command sent over HTTP (telnet down) nothing is pushed back, so the
 # zone status is read again once the receiver has had a moment to apply it.
@@ -169,6 +171,9 @@ class DenonAvrDevice:
         self._update_callback: Callable[[], None] | None = None
         # Listeners for raw command replies (async_send_command); see there.
         self._reply_listeners: list[Callable[[str], None]] = []
+        # Sources a zone other than the main zone did not switch to, per zone,
+        # until Home Assistant restarts (Zone 2 plays no HDMI on many models).
+        self._refused_sources: dict[str, set[str]] = {}
         self._update_handle: asyncio.TimerHandle | None = None
         # Strong references to fire and forget tasks (delayed queries, OPSML
         # refreshes). Without these, asyncio only keeps a weak reference and the
@@ -1546,6 +1551,44 @@ class DenonAvrDevice:
                 await self._send(f"{spec.prefix}{code}")
         else:
             await self._send(f"{prefix}{code}")
+
+    async def async_choose_source(self, zone_id: str, name: str) -> None:
+        """Select a source someone chose, and report it when the zone refuses it.
+
+        A zone other than the main zone confirms a new source by echoing it.
+        Without the echo the zone kept its source (Zone 2 plays no HDMI input
+        on many receivers): the source is remembered as refused and
+        SourceNotTaken raised. Over HTTP nothing comes back, so nothing is
+        checked; following the main zone is always taken.
+        """
+
+        code = self._discovery.source_code(name) or name
+        prefix = self._additional_zone_prefix(zone_id)
+        if prefix is None or code == FOLLOW_MAIN or not self._telnet.connected:
+            await self.async_select_source(zone_id, name)
+            return
+        command = f"{prefix}{code}"
+        replies = await self.async_collect(
+            lambda line: line == command, lambda: self._send(command), ZONE_SOURCE_WAIT
+        )
+        refused = self._refused_sources.setdefault(zone_id, set())
+        if replies or self._state.zone(zone_id).source == code:
+            refused.discard(code)
+            return
+        refused.add(code)
+        self._schedule_update()
+        raise SourceNotTaken(zone_id, code)
+
+    @property
+    def communication_log(self) -> list[str]:
+        """The last telnet lines sent and received, for the diagnostics."""
+
+        return self._telnet.log
+
+    def refused_sources(self, zone_id: str) -> frozenset[str]:
+        """The sources a zone did not switch to since Home Assistant started."""
+
+        return frozenset(self._refused_sources.get(zone_id, ()))
 
     async def async_select_sound_mode(self, name: str) -> None:
         """Select a surround / sound mode by its display name.

@@ -1060,6 +1060,9 @@
     }
   },
   "exceptions": {
+    "source_not_taken": {
+      "message": "De {model} heeft deze zone niet naar {source} geschakeld. Op veel receivers speelt zone 2 geen HDMI-ingangen af. {source} ontbreekt in de lijst van deze zone tot Home Assistant opnieuw start; verberg het blijvend in de opties van de integratie, onder Bronnen."
+    },
     "setup_write_failed": {
       "message": "De {model} heeft de instelling niet geaccepteerd. Sluit het instellingenmenu op de tv als het open is en controleer of de instellingenvergrendeling van de receiver uit staat. Probeer het daarna opnieuw."
     },

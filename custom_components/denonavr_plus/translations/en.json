@@ -1060,6 +1060,9 @@
     }
   },
   "exceptions": {
+    "source_not_taken": {
+      "message": "The {model} did not switch this zone to {source}. Zone 2 on many receivers plays no HDMI input. {source} is left out of this zone's list until Home Assistant restarts; hide it for good under the integration's options → Sources."
+    },
     "setup_write_failed": {
       "message": "The {model} did not accept the setting. Close the setup menu on the TV if it is open and check that the receiver's setup lock is off, then try again."
     },

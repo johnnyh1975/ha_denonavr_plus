@@ -377,7 +377,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         integration does with its favorites.
         """
 
-        sources = choices.source_list(self._device.discovery, self._entry_options, self._zone.id)
+        discovery, options = self._device.discovery, self._entry_options
+        # Inputs the zone did not switch to (no HDMI in Zone 2 on many models).
+        refused = self._device.refused_sources(self._zone.id)
+        sources = [
+            choices.source_display(discovery, options, code)
+            for code in choices.source_codes(discovery, options, self._zone.id)
+            if code not in refused
+        ]
         if not self._entry_options.get(choices.OPT_SOURCE_SHORTCUTS, True):
             return sources
         extra = [*self._quick_select_sources(), *self._favorite_sources()]
@@ -729,7 +736,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if code is None and heos is not None and (favorite := self._favorite_sources().get(source)):
             await heos_media.async_play(heos, f"heos_favorite/{favorite}", None)
             return
-        await self._device.async_select_source(self._zone.id, code or source)
+        await self._device.async_choose_source(self._zone.id, code or source)
 
     @receiver_action
     async def async_select_sound_mode(self, sound_mode: str) -> None:

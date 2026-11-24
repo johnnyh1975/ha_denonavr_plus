@@ -1060,6 +1060,9 @@
     }
   },
   "exceptions": {
+    "source_not_taken": {
+      "message": "{model} nie przełączył tej strefy na {source}. W wielu amplitunerach strefa 2 nie odtwarza wejść HDMI. {source} nie pojawi się na liście tej strefy do ponownego uruchomienia Home Assistant; ukryj je na stałe w opcjach integracji, w sekcji Źródła."
+    },
     "setup_write_failed": {
       "message": "{model} nie przyjął ustawienia. Zamknij menu konfiguracji na telewizorze, jeśli jest otwarte, sprawdź, czy blokada konfiguracji amplitunera jest wyłączona, i spróbuj ponownie."
     },

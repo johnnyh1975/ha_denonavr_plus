@@ -114,8 +114,9 @@ integration):
 1. Settings → Devices & Services → **Denon AVR Plus** → three dots on the receiver
    entry → **Delete**. This removes the device and all its entities. The settings
    stored on the receiver itself are not changed.
-2. If you installed through HACS: HACS → **Denon AVR Plus** → three dots →
-   **Remove**. For a manual installation, delete
+2. Remove it where you installed it: in the Marketplace (Settings →
+   Marketplace → **Installed**) or, before Home Assistant 2026.11, in HACS.
+   For a manual installation, delete
    `<config>/custom_components/denonavr_plus`.
 3. Restart Home Assistant.
 

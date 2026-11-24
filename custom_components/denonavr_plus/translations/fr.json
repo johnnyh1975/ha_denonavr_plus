@@ -1060,6 +1060,9 @@
     }
   },
   "exceptions": {
+    "source_not_taken": {
+      "message": "Le {model} n'a pas basculé cette zone sur {source}. Sur de nombreux amplificateurs, la zone 2 ne lit aucune entrée HDMI. {source} est retiré de la liste de cette zone jusqu'au redémarrage de Home Assistant ; masquez-le définitivement dans les options de l'intégration, sous Sources."
+    },
     "setup_write_failed": {
       "message": "Le {model} n'a pas accepté le réglage. Fermez le menu de configuration sur le téléviseur s'il est ouvert, vérifiez que le verrouillage de la configuration de l'ampli-tuner est désactivé, puis réessayez."
     },

@@ -212,7 +212,9 @@ async def test_nothing_is_queued_while_the_link_is_down() -> None:
     assert client.queued == 0
 
 
-async def _sessions(server: FakeReceiver, commands: list[str], seconds: float) -> int:
+async def _sessions(
+    server: FakeReceiver, commands: list[str], seconds: float, silence: float = 1.0
+) -> int:
     """How many sessions the client opens while it sends `commands`."""
     opened = 0
 
@@ -227,7 +229,7 @@ async def _sessions(server: FakeReceiver, commands: list[str], seconds: float) -
     client = TelnetClient(
         LOOPBACK, on_line=lambda line: None, on_connected=_connected, port=server.port
     )
-    with patch.object(telnet, "SILENCE_TIMEOUT", 1.0):
+    with patch.object(telnet, "SILENCE_TIMEOUT", silence):
         await client.async_start()
         try:
             await asyncio.sleep(seconds)
@@ -259,7 +261,9 @@ async def test_queries_without_answer_are_not_a_silent_receiver() -> None:
         return "PWON" if line == "PW?" else None
 
     unknown = [f"PSX{number} ?" for number in range(5)]
-    assert await _sessions(FakeReceiver(reply), unknown, 3.0) == 1
+    # The probe waits behind the query in flight (up to REPLY_TIMEOUT_MAX of
+    # 1 s); half the silence timeout must leave room for that and its answer.
+    assert await _sessions(FakeReceiver(reply), unknown, 6.0, silence=4.0) == 1
 
 
 class BusyReceiver(FakeReceiver):
@@ -438,3 +442,16 @@ async def test_an_idle_link_is_kept_alive(receiver: FakeReceiver) -> None:
         finally:
             await client.async_stop()
     assert receiver.lines[0] == "PW?"
+
+
+async def test_the_log_keeps_what_went_out_and_came_back(receiver: FakeReceiver) -> None:
+    """For the diagnostics: the lines with their direction, oldest first."""
+    client = await _connected_client(receiver, lambda _: ["PW?"])
+    try:
+        await receiver.wait_for(1)
+        async with asyncio.timeout(5):
+            while len(client.log) < 2:
+                await asyncio.sleep(0.01)
+    finally:
+        await client.async_stop()
+    assert [entry.split(" ", 1)[1] for entry in client.log] == ["> PW?", "< PWX"]

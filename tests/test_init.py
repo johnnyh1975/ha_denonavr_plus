@@ -60,6 +60,7 @@ class FakeTelnet:
         self.sent: list[str] = []
         self.response_time: float | None = 0.042
         self.queued = 0
+        self.log: list[str] = []
         FakeTelnet.instances.append(self)
 
     async def async_start(self) -> None:

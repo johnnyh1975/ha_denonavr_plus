@@ -18,7 +18,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.denonavr_plus.avr import capability_check
-from custom_components.denonavr_plus.avr.errors import CommandNotSent
+from custom_components.denonavr_plus.avr.errors import CommandNotSent, SourceNotTaken
 from custom_components.denonavr_plus.avr.transport import GoformClient
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
@@ -655,3 +655,28 @@ async def test_channel_trims_and_distances_are_sent_in_wire_units(
     await device.async_set_channel_distance("FL", 3.45)
 
     assert telnet.sent[:2] == ["CVFL 485", "SSSDEFL 0345"]
+
+
+async def test_a_source_zone_2_does_not_take(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """An AVR-X2600H gave no reply to Z2AUX2 and kept its source."""
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("Z2ON", "Z2NET")
+    with (
+        patch("custom_components.denonavr_plus.avr.device.ZONE_SOURCE_WAIT", 0.05),
+        pytest.raises(SourceNotTaken),
+    ):
+        await device.async_choose_source("zone2", "DVD")
+    assert device.refused_sources("zone2") == {"DVD"}
+
+    # Taken: the receiver echoes it, and a later success clears the mark.
+    async def echo(command: str) -> None:
+        telnet.sent.append(command)
+        telnet.push(command)
+
+    with patch.object(telnet, "async_send", echo):
+        await device.async_choose_source("zone2", "DVD")
+    assert device.refused_sources("zone2") == frozenset()
+    assert device.zone_source("zone2") == "DVD"

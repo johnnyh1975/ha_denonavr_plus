@@ -1600,3 +1600,24 @@ async def test_heos_features_wait_for_the_heos_link(
             return_response=True,
         )
     assert err.value.translation_key == "heos_unavailable"
+
+
+async def test_a_source_zone_2_does_not_take_leaves_its_list(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Zone 2 of an AVR-X2600H plays no HDMI input: it says so and drops it."""
+    await _push(hass, "PWON", "Z2ON", "Z2NET")
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    source = "DVD"
+    assert source in hass.states.get(zone2).attributes["source_list"]
+    with (
+        patch("custom_components.denonavr_plus.avr.device.ZONE_SOURCE_WAIT", 0.05),
+        pytest.raises(HomeAssistantError) as err,
+    ):
+        await hass.services.async_call(
+            "media_player", "select_source", {"entity_id": zone2, "source": source}, blocking=True
+        )
+    assert err.value.translation_key == "source_not_taken"
+    assert err.value.translation_placeholders["source"] == source
+    await _push(hass)
+    assert source not in hass.states.get(zone2).attributes["source_list"]

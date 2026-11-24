@@ -122,3 +122,15 @@ async def test_diagnostics_show_how_media_reaches_the_receiver(
     }
     dump = json.dumps(result)
     assert "Private Title" not in dump and HOST not in dump
+
+
+async def test_diagnostics_hold_the_telnet_lines_and_refused_sources(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    loaded_entry: MockConfigEntry,
+) -> None:
+    """What went over telnet explains a result the state alone does not."""
+    FakeTelnet.instances[-1].log = ["12:00:00.000 > MS?", "12:00:00.060 < MSSTEREO"]
+    result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
+    assert result["communication_log"] == ["12:00:00.000 > MS?", "12:00:00.060 < MSSTEREO"]
+    assert result["refused_sources"] == {"main": [], "zone2": []}

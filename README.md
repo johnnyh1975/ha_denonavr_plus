@@ -1,8 +1,8 @@
 # Denon AVR Plus
 
-[![Version](https://img.shields.io/badge/Version-0.9.1-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
+[![Version](https://img.shields.io/badge/Version-0.9.2-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
 [![HA Version](https://img.shields.io/badge/HA-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
+[![Marketplace custom repository](https://img.shields.io/badge/Marketplace-custom%20repository-41BDF5.svg)](#installation)
 [![Quality Scale](https://img.shields.io/badge/Quality%20Scale-Platinum-blueviolet.svg)](https://www.home-assistant.io/docs/quality_scale/)
 [![Local Push](https://img.shields.io/badge/IoT%20Class-Local%20Push-green.svg)](https://www.home-assistant.io/blog/2016/02/12/classifying-the-internet-of-things/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -45,7 +45,7 @@ be installed; only one should control a receiver at a time. As of November
 
 | | Official `denonavr` | Denon AVR Plus |
 |---|---|---|
-| **Installation** | Built in | HACS custom repository |
+| **Installation** | Built in | Marketplace custom repository (HACS before 2026.11) |
 | **Maintained by** | Home Assistant core maintainers, in every release | One maintainer, community project |
 | **Receivers** | Denon and Marantz network receivers, including models before 2016 | HEOS generation (2016 and later); older models with fewer settings |
 | **Connection** | HTTP poll every 10 s; telnet push optional (on for new setups) | Telnet push always; HTTP for discovery, a check and as fallback |
@@ -91,16 +91,23 @@ model? [Test it](CONTRIBUTING.md#test-the-receiver) and share the result.
 
 ## Installation
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=johnnyh1975&repository=ha_denonavr_plus&category=integration)
+**Home Assistant 2026.11 and newer** (the Marketplace replaced HACS):
 
-1. In [HACS](https://hacs.xyz/), add this repository as a
-   [custom repository](https://hacs.xyz/docs/faq/custom_repositories),
-   category **Integration** (or use the button above).
-2. Install **Denon AVR Plus** and restart Home Assistant.
+1. As an administrator, open Settings → **Marketplace** → **Add from link**
+   and enter `johnnyh1975/ha_denonavr_plus`. Adding a repository that is not
+   in the catalog needs a GitHub connection; the dialog asks for it.
+2. Open **Denon AVR Plus** → **Install**. If Home Assistant asks for a
+   restart, restart it from the repair under Settings → System → Repairs.
 3. Add the receiver: it usually shows up under Settings → Devices & services
    → **Discovered**.
 
-Without HACS, copy `custom_components/denonavr_plus` into your
+**Home Assistant 2026.8 to 2026.10:** in [HACS](https://hacs.xyz/), add this
+repository as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories),
+category **Integration**, install **Denon AVR Plus** and restart. An existing
+HACS installation moves to the Marketplace by itself when you update to
+2026.11.
+
+Without either, copy `custom_components/denonavr_plus` into your
 configuration's `custom_components` folder and restart.
 
 Needs Home Assistant 2026.8 or newer, network standby on the receiver and,

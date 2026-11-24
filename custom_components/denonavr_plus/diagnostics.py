@@ -55,6 +55,12 @@ async def async_get_config_entry_diagnostics(
         "all_sound_modes": discovery.all_sound_modes,
         "current_sound_modes": discovery.current_sound_modes,
         "media": _media(device),
+        # Sources a zone did not switch to since Home Assistant started.
+        "refused_sources": {
+            zone.id: sorted(device.refused_sources(zone.id)) for zone in discovery.zones
+        },
+        # The last telnet lines, "<" received, ">" sent: what the receiver said.
+        "communication_log": device.communication_log,
         "state": {
             "system_power": state.system_power,
             "zones": {zone_id: asdict(zone) for zone_id, zone in state.zones.items()},

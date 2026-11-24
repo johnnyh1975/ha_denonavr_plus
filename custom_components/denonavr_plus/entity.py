@@ -20,8 +20,9 @@ from homeassistant.helpers.device_registry import (
 from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import choices
 from .avr.models import ZoneDescriptor
-from .avr.errors import CommandNotSent, SetupWriteError
+from .avr.errors import CommandNotSent, SetupWriteError, SourceNotTaken
 from .const import DOMAIN
 from .coordinator import DenonAvrCoordinator
 
@@ -75,6 +76,16 @@ def receiver_action[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _Func
                 translation_domain=DOMAIN,
                 translation_key="receiver_unreachable",
                 translation_placeholders={"model": model},
+            ) from err
+        except SourceNotTaken as err:
+            discovery = self._device.discovery
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="source_not_taken",
+                translation_placeholders={
+                    "model": model,
+                    "source": choices.source_display(discovery, self._entry_options, err.source),
+                },
             ) from err
 
     return cast(_FuncT, wrapper)

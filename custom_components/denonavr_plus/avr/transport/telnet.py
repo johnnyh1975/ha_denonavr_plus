@@ -31,6 +31,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import deque
+from datetime import UTC, datetime
 from collections.abc import Awaitable, Callable
 
 from ..const import (
@@ -62,6 +63,9 @@ _POWER_ON_COMMAND = "PWON"
 _REPLY_TIMEOUT_FACTOR = 4.0
 # Weight of a new sample in the running average of the response time.
 _RESPONSE_SMOOTHING = 0.2
+
+#: How many sent and received lines the communication log keeps.
+LOG_LINES = 300
 
 
 def is_query(command: str) -> bool:
@@ -178,6 +182,18 @@ class TelnetClient:
         # Since when commands went out with nothing coming back, if they did.
         self._silent_since: float | None = None
         self._silence_probed = False
+        # The last lines sent (">") and received ("<"), for the diagnostics.
+        self._log: deque[str] = deque(maxlen=LOG_LINES)
+
+    @property
+    def log(self) -> list[str]:
+        """The last lines sent and received, oldest first, with UTC times."""
+
+        return list(self._log)
+
+    def _record(self, direction: str, line: str) -> None:
+        stamp = datetime.now(UTC).strftime("%H:%M:%S.%f")[:-3]
+        self._log.append(f"{stamp} {direction} {line}")
 
     @property
     def connected(self) -> bool:
@@ -360,6 +376,7 @@ class TelnetClient:
         self._silence_probed = False
         if self._awaiting is not None and line.startswith(self._awaiting):
             self._replied.set()
+        self._record("<", line)
         self._on_line(line)
 
     async def _write_loop(self) -> None:
@@ -372,6 +389,7 @@ class TelnetClient:
             self._awaiting = command[:_FAMILY_LENGTH]
             self._replied.clear()
             self._writer.write(command.encode("utf-8") + _TERMINATOR)
+            self._record(">", command)
             await self._writer.drain()
             sent = loop.time()
             self._last_activity = sent
