@@ -1253,15 +1253,22 @@ class DenonAvrDevice:
     ) -> dict[str, Any]:
         """Write settings, check the receiver confirms them, put them back.
 
-        See avr/command_test.py. Raises CommandNotSent when telnet is down:
-        the confirmations only come that way.
+        See avr/command_test.py. A main zone that is off is turned on for the
+        test and off again afterwards. Raises CommandNotSent when telnet is
+        down: the confirmations only come that way.
         """
 
         if not self._telnet.connected:
             raise CommandNotSent("query_needs_telnet")
-        main = self._state.zone("main")
-        main_on = bool(main.power)
-        results = await command_test.async_run(self, list(groups), on_progress)
+        main_on = bool(self._state.zone("main").power)
+        snapshot = self.zone_snapshot("main")
+        turned_on = await command_test.async_power_on(self)
+        try:
+            results = await command_test.async_run(self, list(groups), on_progress)
+        finally:
+            if turned_on:
+                # Off again as it was; also when the test is stopped.
+                await self.async_restore("main", snapshot)
         device = self._discovery.device
         return {
             "test_version": command_test.TEST_VERSION,
@@ -1269,6 +1276,7 @@ class DenonAvrDevice:
             "firmware": device.firmware_version,
             "groups": [group for group in command_test.GROUPS if group in groups],
             "main_zone_on": main_on,
+            "turned_on_for_test": turned_on,
             "tests": results,
         }
 

@@ -446,9 +446,17 @@ class DenonAvrOptionsFlow(CommandTestSteps, CapabilityCheckSteps, OptionsFlow):
                 "sound_modes",
                 "connection",
                 "entities",
-                "check",
-                "command_test",
+                "tests",
             ],
+        )
+
+    async def async_step_tests(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """The three tests, each started by its own entry."""
+
+        return self.async_show_menu(
+            step_id="tests", menu_options=["check_run", "test_quiet", "test_audible"]
         )
 
     # Capability check (steps in capabilities.CapabilityCheckSteps) ---------
@@ -606,36 +614,33 @@ class DenonAvrOptionsFlow(CommandTestSteps, CapabilityCheckSteps, OptionsFlow):
     async def async_step_entities(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Which groups of the entities that start hidden are shown.
+        """A toggle per group of the entities that start hidden.
 
         Works from the registry, so also without the receiver. The change is
         applied by the update listener (entity_groups.async_apply).
         """
 
         chosen = list(self.config_entry.options.get(OPT_ENTITY_GROUPS, []))
-        if user_input is not None:
-            return self._save({OPT_ENTITY_GROUPS: list(user_input[OPT_ENTITY_GROUPS])})
         discovery = self._discovery()
         configured = discovery.configured_channels if discovery is not None else set()
         counts = entity_groups.hidden_counts(self.hass, self.config_entry, configured)
         offered = [group for group in entity_groups.GROUPS if counts.get(group) or group in chosen]
+        if user_input is not None:
+            shown = [group for group in offered if user_input.get(group)]
+            return self._save({OPT_ENTITY_GROUPS: shown})
         if not offered:
             return self.async_abort(reason="no_hidden_entities")
         return self.async_show_form(
             step_id="entities",
             data_schema=vol.Schema(
                 {
-                    vol.Required(OPT_ENTITY_GROUPS, default=chosen): SelectSelector(
-                        SelectSelectorConfig(
-                            options=offered,
-                            multiple=True,
-                            mode=SelectSelectorMode.LIST,
-                            translation_key="entity_group",
-                        )
-                    ),
+                    vol.Required(group, default=group in chosen): BooleanSelector()
+                    for group in offered
                 }
             ),
-            description_placeholders={"count": str(sum(counts.values()))},
+            description_placeholders={
+                f"n_{group}": str(counts.get(group, 0)) for group in entity_groups.GROUPS
+            },
         )
 
     # Sources -----------------------------------------------------------------

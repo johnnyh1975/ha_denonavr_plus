@@ -35,11 +35,16 @@
       },
       "unknown_model": {
         "title": "Modèle pas encore vérifié",
-        "description": "Le {model} n'a pas encore été vérifié avec cette intégration. Ses entités sont créées à partir de ce qu'il annonce, mais certains réglages peuvent manquer ou être mal lus.\n\nLa vérification des fonctions pose à l'ampli-tuner environ 150 questions en lecture seule (rien n'est modifié) une fois connecté, et place les réponses dans le fichier de diagnostic. Vous pouvez ensuite joindre ce fichier à un ticket prérempli sur GitHub afin que le modèle soit bien pris en charge. Rien n'est envoyé automatiquement.\n\nSi vous le souhaitez, le test des commandes vérifie quelles commandes il accepte ; il écrit des réglages et les rétablit (détails dans les options).",
+        "description": "Le {model} n'a pas encore été vérifié avec cette intégration ; certains réglages peuvent manquer ou être mal lus.\n\nLes tests choisis ci-dessous s'exécutent une fois le récepteur connecté. Leurs résultats vont dans le fichier de diagnostic, que vous pouvez joindre à un ticket prérempli sur GitHub. Rien n'est envoyé de lui-même.",
         "data": {
-          "check": "Lancer la vérification après la configuration",
-          "quiet": "Tests discrets",
-          "audible": "Tests audibles et visibles"
+          "check": "Vérifier les fonctions",
+          "quiet": "Tester les commandes discrètement",
+          "audible": "Tester les commandes audibles et visibles"
+        },
+        "data_description": {
+          "check": "Lecture seule ; environ 150 questions.",
+          "quiet": "Modifie des réglages un instant puis les rétablit.",
+          "audible": "Sourdine, enceintes, sorties, tuner et Zone 2 changent un instant."
         }
       }
     },
@@ -68,8 +73,7 @@
           "sound_modes": "Modes son",
           "connection": "Connexion",
           "entities": "Entités",
-          "check": "Vérifier les fonctions",
-          "command_test": "Tester les commandes"
+          "tests": "Tester le récepteur"
         }
       },
       "volume": {
@@ -211,41 +215,54 @@
           "setup_refresh": "L'égaliseur graphique, la configuration vidéo et l'affectation des amplis sont lus à l'établissement de la connexion et après chaque modification depuis Home Assistant. Ceci les lit en plus toutes les tant de minutes, pour remarquer les modifications faites dans le menu de l'ampli-tuner ; 0 ne les lit qu'à ces moments-là."
         }
       },
-      "check": {
-        "title": "Vérifier les fonctions",
-        "description": "Pose à l'ampli-tuner environ 150 questions en lecture seule via la connexion existante ; rien n'est modifié. Cela prend jusqu'à une minute et demie ; les commandes de Home Assistant restent prioritaires. Les réponses vont dans le fichier de diagnostic."
-      },
       "check_done": {
         "title": "Vérification terminée",
         "description": "Le {model} a répondu à {answered} questions sur {total}. Les réponses sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic. Lisez le fichier avant de le joindre ; les adresses sont déjà remplacées."
       },
-      "command_test": {
-        "title": "Tester les commandes",
-        "description": "Chaque test écrit un réglage, attend la confirmation du récepteur et rétablit l'ancienne valeur. Les tests discrets modifient des réglages qui se remarquent à peine (tonalité, Audyssey, image, minuteries, afficheur, volume de 0,5 dB). Les tests audibles s'entendent ou se voient (sourdine, enceintes et sortie HDMI, MultEQ, tuner, Zone 2, le menu de configuration sur le téléviseur). L'alimentation, les déclencheurs et tout ce qui enregistre ou réinitialise un réglage ne sont jamais touchés. Les résultats vont dans le fichier de diagnostic.\n\nAllumez d'abord la zone principale ; ses réglages sont ignorés tant qu'elle est éteinte. Cela prend quelques minutes ; ne modifiez pas de réglages sur le récepteur pendant ce temps.",
-        "data": {
-          "quiet": "Tests discrets",
-          "audible": "Tests audibles et visibles"
-        }
-      },
       "command_test_done": {
         "title": "Test des commandes terminé",
-        "description": "Le {model} a confirmé {confirmed} commandes sur {total} ; {skipped} ont été ignorées. Réglages non rétablis : {not_restored} ; vérifiez-les sur le récepteur si ce n'est pas 0. Les détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics).\n\nPour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier de diagnostic."
+        "description": "{model} :\n\n- Confirmées : {confirmed}\n- Non confirmées : {unconfirmed}\n- Ignorées : {skipped}\n- Non rétablies : {not_restored} (vérifiez-les sur le récepteur si ce n'est pas 0)\n\nLes détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Pour aider à prendre en charge ce modèle, ouvrez [ce ticket prérempli sur GitHub]({url}) et joignez le fichier."
       },
       "entities": {
         "title": "Entités",
-        "description": "Beaucoup d'entités démarrent masquées : réglages que l'on fixe une fois, configuration des enceintes, vidéo, l'égaliseur graphique et diagnostic. Choisissez les groupes affichés ; {count} entités peuvent être affichées. Les entités que vous avez activées ou désactivées vous-même restent telles quelles. Les entités affichées apparaissent en une demi-minute.",
+        "description": "Affichez par groupe les entités qui démarrent masquées. Ce que vous avez modifié vous-même reste tel quel. Les entités affichées apparaissent en une demi-minute.",
         "data": {
-          "entity_groups": "Groupes affichés"
+          "audio": "Audio",
+          "speakers": "Enceintes",
+          "video": "Vidéo et image",
+          "graphic_eq": "Égaliseur graphique",
+          "zones": "Zones",
+          "receiver": "Récepteur",
+          "diagnostic": "Diagnostic"
         },
         "data_description": {
-          "entity_groups": "Un groupe désélectionné masque à nouveau uniquement les entités qu'il a affichées."
+          "audio": "{n_audio} entités : tonalité, Audyssey, surround",
+          "speakers": "{n_speakers} entités : distances, configuration des enceintes",
+          "video": "{n_video} entités : réglages HDMI, vidéo et image",
+          "graphic_eq": "{n_graphic_eq} entités : bandes et courbes",
+          "zones": "{n_zones} entités des zones 2 et 3",
+          "receiver": "{n_receiver} entités : interrupteurs d'alimentation et de sourdine, limite de volume, ECO, mode d'entrée",
+          "diagnostic": "{n_diagnostic} entités : signal, décodeur, rétablir le son"
+        }
+      },
+      "tests": {
+        "title": "Tester le récepteur",
+        "description": "Les résultats vont dans le fichier de diagnostic. Pour les tests de commandes, une zone principale éteinte est allumée puis éteinte à nouveau.",
+        "menu_options": {
+          "check_run": "Vérifier les fonctions",
+          "test_quiet": "Tester les commandes discrètement",
+          "test_audible": "Tester les commandes audibles et visibles"
+        },
+        "menu_option_descriptions": {
+          "check_run": "Lecture seule : environ 150 questions, jusqu'à une minute et demie.",
+          "test_quiet": "Tonalité, Audyssey, image, minuteries et afficheur changent un instant puis sont rétablis. Quelques minutes.",
+          "test_audible": "Sourdine, enceintes, sortie HDMI, tuner, Zone 2 et le menu de configuration sur le téléviseur changent un instant puis sont rétablis."
         }
       }
     },
     "error": {
       "turn_on_above_max": "Le volume à l'allumage dépasse le volume maximal.",
-      "duplicate_name": "Deux entrées auraient le même nom.",
-      "no_group": "Choisissez au moins un groupe."
+      "duplicate_name": "Deux entrées auraient le même nom."
     },
     "abort": {
       "not_connected": "L'ampli-tuner n'est pas connecté. Ses sources et modes son sont lus depuis l'appareil ; réessayez lorsqu'il est allumé.",
@@ -1132,17 +1149,6 @@
         "tuner_presets": "Présélections du tuner",
         "more": "Plus",
         "queue": "File d'attente"
-      }
-    },
-    "entity_group": {
-      "options": {
-        "audio": "Audio (tonalité, Audyssey, surround)",
-        "speakers": "Enceintes (distances, configuration)",
-        "video": "Vidéo et image",
-        "graphic_eq": "Égaliseur graphique",
-        "zones": "Zones",
-        "receiver": "Récepteur (interrupteurs d'alimentation et de sourdine, limite de volume, ECO, mode d'entrée)",
-        "diagnostic": "Diagnostic (signal, décodeur, rétablir le son)"
       }
     }
   },

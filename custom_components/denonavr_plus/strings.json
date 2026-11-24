@@ -35,11 +35,16 @@
       },
       "unknown_model": {
         "title": "Model not checked yet",
-        "description": "The {model} has not been checked with this integration yet. Its entities are built from what it reports, but some settings may be missing or read wrongly.\n\nThe capability check asks the receiver about 150 read-only questions (nothing is changed) once it is connected, and puts the answers into the diagnostics file. You can then attach that file to a prefilled issue on GitHub, so the model can be supported properly. Nothing is sent anywhere by itself.\n\nOptionally, the command test checks which commands it takes; it writes settings and puts them back (see the options for details).",
+        "description": "The {model} has not been checked with this integration yet; some settings may be missing or read wrongly.\n\nThe tests chosen below run once the receiver is connected. Their results go into the diagnostics file, which you can attach to a prefilled issue on GitHub. Nothing is sent by itself.",
         "data": {
-          "check": "Run the capability check after setup",
-          "quiet": "Quiet tests",
-          "audible": "Audible and visible tests"
+          "check": "Check capabilities",
+          "quiet": "Test commands quietly",
+          "audible": "Test commands you hear and see"
+        },
+        "data_description": {
+          "check": "Only reads; about 150 questions.",
+          "quiet": "Changes settings for a moment and puts them back.",
+          "audible": "Mute, speakers, outputs, tuner and Zone 2 change for a moment."
         }
       }
     },
@@ -68,8 +73,7 @@
           "sound_modes": "Sound modes",
           "connection": "Connection",
           "entities": "Entities",
-          "check": "Check capabilities",
-          "command_test": "Test commands"
+          "tests": "Test the receiver"
         }
       },
       "volume": {
@@ -211,41 +215,54 @@
           "setup_refresh": "The graphic EQ, video setup and amp assign are read when the connection comes up and after every change from Home Assistant. This also reads them every so many minutes, to notice changes made on the receiver's menu; 0 reads them only then."
         }
       },
-      "check": {
-        "title": "Check capabilities",
-        "description": "Asks the receiver about 150 read-only questions over the existing connection; nothing is changed. It takes up to a minute and a half; commands from Home Assistant still go first. The answers go into the diagnostics file."
-      },
       "check_done": {
         "title": "Check finished",
         "description": "The {model} answered {answered} of {total} questions. The answers are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file. Read the file before you attach it; addresses are already replaced."
       },
-      "command_test": {
-        "title": "Test commands",
-        "description": "Each test writes a setting, waits for the receiver to confirm it, and puts the old value back. Quiet tests change settings you will hardly notice (tone, Audyssey, picture, timers, display, volume by 0.5 dB). Audible tests are heard or seen (mute, speakers and HDMI output, MultEQ, tuner, Zone 2, the setup menu on the TV). Power, the triggers and anything that stores or resets a setting are never touched. The results go into the diagnostics file.\n\nTurn the main zone on first; its settings are skipped while it is off. It takes a few minutes; do not change settings on the receiver meanwhile.",
-        "data": {
-          "quiet": "Quiet tests",
-          "audible": "Audible and visible tests"
-        }
-      },
       "command_test_done": {
         "title": "Command test finished",
-        "description": "The {model} confirmed {confirmed} of {total} commands; {skipped} were skipped. Settings not put back: {not_restored}; check them on the receiver if this is not 0. The details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics).\n\nTo help support this model, open [this prefilled issue on GitHub]({url}) and attach the diagnostics file."
+        "description": "{model}:\n\n- Confirmed: {confirmed}\n- Not confirmed: {unconfirmed}\n- Skipped: {skipped}\n- Not put back: {not_restored} (check these on the receiver if not 0)\n\nThe details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). To help support this model, open [this prefilled issue on GitHub]({url}) and attach the file."
       },
       "entities": {
         "title": "Entities",
-        "description": "Many entities start hidden: settings you set once, speaker setup, video, the graphic EQ and diagnostics. Choose the groups to show; {count} entities can be shown. Entities you enabled or disabled yourself stay as they are. Entities shown appear within half a minute.",
+        "description": "Show the entities that start hidden, by group. Entities you changed yourself stay as they are. Shown entities appear within half a minute.",
         "data": {
-          "entity_groups": "Groups shown"
+          "audio": "Audio",
+          "speakers": "Speakers",
+          "video": "Video and picture",
+          "graphic_eq": "Graphic EQ",
+          "zones": "Zones",
+          "receiver": "Receiver",
+          "diagnostic": "Diagnostics"
         },
         "data_description": {
-          "entity_groups": "A group no longer selected hides again only the entities it showed."
+          "audio": "{n_audio} entities: tone, Audyssey, surround",
+          "speakers": "{n_speakers} entities: distances, speaker setup",
+          "video": "{n_video} entities: HDMI, video and picture settings",
+          "graphic_eq": "{n_graphic_eq} entities: bands and curves",
+          "zones": "{n_zones} entities of Zone 2 and 3",
+          "receiver": "{n_receiver} entities: power and mute switches, volume limit, ECO, input mode",
+          "diagnostic": "{n_diagnostic} entities: signal, decoder, recover audio"
+        }
+      },
+      "tests": {
+        "title": "Test the receiver",
+        "description": "The results go into the diagnostics file. For the command tests, a main zone that is off is turned on and off again afterwards.",
+        "menu_options": {
+          "check_run": "Check capabilities",
+          "test_quiet": "Test commands quietly",
+          "test_audible": "Test commands you hear and see"
+        },
+        "menu_option_descriptions": {
+          "check_run": "Only reads: about 150 questions, up to a minute and a half.",
+          "test_quiet": "Tone, Audyssey, picture, timers and the display change for a moment and are put back. A few minutes.",
+          "test_audible": "Mute, speakers, HDMI output, tuner, Zone 2 and the setup menu on the TV change for a moment and are put back."
         }
       }
     },
     "error": {
       "turn_on_above_max": "The turn-on volume is above the maximum volume.",
-      "duplicate_name": "Two entries would get the same name.",
-      "no_group": "Choose at least one group."
+      "duplicate_name": "Two entries would get the same name."
     },
     "abort": {
       "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
@@ -1132,17 +1149,6 @@
         "tuner_presets": "Tuner presets",
         "more": "More",
         "queue": "Queue"
-      }
-    },
-    "entity_group": {
-      "options": {
-        "audio": "Audio (tone, Audyssey, surround)",
-        "speakers": "Speakers (distances, setup)",
-        "video": "Video and picture",
-        "graphic_eq": "Graphic EQ",
-        "zones": "Zones",
-        "receiver": "Receiver (power and mute switches, volume limit, ECO, input mode)",
-        "diagnostic": "Diagnostics (signal, decoder, recover audio)"
       }
     }
   },

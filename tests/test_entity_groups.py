@@ -41,8 +41,10 @@ async def _choose(hass: HomeAssistant, entry: MockConfigEntry, groups: list[str]
         result["flow_id"], {"next_step_id": "entities"}
     )
     assert result["step_id"] == "entities"
+    # A toggle per group offered; the ones not named are off.
+    fields = [str(key) for key in result["data_schema"].schema]
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"entity_groups": groups}
+        result["flow_id"], {field: field in groups for field in fields}
     )
     await hass.async_block_till_done()
     return result
@@ -149,9 +151,9 @@ async def test_only_groups_with_hidden_entities_are_offered(
         result = await hass.config_entries.options.async_configure(
             result["flow_id"], {"next_step_id": "entities"}
         )
-    options = result["data_schema"].schema["entity_groups"].config["options"]
-    assert options == ["video"]
-    assert result["description_placeholders"] == {"count": "2"}
+    assert [str(key) for key in result["data_schema"].schema] == ["video"]
+    assert result["description_placeholders"]["n_video"] == "2"
+    assert result["description_placeholders"]["n_audio"] == "0"
 
     result = await hass.config_entries.options.async_init(loaded_entry.entry_id)
     with patch.object(entity_groups, "hidden_counts", return_value={}):

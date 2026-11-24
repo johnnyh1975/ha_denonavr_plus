@@ -98,8 +98,8 @@ address must belong to the same receiver.
 ### Options
 
 **Configure** on the integration entry opens a menu: volume, zones, sources,
-sound modes, connection, entities, **Check capabilities** and **Test commands** (both
-under Contributing). Apart from the command test, nothing in it changes the
+sound modes, connection, entities, and **Test the receiver** (see
+Contributing). Apart from the command tests, nothing in it changes the
 receiver; it changes what Home Assistant shows and does.
 
 **Volume** (works even when the receiver is off):
@@ -146,12 +146,12 @@ modes that fit the current signal. The current source and sound mode are
 always shown, also when they are not selected. The sound mode selects keep
 the receiver's full list.
 
-**Entities** (works even when the receiver is off): which groups of the
-entities that start hidden are shown: Audio, Speakers, Video and picture,
-Graphic EQ, Zones, Receiver, Diagnostics. A group shows only entities the
-integration hid; one you enabled or disabled yourself stays as it is, and
+**Entities** (works even when the receiver is off): a toggle per group of the
+entities that start hidden, with how many it holds: Audio, Speakers, Video and
+picture, Graphic EQ, Zones, Receiver, Diagnostics. A group shows only entities
+the integration hid; one you enabled or disabled yourself stays as it is, and
 speaker entities of channels the receiver does not have stay hidden. Removing
-a group from the list hides again only what it showed. Shown entities appear
+a group off hides again only what it showed. Shown entities appear
 within half a minute, when Home Assistant reloads the integration.
 
 **Connection** (works even when the receiver is off; a change restarts the
@@ -631,7 +631,7 @@ for it.
 **Capability check.** For a model that has not been checked with this
 integration yet, setup offers to run the capability check once the receiver is
 connected, and a repair asks for it later. You can also run it any time under
-Configure → **Check capabilities**. It asks the receiver about 150 read-only
+Configure → **Test the receiver** → **Check capabilities**. It asks the receiver about 150 read-only
 questions over the integration's own connection (nothing is changed, commands
 from Home Assistant still go first) and takes up to a minute and a half. The
 answers go into the diagnostics file, with addresses replaced. A repair then
@@ -641,10 +641,11 @@ is sent anywhere by itself.
 **Command test.** The capability check only asks; the command test writes. Each
 test reads a setting, writes a different valid value, waits up to 2 seconds for
 the receiver to confirm it, asks again, then writes the old value back and
-checks that it is back. Choose it under Configure → **Test commands**. When a
-model that has not been checked yet is added, setup offers it next to the
-capability check (both groups off unless you choose them; it then runs once
-the receiver is connected, after the capability check).
+checks that it is back. Configure → **Test the receiver** has an entry for
+each group, which starts the test at once. When a model that has not been
+checked yet is added, setup offers both next to the capability check (off
+unless you choose them; they then run once the receiver is connected, after
+the capability check).
 
 - **Quiet tests**: settings you hardly notice for a few seconds: tone,
   Audyssey, surround and picture settings, timers, the display, ECO, Zone 2
@@ -657,8 +658,10 @@ the receiver is connected, after the capability check).
 
 Never tested: power, the 12 V triggers, the Bluetooth transmitter, the input,
 the sound mode, and anything that stores or resets (tuner preset and quick
-select memory, channel level reset, network restart). The main zone's settings
-are only tested while it is on; turn it on first. A test that is stopped (the
+select memory, channel level reset, network restart). A receiver in standby
+ignores settings, so a main zone that is off is turned on for the test and off
+again afterwards; if it does not come on, its settings are skipped. A test that
+is stopped (the
 connection drops, Home Assistant stops) still puts its setting back. The result
 per command is *confirmed* (echo and answer agree), *query_only* (no echo, but
 the receiver reports the new value), *echo_only*, *no_effect*, *rejected*,

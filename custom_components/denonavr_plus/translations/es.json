@@ -35,11 +35,16 @@
       },
       "unknown_model": {
         "title": "Modelo aún no comprobado",
-        "description": "El {model} aún no se ha comprobado con esta integración. Sus entidades se crean a partir de lo que informa, pero algunos ajustes pueden faltar o leerse mal.\n\nLa comprobación de funciones hace al receptor unas 150 preguntas de solo lectura (no se cambia nada) una vez conectado, y guarda las respuestas en el archivo de diagnóstico. Después puedes adjuntar ese archivo a una incidencia prerrellenada en GitHub, para que el modelo pueda tener buen soporte. No se envía nada automáticamente.\n\nOpcionalmente, la prueba de comandos comprueba qué comandos acepta; escribe ajustes y los restablece (detalles en las opciones).",
+        "description": "El {model} aún no se ha comprobado con esta integración; algunos ajustes pueden faltar o leerse mal.\n\nLas pruebas elegidas abajo se ejecutan cuando el receptor esté conectado. Sus resultados van al archivo de diagnóstico, que puedes adjuntar a una incidencia prerrellenada en GitHub. No se envía nada por sí solo.",
         "data": {
-          "check": "Ejecutar la comprobación tras la configuración",
-          "quiet": "Pruebas silenciosas",
-          "audible": "Pruebas audibles y visibles"
+          "check": "Comprobar funciones",
+          "quiet": "Probar comandos en silencio",
+          "audible": "Probar comandos que se oyen y se ven"
+        },
+        "data_description": {
+          "check": "Solo lee; unas 150 preguntas.",
+          "quiet": "Cambia ajustes un momento y los restablece.",
+          "audible": "Silencio, altavoces, salidas, sintonizador y Zona 2 cambian un momento."
         }
       }
     },
@@ -68,8 +73,7 @@
           "sound_modes": "Modos de sonido",
           "connection": "Conexión",
           "entities": "Entidades",
-          "check": "Comprobar funciones",
-          "command_test": "Probar comandos"
+          "tests": "Probar el receptor"
         }
       },
       "volume": {
@@ -211,41 +215,54 @@
           "setup_refresh": "El ecualizador gráfico, la configuración de vídeo y la asignación de amplificadores se leen al establecer la conexión y después de cada cambio desde Home Assistant. Esto además los lee cada tantos minutos, para notar los cambios hechos en el menú del receptor; 0 los lee solo entonces."
         }
       },
-      "check": {
-        "title": "Comprobar funciones",
-        "description": "Hace al receptor unas 150 preguntas de solo lectura por la conexión existente; no se cambia nada. Tarda hasta minuto y medio; las órdenes de Home Assistant siguen teniendo prioridad. Las respuestas van al archivo de diagnóstico."
-      },
       "check_done": {
         "title": "Comprobación terminada",
         "description": "El {model} respondió {answered} de {total} preguntas. Las respuestas están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico. Lee el archivo antes de adjuntarlo; las direcciones ya están sustituidas."
       },
-      "command_test": {
-        "title": "Probar comandos",
-        "description": "Cada prueba escribe un ajuste, espera a que el receptor lo confirme y restablece el valor anterior. Las pruebas silenciosas cambian ajustes que apenas se notan (tono, Audyssey, imagen, temporizadores, pantalla, volumen en 0,5 dB). Las pruebas audibles se oyen o se ven (silencio, altavoces y salida HDMI, MultEQ, sintonizador, Zona 2, el menú de configuración en el televisor). El encendido, los disparadores y todo lo que guarda o restablece un ajuste nunca se tocan. Los resultados van al archivo de diagnóstico.\n\nEnciende primero la zona principal; sus ajustes se omiten mientras está apagada. Tarda unos minutos; no cambies ajustes en el receptor mientras tanto.",
-        "data": {
-          "quiet": "Pruebas silenciosas",
-          "audible": "Pruebas audibles y visibles"
-        }
-      },
       "command_test_done": {
         "title": "Prueba de comandos terminada",
-        "description": "El {model} confirmó {confirmed} de {total} comandos; se omitieron {skipped}. Ajustes no restablecidos: {not_restored}; compruébalos en el receptor si no es 0. Los detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos).\n\nPara ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo de diagnóstico."
+        "description": "{model}:\n\n- Confirmados: {confirmed}\n- No confirmados: {unconfirmed}\n- Omitidos: {skipped}\n- No restablecidos: {not_restored} (compruébalos en el receptor si no es 0)\n\nLos detalles están en el archivo de diagnóstico (Ajustes → Dispositivos y servicios → Denon AVR Plus → ⋮ → Descargar diagnósticos). Para ayudar a dar soporte a este modelo, abre [esta incidencia prerrellenada en GitHub]({url}) y adjunta el archivo."
       },
       "entities": {
         "title": "Entidades",
-        "description": "Muchas entidades empiezan ocultas: ajustes que se fijan una vez, configuración de altavoces, vídeo, el ecualizador gráfico y diagnóstico. Elige los grupos que se muestran; se pueden mostrar {count} entidades. Las entidades que activaste o desactivaste tú mismo se quedan como están. Las entidades mostradas aparecen en medio minuto.",
+        "description": "Muestra por grupos las entidades que empiezan ocultas. Lo que cambiaste tú mismo se queda como está. Las entidades mostradas aparecen en medio minuto.",
         "data": {
-          "entity_groups": "Grupos mostrados"
+          "audio": "Audio",
+          "speakers": "Altavoces",
+          "video": "Vídeo e imagen",
+          "graphic_eq": "Ecualizador gráfico",
+          "zones": "Zonas",
+          "receiver": "Receptor",
+          "diagnostic": "Diagnóstico"
         },
         "data_description": {
-          "entity_groups": "Un grupo que deja de estar seleccionado vuelve a ocultar solo las entidades que mostró."
+          "audio": "{n_audio} entidades: tono, Audyssey, surround",
+          "speakers": "{n_speakers} entidades: distancias, configuración de altavoces",
+          "video": "{n_video} entidades: ajustes de HDMI, vídeo e imagen",
+          "graphic_eq": "{n_graphic_eq} entidades: bandas y curvas",
+          "zones": "{n_zones} entidades de las zonas 2 y 3",
+          "receiver": "{n_receiver} entidades: interruptores de encendido y silencio, límite de volumen, ECO, modo de entrada",
+          "diagnostic": "{n_diagnostic} entidades: señal, decodificador, recuperar audio"
+        }
+      },
+      "tests": {
+        "title": "Probar el receptor",
+        "description": "Los resultados van al archivo de diagnóstico. Para las pruebas de comandos, una zona principal apagada se enciende y después se vuelve a apagar.",
+        "menu_options": {
+          "check_run": "Comprobar funciones",
+          "test_quiet": "Probar comandos en silencio",
+          "test_audible": "Probar comandos que se oyen y se ven"
+        },
+        "menu_option_descriptions": {
+          "check_run": "Solo lee: unas 150 preguntas, hasta minuto y medio.",
+          "test_quiet": "Tono, Audyssey, imagen, temporizadores y pantalla cambian un momento y se restablecen. Unos minutos.",
+          "test_audible": "Silencio, altavoces, salida HDMI, sintonizador, Zona 2 y el menú de configuración en el televisor cambian un momento y se restablecen."
         }
       }
     },
     "error": {
       "turn_on_above_max": "El volumen al encender supera el volumen máximo.",
-      "duplicate_name": "Dos entradas tendrían el mismo nombre.",
-      "no_group": "Elige al menos un grupo."
+      "duplicate_name": "Dos entradas tendrían el mismo nombre."
     },
     "abort": {
       "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
@@ -1132,17 +1149,6 @@
         "tuner_presets": "Presintonías del sintonizador",
         "more": "Más",
         "queue": "Cola"
-      }
-    },
-    "entity_group": {
-      "options": {
-        "audio": "Audio (tono, Audyssey, surround)",
-        "speakers": "Altavoces (distancias, configuración)",
-        "video": "Vídeo e imagen",
-        "graphic_eq": "Ecualizador gráfico",
-        "zones": "Zonas",
-        "receiver": "Receptor (interruptores de encendido y silencio, límite de volumen, ECO, modo de entrada)",
-        "diagnostic": "Diagnóstico (señal, decodificador, recuperar audio)"
       }
     }
   },

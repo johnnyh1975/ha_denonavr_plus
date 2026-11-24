@@ -35,11 +35,16 @@
       },
       "unknown_model": {
         "title": "Modello non ancora verificato",
-        "description": "Il {model} non è ancora stato verificato con questa integrazione. Le sue entità vengono create da ciò che comunica, ma alcune impostazioni potrebbero mancare o essere lette in modo errato.\n\nLa verifica delle funzioni pone al sintoamplificatore circa 150 domande di sola lettura (non viene modificato nulla) una volta connesso, e mette le risposte nel file di diagnostica. Puoi poi allegare quel file a una segnalazione precompilata su GitHub, così il modello può essere supportato correttamente. Non viene inviato nulla automaticamente.\n\nFacoltativo: la prova dei comandi verifica quali comandi accetta; scrive impostazioni e le ripristina (dettagli nelle opzioni).",
+        "description": "Il {model} non è ancora stato verificato con questa integrazione; alcune impostazioni potrebbero mancare o essere lette male.\n\nLe prove scelte qui sotto partono quando il ricevitore è connesso. I risultati finiscono nel file di diagnostica, che puoi allegare a una segnalazione precompilata su GitHub. Nulla viene inviato da solo.",
         "data": {
-          "check": "Avvia la verifica dopo la configurazione",
-          "quiet": "Test silenziosi",
-          "audible": "Test udibili e visibili"
+          "check": "Verifica funzioni",
+          "quiet": "Prova comandi in silenzio",
+          "audible": "Prova comandi udibili e visibili"
+        },
+        "data_description": {
+          "check": "Solo lettura; circa 150 domande.",
+          "quiet": "Cambia impostazioni per un momento e le ripristina.",
+          "audible": "Muto, diffusori, uscite, sintonizzatore e Zona 2 cambiano per un momento."
         }
       }
     },
@@ -68,8 +73,7 @@
           "sound_modes": "Modalità audio",
           "connection": "Connessione",
           "entities": "Entità",
-          "check": "Verifica funzioni",
-          "command_test": "Prova comandi"
+          "tests": "Prova il ricevitore"
         }
       },
       "volume": {
@@ -211,41 +215,54 @@
           "setup_refresh": "L'equalizzatore grafico, il setup video e l'assegnazione degli amplificatori vengono letti all'avvio della connessione e dopo ogni modifica da Home Assistant. Questo li legge anche ogni tot minuti, per notare le modifiche fatte nel menu del sintoamplificatore; 0 li legge solo in quei momenti."
         }
       },
-      "check": {
-        "title": "Verifica funzioni",
-        "description": "Pone al sintoamplificatore circa 150 domande di sola lettura tramite la connessione esistente; non viene modificato nulla. Richiede fino a un minuto e mezzo; i comandi di Home Assistant hanno comunque la precedenza. Le risposte finiscono nel file di diagnostica."
-      },
       "check_done": {
         "title": "Verifica completata",
         "description": "Il {model} ha risposto a {answered} domande su {total}. Le risposte sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica).\n\nPer aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file di diagnostica. Leggi il file prima di allegarlo; gli indirizzi sono già sostituiti."
       },
-      "command_test": {
-        "title": "Prova comandi",
-        "description": "Ogni test scrive un'impostazione, attende la conferma del ricevitore e ripristina il valore precedente. I test silenziosi cambiano impostazioni che si notano appena (toni, Audyssey, immagine, timer, display, volume di 0,5 dB). I test udibili si sentono o si vedono (muto, diffusori e uscita HDMI, MultEQ, sintonizzatore, Zona 2, il menu di configurazione sul televisore). L'accensione, i trigger e tutto ciò che salva o azzera un'impostazione non vengono mai toccati. I risultati finiscono nel file di diagnostica.\n\nAccendi prima la zona principale; le sue impostazioni vengono saltate finché è spenta. Richiede alcuni minuti; nel frattempo non cambiare impostazioni sul ricevitore.",
-        "data": {
-          "quiet": "Test silenziosi",
-          "audible": "Test udibili e visibili"
-        }
-      },
       "command_test_done": {
         "title": "Prova dei comandi terminata",
-        "description": "Il {model} ha confermato {confirmed} comandi su {total}; {skipped} sono stati saltati. Impostazioni non ripristinate: {not_restored}; controllale sul ricevitore se non è 0. I dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica).\n\nPer aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file di diagnostica."
+        "description": "{model}:\n\n- Confermati: {confirmed}\n- Non confermati: {unconfirmed}\n- Saltati: {skipped}\n- Non ripristinati: {not_restored} (controllali sul ricevitore se non è 0)\n\nI dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Per aiutare a supportare questo modello, apri [questa segnalazione precompilata su GitHub]({url}) e allega il file."
       },
       "entities": {
         "title": "Entità",
-        "description": "Molte entità partono nascoste: impostazioni che si fissano una volta, configurazione dei diffusori, video, l'equalizzatore grafico e diagnostica. Scegli i gruppi mostrati; si possono mostrare {count} entità. Le entità che hai attivato o disattivato tu restano come sono. Le entità mostrate compaiono entro mezzo minuto.",
+        "description": "Mostra per gruppi le entità che partono nascoste. Ciò che hai cambiato tu resta com'è. Le entità mostrate compaiono entro mezzo minuto.",
         "data": {
-          "entity_groups": "Gruppi mostrati"
+          "audio": "Audio",
+          "speakers": "Diffusori",
+          "video": "Video e immagine",
+          "graphic_eq": "Equalizzatore grafico",
+          "zones": "Zone",
+          "receiver": "Ricevitore",
+          "diagnostic": "Diagnostica"
         },
         "data_description": {
-          "entity_groups": "Un gruppo non più selezionato nasconde di nuovo solo le entità che ha mostrato."
+          "audio": "{n_audio} entità: toni, Audyssey, surround",
+          "speakers": "{n_speakers} entità: distanze, configurazione dei diffusori",
+          "video": "{n_video} entità: impostazioni HDMI, video e immagine",
+          "graphic_eq": "{n_graphic_eq} entità: bande e curve",
+          "zones": "{n_zones} entità delle zone 2 e 3",
+          "receiver": "{n_receiver} entità: interruttori di accensione e muto, limite di volume, ECO, modalità di ingresso",
+          "diagnostic": "{n_diagnostic} entità: segnale, decoder, ripristina audio"
+        }
+      },
+      "tests": {
+        "title": "Prova il ricevitore",
+        "description": "I risultati finiscono nel file di diagnostica. Per le prove dei comandi, una zona principale spenta viene accesa e poi spenta di nuovo.",
+        "menu_options": {
+          "check_run": "Verifica funzioni",
+          "test_quiet": "Prova comandi in silenzio",
+          "test_audible": "Prova comandi udibili e visibili"
+        },
+        "menu_option_descriptions": {
+          "check_run": "Solo lettura: circa 150 domande, fino a un minuto e mezzo.",
+          "test_quiet": "Toni, Audyssey, immagine, timer e display cambiano per un momento e vengono ripristinati. Alcuni minuti.",
+          "test_audible": "Muto, diffusori, uscita HDMI, sintonizzatore, Zona 2 e il menu di configurazione sul televisore cambiano per un momento e vengono ripristinati."
         }
       }
     },
     "error": {
       "turn_on_above_max": "Il volume all'accensione supera il volume massimo.",
-      "duplicate_name": "Due voci avrebbero lo stesso nome.",
-      "no_group": "Scegli almeno un gruppo."
+      "duplicate_name": "Due voci avrebbero lo stesso nome."
     },
     "abort": {
       "not_connected": "Il sintoamplificatore non è connesso. Sorgenti e modalità audio vengono lette dal dispositivo; riprova quando è acceso.",
@@ -1132,17 +1149,6 @@
         "tuner_presets": "Preselezioni del sintonizzatore",
         "more": "Altro",
         "queue": "Coda"
-      }
-    },
-    "entity_group": {
-      "options": {
-        "audio": "Audio (toni, Audyssey, surround)",
-        "speakers": "Diffusori (distanze, configurazione)",
-        "video": "Video e immagine",
-        "graphic_eq": "Equalizzatore grafico",
-        "zones": "Zone",
-        "receiver": "Ricevitore (interruttori di accensione e muto, limite di volume, ECO, modalità di ingresso)",
-        "diagnostic": "Diagnostica (segnale, decoder, ripristina audio)"
       }
     }
   },

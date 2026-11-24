@@ -18,8 +18,9 @@ input, the sound mode, and every command that stores or resets something
 (tuner preset and quick select memory, channel level reset, network
 restart).
 
-Settings of the main zone are only tested while it is on; otherwise the
-receiver may ignore them, which would read as a failure.
+A receiver in standby ignores the settings (an AVR-X2000 did: every write
+had no effect). So a main zone that is off is turned on for the test and off
+again afterwards; settings of the main zone that is still not on are skipped.
 """
 
 from __future__ import annotations
@@ -51,6 +52,11 @@ CONFIRM_WAIT = 2.0
 QUERY_WAIT = 1.0
 #: How long a restored zone may take to report its power and input.
 ZONE_SETTLE = 3.0
+#: A main zone in standby is turned on for the test: how long it may take to
+#: report on, and the pause before the first setting (the receiver ignores
+#: settings while it starts up).
+POWER_WAIT = 15.0
+POWER_SETTLE = 3.0
 
 #: Controls that are never written by the test.
 NEVER = frozenset(
@@ -419,6 +425,22 @@ def _tuner_probes(device: DenonAvrDevice) -> list[Probe]:
             restore=preset_back,
         ),
     ]
+
+
+async def async_power_on(device: DenonAvrDevice) -> bool:
+    """Turn a main zone that is off on for the test; True when it was."""
+
+    zone = device.state.zone("main")
+    if zone.power:
+        return False
+    await device.async_set_power("main", True)
+    loop = asyncio.get_running_loop()
+    until = loop.time() + POWER_WAIT
+    while not zone.power and loop.time() < until:
+        await asyncio.sleep(0.1)
+    if zone.power:
+        await asyncio.sleep(POWER_SETTLE)
+    return True
 
 
 def probes_for(device: DenonAvrDevice, groups: tuple[str, ...] | list[str]) -> list[Probe]:

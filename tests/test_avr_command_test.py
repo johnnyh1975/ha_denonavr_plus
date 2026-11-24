@@ -96,6 +96,8 @@ def fast() -> Iterator[None]:
         patch.object(command_test, "CONFIRM_WAIT", 0.05),
         patch.object(command_test, "QUERY_WAIT", 0.05),
         patch.object(command_test, "ZONE_SETTLE", 0.3),
+        patch.object(command_test, "POWER_WAIT", 0.2),
+        patch.object(command_test, "POWER_SETTLE", 0.01),
         patch("custom_components.denonavr_plus.avr.device.REPLY_COLLECT_QUIET", 0.02),
     ):
         yield
@@ -278,9 +280,36 @@ async def test_each_outcome(
     assert result["test_version"] == command_test.TEST_VERSION
 
 
+async def test_a_main_zone_that_is_off_is_turned_on_for_the_test(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    """In standby an AVR-X2000 ignored every setting (its first quiet test)."""
+    receiver = Receiver(hass, {"ZM": "OFF", "PSBAS ": "50"}, {"PSBAS ?": ["PSBAS "]})
+    receiver.telnet.push("ZMOFF")
+    result = await _run(hass, loaded_entry, receiver, "bass")
+    assert result["tests"]["bass"]["result"] == "confirmed"
+    assert (result["main_zone_on"], result["turned_on_for_test"]) == (False, True)
+    sent = receiver.telnet.sent
+    assert sent.index("ZMON") < sent.index("PSBAS 505")
+    # Off again as it was.
+    assert sent[-1] == "ZMOFF"
+    assert receiver.settings["ZM"] == "OFF"
+
+
+async def test_a_main_zone_already_on_is_left_on(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
+) -> None:
+    receiver = Receiver(hass, {"ZM": "ON", "DIM ": "BRI"}, {"DIM ?": ["DIM "]})
+    receiver.telnet.push("ZMON")
+    result = await _run(hass, loaded_entry, receiver, "dimmer")
+    assert result["turned_on_for_test"] is False
+    assert not {"ZMON", "ZMOFF"} & set(receiver.telnet.sent)
+
+
 async def test_the_main_zone_must_be_on(
     hass: HomeAssistant, loaded_entry: MockConfigEntry, fast: None
 ) -> None:
+    """A main zone that does not come on: its settings are skipped."""
     receiver = Receiver(hass, {"PSBAS ": "50", "SLP": "OFF"}, {"PSBAS ?": ["PSBAS "], "SLP?": ["SLP"]})
     receiver.telnet.push("ZMOFF")
     result = await _run(hass, loaded_entry, receiver, "bass", "sleep_timer")
@@ -348,8 +377,10 @@ async def test_a_cancelled_test_puts_the_value_back(
         patch.object(receiver.telnet, "async_send", receiver.send),
         _only("dimmer"),
         patch.object(command_test, "QUERY_WAIT", 0.05),
+        patch.object(command_test, "POWER_WAIT", 0.05),
         patch("custom_components.denonavr_plus.avr.device.REPLY_COLLECT_QUIET", 0.02),
     ):
+        receiver.telnet.push("ZMON")
         task = hass.async_create_task(device.async_command_test([QUIET]))
         for _ in range(100):
             if "DIM DIM" in receiver.telnet.sent:

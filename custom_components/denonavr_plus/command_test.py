@@ -106,7 +106,7 @@ class CommandTestResults:
             translation_key=ISSUE_DONE,
             translation_placeholders={
                 "model": result.get("model") or "Denon AVR",
-                "confirmed": str(counts.get("confirmed", 0)),
+                "confirmed": str(counts.get("confirmed", 0) + counts.get("query_only", 0)),
                 "total": str(len(result.get("tests", {}))),
                 "not_restored": str(counts.get("not_restored", 0)),
             },
@@ -141,7 +141,8 @@ async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
 
 
 class CommandTestSteps:
-    """Options steps: command_test (groups) -> command_test_run -> command_test_done."""
+    """Options steps: test_quiet or test_audible (menu entries that start at
+    once) -> command_test_run (progress) -> command_test_done (the result)."""
 
     _test_task: asyncio.Task[dict[str, Any] | None] | None = None
     _test_result: dict[str, Any] | None = None
@@ -155,20 +156,17 @@ class CommandTestSteps:
     def _check_finished(self) -> Any:
         raise NotImplementedError
 
-    async def async_step_command_test(
+    async def async_step_test_quiet(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            self._test_groups = chosen(user_input)
-            if self._test_groups:
-                return await self.async_step_command_test_run()
-            errors["base"] = "no_group"
-        return self.async_show_form(  # type: ignore[attr-defined, no-any-return]
-            step_id="command_test",
-            data_schema=vol.Schema(groups_schema({QUIET: True, AUDIBLE: False})),
-            errors=errors,
-        )
+        self._test_groups = [QUIET]
+        return await self.async_step_command_test_run()
+
+    async def async_step_test_audible(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        self._test_groups = [AUDIBLE]
+        return await self.async_step_command_test_run()
 
     async def async_step_command_test_run(
         self, user_input: dict[str, Any] | None = None
@@ -220,13 +218,16 @@ class CommandTestSteps:
             return cast(FlowResult, self._check_finished())
         result = self._test_result or {}
         counts = summary(result.get("tests"))
+        confirmed = counts.get("confirmed", 0) + counts.get("query_only", 0)
+        skipped = counts.get("skipped", 0) + counts.get("no_value", 0)
+        total = len(result.get("tests", {}))
         return self.async_show_form(  # type: ignore[attr-defined, no-any-return]
             step_id="command_test_done",
             description_placeholders={
                 "model": result.get("model") or "Denon AVR",
-                "confirmed": str(counts.get("confirmed", 0)),
-                "total": str(len(result.get("tests", {}))),
-                "skipped": str(counts.get("skipped", 0)),
+                "confirmed": str(confirmed),
+                "unconfirmed": str(total - confirmed - skipped),
+                "skipped": str(skipped),
                 "not_restored": str(counts.get("not_restored", 0)),
                 "url": issue_url(result.get("model"), result.get("firmware")),
             },

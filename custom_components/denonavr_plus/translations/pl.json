@@ -35,11 +35,16 @@
       },
       "unknown_model": {
         "title": "Model jeszcze niesprawdzony",
-        "description": "{model} nie był jeszcze sprawdzany z tą integracją. Jego encje powstają z tego, co zgłasza, ale niektórych ustawień może brakować lub mogą być błędnie odczytane.\n\nSprawdzenie funkcji zadaje amplitunerowi po połączeniu około 150 pytań tylko do odczytu (nic nie jest zmieniane) i zapisuje odpowiedzi w pliku diagnostycznym. Ten plik możesz potem dołączyć do wstępnie wypełnionego zgłoszenia na GitHubie, aby model mógł być dobrze obsługiwany. Nic nie jest wysyłane automatycznie.\n\nOpcjonalnie test poleceń sprawdza, które polecenia przyjmuje; zapisuje ustawienia i je przywraca (szczegóły w opcjach).",
+        "description": "{model} nie został jeszcze sprawdzony z tą integracją; niektórych ustawień może brakować lub mogą być źle odczytywane.\n\nWybrane poniżej testy uruchomią się po połączeniu amplitunera. Ich wyniki trafiają do pliku diagnostycznego, który możesz dołączyć do wstępnie wypełnionego zgłoszenia na GitHubie. Nic nie jest wysyłane samo.",
         "data": {
-          "check": "Uruchom sprawdzenie po konfiguracji",
-          "quiet": "Ciche testy",
-          "audible": "Słyszalne i widoczne testy"
+          "check": "Sprawdź funkcje",
+          "quiet": "Testuj polecenia po cichu",
+          "audible": "Testuj polecenia słyszalne i widoczne"
+        },
+        "data_description": {
+          "check": "Tylko odczyt; około 150 pytań.",
+          "quiet": "Zmienia ustawienia na chwilę i je przywraca.",
+          "audible": "Wyciszenie, głośniki, wyjścia, tuner i Strefa 2 zmieniają się na chwilę."
         }
       }
     },
@@ -68,8 +73,7 @@
           "sound_modes": "Tryby dźwięku",
           "connection": "Połączenie",
           "entities": "Encje",
-          "check": "Sprawdź funkcje",
-          "command_test": "Testuj polecenia"
+          "tests": "Testuj amplituner"
         }
       },
       "volume": {
@@ -211,41 +215,54 @@
           "setup_refresh": "Korektor graficzny, ustawienia wideo i przypisanie wzmacniaczy są odczytywane po nawiązaniu połączenia i po każdej zmianie z Home Assistant. Dodatkowo odczytuje je co tyle minut, aby zauważyć zmiany w menu amplitunera; 0 odczytuje je tylko wtedy."
         }
       },
-      "check": {
-        "title": "Sprawdź funkcje",
-        "description": "Zadaje amplitunerowi przez istniejące połączenie około 150 pytań tylko do odczytu; nic nie jest zmieniane. Trwa to do półtorej minuty; polecenia z Home Assistant nadal mają pierwszeństwo. Odpowiedzi trafiają do pliku diagnostycznego."
-      },
       "check_done": {
         "title": "Sprawdzenie zakończone",
         "description": "{model} odpowiedział na {answered} z {total} pytań. Odpowiedzi są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne).\n\nAby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik diagnostyczny. Przeczytaj plik przed dołączeniem; adresy są już zastąpione."
       },
-      "command_test": {
-        "title": "Testuj polecenia",
-        "description": "Każdy test zapisuje ustawienie, czeka na potwierdzenie amplitunera i przywraca poprzednią wartość. Ciche testy zmieniają ustawienia, które ledwo widać (barwa dźwięku, Audyssey, obraz, timery, wyświetlacz, głośność o 0,5 dB). Słyszalne testy słychać lub widać (wyciszenie, głośniki i wyjście HDMI, MultEQ, tuner, Strefa 2, menu konfiguracji na telewizorze). Zasilanie, wyzwalacze i wszystko, co zapisuje lub resetuje ustawienie, nigdy nie są ruszane. Wyniki trafiają do pliku diagnostycznego.\n\nNajpierw włącz strefę główną; jej ustawienia są pomijane, gdy jest wyłączona. Trwa to kilka minut; w tym czasie nie zmieniaj ustawień na amplitunerze.",
-        "data": {
-          "quiet": "Ciche testy",
-          "audible": "Słyszalne i widoczne testy"
-        }
-      },
       "command_test_done": {
         "title": "Test poleceń zakończony",
-        "description": "{model} potwierdził {confirmed} z {total} poleceń; pominięto {skipped}. Nieprzywrócone ustawienia: {not_restored}; jeśli to nie 0, sprawdź je na amplitunerze. Szczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne).\n\nAby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik diagnostyczny."
+        "description": "{model}:\n\n- Potwierdzone: {confirmed}\n- Niepotwierdzone: {unconfirmed}\n- Pominięte: {skipped}\n- Nieprzywrócone: {not_restored} (jeśli to nie 0, sprawdź je na amplitunerze)\n\nSzczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Aby pomóc w obsłudze tego modelu, otwórz [to wstępnie wypełnione zgłoszenie na GitHubie]({url}) i dołącz plik."
       },
       "entities": {
         "title": "Encje",
-        "description": "Wiele encji startuje ukrytych: ustawienia ustawiane raz, konfiguracja głośników, wideo, korektor graficzny i diagnostyka. Wybierz wyświetlane grupy; można pokazać {count} encji. Encje, które włączyłeś lub wyłączyłeś sam, pozostają bez zmian. Pokazane encje pojawiają się w ciągu pół minuty.",
+        "description": "Pokaż grupami encje, które startują ukryte. To, co zmieniłeś sam, pozostaje bez zmian. Pokazane encje pojawiają się w ciągu pół minuty.",
         "data": {
-          "entity_groups": "Wyświetlane grupy"
+          "audio": "Audio",
+          "speakers": "Głośniki",
+          "video": "Wideo i obraz",
+          "graphic_eq": "Korektor graficzny",
+          "zones": "Strefy",
+          "receiver": "Amplituner",
+          "diagnostic": "Diagnostyka"
         },
         "data_description": {
-          "entity_groups": "Odznaczona grupa ponownie ukrywa tylko encje, które sama pokazała."
+          "audio": "{n_audio} encji: barwa dźwięku, Audyssey, surround",
+          "speakers": "{n_speakers} encji: odległości, konfiguracja głośników",
+          "video": "{n_video} encji: ustawienia HDMI, wideo i obrazu",
+          "graphic_eq": "{n_graphic_eq} encji: pasma i krzywe",
+          "zones": "{n_zones} encji stref 2 i 3",
+          "receiver": "{n_receiver} encji: przełączniki zasilania i wyciszenia, limit głośności, ECO, tryb wejścia",
+          "diagnostic": "{n_diagnostic} encji: sygnał, dekoder, przywróć dźwięk"
+        }
+      },
+      "tests": {
+        "title": "Testuj amplituner",
+        "description": "Wyniki trafiają do pliku diagnostycznego. Na czas testów poleceń wyłączona strefa główna jest włączana, a potem znowu wyłączana.",
+        "menu_options": {
+          "check_run": "Sprawdź funkcje",
+          "test_quiet": "Testuj polecenia po cichu",
+          "test_audible": "Testuj polecenia słyszalne i widoczne"
+        },
+        "menu_option_descriptions": {
+          "check_run": "Tylko odczyt: około 150 pytań, do półtorej minuty.",
+          "test_quiet": "Barwa dźwięku, Audyssey, obraz, timery i wyświetlacz zmieniają się na chwilę i są przywracane. Kilka minut.",
+          "test_audible": "Wyciszenie, głośniki, wyjście HDMI, tuner, Strefa 2 i menu konfiguracji na telewizorze zmieniają się na chwilę i są przywracane."
         }
       }
     },
     "error": {
       "turn_on_above_max": "Głośność po włączeniu jest wyższa niż maksymalna głośność.",
-      "duplicate_name": "Dwa wpisy miałyby tę samą nazwę.",
-      "no_group": "Wybierz co najmniej jedną grupę."
+      "duplicate_name": "Dwa wpisy miałyby tę samą nazwę."
     },
     "abort": {
       "not_connected": "Amplituner nie jest połączony. Jego źródła i tryby dźwięku są odczytywane z urządzenia; spróbuj ponownie, gdy będzie włączony.",
@@ -1132,17 +1149,6 @@
         "tuner_presets": "Stacje zapisane w tunerze",
         "more": "Więcej",
         "queue": "Kolejka"
-      }
-    },
-    "entity_group": {
-      "options": {
-        "audio": "Audio (barwa dźwięku, Audyssey, surround)",
-        "speakers": "Głośniki (odległości, konfiguracja)",
-        "video": "Wideo i obraz",
-        "graphic_eq": "Korektor graficzny",
-        "zones": "Strefy",
-        "receiver": "Amplituner (przełączniki zasilania i wyciszenia, limit głośności, ECO, tryb wejścia)",
-        "diagnostic": "Diagnostyka (sygnał, dekoder, przywróć dźwięk)"
       }
     }
   },

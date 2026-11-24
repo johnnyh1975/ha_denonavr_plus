@@ -35,11 +35,16 @@
       },
       "unknown_model": {
         "title": "Modelo ainda não verificado",
-        "description": "O {model} ainda não foi verificado com esta integração. As suas entidades são criadas a partir do que comunica, mas algumas definições podem faltar ou ser lidas incorretamente.\n\nA verificação de funções faz ao recetor cerca de 150 perguntas só de leitura (nada é alterado) depois de ligado, e guarda as respostas no ficheiro de diagnóstico. Pode depois anexar esse ficheiro a um problema pré-preenchido no GitHub, para que o modelo seja bem suportado. Nada é enviado automaticamente.\n\nOpcionalmente, o teste de comandos verifica que comandos aceita; escreve definições e repõe-nas (detalhes nas opções).",
+        "description": "O {model} ainda não foi verificado com esta integração; algumas definições podem faltar ou ser mal lidas.\n\nOs testes escolhidos abaixo correm quando o recetor estiver ligado. Os resultados vão para o ficheiro de diagnóstico, que pode anexar a um problema pré-preenchido no GitHub. Nada é enviado por si só.",
         "data": {
-          "check": "Executar a verificação após a configuração",
-          "quiet": "Testes silenciosos",
-          "audible": "Testes audíveis e visíveis"
+          "check": "Verificar funções",
+          "quiet": "Testar comandos em silêncio",
+          "audible": "Testar comandos audíveis e visíveis"
+        },
+        "data_description": {
+          "check": "Só lê; cerca de 150 perguntas.",
+          "quiet": "Altera definições por um momento e repõe-nas.",
+          "audible": "Silêncio, altifalantes, saídas, sintonizador e Zona 2 mudam por um momento."
         }
       }
     },
@@ -68,8 +73,7 @@
           "sound_modes": "Modos de som",
           "connection": "Ligação",
           "entities": "Entidades",
-          "check": "Verificar funções",
-          "command_test": "Testar comandos"
+          "tests": "Testar o recetor"
         }
       },
       "volume": {
@@ -211,41 +215,54 @@
           "setup_refresh": "O equalizador gráfico, a configuração de vídeo e a atribuição de amplificadores são lidos quando a ligação é estabelecida e após cada alteração a partir do Home Assistant. Isto lê-os também a cada tantos minutos, para notar alterações feitas no menu do recetor; 0 lê-os só nessas alturas."
         }
       },
-      "check": {
-        "title": "Verificar funções",
-        "description": "Faz ao recetor cerca de 150 perguntas só de leitura pela ligação existente; nada é alterado. Demora até minuto e meio; os comandos do Home Assistant continuam a ter prioridade. As respostas vão para o ficheiro de diagnóstico."
-      },
       "check_done": {
         "title": "Verificação concluída",
         "description": "O {model} respondeu a {answered} de {total} perguntas. As respostas estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos).\n\nPara ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro de diagnóstico. Leia o ficheiro antes de o anexar; os endereços já estão substituídos."
       },
-      "command_test": {
-        "title": "Testar comandos",
-        "description": "Cada teste escreve uma definição, espera que o recetor a confirme e repõe o valor anterior. Os testes silenciosos alteram definições que mal se notam (tom, Audyssey, imagem, temporizadores, visor, volume em 0,5 dB). Os testes audíveis ouvem-se ou veem-se (silêncio, altifalantes e saída HDMI, MultEQ, sintonizador, Zona 2, o menu de configuração na televisão). A alimentação, os disparadores e tudo o que guarda ou repõe uma definição nunca são tocados. Os resultados vão para o ficheiro de diagnóstico.\n\nLigue primeiro a zona principal; as suas definições são saltadas enquanto estiver desligada. Demora alguns minutos; entretanto não altere definições no recetor.",
-        "data": {
-          "quiet": "Testes silenciosos",
-          "audible": "Testes audíveis e visíveis"
-        }
-      },
       "command_test_done": {
         "title": "Teste de comandos concluído",
-        "description": "O {model} confirmou {confirmed} de {total} comandos; {skipped} foram saltados. Definições não repostas: {not_restored}; verifique-as no recetor se não for 0. Os detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos).\n\nPara ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro de diagnóstico."
+        "description": "{model}:\n\n- Confirmados: {confirmed}\n- Não confirmados: {unconfirmed}\n- Saltados: {skipped}\n- Não repostos: {not_restored} (verifique-os no recetor se não for 0)\n\nOs detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Para ajudar a suportar este modelo, abra [este problema pré-preenchido no GitHub]({url}) e anexe o ficheiro."
       },
       "entities": {
         "title": "Entidades",
-        "description": "Muitas entidades começam ocultas: definições que se ajustam uma vez, configuração dos altifalantes, vídeo, o equalizador gráfico e diagnóstico. Escolha os grupos mostrados; podem ser mostradas {count} entidades. As entidades que ativou ou desativou por si ficam como estão. As entidades mostradas aparecem em meio minuto.",
+        "description": "Mostre por grupos as entidades que começam ocultas. O que alterou por si fica como está. As entidades mostradas aparecem em meio minuto.",
         "data": {
-          "entity_groups": "Grupos mostrados"
+          "audio": "Áudio",
+          "speakers": "Altifalantes",
+          "video": "Vídeo e imagem",
+          "graphic_eq": "Equalizador gráfico",
+          "zones": "Zonas",
+          "receiver": "Recetor",
+          "diagnostic": "Diagnóstico"
         },
         "data_description": {
-          "entity_groups": "Um grupo que deixa de estar selecionado volta a ocultar apenas as entidades que mostrou."
+          "audio": "{n_audio} entidades: tom, Audyssey, surround",
+          "speakers": "{n_speakers} entidades: distâncias, configuração dos altifalantes",
+          "video": "{n_video} entidades: definições de HDMI, vídeo e imagem",
+          "graphic_eq": "{n_graphic_eq} entidades: bandas e curvas",
+          "zones": "{n_zones} entidades das zonas 2 e 3",
+          "receiver": "{n_receiver} entidades: interruptores de alimentação e silêncio, limite de volume, ECO, modo de entrada",
+          "diagnostic": "{n_diagnostic} entidades: sinal, descodificador, recuperar áudio"
+        }
+      },
+      "tests": {
+        "title": "Testar o recetor",
+        "description": "Os resultados vão para o ficheiro de diagnóstico. Para os testes de comandos, uma zona principal desligada é ligada e depois desligada de novo.",
+        "menu_options": {
+          "check_run": "Verificar funções",
+          "test_quiet": "Testar comandos em silêncio",
+          "test_audible": "Testar comandos audíveis e visíveis"
+        },
+        "menu_option_descriptions": {
+          "check_run": "Só lê: cerca de 150 perguntas, até minuto e meio.",
+          "test_quiet": "Tom, Audyssey, imagem, temporizadores e visor mudam por um momento e são repostos. Alguns minutos.",
+          "test_audible": "Silêncio, altifalantes, saída HDMI, sintonizador, Zona 2 e o menu de configuração na televisão mudam por um momento e são repostos."
         }
       }
     },
     "error": {
       "turn_on_above_max": "O volume ao ligar está acima do volume máximo.",
-      "duplicate_name": "Duas entradas ficariam com o mesmo nome.",
-      "no_group": "Escolha pelo menos um grupo."
+      "duplicate_name": "Duas entradas ficariam com o mesmo nome."
     },
     "abort": {
       "not_connected": "O recetor não está ligado à rede. As fontes e os modos de som são lidos do aparelho; tente novamente quando estiver ligado.",
@@ -1132,17 +1149,6 @@
         "tuner_presets": "Predefinições do sintonizador",
         "more": "Mais",
         "queue": "Fila"
-      }
-    },
-    "entity_group": {
-      "options": {
-        "audio": "Áudio (tom, Audyssey, surround)",
-        "speakers": "Altifalantes (distâncias, configuração)",
-        "video": "Vídeo e imagem",
-        "graphic_eq": "Equalizador gráfico",
-        "zones": "Zonas",
-        "receiver": "Recetor (interruptores de alimentação e silêncio, limite de volume, ECO, modo de entrada)",
-        "diagnostic": "Diagnóstico (sinal, descodificador, recuperar áudio)"
       }
     }
   },

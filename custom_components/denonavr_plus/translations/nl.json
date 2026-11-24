@@ -35,11 +35,16 @@
       },
       "unknown_model": {
         "title": "Model nog niet gecontroleerd",
-        "description": "De {model} is nog niet met deze integratie gecontroleerd. De entiteiten worden opgebouwd uit wat hij meldt, maar sommige instellingen kunnen ontbreken of verkeerd gelezen worden.\n\nDe functiecontrole stelt de receiver na het verbinden ongeveer 150 vragen die alleen lezen (er wordt niets veranderd) en zet de antwoorden in het diagnosebestand. Dat bestand kun je daarna bij een vooraf ingevulde issue op GitHub voegen, zodat het model goed ondersteund kan worden. Er wordt niets vanzelf verstuurd.\n\nDesgewenst controleert de commandotest welke commando's hij aanneemt; die schrijft instellingen en zet ze terug (details in de opties).",
+        "description": "De {model} is nog niet gecontroleerd met deze integratie; sommige instellingen kunnen ontbreken of verkeerd gelezen worden.\n\nDe hieronder gekozen tests lopen zodra de receiver verbonden is. Hun resultaten komen in het diagnosebestand, dat je aan een vooraf ingevulde issue op GitHub kunt toevoegen. Er wordt niets vanzelf verstuurd.",
         "data": {
-          "check": "Functiecontrole na het instellen uitvoeren",
-          "quiet": "Stille tests",
-          "audible": "Hoorbare en zichtbare tests"
+          "check": "Functies controleren",
+          "quiet": "Commando's stil testen",
+          "audible": "Hoorbare en zichtbare commando's testen"
+        },
+        "data_description": {
+          "check": "Leest alleen; ongeveer 150 vragen.",
+          "quiet": "Verandert instellingen even en zet ze terug.",
+          "audible": "Dempen, luidsprekers, uitgangen, tuner en Zone 2 veranderen even."
         }
       }
     },
@@ -68,8 +73,7 @@
           "sound_modes": "Geluidsmodi",
           "connection": "Verbinding",
           "entities": "Entiteiten",
-          "check": "Functies controleren",
-          "command_test": "Commando's testen"
+          "tests": "Receiver testen"
         }
       },
       "volume": {
@@ -211,41 +215,54 @@
           "setup_refresh": "De grafische EQ, de video-instellingen en de versterkertoewijzing worden gelezen wanneer de verbinding tot stand komt en na elke wijziging vanuit Home Assistant. Dit leest ze daarnaast elke zoveel minuten, om wijzigingen in het menu van de receiver op te merken; 0 leest ze alleen dan."
         }
       },
-      "check": {
-        "title": "Functies controleren",
-        "description": "Stelt de receiver via de bestaande verbinding ongeveer 150 vragen die alleen lezen; er wordt niets veranderd. Het duurt tot anderhalve minuut; opdrachten uit Home Assistant gaan nog steeds voor. De antwoorden komen in het diagnosebestand."
-      },
       "check_done": {
         "title": "Controle voltooid",
         "description": "De {model} beantwoordde {answered} van {total} vragen. De antwoorden staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden).\n\nOm dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het diagnosebestand toe. Lees het bestand voordat je het toevoegt; adressen zijn al vervangen."
       },
-      "command_test": {
-        "title": "Commando's testen",
-        "description": "Elke test schrijft een instelling, wacht tot de receiver die bevestigt en zet de oude waarde terug. Stille tests veranderen instellingen die nauwelijks opvallen (klank, Audyssey, beeld, timers, display, volume met 0,5 dB). Hoorbare tests hoor of zie je (dempen, luidsprekers en HDMI-uitgang, MultEQ, tuner, Zone 2, het instelmenu op de tv). Inschakelen, de triggers en alles wat een instelling opslaat of terugzet worden nooit aangeraakt. De resultaten komen in het diagnosebestand.\n\nZet eerst de hoofdzone aan; haar instellingen worden overgeslagen zolang ze uit staat. Het duurt enkele minuten; verander intussen geen instellingen op de receiver.",
-        "data": {
-          "quiet": "Stille tests",
-          "audible": "Hoorbare en zichtbare tests"
-        }
-      },
       "command_test_done": {
         "title": "Commandotest voltooid",
-        "description": "De {model} bevestigde {confirmed} van {total} commando's; {skipped} werden overgeslagen. Niet teruggezette instellingen: {not_restored}; controleer ze op de receiver als dit niet 0 is. De details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden).\n\nOm dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het diagnosebestand toe."
+        "description": "{model}:\n\n- Bevestigd: {confirmed}\n- Niet bevestigd: {unconfirmed}\n- Overgeslagen: {skipped}\n- Niet teruggezet: {not_restored} (controleer ze op de receiver als dit niet 0 is)\n\nDe details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Om dit model beter te ondersteunen, open [deze vooraf ingevulde issue op GitHub]({url}) en voeg het bestand toe."
       },
       "entities": {
         "title": "Entiteiten",
-        "description": "Veel entiteiten starten verborgen: instellingen die je één keer zet, luidsprekerinstellingen, video, de grafische EQ en diagnose. Kies welke groepen getoond worden; {count} entiteiten kunnen getoond worden. Entiteiten die je zelf in- of uitgeschakeld hebt, blijven zoals ze zijn. Getoonde entiteiten verschijnen binnen een halve minuut.",
+        "description": "Toon per groep de entiteiten die verborgen starten. Wat je zelf veranderd hebt, blijft zoals het is. Getoonde entiteiten verschijnen binnen een halve minuut.",
         "data": {
-          "entity_groups": "Getoonde groepen"
+          "audio": "Audio",
+          "speakers": "Luidsprekers",
+          "video": "Video en beeld",
+          "graphic_eq": "Grafische EQ",
+          "zones": "Zones",
+          "receiver": "Receiver",
+          "diagnostic": "Diagnose"
         },
         "data_description": {
-          "entity_groups": "Een groep die niet meer geselecteerd is, verbergt alleen de entiteiten die hij getoond heeft weer."
+          "audio": "{n_audio} entiteiten: klank, Audyssey, surround",
+          "speakers": "{n_speakers} entiteiten: afstanden, luidsprekerinstellingen",
+          "video": "{n_video} entiteiten: HDMI-, video- en beeldinstellingen",
+          "graphic_eq": "{n_graphic_eq} entiteiten: banden en curves",
+          "zones": "{n_zones} entiteiten van zone 2 en 3",
+          "receiver": "{n_receiver} entiteiten: schakelaars voor aan/uit en dempen, volumegrens, ECO, ingangsmodus",
+          "diagnostic": "{n_diagnostic} entiteiten: signaal, decoder, geluid herstellen"
+        }
+      },
+      "tests": {
+        "title": "Receiver testen",
+        "description": "De resultaten komen in het diagnosebestand. Voor de commandotests wordt een uitgeschakelde hoofdzone ingeschakeld en daarna weer uitgeschakeld.",
+        "menu_options": {
+          "check_run": "Functies controleren",
+          "test_quiet": "Commando's stil testen",
+          "test_audible": "Hoorbare en zichtbare commando's testen"
+        },
+        "menu_option_descriptions": {
+          "check_run": "Leest alleen: ongeveer 150 vragen, tot anderhalve minuut.",
+          "test_quiet": "Klank, Audyssey, beeld, timers en display veranderen even en worden teruggezet. Enkele minuten.",
+          "test_audible": "Dempen, luidsprekers, HDMI-uitgang, tuner, Zone 2 en het instelmenu op de tv veranderen even en worden teruggezet."
         }
       }
     },
     "error": {
       "turn_on_above_max": "Het volume bij inschakelen ligt boven het maximale volume.",
-      "duplicate_name": "Twee items zouden dezelfde naam krijgen.",
-      "no_group": "Kies minstens één groep."
+      "duplicate_name": "Twee items zouden dezelfde naam krijgen."
     },
     "abort": {
       "not_connected": "De receiver is niet verbonden. De bronnen en geluidsmodi worden van de receiver gelezen; probeer het opnieuw als hij aan staat.",
@@ -1132,17 +1149,6 @@
         "tuner_presets": "Tunervoorkeuzes",
         "more": "Meer",
         "queue": "Wachtrij"
-      }
-    },
-    "entity_group": {
-      "options": {
-        "audio": "Audio (klank, Audyssey, surround)",
-        "speakers": "Luidsprekers (afstanden, instellingen)",
-        "video": "Video en beeld",
-        "graphic_eq": "Grafische EQ",
-        "zones": "Zones",
-        "receiver": "Receiver (schakelaars voor aan/uit en dempen, volumegrens, ECO, ingangsmodus)",
-        "diagnostic": "Diagnose (signaal, decoder, geluid herstellen)"
       }
     }
   },
