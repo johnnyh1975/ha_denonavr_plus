@@ -1,0 +1,71 @@
+# Denon AVR Plus – an example dashboard view.
+#
+# Paste it as a view in a dashboard's raw configuration editor and replace
+# avr_x2600h with your receiver's entity ids. It uses only the cards and card
+# features of Home Assistant, no custom cards:
+# - the media control card, which paints the cover (or the artwork of the
+#   input) as its background;
+# - tile cards with the media player features (source, sound mode, volume,
+#   playback) and select options as buttons for the quick selects;
+# - the tuner, whose entities are available while the tuner plays.
+title: Receiver
+path: receiver
+icon: mdi:audio-video
+type: sections
+max_columns: 3
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Living room
+      - type: media-control
+        entity: media_player.avr_x2600h
+      - type: tile
+        entity: media_player.avr_x2600h
+        name: Receiver
+        vertical: false
+        features_position: bottom
+        features:
+          - type: media-player-volume-slider
+          - type: media-player-source
+          - type: media-player-sound-mode
+      - type: tile
+        entity: select.avr_x2600h_quick_select
+        name: Quick select
+        features_position: bottom
+        features:
+          - type: select-options
+            style: buttons
+      - type: tile
+        entity: number.avr_x2600h_volume
+        name: Volume (dB)
+      - type: tile
+        entity: switch.avr_x2600h_music
+        name: Music
+  - type: grid
+    cards:
+      - type: heading
+        heading: Tuner
+      - type: tile
+        entity: select.avr_x2600h_tuner_preset
+        name: Preset
+        features_position: bottom
+        features:
+          - type: select-options
+      - type: tile
+        entity: number.avr_x2600h_tuner_frequency
+        name: FM frequency
+  - type: grid
+    cards:
+      - type: heading
+        heading: Zone 2
+      - type: tile
+        entity: media_player.avr_x2600h_zone_2
+        name: Zone 2
+        features_position: bottom
+        features:
+          - type: media-player-volume-buttons
+          - type: media-player-source
+      - type: tile
+        entity: switch.avr_x2600h_zone_2_music
+        name: Music in zone 2

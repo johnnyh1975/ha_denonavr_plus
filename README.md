@@ -502,6 +502,25 @@ receiver, so turning on works then too. The other entities stay unavailable unti
 the receiver answers; then the integration sets itself up in full by itself. A
 receiver that has never been reached since it was added has to be on for setup.
 
+## Blueprints and an example dashboard
+
+Two automation blueprints, to import in Home Assistant (Settings → Automations
+& scenes → Blueprints → Import, with the file's GitHub address):
+
+- [TV on, receiver on](blueprints/automation/denonavr_plus/tv_on.yaml): the
+  TV turns on, the receiver's zone follows with the TV's input and, if set, a
+  sound mode and a volume; the TV turns off, the zone turns off, but only
+  while it still plays the TV's input.
+- [Night mode](blueprints/automation/denonavr_plus/night_mode.yaml): between
+  two times the volume stays below a limit and, if set, Dynamic Volume
+  switches to a night setting and back.
+
+[An example dashboard view](examples/dashboard.yaml) shows what the standard
+cards do with this integration: the media control card with the cover or the
+input's artwork, tiles with source, sound mode and volume, the quick selects as
+buttons, the tuner and zone 2. Paste it into a dashboard's raw configuration
+editor and replace `avr_x2600h` with your receiver's entity ids.
+
 ## With Music Assistant and the HEOS integration
 
 The receiver has one HEOS player. Three integrations can reach it; each has

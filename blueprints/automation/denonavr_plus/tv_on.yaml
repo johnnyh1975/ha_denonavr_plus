@@ -1,0 +1,95 @@
+blueprint:
+  name: Denon AVR Plus – TV on, receiver on
+  description: >-
+    When the TV turns on, turn the receiver's zone on, switch it to the TV's
+    input and, if set, a sound mode and a volume. When the TV turns off, turn
+    the zone off, but only while it still plays the TV's input.
+  domain: automation
+  source_url: https://github.com/johnnyh1975/ha_denonavr_plus/blob/main/blueprints/automation/denonavr_plus/tv_on.yaml
+  input:
+    tv:
+      name: TV
+      description: The TV's entity (media player, switch or anything that is on or off).
+      selector:
+        entity: {}
+    receiver:
+      name: Receiver zone
+      description: The media player of the receiver's zone.
+      selector:
+        entity:
+          filter:
+            - integration: denonavr_plus
+              domain: media_player
+    source:
+      name: Input
+      description: The input of the TV, as the media player names it (for example TV AUDIO).
+      selector:
+        text: {}
+    sound_mode:
+      name: Sound mode
+      description: Optional. Left empty, the receiver keeps the sound mode it has for the input.
+      default: ""
+      selector:
+        text: {}
+    volume:
+      name: Volume
+      description: Optional, 0 to 100 % on the media player's scale. 0 keeps the volume.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+mode: restart
+trigger:
+  - trigger: state
+    entity_id: !input tv
+    from: "off"
+    id: "on"
+  - trigger: state
+    entity_id: !input tv
+    to: "off"
+    id: "off"
+variables:
+  source: !input source
+  sound_mode: !input sound_mode
+  volume: !input volume
+  receiver: !input receiver
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: "on"
+        sequence:
+          - action: media_player.select_source
+            target:
+              entity_id: !input receiver
+            data:
+              source: "{{ source }}"
+          - if:
+              - condition: template
+                value_template: "{{ sound_mode | length > 0 }}"
+            then:
+              - action: media_player.select_sound_mode
+                target:
+                  entity_id: !input receiver
+                data:
+                  sound_mode: "{{ sound_mode }}"
+          - if:
+              - condition: template
+                value_template: "{{ volume | float(0) > 0 }}"
+            then:
+              - action: media_player.volume_set
+                target:
+                  entity_id: !input receiver
+                data:
+                  volume_level: "{{ volume | float(0) / 100 }}"
+      - conditions:
+          - condition: trigger
+            id: "off"
+          - condition: template
+            value_template: "{{ state_attr(receiver, 'source') == source }}"
+        sequence:
+          - action: media_player.turn_off
+            target:
+              entity_id: !input receiver

@@ -1,0 +1,111 @@
+blueprint:
+  name: Denon AVR Plus – night mode
+  description: >-
+    Between two times, keep the receiver quiet: cap the volume and, if set,
+    switch the dynamic volume (Audyssey Dynamic Volume) to a night setting,
+    and back when the night is over.
+  domain: automation
+  source_url: https://github.com/johnnyh1975/ha_denonavr_plus/blob/main/blueprints/automation/denonavr_plus/night_mode.yaml
+  input:
+    receiver:
+      name: Receiver zone
+      selector:
+        entity:
+          filter:
+            - integration: denonavr_plus
+              domain: media_player
+    start:
+      name: Night starts
+      default: "22:00:00"
+      selector:
+        time: {}
+    end:
+      name: Night ends
+      default: "07:00:00"
+      selector:
+        time: {}
+    night_volume:
+      name: Volume at night
+      description: The media player's volume at most during the night, 0 to 100 %.
+      default: 35
+      selector:
+        number:
+          min: 5
+          max: 100
+          unit_of_measurement: "%"
+    dynamic_volume:
+      name: Dynamic volume
+      description: Optional. The receiver's Dynamic Volume select (Audyssey).
+      default: []
+      selector:
+        entity:
+          filter:
+            - integration: denonavr_plus
+              domain: select
+          multiple: true
+    dynamic_volume_night:
+      name: Dynamic volume at night
+      description: The option at night, as the select's state names it (for example heavy).
+      default: ""
+      selector:
+        text: {}
+    dynamic_volume_day:
+      name: Dynamic volume by day
+      default: ""
+      selector:
+        text: {}
+mode: restart
+trigger:
+  - trigger: time
+    at: !input start
+    id: night
+  - trigger: time
+    at: !input end
+    id: day
+  - trigger: state
+    entity_id: !input receiver
+    attribute: volume_level
+    id: volume
+variables:
+  receiver: !input receiver
+  start: !input start
+  end: !input end
+  night_volume: !input night_volume
+  dynamic_volume: !input dynamic_volume
+  night_option: !input dynamic_volume_night
+  day_option: !input dynamic_volume_day
+  is_night: >-
+    {% set now_t = now().strftime('%H:%M:%S') %}
+    {{ (start <= now_t or now_t < end) if start > end else (start <= now_t < end) }}
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.id in ('night', 'volume') and is_night }}"
+          - condition: template
+            value_template: >-
+              {{ (state_attr(receiver, 'volume_level') or 0) > night_volume | float / 100 }}
+        sequence:
+          - action: media_player.volume_set
+            target:
+              entity_id: !input receiver
+            data:
+              volume_level: "{{ night_volume | float / 100 }}"
+  - if:
+      - condition: template
+        value_template: "{{ trigger.id == 'night' and dynamic_volume | count > 0 and night_option | length > 0 }}"
+    then:
+      - action: select.select_option
+        target:
+          entity_id: "{{ dynamic_volume }}"
+        data:
+          option: "{{ night_option }}"
+  - if:
+      - condition: template
+        value_template: "{{ trigger.id == 'day' and dynamic_volume | count > 0 and day_option | length > 0 }}"
+    then:
+      - action: select.select_option
+        target:
+          entity_id: "{{ dynamic_volume }}"
+        data:
+          option: "{{ day_option }}"
