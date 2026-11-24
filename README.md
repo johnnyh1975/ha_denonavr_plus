@@ -3,11 +3,13 @@
 [![Version](https://img.shields.io/badge/Version-0.8.0-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
 [![HA Version](https://img.shields.io/badge/HA-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
+[![Quality Scale](https://img.shields.io/badge/Quality%20Scale-Platinum-blueviolet.svg)](https://www.home-assistant.io/docs/quality_scale/)
 [![Local Push](https://img.shields.io/badge/IoT%20Class-Local%20Push-green.svg)](https://www.home-assistant.io/blog/2016/02/12/classifying-the-internet-of-things/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Hassfest](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hassfest.yml/badge.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hassfest.yml)
 [![HACS Validation](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hacs.yml/badge.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/hacs.yml)
 [![Typing](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/typing.yml/badge.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/actions/workflows/typing.yml)
+[![Downloads](https://img.shields.io/github/downloads/johnnyh1975/ha_denonavr_plus/total?label=downloads)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
 
 **Your Denon or Marantz receiver in Home Assistant, completely.** Zones as
 their own devices, sources and sound modes the way the receiver offers them,

@@ -107,10 +107,10 @@ rules:
     status: exempt
     comment: The receiver has no authentication.
   test-coverage:
-    status: todo
+    status: done
     comment: >
-      95 % per module is the target; modules below it are held at floors in
-      scripts/coverage_floors.json that may only go up.
+      Every module is at 95 % line coverage or above, checked per module in
+      CI (scripts/check_coverage_per_module.py); no module is held on a floor.
 
   # ── Gold ──────────────────────────────────────────────────────────────────
   devices:
@@ -133,7 +133,10 @@ rules:
   docs-data-update:
     status: done
   docs-examples:
-    status: todo
+    status: done
+    comment: >
+      Blueprints, an example dashboard and automation examples in the user
+      guide (docs/USER_GUIDE.md, section 6).
   docs-high-level-description:
     status: done
   docs-known-limitations:
@@ -142,9 +145,13 @@ rules:
     status: done
     comment: README table of confirmed and expected series.
   docs-troubleshooting:
-    status: todo
+    status: done
+    comment: Symptom, cause and fix table in docs/USER_GUIDE.md, section 10.
   docs-use-cases:
-    status: todo
+    status: done
+    comment: >
+      Everyday use, automations and Music Assistant in the user guide
+      (sections 4, 6 and 9).
   dynamic-devices:
     status: exempt
     comment: Zones and sub-devices are fixed per receiver.
@@ -196,7 +203,7 @@ rules:
     status: done
     comment: The config flow fetches the receiver's device info before creating the entry.
   strict-typing:
-    status: todo
+    status: done
     comment: >
-      mypy --strict runs in CI against a baseline that may only go down
-      (scripts/check_typing_baseline.py); it starts at 94.
+      mypy --strict passes with nothing switched off; the baseline in
+      scripts/check_typing_baseline.py is 0 and may not rise.
