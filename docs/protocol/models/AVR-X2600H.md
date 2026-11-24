@@ -158,6 +158,10 @@ results above:
   sync from the AVR-X4700H, dialogue enhancer on the AVR-X6700H.
 - **HDMI resolution** adds `8K` in 2020 and drops `10P24` and `4KF`.
 
+The CY2022 table (AVR-X2800H to A1H) keeps `MNZST?`, `SPPR`, `PSLFE`
+`00`–`10` and the Zone 2 commands, lists Center Spread again, and marks
+center level (`PSCLV`) and IMAX `ON` for none of its models.
+
 ## Open points
 
 | Point | Status |
