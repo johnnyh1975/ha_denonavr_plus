@@ -42,6 +42,18 @@
         "data_description": {
           "test": "Reads, then changes settings for a moment and puts them back. What you hear and see can be tested later in the options."
         }
+      },
+      "move_offer": {
+        "title": "Take over from {integration}?",
+        "description": "{model} is already set up in {integration} as \"{title}\". Denon AVR Plus can take it over: that entry is disabled (it stays and can be enabled again), and its entities move here with their entity IDs, names, areas and history, so automations and dashboards keep working. Anything they use that works differently here is listed in a repair afterwards. The move can be undone in the options.",
+        "menu_options": {
+          "move_yes": "Take over",
+          "move_no": "Set up separately"
+        },
+        "menu_option_descriptions": {
+          "move_yes": "Disable the old entry and take its entities over",
+          "move_no": "Leave the old entry alone. Both connected at once disturb each other; a repair offers the move later"
+        }
       }
     },
     "error": {
@@ -69,10 +81,12 @@
           "sound_modes": "Sound modes",
           "connection": "Connection",
           "entities": "Entities",
-          "tests_start": "Test the receiver"
+          "tests_start": "Test the receiver",
+          "move_back": "Undo the move"
         },
         "menu_option_descriptions": {
-          "tests_start": "Three steps, about six minutes; everything is put back."
+          "tests_start": "Three steps, about six minutes; everything is put back.",
+          "move_back": "Give the entities back to the old integration"
         }
       },
       "volume": {
@@ -265,6 +279,11 @@
       "tests_done_check": {
         "title": "Check the receiver",
         "description": "Not every setting came back: {not_restored_list}. Set these on the receiver as they were.\n\n{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [this prefilled issue on GitHub]({url}). Read it first; addresses are already replaced."
+      },
+      "move_back": {
+        "title": "Undo the move",
+        "description": "{count} entities go back to {titles}, and that entry is enabled again. Denon AVR Plus is disabled, because the receiver takes one connection; you can enable or delete it afterwards.",
+        "submit": "Undo"
       }
     },
     "error": {
@@ -276,7 +295,8 @@
       "no_additional_zones": "This receiver has no additional zone.",
       "no_sound_modes": "The receiver has not reported any sound modes yet.",
       "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on.",
-      "no_hidden_entities": "This receiver has no hidden entities."
+      "no_hidden_entities": "This receiver has no hidden entities.",
+      "moved_back": "The move is being undone: Denon AVR Plus is disabled and the old entry enabled again."
     },
     "progress": {
       "test_part_1": "**Read capabilities**\n\nNow: {current}\n\n→ Read capabilities  \n○ Test quietly  \n○ Test what you hear and see\n\nOnly reads; nothing changes.",
@@ -1164,6 +1184,31 @@
     "command_test_done": {
       "title": "Command test of the {model} finished",
       "description": "The {model} confirmed {confirmed} of {total} commands. Settings not put back: {not_restored}; check them on the receiver if this is not 0. The details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it."
+    },
+    "move_available": {
+      "title": "{title} is also set up in {integration}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Take over from {integration}",
+            "description": "Both integrations connect to the receiver, which takes one connection: they disturb each other. The {integration} entry \"{title}\" is disabled (it stays and can be enabled again), and its entities move to Denon AVR Plus with their entity IDs, names, areas and history. The move can be undone in the options."
+          }
+        },
+        "abort": {
+          "move_not_possible": "The move is not possible right now: one of the two entries is not loaded."
+        }
+      }
+    },
+    "move_check": {
+      "title": "Check automations after the move from {title}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Automations checked?",
+            "description": "These automations and scripts use something of the official integration that works differently here. Left of the arrow what they use, right what replaces it (– means not needed any more, or no replacement). Nothing was changed.\n\n{findings}\n\nSubmit once you have changed them; the list goes away."
+          }
+        }
+      }
     }
   },
   "selector": {

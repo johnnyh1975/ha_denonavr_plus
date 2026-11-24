@@ -1,13 +1,15 @@
-"""Repair flows: test a model not checked before."""
+"""Repair flows: test a model not checked before, take another integration over."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
+from . import move
 from .coordinator import DenonAvrConfigEntry
 from .receiver_test import ReceiverTestSteps
 
@@ -28,9 +30,32 @@ class CapabilityCheckRepairFlow(ReceiverTestSteps, RepairsFlow):
         return self.async_create_entry(data={})
 
 
+class MoveRepairFlow(ConfirmRepairFlow):
+    """The repair "<receiver> is also set up in <integration>": take it over."""
+
+    def __init__(self, entry_id: str, old_entry_id: str) -> None:
+        self._entry_id = entry_id
+        self._old_entry_id = old_entry_id
+
+    async def async_step_confirm(self, user_input: dict[str, str] | None = None) -> FlowResult:
+        if user_input is None:
+            return await super().async_step_confirm()
+        entry = self.hass.config_entries.async_get_entry(self._entry_id)
+        old = self.hass.config_entries.async_get_entry(self._old_entry_id)
+        if entry is None or old is None or entry.state is not ConfigEntryState.LOADED:
+            return self.async_abort(reason="move_not_possible")
+        await move.async_move(self.hass, entry, old)
+        return self.async_create_entry(data={})
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None
 ) -> RepairsFlow:
-    """The only fixable issue is the capability check."""
+    """The receiver test, taking another integration over, or a list to confirm."""
 
-    return CapabilityCheckRepairFlow(str((data or {})["entry_id"]))
+    data = data or {}
+    if issue_id.startswith(move.ISSUE_AVAILABLE):
+        return MoveRepairFlow(str(data["entry_id"]), str(data["old_entry_id"]))
+    if issue_id.startswith(move.ISSUE_CHECK):
+        return ConfirmRepairFlow()
+    return CapabilityCheckRepairFlow(str(data["entry_id"]))

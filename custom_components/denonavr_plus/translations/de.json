@@ -42,6 +42,18 @@
         "data_description": {
           "test": "Liest, ändert dann Einstellungen kurz und stellt sie zurück. Hörbares und Sichtbares lässt sich später in den Optionen testen."
         }
+      },
+      "move_offer": {
+        "title": "Von {integration} übernehmen?",
+        "description": "{model} ist schon in {integration} eingerichtet, als „{title}“. Denon AVR Plus kann ihn übernehmen: Dieser Eintrag wird deaktiviert (er bleibt und lässt sich wieder einschalten), und seine Entitäten ziehen mit Entitäts-IDs, Namen, Bereichen und Verlauf hierher um. Automationen und Dashboards laufen also weiter. Was sie nutzen und hier anders geht, steht danach in einer Reparaturmeldung. Der Umzug lässt sich in den Optionen rückgängig machen.",
+        "menu_options": {
+          "move_yes": "Übernehmen",
+          "move_no": "Getrennt einrichten"
+        },
+        "menu_option_descriptions": {
+          "move_yes": "Alten Eintrag deaktivieren und seine Entitäten übernehmen",
+          "move_no": "Alten Eintrag lassen. Gleichzeitig verbunden stören sich beide; eine Reparaturmeldung bietet den Umzug später an"
+        }
       }
     },
     "error": {
@@ -69,10 +81,12 @@
           "sound_modes": "Klangmodi",
           "connection": "Verbindung",
           "entities": "Entitäten",
-          "tests_start": "Receiver prüfen"
+          "tests_start": "Receiver prüfen",
+          "move_back": "Umzug rückgängig machen"
         },
         "menu_option_descriptions": {
-          "tests_start": "Drei Schritte, rund sechs Minuten; alles wird zurückgestellt."
+          "tests_start": "Drei Schritte, rund sechs Minuten; alles wird zurückgestellt.",
+          "move_back": "Die Entitäten an die alte Integration zurückgeben"
         }
       },
       "volume": {
@@ -265,6 +279,11 @@
       "tests_done_check": {
         "title": "Am Receiver prüfen",
         "description": "Nicht alle Einstellungen kamen zurück: {not_restored_list}. Stell sie am Receiver wieder so ein, wie sie waren.\n\n{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
+      },
+      "move_back": {
+        "title": "Umzug rückgängig machen",
+        "description": "{count} Entitäten gehen zurück an {titles}, und dieser Eintrag wird wieder eingeschaltet. Denon AVR Plus wird deaktiviert, weil der Receiver nur eine Verbindung annimmt; du kannst es danach wieder einschalten oder löschen.",
+        "submit": "Rückgängig machen"
       }
     },
     "error": {
@@ -276,7 +295,8 @@
       "no_additional_zones": "Dieser Receiver hat keine weitere Zone.",
       "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet.",
       "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist.",
-      "no_hidden_entities": "Dieser Receiver hat keine ausgeblendeten Entitäten."
+      "no_hidden_entities": "Dieser Receiver hat keine ausgeblendeten Entitäten.",
+      "moved_back": "Der Umzug wird rückgängig gemacht: Denon AVR Plus wird deaktiviert und der alte Eintrag wieder eingeschaltet."
     },
     "progress": {
       "test_part_1": "**Fähigkeiten lesen**\n\nGerade: {current}\n\n→ Fähigkeiten lesen  \n○ Leise testen  \n○ Hörbar und sichtbar testen\n\nLiest nur; nichts ändert sich.",
@@ -1164,6 +1184,31 @@
     "command_test_done": {
       "title": "Befehlstest des {model} abgeschlossen",
       "description": "Der {model} hat {confirmed} von {total} Befehlen bestätigt. Nicht wiederhergestellte Einstellungen: {not_restored}; prüfe sie am Receiver, wenn das nicht 0 ist. Die Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne über „Mehr erfahren“ das vorausgefüllte Issue und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest."
+    },
+    "move_available": {
+      "title": "{title} ist auch in {integration} eingerichtet",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Von {integration} übernehmen",
+            "description": "Beide Integrationen verbinden sich mit dem Receiver, der nur eine Verbindung annimmt: Sie stören sich. Der Eintrag „{title}“ in {integration} wird deaktiviert (er bleibt und lässt sich wieder einschalten), und seine Entitäten ziehen mit Entitäts-IDs, Namen, Bereichen und Verlauf zu Denon AVR Plus um. Der Umzug lässt sich in den Optionen rückgängig machen."
+          }
+        },
+        "abort": {
+          "move_not_possible": "Der Umzug geht gerade nicht: Einer der beiden Einträge ist nicht geladen."
+        }
+      }
+    },
+    "move_check": {
+      "title": "Automationen nach dem Umzug von {title} prüfen",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Automationen geprüft?",
+            "description": "Diese Automationen und Skripte nutzen etwas der offiziellen Integration, das hier anders geht. Links vom Pfeil steht, was sie nutzen, rechts, was es ersetzt (– heißt: nicht mehr nötig oder kein Ersatz). Geändert wurde nichts.\n\n{findings}\n\nBestätige, sobald du sie angepasst hast; dann verschwindet die Liste."
+          }
+        }
+      }
     }
   },
   "selector": {

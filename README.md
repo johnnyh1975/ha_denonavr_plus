@@ -16,6 +16,9 @@ and speaker setup.
 Domain: `denonavr_plus`. It can be installed alongside other Denon integrations,
 such as the official one (`denonavr`), but only one of them should be connected
 to a receiver at a time: many receivers accept only a single telnet session.
+A receiver set up in the official integration or in Denon AVR (`denon_avr`) can
+be taken over with its entity IDs and history, and handed back
+([docs/UPGRADING.md](docs/UPGRADING.md#coming-from-another-denon-integration)).
 
 ## Supported devices
 

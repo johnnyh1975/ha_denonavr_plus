@@ -42,6 +42,18 @@
         "data_description": {
           "test": "Odczytuje, potem zmienia ustawienia na chwilę i je przywraca. To, co słychać i widać, można przetestować później w opcjach."
         }
+      },
+      "move_offer": {
+        "title": "Przejąć z {integration}?",
+        "description": "{model} jest już skonfigurowany w {integration} jako „{title}”. Denon AVR Plus może go przejąć: ten wpis zostanie wyłączony (pozostaje i można go ponownie włączyć), a jego encje przejdą tutaj z identyfikatorami encji, nazwami, obszarami i historią, więc automatyzacje i pulpity nadal działają. To, czego używają, a co tutaj działa inaczej, pojawi się potem w naprawie. Przeniesienie można cofnąć w opcjach.",
+        "menu_options": {
+          "move_yes": "Przejmij",
+          "move_no": "Skonfiguruj osobno"
+        },
+        "menu_option_descriptions": {
+          "move_yes": "Wyłącz stary wpis i przejmij jego encje",
+          "move_no": "Zostaw stary wpis. Połączone jednocześnie przeszkadzają sobie; naprawa zaproponuje przeniesienie później"
+        }
       }
     },
     "error": {
@@ -69,10 +81,12 @@
           "sound_modes": "Tryby dźwięku",
           "connection": "Połączenie",
           "entities": "Encje",
-          "tests_start": "Testuj amplituner"
+          "tests_start": "Testuj amplituner",
+          "move_back": "Cofnij przeniesienie"
         },
         "menu_option_descriptions": {
-          "tests_start": "Trzy kroki, około sześciu minut; wszystko jest przywracane."
+          "tests_start": "Trzy kroki, około sześciu minut; wszystko jest przywracane.",
+          "move_back": "Oddaj encje starej integracji"
         }
       },
       "volume": {
@@ -265,6 +279,11 @@
       "tests_done_check": {
         "title": "Sprawdź amplituner",
         "description": "Nie wszystkie ustawienia wróciły: {not_restored_list}. Ustaw je na amplitunerze tak, jak były.\n\n{model}:\n\n- Odpowiedzi na pytania: {answered} z {total}\n- Potwierdzone polecenia: {confirmed}\n- Brak warunku: {precondition}\n- Bez efektu: {no_effect}\n- Pominięte: {skipped}\n- Nie wykonano, amplituner przestał odpowiadać: {interrupted}\n\nDołącz plik diagnostyczny (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne) do [tego wstępnie wypełnionego zgłoszenia na GitHubie]({url}). Przeczytaj go najpierw; adresy są już zastąpione."
+      },
+      "move_back": {
+        "title": "Cofnij przeniesienie",
+        "description": "{count} encji wraca do {titles}, a ten wpis zostaje ponownie włączony. Denon AVR Plus zostaje wyłączony, bo amplituner przyjmuje jedno połączenie; potem możesz go włączyć lub usunąć.",
+        "submit": "Cofnij"
       }
     },
     "error": {
@@ -276,7 +295,8 @@
       "no_additional_zones": "Ten amplituner nie ma dodatkowych stref.",
       "no_sound_modes": "Amplituner nie zgłosił jeszcze żadnych trybów dźwięku.",
       "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony.",
-      "no_hidden_entities": "Ten amplituner nie ma ukrytych encji."
+      "no_hidden_entities": "Ten amplituner nie ma ukrytych encji.",
+      "moved_back": "Przeniesienie jest cofane: Denon AVR Plus zostaje wyłączony, a stary wpis ponownie włączony."
     },
     "progress": {
       "test_part_1": "**Odczytaj funkcje**\n\nTeraz: {current}\n\n→ Odczytaj funkcje  \n○ Testuj po cichu  \n○ Testuj to, co słychać i widać\n\nTylko odczyt; nic się nie zmienia.",
@@ -1164,6 +1184,31 @@
     "command_test_done": {
       "title": "Test poleceń {model} zakończony",
       "description": "{model} potwierdził {confirmed} z {total} poleceń. Nieprzywrócone ustawienia: {not_restored}; jeśli to nie 0, sprawdź je na amplitunerze. Szczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Otwórz wstępnie wypełnione zgłoszenie przez „Dowiedz się więcej” i dołącz tam plik. Zignoruj ten komunikat, jeśli nie chcesz go udostępniać."
+    },
+    "move_available": {
+      "title": "{title} jest też skonfigurowany w {integration}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Przejmij z {integration}",
+            "description": "Obie integracje łączą się z amplitunerem, który przyjmuje jedno połączenie: przeszkadzają sobie. Wpis „{title}” w {integration} zostanie wyłączony (pozostaje i można go ponownie włączyć), a jego encje przejdą do Denon AVR Plus z identyfikatorami encji, nazwami, obszarami i historią. Przeniesienie można cofnąć w opcjach."
+          }
+        },
+        "abort": {
+          "move_not_possible": "Przeniesienie nie jest teraz możliwe: jeden z dwóch wpisów nie jest załadowany."
+        }
+      }
+    },
+    "move_check": {
+      "title": "Sprawdź automatyzacje po przeniesieniu z {title}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Automatyzacje sprawdzone?",
+            "description": "Te automatyzacje i skrypty używają czegoś z oficjalnej integracji, co tutaj działa inaczej. Po lewej stronie strzałki to, czego używają, po prawej to, co to zastępuje (– oznacza: już niepotrzebne lub brak zamiennika). Nic nie zostało zmienione.\n\n{findings}\n\nPotwierdź, gdy je zmienisz; lista zniknie."
+          }
+        }
+      }
     }
   },
   "selector": {

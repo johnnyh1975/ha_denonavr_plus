@@ -39,31 +39,47 @@ number; the value is the same.
 
 ## Coming from another Denon integration
 
-Denon AVR Plus (`denonavr_plus`) is a separate integration. It does not take
-over entities from the official Denon AVR Network Receivers integration
-(`denonavr`) or from Denon AVR (`denon_avr`) by itself yet; a migration
-assistant is planned.
+Denon AVR Plus (`denonavr_plus`) takes a receiver over from the official
+Denon AVR Network Receivers integration (`denonavr`) and from Denon AVR
+(`denon_avr`):
 
-Until then:
+- **When you add the receiver** and it is already set up in one of them
+  (found by its address, MAC or serial number), Denon AVR Plus asks whether
+  to take it over.
+- **Later**, while the other integration still runs the receiver, a repair
+  offers the same.
 
-1. Remove the other integration's entry for the receiver first. Many
-   receivers accept only one telnet session, so two integrations connected
-   at the same time disturb each other.
-2. Add the receiver in Denon AVR Plus.
-3. If you want to keep entity IDs, history and dashboards, rename the new
-   entities to the old entity IDs (Settings → Entities → the entity → ⚙ →
-   Entity ID).
+Taking over does this:
+
+1. The other entry is **disabled**, not removed: many receivers accept only
+   one telnet session, so two integrations connected at the same time
+   disturb each other.
+2. Its entities **move to Denon AVR Plus** and keep their entity IDs, names,
+   areas and history, so automations and dashboards keep working. From the
+   official integration these are the media players of the zones; from
+   Denon AVR, which used the same unique IDs, every entity that Denon AVR
+   Plus still has. The rest stays with the disabled entry.
+3. From the official integration, the option **"Volume scale of the
+   official integration"** is switched on, so `volume_set` levels sound the
+   same.
+4. Automations and scripts that use something of the official integration
+   that works differently here are **listed in a repair**, each place with
+   what replaces it. Nothing in them is changed.
+
+**Undo** it in the options of Denon AVR Plus ("Undo the move"): the
+entities go back with their entity IDs, the other entry is enabled again,
+and Denon AVR Plus is disabled. Enable or delete it afterwards.
 
 What looks different afterwards:
 
 - **Many entities start disabled.** Only the everyday controls are enabled
   (see "Enabled and disabled entities" in the README). Speaker, video and
   picture setup, the graphic EQ, volume limits and the fast-changing signal
-  sensors are there but off. If an automation or dashboard used one of
-  them, enable it on the device page before renaming it.
-- **Entity IDs are English** in every language, for example
-  `number.avr_x3600h_speakers_center_trim` also on a German installation,
-  where the other integrations may have created German ones.
+  sensors are there but off. An entity taken over keeps its state (an
+  enabled one stays enabled).
+- **Entity IDs of new entities are English** in every language, for example
+  `number.avr_x3600h_speakers_center_trim` also on a German installation.
+  Entities taken over keep the IDs they had.
 - **Raw commands** go through `denonavr_plus.send_command` instead of
   `denonavr.get_command`. The field is `command` in both; the old action
   sent it over the web interface, the new one over telnet, so the command

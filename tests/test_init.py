@@ -407,3 +407,49 @@ async def test_zone_2_has_a_device_of_its_own(
     hass.config_entries.async_update_entry(loaded_entry, options={"zones": []})
     await hass.async_block_till_done()
     assert devices.async_get(device_id) is None
+
+
+async def test_the_move_chosen_at_setup_runs_once_the_entities_exist(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Chosen when the receiver was added; the old entry is already off."""
+    old = MockConfigEntry(
+        domain="denonavr", unique_id="AVC-X3700H-1", data={CONF_HOST: HOST}, title="Wohnzimmer"
+    )
+    old.add_to_hass(hass)
+    er.async_get(hass).async_get_or_create(
+        "media_player", "denonavr", "AVC-X3700H-1-Main", config_entry=old,
+        suggested_object_id="wohnzimmer",
+    )
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: HOST},
+        minor_version=CONFIG_MINOR_VERSION,
+        options={"move_pending": [old.entry_id]},
+    )
+    entry.add_to_hass(hass)
+    # The move reloads the entry as soon as it is set up: wait for that.
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done(wait_background_tasks=True)
+    item = er.async_get(hass).async_get("media_player.wohnzimmer")
+    assert item is not None and item.config_entry_id == entry.entry_id
+    assert "move_pending" not in entry.options
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("media_player.wohnzimmer") is not None
+
+
+async def test_a_pending_move_whose_old_entry_is_gone(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: HOST},
+        minor_version=CONFIG_MINOR_VERSION,
+        options={"move_pending": ["gone"]},
+    )
+    entry.add_to_hass(hass)
+    # The move reloads the entry as soon as it is set up: wait for that.
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done(wait_background_tasks=True)
+    assert "move_pending" not in entry.options
+    assert entry.state is ConfigEntryState.LOADED

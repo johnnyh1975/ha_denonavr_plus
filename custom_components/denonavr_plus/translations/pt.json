@@ -42,6 +42,18 @@
         "data_description": {
           "test": "Lê e depois altera definições por um momento e repõe-nas. O que se ouve e vê pode ser testado mais tarde nas opções."
         }
+      },
+      "move_offer": {
+        "title": "Assumir a partir de {integration}?",
+        "description": "{model} já está configurado em {integration} como «{title}». O Denon AVR Plus pode assumi-lo: essa entrada é desativada (mantém-se e pode voltar a ser ativada) e as suas entidades passam para aqui com os ID de entidade, nomes, áreas e histórico, pelo que as automatizações e os painéis continuam a funcionar. O que usarem e aqui funcione de outra forma aparece depois numa reparação. A mudança pode ser anulada nas opções.",
+        "menu_options": {
+          "move_yes": "Assumir",
+          "move_no": "Configurar em separado"
+        },
+        "menu_option_descriptions": {
+          "move_yes": "Desativar a entrada antiga e assumir as suas entidades",
+          "move_no": "Deixar a entrada antiga. Ligadas ao mesmo tempo perturbam-se; uma reparação propõe a mudança mais tarde"
+        }
       }
     },
     "error": {
@@ -69,10 +81,12 @@
           "sound_modes": "Modos de som",
           "connection": "Ligação",
           "entities": "Entidades",
-          "tests_start": "Testar o recetor"
+          "tests_start": "Testar o recetor",
+          "move_back": "Anular a mudança"
         },
         "menu_option_descriptions": {
-          "tests_start": "Três passos, cerca de seis minutos; tudo é reposto."
+          "tests_start": "Três passos, cerca de seis minutos; tudo é reposto.",
+          "move_back": "Devolver as entidades à integração antiga"
         }
       },
       "volume": {
@@ -265,6 +279,11 @@
       "tests_done_check": {
         "title": "Verifique o recetor",
         "description": "Nem todas as definições voltaram: {not_restored_list}. Reponha-as no recetor como estavam.\n\n{model}:\n\n- Perguntas respondidas: {answered} de {total}\n- Comandos confirmados: {confirmed}\n- Faltou um requisito: {precondition}\n- Sem efeito: {no_effect}\n- Saltados: {skipped}\n- Não executados, o recetor deixou de responder: {interrupted}\n\nAnexe o ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos) a [este problema pré-preenchido no GitHub]({url}). Leia-o antes; os endereços já estão substituídos."
+      },
+      "move_back": {
+        "title": "Anular a mudança",
+        "description": "{count} entidades voltam para {titles} e essa entrada é ativada de novo. O Denon AVR Plus é desativado, porque o recetor aceita uma só ligação; depois pode ativá-lo ou eliminá-lo.",
+        "submit": "Anular"
       }
     },
     "error": {
@@ -276,7 +295,8 @@
       "no_additional_zones": "Este recetor não tem zonas adicionais.",
       "no_sound_modes": "O recetor ainda não indicou nenhum modo de som.",
       "test_not_connected": "O recetor não está ligado. O teste de comandos precisa da sua ligação telnet; tente novamente quando estiver ligado.",
-      "no_hidden_entities": "Este recetor não tem entidades ocultas."
+      "no_hidden_entities": "Este recetor não tem entidades ocultas.",
+      "moved_back": "A mudança está a ser anulada: o Denon AVR Plus é desativado e a entrada antiga ativada de novo."
     },
     "progress": {
       "test_part_1": "**Ler funções**\n\nAgora: {current}\n\n→ Ler funções  \n○ Testar em silêncio  \n○ Testar o que se ouve e vê\n\nSó lê; nada muda.",
@@ -1164,6 +1184,31 @@
     "command_test_done": {
       "title": "Teste de comandos do {model} concluído",
       "description": "O {model} confirmou {confirmed} de {total} comandos. Definições não repostas: {not_restored}; verifique-as no recetor se não for 0. Os detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Abra o problema pré-preenchido com \"Saber mais\" e anexe lá o ficheiro. Ignore esta mensagem se não o quiser partilhar."
+    },
+    "move_available": {
+      "title": "{title} também está configurado em {integration}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Assumir a partir de {integration}",
+            "description": "Ambas as integrações ligam-se ao recetor, que aceita uma só ligação: perturbam-se. A entrada «{title}» em {integration} é desativada (mantém-se e pode voltar a ser ativada) e as suas entidades passam para o Denon AVR Plus com os ID de entidade, nomes, áreas e histórico. A mudança pode ser anulada nas opções."
+          }
+        },
+        "abort": {
+          "move_not_possible": "A mudança não é possível agora: uma das duas entradas não está carregada."
+        }
+      }
+    },
+    "move_check": {
+      "title": "Verificar automatizações após a mudança de {title}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Automatizações verificadas?",
+            "description": "Estas automatizações e scripts usam algo da integração oficial que aqui funciona de outra forma. À esquerda da seta o que usam, à direita o que o substitui (– significa: já não é necessário, ou sem substituto). Nada foi alterado.\n\n{findings}\n\nConfirme quando as tiver alterado; a lista desaparece."
+          }
+        }
+      }
     }
   },
   "selector": {

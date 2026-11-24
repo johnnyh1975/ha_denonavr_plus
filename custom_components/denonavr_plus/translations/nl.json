@@ -42,6 +42,18 @@
         "data_description": {
           "test": "Leest, verandert dan instellingen even en zet ze terug. Wat je hoort en ziet kun je later in de opties testen."
         }
+      },
+      "move_offer": {
+        "title": "Overnemen van {integration}?",
+        "description": "{model} is al ingesteld in {integration} als ‘{title}’. Denon AVR Plus kan hem overnemen: die invoer wordt uitgeschakeld (hij blijft en kan weer worden ingeschakeld), en zijn entiteiten verhuizen hierheen met hun entiteit-ID's, namen, ruimtes en geschiedenis, zodat automatiseringen en dashboards blijven werken. Wat ze gebruiken en hier anders werkt, staat daarna in een reparatie. De verhuizing kan in de opties ongedaan worden gemaakt.",
+        "menu_options": {
+          "move_yes": "Overnemen",
+          "move_no": "Apart instellen"
+        },
+        "menu_option_descriptions": {
+          "move_yes": "De oude invoer uitschakelen en zijn entiteiten overnemen",
+          "move_no": "De oude invoer laten. Tegelijk verbonden storen ze elkaar; een reparatie biedt de verhuizing later aan"
+        }
       }
     },
     "error": {
@@ -69,10 +81,12 @@
           "sound_modes": "Geluidsmodi",
           "connection": "Verbinding",
           "entities": "Entiteiten",
-          "tests_start": "Receiver testen"
+          "tests_start": "Receiver testen",
+          "move_back": "Verhuizing ongedaan maken"
         },
         "menu_option_descriptions": {
-          "tests_start": "Drie stappen, ongeveer zes minuten; alles wordt teruggezet."
+          "tests_start": "Drie stappen, ongeveer zes minuten; alles wordt teruggezet.",
+          "move_back": "De entiteiten teruggeven aan de oude integratie"
         }
       },
       "volume": {
@@ -265,6 +279,11 @@
       "tests_done_check": {
         "title": "Controleer de receiver",
         "description": "Niet alle instellingen kwamen terug: {not_restored_list}. Zet ze op de receiver terug zoals ze waren.\n\n{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
+      },
+      "move_back": {
+        "title": "Verhuizing ongedaan maken",
+        "description": "{count} entiteiten gaan terug naar {titles}, en die invoer wordt weer ingeschakeld. Denon AVR Plus wordt uitgeschakeld, omdat de receiver één verbinding aanneemt; je kunt het daarna weer inschakelen of verwijderen.",
+        "submit": "Ongedaan maken"
       }
     },
     "error": {
@@ -276,7 +295,8 @@
       "no_additional_zones": "Deze receiver heeft geen extra zone.",
       "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld.",
       "test_not_connected": "De receiver is niet verbonden. De commandotest heeft zijn telnetverbinding nodig; probeer het opnieuw als hij aan staat.",
-      "no_hidden_entities": "Deze receiver heeft geen verborgen entiteiten."
+      "no_hidden_entities": "Deze receiver heeft geen verborgen entiteiten.",
+      "moved_back": "De verhuizing wordt ongedaan gemaakt: Denon AVR Plus wordt uitgeschakeld en de oude invoer weer ingeschakeld."
     },
     "progress": {
       "test_part_1": "**Functies lezen**\n\nNu: {current}\n\n→ Functies lezen  \n○ Stil testen  \n○ Testen wat je hoort en ziet\n\nLeest alleen; er verandert niets.",
@@ -1164,6 +1184,31 @@
     "command_test_done": {
       "title": "Commandotest van de {model} voltooid",
       "description": "De {model} bevestigde {confirmed} van {total} commando's. Niet teruggezette instellingen: {not_restored}; controleer ze op de receiver als dit niet 0 is. De details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Open de vooraf ingevulde issue via \"Meer informatie\" en voeg het bestand daar toe. Negeer dit bericht als je het niet wilt delen."
+    },
+    "move_available": {
+      "title": "{title} is ook ingesteld in {integration}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Overnemen van {integration}",
+            "description": "Beide integraties verbinden met de receiver, die één verbinding aanneemt: ze storen elkaar. De invoer ‘{title}’ in {integration} wordt uitgeschakeld (hij blijft en kan weer worden ingeschakeld), en zijn entiteiten verhuizen naar Denon AVR Plus met hun entiteit-ID's, namen, ruimtes en geschiedenis. De verhuizing kan in de opties ongedaan worden gemaakt."
+          }
+        },
+        "abort": {
+          "move_not_possible": "De verhuizing kan nu niet: een van de twee invoeren is niet geladen."
+        }
+      }
+    },
+    "move_check": {
+      "title": "Automatiseringen controleren na de verhuizing van {title}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Automatiseringen gecontroleerd?",
+            "description": "Deze automatiseringen en scripts gebruiken iets van de officiële integratie dat hier anders werkt. Links van de pijl wat ze gebruiken, rechts wat het vervangt (– betekent: niet meer nodig, of geen vervanging). Er is niets gewijzigd.\n\n{findings}\n\nBevestig zodra je ze hebt aangepast; de lijst verdwijnt."
+          }
+        }
+      }
     }
   },
   "selector": {

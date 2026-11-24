@@ -58,7 +58,7 @@ from .command_test import OPT_TEST_PENDING
 from .receiver_test import ReceiverTestSteps
 from .entity_groups import OPT_ENTITY_GROUPS
 from .coordinator import connection_options
-from . import choices, entity_groups
+from . import choices, entity_groups, move
 from .choices import (
     OPT_MAIN_OFF_STANDBY,
     OPT_SOURCE_SHORTCUTS,
@@ -124,6 +124,11 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._port: int | None = None
         self._found: dict[str, str] = {}
         self._new_entry: tuple[str, dict[str, Any]] = ("", {})
+        self._mac: str | None = None
+        self._serial: str | None = None
+        #: The other integrations' entries for this receiver, and whether to take them over.
+        self._old: list[ConfigEntry] = []
+        self._move: list[str] = []
 
     async def _async_identify(self, host: str) -> tuple[str | None, str]:
         """Fetch the receiver's MAC and model name. Raises ConnectionError.
@@ -138,6 +143,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         device = DenonAvrDevice(session, host)
         identity = await device.async_fetch_identity()
         self._port = device.http_port
+        self._mac, self._serial = identity.mac_address, identity.serial_number
         return identity.mac_address, identity.model_name or "Denon AVR"
 
     def _entry_data(self, host: str) -> dict[str, Any]:
@@ -208,19 +214,61 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured(updates=self._entry_data(host))
         else:
             self._async_abort_entries_match({CONF_HOST: host})
-        return self._async_create(name, self._entry_data(host))
+        return await self._async_create(name, self._entry_data(host))
 
-    def _async_create(self, title: str, data: dict[str, Any]) -> ConfigFlowResult:
-        """Create the entry; a model not checked before is offered the tests first.
+    async def _async_create(self, title: str, data: dict[str, Any]) -> ConfigFlowResult:
+        """Create the entry; first offer to take over another integration's entry.
 
-        The capability check is chosen by default there, the command test is
-        not. A known model needs neither; both are in the options for all.
+        Then a model not checked before is offered the tests. The capability
+        check is chosen by default there, the command test is not. A known
+        model needs neither; both are in the options for all.
         """
 
-        if known_model(title):
-            return self.async_create_entry(title=title, data=data)
         self._new_entry = (title, data)
+        self._old = move.old_entries(self.hass, data.get(CONF_HOST), self._mac, self._serial)
+        if self._old:
+            return await self.async_step_move_offer()
+        return self._async_finish()
+
+    async def async_step_move_offer(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """The receiver is in another Denon integration: take that entry over?"""
+
+        old = self._old[0]
+        return self.async_show_menu(
+            step_id="move_offer",
+            menu_options=["move_yes", "move_no"],
+            description_placeholders={
+                "model": self._new_entry[0],
+                "title": old.title,
+                "integration": move.NAMES[old.domain],
+            },
+        )
+
+    async def async_step_move_yes(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Take the other entry over: disable it now, hand its entities over at setup."""
+
+        for old in self._old:
+            await move.async_disable(self.hass, old)
+        self._move = [old.entry_id for old in self._old]
+        return self._async_finish()
+
+    async def async_step_move_no(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        return self._async_finish()
+
+    def _async_finish(self) -> ConfigFlowResult:
+        title, data = self._new_entry
+        if known_model(title):
+            return self.async_create_entry(title=title, data=data, options=self._options())
         return self._unknown_model_form()
+
+    def _options(self) -> dict[str, Any]:
+        return {move.OPT_MOVE_PENDING: self._move} if self._move else {}
 
     def _unknown_model_form(self) -> ConfigFlowResult:
         return self.async_show_form(
@@ -233,7 +281,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def _create_with_tests(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         title, data = self._new_entry
-        options: dict[str, Any] = {}
+        options = self._options()
         if user_input.get(CONF_TEST):
             # The audible part needs someone at the TV: not in the background.
             options[OPT_CHECK_PENDING] = True
@@ -342,7 +390,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             assert self._host is not None
-            return self._async_create(self._name, self._entry_data(self._host))
+            return await self._async_create(self._name, self._entry_data(self._host))
         return self.async_show_form(
             step_id="ssdp_confirm",
             description_placeholders={"name": self._name},
@@ -438,18 +486,32 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        return self.async_show_menu(
-            step_id="init",
-            menu_options=[
-                "volume",
-                "zones",
-                "sources",
-                "sound_modes",
-                "connection",
-                "entities",
-                "tests_start",
-            ],
+        options = ["volume", "zones", "sources", "sound_modes", "connection", "entities"]
+        options.append("tests_start")
+        if await move.async_moved(self.hass, self.config_entry.entry_id):
+            options.append("move_back")
+        return self.async_show_menu(step_id="init", menu_options=options)
+
+    async def async_step_move_back(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Undo the move: this entry off, the entities back to the old one."""
+
+        moves = await move.async_moved(self.hass, self.config_entry.entry_id)
+        if user_input is None:
+            return self.async_show_form(
+                step_id="move_back",
+                description_placeholders={
+                    "titles": ", ".join(item["title"] for item in moves),
+                    "count": str(sum(len(item["entities"]) for item in moves)),
+                },
+            )
+        # After the flow: disabling this entry ends it.
+        # Not a task of this entry: disabling the entry would cancel it.
+        self.hass.async_create_background_task(
+            move.async_move_back(self.hass, self.config_entry), "denonavr_plus move back"
         )
+        return self.async_abort(reason="moved_back")
 
     # Receiver test (steps in receiver_test.ReceiverTestSteps) ---------------
 

@@ -23,7 +23,7 @@ from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.denonavr_plus import config_flow, receiver_test
+from custom_components.denonavr_plus import config_flow, move, receiver_test
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.models import DeviceInfo
@@ -699,6 +699,63 @@ async def test_dhcp_for_a_unit_that_does_not_answer(hass: HomeAssistant) -> None
     assert result["reason"] == "cannot_connect"
 
 
+@pytest.mark.parametrize(("choice", "pending"), [("move_yes", True), ("move_no", False)])
+async def test_the_receiver_in_another_integration_is_offered_for_the_move(
+    hass: HomeAssistant, choice: str, pending: bool
+) -> None:
+    old = MockConfigEntry(domain=move.OFFICIAL, data={CONF_HOST: HOST}, title="Wohnzimmer")
+    old.add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity()):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "move_offer"
+    assert result["menu_options"] == ["move_yes", "move_no"]
+    assert result["description_placeholders"] == {
+        "model": MODEL,
+        "title": "Wohnzimmer",
+        "integration": "Denon AVR Network Receivers",
+    }
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": choice}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    if pending:
+        # Off at once, so this integration gets the telnet session; the
+        # entities move once they exist here.
+        assert result["result"].options == {move.OPT_MOVE_PENDING: [old.entry_id]}
+        assert old.disabled_by is config_entries.ConfigEntryDisabler.USER
+    else:
+        assert result["result"].options == {}
+        assert old.disabled_by is None
+
+
+async def test_the_move_and_the_tests_for_an_unknown_model(hass: HomeAssistant) -> None:
+    old = MockConfigEntry(domain=move.LASERGURUGUY, unique_id=MAC, data={CONF_HOST: "192.0.2.99"})
+    old.add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with patch.object(DenonAvrDevice, "async_fetch_identity", _identity(model="AVR-X9999")):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": "move_yes"}
+    )
+    assert result["step_id"] == "unknown_model"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"test": True})
+    assert result["result"].options == {
+        move.OPT_MOVE_PENDING: [old.entry_id],
+        "capability_check_pending": True,
+        "command_test_pending": ["quiet"],
+    }
+
+
 async def test_a_known_model_is_added_without_the_tests(hass: HomeAssistant) -> None:
     """Both tests stay in the options; setting up a known model asks nothing."""
     result = await hass.config_entries.flow.async_init(
@@ -930,3 +987,24 @@ async def test_the_progress_names_what_runs(
     assert sent[:3] == [0.0, 0.0, 0.25]
     assert sent.count(0.35) == 2
     assert changed and all(event.data["refresh"] for event in changed)
+
+
+async def test_the_move_is_undone_from_the_options(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    old = MockConfigEntry(domain=move.OFFICIAL, data={CONF_HOST: HOST}, title="Wohnzimmer")
+    old.add_to_hass(hass)
+    await move.async_move(hass, loaded_entry, old)
+    await hass.async_block_till_done()
+    result = await hass.config_entries.options.async_init(loaded_entry.entry_id)
+    assert result["menu_options"][-1] == "move_back"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "move_back"}
+    )
+    assert result["step_id"] == "move_back"
+    assert result["description_placeholders"] == {"titles": "Wohnzimmer", "count": "0"}
+    with patch.object(move, "async_move_back", AsyncMock()) as back:
+        result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+        await hass.async_block_till_done()
+    assert (result["type"], result["reason"]) == (FlowResultType.ABORT, "moved_back")
+    back.assert_awaited_once_with(hass, loaded_entry)

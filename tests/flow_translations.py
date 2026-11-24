@@ -26,7 +26,7 @@ from homeassistant.data_entry_flow import FlowResultType, section
 
 BASE = Path(__file__).parent.parent / "custom_components" / "denonavr_plus"
 
-#: The fixable issue whose repair flow this integration has.
+#: The fixable issue a repair flow without an issue id belongs to.
 REPAIR_ISSUE = "capability_check"
 
 #: Steps whose fields are named after what the receiver reports (a source
@@ -60,7 +60,9 @@ def _category(flow: Any) -> tuple[str, ...] | None:
     if isinstance(flow, config_entries.OptionsFlow):
         return ("options",)
     if isinstance(flow, RepairsFlow):
-        return ("issues", REPAIR_ISSUE, "fix_flow")
+        # Issue ids are "<translation key>_<entry id>".
+        issue = str(getattr(flow, "issue_id", "") or REPAIR_ISSUE).rsplit("_", 1)[0]
+        return ("issues", issue, "fix_flow")
     return None
 
 

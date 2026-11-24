@@ -12,7 +12,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.denonavr_plus import capabilities
+from custom_components.denonavr_plus import capabilities, move
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.const import DOMAIN
@@ -109,3 +109,75 @@ async def test_a_failing_check_in_the_repair_aborts(
         result = await manager.async_configure(result["flow_id"])
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "test_not_connected"
+
+
+async def test_the_repair_takes_the_other_integration_over(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    assert await async_setup_component(hass, "repairs", {})
+    manager = repairs_flow_manager(hass)
+    assert manager is not None
+    old = MockConfigEntry(domain=move.OFFICIAL, data={"host": "192.0.2.10"}, title="Wohnzimmer")
+    old.add_to_hass(hass)
+    move.async_update_issue(hass, loaded_entry)
+    issue_id = f"move_available_{loaded_entry.entry_id}"
+    result = await manager.async_init(DOMAIN, data={"issue_id": issue_id})
+    assert (result["type"], result["step_id"]) == (FlowResultType.FORM, "confirm")
+    assert result["description_placeholders"] == {
+        "title": "Wohnzimmer",
+        "integration": "Denon AVR Network Receivers",
+    }
+    result = await manager.async_configure(result["flow_id"], {})
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert old.disabled_by is not None
+    assert await move.async_moved(hass, loaded_entry.entry_id)
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_the_move_repair_without_both_entries(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    assert await async_setup_component(hass, "repairs", {})
+    manager = repairs_flow_manager(hass)
+    assert manager is not None
+    issue_id = f"move_available_{loaded_entry.entry_id}"
+    # The old entry was removed after the repair came up.
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        issue_id,
+        is_fixable=True,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="move_available",
+        translation_placeholders={"title": "Wohnzimmer", "integration": "Denon AVR"},
+        data={"entry_id": loaded_entry.entry_id, "old_entry_id": "gone"},
+    )
+    result = await manager.async_init(DOMAIN, data={"issue_id": issue_id})
+    result = await manager.async_configure(result["flow_id"], {})
+    assert (result["type"], result["reason"]) == (FlowResultType.ABORT, "move_not_possible")
+
+
+async def test_the_list_after_the_move_is_confirmed(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    assert await async_setup_component(hass, "repairs", {})
+    manager = repairs_flow_manager(hass)
+    assert manager is not None
+    issue_id = f"move_check_{loaded_entry.entry_id}"
+    findings = "- automation.x: denonavr.get_command → denonavr_plus.send_command"
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        issue_id,
+        is_fixable=True,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="move_check",
+        translation_placeholders={"title": "Wohnzimmer", "findings": findings},
+        data={"entry_id": loaded_entry.entry_id},
+    )
+    result = await manager.async_init(DOMAIN, data={"issue_id": issue_id})
+    assert result["description_placeholders"]["findings"] == findings
+    result = await manager.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None

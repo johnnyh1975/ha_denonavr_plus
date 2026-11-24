@@ -42,6 +42,18 @@
         "data_description": {
           "test": "Legge, poi cambia impostazioni per un momento e le ripristina. Ciò che si sente e si vede si può provare più tardi nelle opzioni."
         }
+      },
+      "move_offer": {
+        "title": "Rilevare da {integration}?",
+        "description": "{model} è già configurato in {integration} come «{title}». Denon AVR Plus può rilevarlo: quella voce viene disattivata (rimane e si può riattivare) e le sue entità passano qui con ID entità, nomi, aree e cronologia, così automazioni e dashboard continuano a funzionare. Quello che usano e qui funziona diversamente viene poi elencato in una riparazione. Il trasferimento si può annullare nelle opzioni.",
+        "menu_options": {
+          "move_yes": "Rileva",
+          "move_no": "Configura separatamente"
+        },
+        "menu_option_descriptions": {
+          "move_yes": "Disattivare la vecchia voce e rilevarne le entità",
+          "move_no": "Lasciare la vecchia voce. Collegate insieme si disturbano; una riparazione propone il trasferimento più tardi"
+        }
       }
     },
     "error": {
@@ -69,10 +81,12 @@
           "sound_modes": "Modalità audio",
           "connection": "Connessione",
           "entities": "Entità",
-          "tests_start": "Prova il ricevitore"
+          "tests_start": "Prova il ricevitore",
+          "move_back": "Annulla il trasferimento"
         },
         "menu_option_descriptions": {
-          "tests_start": "Tre passi, circa sei minuti; tutto viene ripristinato."
+          "tests_start": "Tre passi, circa sei minuti; tutto viene ripristinato.",
+          "move_back": "Restituire le entità alla vecchia integrazione"
         }
       },
       "volume": {
@@ -265,6 +279,11 @@
       "tests_done_check": {
         "title": "Controlla il ricevitore",
         "description": "Non tutte le impostazioni sono tornate: {not_restored_list}. Reimpostale sul ricevitore com'erano.\n\n{model}:\n\n- Domande con risposta: {answered} su {total}\n- Comandi confermati: {confirmed}\n- Mancava un presupposto: {precondition}\n- Senza effetto: {no_effect}\n- Saltati: {skipped}\n- Non eseguite, il ricevitore non rispondeva più: {interrupted}\n\nAllega il file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica) a [questa segnalazione precompilata su GitHub]({url}). Leggilo prima; gli indirizzi sono già sostituiti."
+      },
+      "move_back": {
+        "title": "Annulla il trasferimento",
+        "description": "{count} entità tornano a {titles} e quella voce viene riattivata. Denon AVR Plus viene disattivato, perché il ricevitore accetta una sola connessione; puoi poi riattivarlo o eliminarlo.",
+        "submit": "Annulla"
       }
     },
     "error": {
@@ -276,7 +295,8 @@
       "no_additional_zones": "Questo sintoamplificatore non ha zone aggiuntive.",
       "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio.",
       "test_not_connected": "Il ricevitore non è connesso. La prova dei comandi richiede la sua connessione telnet; riprova quando è acceso.",
-      "no_hidden_entities": "Questo ricevitore non ha entità nascoste."
+      "no_hidden_entities": "Questo ricevitore non ha entità nascoste.",
+      "moved_back": "Il trasferimento viene annullato: Denon AVR Plus viene disattivato e la vecchia voce riattivata."
     },
     "progress": {
       "test_part_1": "**Leggi funzioni**\n\nOra: {current}\n\n→ Leggi funzioni  \n○ Prova in silenzio  \n○ Prova ciò che si sente e si vede\n\nSolo lettura; nulla cambia.",
@@ -1164,6 +1184,31 @@
     "command_test_done": {
       "title": "Prova dei comandi del {model} terminata",
       "description": "Il {model} ha confermato {confirmed} comandi su {total}. Impostazioni non ripristinate: {not_restored}; controllale sul ricevitore se non è 0. I dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Apri la segnalazione precompilata con \"Ulteriori informazioni\" e allega lì il file. Ignora questo messaggio se non vuoi condividerlo."
+    },
+    "move_available": {
+      "title": "{title} è configurato anche in {integration}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Rilevare da {integration}",
+            "description": "Entrambe le integrazioni si collegano al ricevitore, che accetta una sola connessione: si disturbano. La voce «{title}» di {integration} viene disattivata (rimane e si può riattivare) e le sue entità passano a Denon AVR Plus con ID entità, nomi, aree e cronologia. Il trasferimento si può annullare nelle opzioni."
+          }
+        },
+        "abort": {
+          "move_not_possible": "Il trasferimento ora non è possibile: una delle due voci non è caricata."
+        }
+      }
+    },
+    "move_check": {
+      "title": "Controlla le automazioni dopo il trasferimento da {title}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Automazioni controllate?",
+            "description": "Queste automazioni e script usano qualcosa dell'integrazione ufficiale che qui funziona diversamente. A sinistra della freccia ciò che usano, a destra ciò che lo sostituisce (– significa: non serve più, o nessun sostituto). Non è stato modificato nulla.\n\n{findings}\n\nConferma quando le hai modificate; l'elenco scompare."
+          }
+        }
+      }
     }
   },
   "selector": {

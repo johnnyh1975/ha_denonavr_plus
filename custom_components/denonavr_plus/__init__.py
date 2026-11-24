@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -16,11 +17,12 @@ from homeassistant.helpers import (
     config_validation as cv,
     device_registry as dr,
     entity_registry as er,
+    issue_registry as ir,
 )
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.typing import ConfigType
 
-from . import choices, command_test, entity_groups
+from . import choices, command_test, entity_groups, move
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import (
@@ -99,6 +101,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         )
     _sub_devices_follow_room(hass, entry, coordinator)
     coordinator.capabilities.async_update_issues(coordinator.device.discovery.device.model_name)
+    if entry.options.get(move.OPT_MOVE_PENDING):
+        # Taking another integration's entry over, chosen when the receiver
+        # was added; the reload after it runs what else is pending. It starts
+        # once this setup has finished, which the reload would otherwise cut.
+        started = False
+
+        @callback
+        def _start_move() -> None:
+            nonlocal started
+            if entry.state is ConfigEntryState.LOADED and not started:
+                started = True
+                # Not at once: the setup that is ending would see the reload.
+                hass.async_create_background_task(
+                    move.async_run_pending(hass, entry), "denonavr_plus move", eager_start=False
+                )
+
+        entry.async_on_unload(entry.async_on_state_change(_start_move))
+        entry.async_on_unload(entry.add_update_listener(_async_entry_updated))
+        return True
+    move.async_update_issue(hass, entry)
     pending = entry.options.get(OPT_CHECK_PENDING) or entry.options.get(OPT_TEST_PENDING)
     if pending and not coordinator.started_offline:
         entry.async_create_background_task(
@@ -137,6 +159,9 @@ async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) ->
     await results.async_remove()
     results.async_delete_issues()
     await command_test.CommandTestResults(hass, entry.entry_id, results.lock).async_remove()
+    await move.store(hass, entry.entry_id).async_remove()
+    for issue in (move.ISSUE_AVAILABLE, move.ISSUE_CHECK):
+        ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:
