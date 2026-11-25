@@ -34,8 +34,8 @@
         }
       },
       "unknown_model": {
-        "title": "Model nog niet gecontroleerd",
-        "description": "De {model} is nog niet gecontroleerd met deze integratie; sommige instellingen kunnen ontbreken of verkeerd gelezen worden.\n\nDe receivertest loopt zodra de receiver verbonden is: hij controleert de functies en test commando's stil. De resultaten komen in het diagnosebestand, dat je aan een vooraf ingevulde issue op GitHub kunt toevoegen. Er wordt niets vanzelf verstuurd.",
+        "title": "Receivertype nog niet beschreven",
+        "description": "De {model} is geen AV-receiver van Denon of Marantz vanaf 2013, of meldt een interfaceversie die deze integratie nog niet kent. De installatie gaat door; sommige instellingen kunnen ontbreken of verkeerd worden gelezen.\n\nDe receivertest loopt zodra de receiver verbonden is: hij controleert de functies en test commando's stil. De resultaten komen in het diagnosebestand, dat je aan een vooraf ingevulde issue op GitHub kunt toevoegen. Er wordt niets vanzelf verstuurd.",
         "data": {
           "test": "Receiver testen na het instellen"
         },
@@ -58,7 +58,8 @@
     },
     "error": {
       "cannot_connect": "Kon de receiver niet bereiken. Controleer het IP-adres en of de receiver aan staat en op het netwerk zit.",
-      "no_receivers_found": "Er is op het netwerk geen receiver gevonden die nog niet is ingesteld. Voer het IP-adres in."
+      "no_receivers_found": "Er is op het netwerk geen receiver gevonden die nog niet is ingesteld. Voer het IP-adres in.",
+      "unsupported_receiver": "Deze receiver is uit 2010–2012 en heeft geen apparaatbeschrijving (Deviceinfo.xml), dus Denon AVR Plus kan hem niet instellen. De officiële integratie Denon AVR Network Receivers ondersteunt deze oudere receivers."
     },
     "abort": {
       "already_configured": "Deze receiver is al geconfigureerd.",
@@ -67,7 +68,8 @@
       "cannot_connect": "De receiver antwoordde niet op dat adres.",
       "already_in_progress": "Deze receiver wordt al ingesteld.",
       "not_denon_marantz": "Het gevonden apparaat is geen Denon- of Marantz-apparaat.",
-      "not_a_receiver": "Het gevonden apparaat is een HEOS-luidspreker, geen receiver."
+      "not_a_receiver": "Het gevonden apparaat is een HEOS-luidspreker, geen receiver.",
+      "unsupported_receiver": "Deze receiver is uit 2010–2012 en heeft geen apparaatbeschrijving (Deviceinfo.xml), dus Denon AVR Plus kan hem niet instellen. De officiële integratie Denon AVR Network Receivers ondersteunt deze oudere receivers."
     }
   },
   "options": {
@@ -1139,7 +1141,7 @@
       "description": "De {model} reageert op het netwerk, maar heeft al enkele minuten geen telnet-verbinding op poort 23 geaccepteerd. Tot die tijd werken de mediaspelers alleen via de webinterface: aan/uit, volume, dempen en bron, met tot 10 seconden vertraging. Alle andere instellingen zijn niet beschikbaar.\n\nDe receiver staat maar één telnet-verbinding tegelijk toe. Veelvoorkomende oorzaken:\n\n- Een andere integratie of een ander programma gebruikt die verbinding, bijvoorbeeld de officiële Denon AVR-integratie of een ander domoticasysteem. Verwijder of schakel die uit voor deze receiver.\n- De app Denon of Marantz AVR Remote zolang het tunerscherm open is. Sluit dat scherm of de app.\n- Een firewall- of VLAN-regel blokkeert poort 23 tussen Home Assistant en de receiver, terwijl de webpoorten open zijn.\n\nDeze melding verdwijnt vanzelf zodra de verbinding weer werkt."
     },
     "capability_check": {
-      "title": "{model} is nog niet gecontroleerd",
+      "title": "{model}: receivertype nog niet beschreven",
       "fix_flow": {
         "step": {
           "tests_start": {

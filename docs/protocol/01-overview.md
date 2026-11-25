@@ -39,7 +39,8 @@ same steps. What each level offers over HTTP is on the
 
 The app no longer supports receivers without a level, and this
 integration cannot set them up, because it reads port and functions from
-`Deviceinfo.xml`. Below 0300 a receiver
+`Deviceinfo.xml`; setup recognises their error page and says so. What
+works on each level is in [Compatibility](../COMPATIBILITY.md). Below 0300 a receiver
 names few of its functions in `Deviceinfo.xml`, which is why the AVR-X2000
 lists far fewer than its telnet protocol has.
 

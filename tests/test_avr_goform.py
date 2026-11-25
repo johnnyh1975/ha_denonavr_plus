@@ -56,6 +56,19 @@ async def test_waking_2016_receiver_is_not_stored_on_80(
         await async_detect_port(async_get_clientsession(hass), HOST)
 
 
+@pytest.mark.parametrize("recording", ["AVR-1912-Deviceinfo.xml", "AVR-3311CI-Deviceinfo.xml"])
+async def test_a_receiver_without_deviceinfo_is_unsupported(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, recording: str
+) -> None:
+    """2010-2012 receivers answer port 80 with an error page instead of Deviceinfo.xml."""
+    from custom_components.denonavr_plus.avr.errors import UnsupportedReceiver
+
+    aioclient_mock.get(URL_8080, exc=ClientError())
+    aioclient_mock.get(URL_80, text=deviceinfo(recording))
+    with pytest.raises(UnsupportedReceiver):
+        await async_detect_port(async_get_clientsession(hass), HOST)
+
+
 async def test_port_80_redirect_to_https_is_not_followed(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
 ) -> None:

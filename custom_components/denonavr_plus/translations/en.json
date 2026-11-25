@@ -34,8 +34,8 @@
         }
       },
       "unknown_model": {
-        "title": "Model not checked yet",
-        "description": "The {model} has not been checked with this integration yet; some settings may be missing or read wrongly.\n\nThe receiver test runs once the receiver is connected: it checks capabilities and tests commands quietly. Its results go into the diagnostics file, which you can attach to a prefilled issue on GitHub. Nothing is sent by itself.",
+        "title": "Receiver type not described yet",
+        "description": "The {model} is not a Denon or Marantz AV receiver from 2013 on, or it reports an interface version this integration does not know yet. Setup goes ahead; some settings may be missing or read wrongly.\n\nThe receiver test runs once the receiver is connected: it checks capabilities and tests commands quietly. Its results go into the diagnostics file, which you can attach to a prefilled issue on GitHub. Nothing is sent by itself.",
         "data": {
           "test": "Test the receiver after setup"
         },
@@ -58,7 +58,8 @@
     },
     "error": {
       "cannot_connect": "Could not reach the receiver. Check the IP address and that the receiver is powered on and on the network.",
-      "no_receivers_found": "No receiver that is not set up yet was found on the network. Enter its IP address."
+      "no_receivers_found": "No receiver that is not set up yet was found on the network. Enter its IP address.",
+      "unsupported_receiver": "This receiver is from 2010–2012 and has no device description (Deviceinfo.xml), so Denon AVR Plus cannot set it up. The official integration Denon AVR Network Receivers supports these older receivers."
     },
     "abort": {
       "already_configured": "This receiver is already configured.",
@@ -67,7 +68,8 @@
       "cannot_connect": "The receiver did not answer at that address.",
       "already_in_progress": "This receiver is already being set up.",
       "not_denon_marantz": "The discovered device is not a Denon or Marantz unit.",
-      "not_a_receiver": "The discovered device is a HEOS speaker, not a receiver."
+      "not_a_receiver": "The discovered device is a HEOS speaker, not a receiver.",
+      "unsupported_receiver": "This receiver is from 2010–2012 and has no device description (Deviceinfo.xml), so Denon AVR Plus cannot set it up. The official integration Denon AVR Network Receivers supports these older receivers."
     }
   },
   "options": {
@@ -1139,7 +1141,7 @@
       "description": "The {model} answers on the network, but has not accepted a telnet connection on port 23 for several minutes. Until it does, the media players work over the web interface only: power, volume, mute and source, with up to 10 seconds delay. All other settings are unavailable.\n\nThe receiver allows only one telnet connection at a time. Common causes:\n\n- Another integration or program holds that connection, for example the official Denon AVR integration or another home automation system. Remove or disable it for this receiver.\n- The Denon or Marantz AVR Remote app while its tuner screen is open. Close that screen or the app.\n- A firewall or VLAN rule blocks port 23 between Home Assistant and the receiver, while the web ports are open.\n\nThe message disappears by itself as soon as the connection works again."
     },
     "capability_check": {
-      "title": "{model} has not been checked yet",
+      "title": "{model}: receiver type not described yet",
       "fix_flow": {
         "step": {
           "tests_start": {

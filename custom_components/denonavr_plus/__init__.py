@@ -100,7 +100,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
             hass, entry, coordinator.device.discovery.configured_channels
         )
     _sub_devices_follow_room(hass, entry, coordinator)
-    coordinator.capabilities.async_update_issues(coordinator.device.discovery.device.model_name)
+    if not coordinator.started_offline:
+        # Started from the stored data, the entry reloads once the receiver
+        # answers; its generation is read then.
+        coordinator.capabilities.async_update_issues(coordinator.device.discovery.device)
     if entry.options.get(move.OPT_MOVE_PENDING):
         # Taking another integration's entry over, chosen when the receiver
         # was added; the reload after it runs what else is pending. It starts

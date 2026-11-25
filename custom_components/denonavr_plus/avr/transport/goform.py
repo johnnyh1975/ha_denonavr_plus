@@ -29,6 +29,7 @@ from urllib.parse import quote
 import aiohttp
 
 from ..const import HTTP_TIMEOUT
+from ..errors import UnsupportedReceiver
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,6 +41,9 @@ _COMMAND_PATH = "/goform/formiPhoneAppDirect.xml"
 # CommApiVers from which the receiver serves goform on port 8080 (2016 on).
 _PORT_8080_FROM = 301
 _COMMAPI_RE = re.compile(r"<CommApiVers>\s*(\d+)\s*</CommApiVers>")
+# The answer of a 2010-2012 receiver, which has no Deviceinfo.xml (recorded
+# AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810, M-CR603).
+_NO_DEVICEINFO = "Deviceinfo.xml is not defined"
 
 
 def _comm_api_version(text: str) -> int | None:
@@ -56,6 +60,8 @@ async def async_detect_port(
     ConnectionError when no port gives an answer that fits: port 80 only
     counts for a receiver that reports an older CommApiVers (or none), so a
     newer receiver whose port 8080 is not up yet is retried later instead.
+    Raises UnsupportedReceiver when port 80 says it has no Deviceinfo.xml
+    (receivers from 2010 to 2012).
     """
 
     text = await GoformClient(session, host, DEFAULT_PORT).async_get_device_info()
@@ -71,6 +77,8 @@ async def async_detect_port(
             host,
             version,
         )
+    elif text and _NO_DEVICEINFO in text:
+        raise UnsupportedReceiver(f"{host} has no Deviceinfo.xml (2010-2012 generation)")
     raise ConnectionError(f"No Deviceinfo response from {host}")
 
 

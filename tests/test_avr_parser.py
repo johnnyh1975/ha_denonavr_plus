@@ -79,6 +79,12 @@ def test_parse_device_info_reads_the_brand() -> None:
     assert _parse("AVR-X2000-Deviceinfo.xml").device.brand_code == 0
 
 
+def test_parse_device_info_reads_the_product_category() -> None:
+    assert _parse("AVR-X2000-Deviceinfo.xml").device.product_category == 1
+    assert _parse("M-CR510-Deviceinfo.xml").device.product_category == 2
+    assert _parse("AVR-1912-Deviceinfo.xml").device.product_category is None
+
+
 def test_a_marantz_reports_its_smart_select() -> None:
     from custom_components.denonavr_plus.avr.profile import profile_for_receiver
 

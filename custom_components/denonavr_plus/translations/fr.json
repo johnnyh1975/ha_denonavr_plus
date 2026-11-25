@@ -34,8 +34,8 @@
         }
       },
       "unknown_model": {
-        "title": "Modèle pas encore vérifié",
-        "description": "Le {model} n'a pas encore été vérifié avec cette intégration ; certains réglages peuvent manquer ou être mal lus.\n\nLe test du récepteur s'exécute une fois celui-ci connecté : il vérifie les fonctions et teste les commandes discrètement. Ses résultats vont dans le fichier de diagnostic, que vous pouvez joindre à un ticket prérempli sur GitHub. Rien n'est envoyé de lui-même.",
+        "title": "Type d'ampli-tuner pas encore décrit",
+        "description": "Le {model} n'est pas un ampli-tuner AV Denon ou Marantz de 2013 ou plus récent, ou il indique une version d'interface que cette intégration ne connaît pas encore. La configuration continue ; certains réglages peuvent manquer ou être mal lus.\n\nLe test du récepteur s'exécute une fois celui-ci connecté : il vérifie les fonctions et teste les commandes discrètement. Ses résultats vont dans le fichier de diagnostic, que vous pouvez joindre à un ticket prérempli sur GitHub. Rien n'est envoyé de lui-même.",
         "data": {
           "test": "Tester le récepteur après la configuration"
         },
@@ -58,7 +58,8 @@
     },
     "error": {
       "cannot_connect": "Impossible de joindre l'ampli-tuner. Vérifiez l'adresse IP et que l'ampli-tuner est allumé et connecté au réseau.",
-      "no_receivers_found": "Aucun ampli-tuner non configuré n'a été trouvé sur le réseau. Saisissez son adresse IP."
+      "no_receivers_found": "Aucun ampli-tuner non configuré n'a été trouvé sur le réseau. Saisissez son adresse IP.",
+      "unsupported_receiver": "Cet ampli-tuner date de 2010–2012 et n'a pas de description de l'appareil (Deviceinfo.xml) ; Denon AVR Plus ne peut donc pas le configurer. L'intégration officielle Denon AVR Network Receivers prend en charge ces anciens ampli-tuners."
     },
     "abort": {
       "already_configured": "Cet ampli-tuner est déjà configuré.",
@@ -67,7 +68,8 @@
       "cannot_connect": "L'ampli-tuner n'a pas répondu à cette adresse.",
       "already_in_progress": "Cet ampli-tuner est déjà en cours de configuration.",
       "not_denon_marantz": "L'appareil détecté n'est pas un appareil Denon ou Marantz.",
-      "not_a_receiver": "L'appareil détecté est une enceinte HEOS, pas un ampli-tuner."
+      "not_a_receiver": "L'appareil détecté est une enceinte HEOS, pas un ampli-tuner.",
+      "unsupported_receiver": "Cet ampli-tuner date de 2010–2012 et n'a pas de description de l'appareil (Deviceinfo.xml) ; Denon AVR Plus ne peut donc pas le configurer. L'intégration officielle Denon AVR Network Receivers prend en charge ces anciens ampli-tuners."
     }
   },
   "options": {
@@ -1139,7 +1141,7 @@
       "description": "Le {model} répond sur le réseau, mais n'accepte plus de connexion telnet sur le port 23 depuis plusieurs minutes. En attendant, les lecteurs multimédias fonctionnent uniquement via l'interface web : alimentation, volume, sourdine et source, avec jusqu'à 10 secondes de retard. Tous les autres réglages sont indisponibles.\n\nL'ampli-tuner n'accepte qu'une seule connexion telnet à la fois. Causes fréquentes :\n\n- Une autre intégration ou un autre programme occupe cette connexion, par exemple l'intégration officielle Denon AVR ou un autre système domotique. Supprimez-la ou désactivez-la pour cet ampli-tuner.\n- L'application Denon ou Marantz AVR Remote tant que son écran du tuner est ouvert. Fermez cet écran ou l'application.\n- Une règle de pare-feu ou de VLAN bloque le port 23 entre Home Assistant et l'ampli-tuner, alors que les ports web sont ouverts.\n\nLe message disparaît de lui-même dès que la connexion fonctionne à nouveau."
     },
     "capability_check": {
-      "title": "Le {model} n'a pas encore été vérifié",
+      "title": "{model} : type d'ampli-tuner pas encore décrit",
       "fix_flow": {
         "step": {
           "tests_start": {

@@ -15,6 +15,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
 from .avr.device import DenonAvrDevice
+from .avr.generation import generation_of
 from .coordinator import DenonAvrConfigEntry
 
 TO_REDACT = {"mac_address", "serial_number"}
@@ -35,6 +36,10 @@ async def async_get_config_entry_diagnostics(
         "started_offline": coordinator.started_offline,
         "http_port": device.http_port,
         "setup_port": device.setup_port,
+        # The receiver generation (docs/COMPATIBILITY.md); None: not described.
+        "generation": (
+            None if (generation := generation_of(discovery.device)) is None else generation.key
+        ),
         # The capability check, with addresses already replaced (None: not run).
         "capability_check": coordinator.capabilities.result,
         # The command test (None: not run).

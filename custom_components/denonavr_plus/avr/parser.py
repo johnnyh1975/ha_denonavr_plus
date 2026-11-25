@@ -115,6 +115,8 @@ def parse_device_info(
     device.comm_api_version = int(comm_api) if comm_api.isdigit() else None
     brand = (root.findtext("BrandCode") or "").strip()
     device.brand_code = int(brand) if brand.isdigit() else None
+    category = (root.findtext("ProductCategory") or "").strip()
+    device.product_category = int(category) if category.isdigit() else None
     # Classify the receiver type (the device's hardware version) the way the
     # official library does: an AVR-X family device reached over the 8080
     # interface is "avr-x-2016", otherwise "avr". A device is AVR-X when its

@@ -25,7 +25,7 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClien
 
 from custom_components.denonavr_plus import config_flow, move, receiver_test
 from custom_components.denonavr_plus.avr import DenonAvrDevice
-from custom_components.denonavr_plus.avr.errors import CommandNotSent
+from custom_components.denonavr_plus.avr.errors import CommandNotSent, UnsupportedReceiver
 from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
@@ -58,8 +58,8 @@ async def no_setup(
         await hass.async_block_till_done()
 
 
-def _identity(mac: str | None = MAC, model: str | None = MODEL) -> AsyncMock:
-    return AsyncMock(return_value=DeviceInfo(model_name=model, mac_address=mac))
+def _identity(mac: str | None = MAC, model: str | None = MODEL, **info: Any) -> AsyncMock:
+    return AsyncMock(return_value=DeviceInfo(model_name=model, mac_address=mac, **info))
 
 
 async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
@@ -748,6 +748,85 @@ async def test_the_move_and_the_tests_for_an_unknown_model(hass: HomeAssistant) 
         "capability_check_pending": True,
         "command_test_pending": ["quiet"],
     }
+
+
+@pytest.mark.parametrize(
+    ("model", "level"), [("AVR-X4100W", 300), ("SR6012", 301), ("AVR-X1100W", 250)]
+)
+async def test_a_described_generation_is_added_without_the_tests(
+    hass: HomeAssistant, model: str, level: int
+) -> None:
+    """Models not tested here, but of a generation the integration describes."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    identity = _identity(model=model, comm_api_version=level, product_category=1)
+    with patch.object(DenonAvrDevice, "async_fetch_identity", identity):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["result"].options == {}
+
+
+async def test_a_system_is_offered_the_tests(hass: HomeAssistant) -> None:
+    """ProductCategory 2 (M-CR510): not an AV receiver, so not described."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    identity = _identity(model="M-CR510", comm_api_version=220, product_category=2)
+    with patch.object(DenonAvrDevice, "async_fetch_identity", identity):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    assert result["step_id"] == "unknown_model"
+
+
+async def test_a_receiver_before_2013_is_not_set_up(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """An AVR-1912 has no Deviceinfo.xml: a clear reason, not "cannot connect"."""
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10:8080/goform/Deviceinfo\.xml$"), exc=ClientError()
+    )
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10/goform/Deviceinfo\.xml$"),
+        text=deviceinfo("AVR-1912-Deviceinfo.xml"),
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: HOST}
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "unsupported_receiver"}
+
+
+@pytest.mark.parametrize("source", [config_entries.SOURCE_SSDP, config_entries.SOURCE_DHCP])
+async def test_a_found_receiver_before_2013_is_not_offered(
+    hass: HomeAssistant, source: str
+) -> None:
+    data = _ssdp() if source == config_entries.SOURCE_SSDP else _dhcp(HOST)
+    failing = AsyncMock(side_effect=UnsupportedReceiver("no Deviceinfo.xml"))
+    with patch.object(DenonAvrDevice, "async_fetch_identity", failing):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": source}, data=data
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "unsupported_receiver"
+
+
+async def test_reconfigure_to_a_receiver_before_2013(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, unique_id=MAC, data={CONF_HOST: "192.0.2.99"})
+    entry.add_to_hass(hass)
+    result = await entry.start_reconfigure_flow(hass)
+    failing = AsyncMock(side_effect=UnsupportedReceiver("no Deviceinfo.xml"))
+    with patch.object(DenonAvrDevice, "async_fetch_identity", failing):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    assert result["errors"] == {"base": "unsupported_receiver"}
 
 
 async def test_a_known_model_is_added_without_the_tests(hass: HomeAssistant) -> None:

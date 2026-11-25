@@ -79,15 +79,21 @@ and back without losing entity IDs or history.
 
 ## Supported receivers
 
-| Brand | Series | Status |
-|---|---|---|
-| Denon | AVR-X | Tested: AVR-X3600H, AVR-X2600H, AVR-X2000 |
-| Denon | AVR-S, AVC-X | Expected, not yet confirmed |
-| Marantz | SR, NR, Cinema, AV | Expected, not yet confirmed |
+Denon and Marantz AV receivers from 2013 on. The integration reads each
+receiver's generation, brand and functions from the receiver itself, so it
+needs no list of models.
 
-Receivers from before 2016, such as the AVR-X2000, work but report few of
-their functions, so most of their settings stay hidden for now. Own an unconfirmed
-model? [Test it](CONTRIBUTING.md#test-the-receiver) and share the result.
+| Generation | Examples | Works |
+|---|---|---|
+| 2016 on, with HEOS | Denon AVR-X…00H, AVR-S…H, AVC; Marantz SR…12 and newer, NR…08 and newer, AV, Cinema | Everything; tested on AVR-X3600H and AVR-X2600H |
+| 2014–2016, without HEOS | Denon AVR-X…100W to X…300W, AVR-S…W; Marantz SR…09 to SR…11, NR…05 to NR1607 | Everything except HEOS and the setup web interface |
+| 2013 | Denon AVR-X…000, AVR-E…00; Marantz SR…08, NR…04 | As 2014–2016; tested on AVR-X2000 |
+| 2010–2012 | Denon AVR-1912, AVR-3311CI; Marantz SR6006, SR7005 … | No: these receivers have no device description |
+
+Details, what differs per generation and Marantz's differences:
+[Compatibility](docs/COMPATIBILITY.md). Testing a receiver is optional;
+to confirm an untested model, [test it](CONTRIBUTING.md#test-the-receiver)
+and share the result.
 
 ## Installation
 
@@ -130,6 +136,7 @@ across VLANs, ports 23 and 8080 open
 | Document | Read it when |
 |---|---|
 | **[User guide](docs/USER_GUIDE.md)** | You set up and use the receiver: step by step, with screenshots and recommended settings. Start here. |
+| [Compatibility](docs/COMPATIBILITY.md) | You want to know whether your receiver works and what differs by generation. |
 | [Reference](docs/REFERENCE.md) | You look up an entity, option, action, port or limitation. |
 | [Upgrading](docs/UPGRADING.md) | You update, or move over from another Denon integration. |
 | [Contributing](CONTRIBUTING.md) | You test a receiver model, report a problem or change code. |

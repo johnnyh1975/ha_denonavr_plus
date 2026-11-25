@@ -539,6 +539,8 @@ confusing. Without other HEOS speakers it can be removed.
 ## Notes and limitations
 
 Symptoms and what to do about them: [user guide, troubleshooting](USER_GUIDE.md#11-troubleshooting).
+Which receivers work, and what differs by generation and brand:
+[Compatibility](COMPATIBILITY.md).
 
 - Some parameters only apply to certain signals or sound modes (for example
   Dynamic Compression needs a Dolby/DTS bitstream, Video Mode needs an active

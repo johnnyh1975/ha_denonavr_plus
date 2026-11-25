@@ -60,8 +60,10 @@ with a missing precondition, without effect, or skipped, and links to a
 prefilled issue on GitHub; attach the diagnostics file there (addresses are
 replaced). Nothing is sent anywhere by itself.
 
-For a model that has not been checked yet, setup offers to test the receiver
-once it is connected (on by default; the first two parts, in the
+The test is optional. Only for a device that is not a described AV receiver
+(a system, or an interface level not seen yet;
+[Compatibility](docs/COMPATIBILITY.md)) does setup offer it once the
+receiver is connected (on by default; the first two parts, in the
 background), and a repair runs the same three parts later. A message then
 points to the issue.
 

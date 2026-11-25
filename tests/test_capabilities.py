@@ -16,6 +16,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.denonavr_plus import capabilities
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
+from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
 from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
@@ -47,13 +48,21 @@ def test_the_issue_link_is_prefilled() -> None:
     assert query["title"] == ["Device support: SR6015"]
 
 
-async def test_an_unchecked_model_gets_a_repair(
+async def test_a_described_generation_gets_no_repair(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    """The recording (AVC-X3700H) is not in KNOWN_MODELS."""
+    """The recording (AVC-X3700H) is not in KNOWN_MODELS, but of level 0301."""
+    assert _issue(hass, loaded_entry, "capability_check") is None
+
+
+async def test_a_device_of_no_described_generation_gets_a_repair(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    system = DeviceInfo(model_name="M-CR510", comm_api_version=220, product_category=2)
+    loaded_entry.runtime_data.capabilities.async_update_issues(system)
     issue = _issue(hass, loaded_entry, "capability_check")
     assert issue is not None and issue.is_fixable
-    assert issue.translation_placeholders == {"model": "AVC-X3700H"}
+    assert issue.translation_placeholders == {"model": "M-CR510"}
 
 
 def test_a_sibling_of_a_checked_model_counts_as_known() -> None:
@@ -69,7 +78,7 @@ async def test_a_known_model_gets_none(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     with patch.object(capabilities, "KNOWN_MODELS", frozenset({"AVC-X3700H"})):
-        loaded_entry.runtime_data.capabilities.async_update_issues("AVC-X3700H")
+        loaded_entry.runtime_data.capabilities.async_update_issues(DeviceInfo(model_name="AVC-X3700H"))
     assert _issue(hass, loaded_entry, "capability_check") is None
 
 

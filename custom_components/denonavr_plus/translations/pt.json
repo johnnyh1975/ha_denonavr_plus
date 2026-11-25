@@ -34,8 +34,8 @@
         }
       },
       "unknown_model": {
-        "title": "Modelo ainda não verificado",
-        "description": "O {model} ainda não foi verificado com esta integração; algumas definições podem faltar ou ser mal lidas.\n\nO teste do recetor corre quando estiver ligado: verifica as funções e testa comandos em silêncio. Os resultados vão para o ficheiro de diagnóstico, que pode anexar a um problema pré-preenchido no GitHub. Nada é enviado por si só.",
+        "title": "Tipo de recetor ainda não descrito",
+        "description": "O {model} não é um recetor AV Denon ou Marantz de 2013 ou posterior, ou indica uma versão de interface que esta integração ainda não conhece. A configuração continua; algumas definições podem faltar ou ser lidas incorretamente.\n\nO teste do recetor corre quando estiver ligado: verifica as funções e testa comandos em silêncio. Os resultados vão para o ficheiro de diagnóstico, que pode anexar a um problema pré-preenchido no GitHub. Nada é enviado por si só.",
         "data": {
           "test": "Testar o recetor após a configuração"
         },
@@ -58,7 +58,8 @@
     },
     "error": {
       "cannot_connect": "Não foi possível contactar o recetor. Verifique o endereço IP e se o recetor está ligado e na rede.",
-      "no_receivers_found": "Não foi encontrado na rede nenhum recetor por configurar. Introduza o seu endereço IP."
+      "no_receivers_found": "Não foi encontrado na rede nenhum recetor por configurar. Introduza o seu endereço IP.",
+      "unsupported_receiver": "Este recetor é de 2010–2012 e não tem descrição do dispositivo (Deviceinfo.xml), por isso o Denon AVR Plus não o consegue configurar. A integração oficial Denon AVR Network Receivers suporta estes recetores mais antigos."
     },
     "abort": {
       "already_configured": "Este recetor já está configurado.",
@@ -67,7 +68,8 @@
       "cannot_connect": "O recetor não respondeu nesse endereço.",
       "already_in_progress": "Este recetor já está a ser configurado.",
       "not_denon_marantz": "O dispositivo encontrado não é um equipamento Denon ou Marantz.",
-      "not_a_receiver": "O dispositivo encontrado é uma coluna HEOS, não um recetor."
+      "not_a_receiver": "O dispositivo encontrado é uma coluna HEOS, não um recetor.",
+      "unsupported_receiver": "Este recetor é de 2010–2012 e não tem descrição do dispositivo (Deviceinfo.xml), por isso o Denon AVR Plus não o consegue configurar. A integração oficial Denon AVR Network Receivers suporta estes recetores mais antigos."
     }
   },
   "options": {
@@ -1139,7 +1141,7 @@
       "description": "O {model} responde na rede, mas há vários minutos que não aceita uma ligação telnet na porta 23. Até lá, os leitores multimédia só funcionam através da interface web: ligar/desligar, volume, silêncio e fonte, com até 10 segundos de atraso. Todas as outras definições estão indisponíveis.\n\nO recetor só permite uma ligação telnet de cada vez. Causas comuns:\n\n- Outra integração ou outro programa ocupa essa ligação, por exemplo a integração oficial Denon AVR ou outro sistema de domótica. Remova-a ou desative-a para este recetor.\n- A aplicação Denon ou Marantz AVR Remote enquanto o ecrã do sintonizador está aberto. Feche esse ecrã ou a aplicação.\n- Uma regra de firewall ou de VLAN bloqueia a porta 23 entre o Home Assistant e o recetor, enquanto as portas web estão abertas.\n\nA mensagem desaparece por si própria assim que a ligação voltar a funcionar."
     },
     "capability_check": {
-      "title": "O {model} ainda não foi verificado",
+      "title": "{model}: tipo de recetor ainda não descrito",
       "fix_flow": {
         "step": {
           "tests_start": {

@@ -38,6 +38,9 @@ class DeviceInfo:
     comm_api_version: int | None = None
     # BrandCode from Deviceinfo.xml: 0 Denon, 1 Marantz.
     brand_code: int | None = None
+    # ProductCategory from Deviceinfo.xml: 1 AV receiver, 2 system (network
+    # CD receivers such as the M-CR510 and the DRA-N4).
+    product_category: int | None = None
     # HEOS/AIOS network module identifiers, surfaced in diagnostics rather than
     # on the device card (they describe the streaming module, not the AVR).
     network_module_version: str | None = None

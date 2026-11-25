@@ -15,6 +15,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.denonavr_plus import capabilities, move
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
+from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import DOMAIN
 
 from .test_capabilities import RESULT
@@ -27,12 +28,19 @@ def _issue(hass: HomeAssistant, entry: MockConfigEntry, kind: str) -> ir.IssueEn
     return ir.async_get(hass).async_get_issue(DOMAIN, f"{kind}_{entry.entry_id}")
 
 
+def _ask_for_the_check(entry: MockConfigEntry) -> None:
+    """The recording is of a described generation; a system is asked for the check."""
+    system = DeviceInfo(model_name="AVC-X3700H", comm_api_version=220, product_category=2)
+    entry.runtime_data.capabilities.async_update_issues(system)
+
+
 async def test_the_repair_runs_the_check_and_points_to_github(
     hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
 ) -> None:
     assert await async_setup_component(hass, "repairs", {})
     manager = repairs_flow_manager(hass)
     assert manager is not None
+    _ask_for_the_check(loaded_entry)
     tested = {"model": "AVC-X3700H", "groups": ["quiet"], "tests": {
         "bass": {"group": "quiet", "result": "confirmed", "restored": True},
     }}
@@ -79,6 +87,7 @@ async def test_the_repair_without_a_connection(
     assert await async_setup_component(hass, "repairs", {})
     manager = repairs_flow_manager(hass)
     assert manager is not None
+    _ask_for_the_check(loaded_entry)
     failing = AsyncMock(side_effect=CommandNotSent("query_needs_telnet"))
     with patch.object(DenonAvrDevice, "async_check_capabilities", failing):
         result = await manager.async_init(
@@ -99,6 +108,7 @@ async def test_a_failing_check_in_the_repair_aborts(
     assert await async_setup_component(hass, "repairs", {})
     manager = repairs_flow_manager(hass)
     assert manager is not None
+    _ask_for_the_check(loaded_entry)
     failing = AsyncMock(side_effect=ValueError("broken reply"))
     with patch.object(DenonAvrDevice, "async_check_capabilities", failing):
         result = await manager.async_init(
@@ -117,6 +127,7 @@ async def test_the_repair_takes_the_other_integration_over(
     assert await async_setup_component(hass, "repairs", {})
     manager = repairs_flow_manager(hass)
     assert manager is not None
+    _ask_for_the_check(loaded_entry)
     old = MockConfigEntry(domain=move.OFFICIAL, data={"host": "192.0.2.10"}, title="Wohnzimmer")
     old.add_to_hass(hass)
     move.async_update_issue(hass, loaded_entry)
@@ -141,6 +152,7 @@ async def test_the_move_repair_without_both_entries(
     assert await async_setup_component(hass, "repairs", {})
     manager = repairs_flow_manager(hass)
     assert manager is not None
+    _ask_for_the_check(loaded_entry)
     issue_id = f"move_available_{loaded_entry.entry_id}"
     # The old entry was removed after the repair came up.
     ir.async_create_issue(
@@ -164,6 +176,7 @@ async def test_the_list_after_the_move_is_confirmed(
     assert await async_setup_component(hass, "repairs", {})
     manager = repairs_flow_manager(hass)
     assert manager is not None
+    _ask_for_the_check(loaded_entry)
     issue_id = f"move_check_{loaded_entry.entry_id}"
     findings = "- automation.x: denonavr.get_command → denonavr_plus.send_command"
     ir.async_create_issue(

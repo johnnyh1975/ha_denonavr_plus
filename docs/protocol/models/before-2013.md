@@ -5,7 +5,7 @@ model years FY10 to FY12) do not describe themselves: recorded AVR-1912,
 AVR-2312CI, AVR-3311CI, AVR-3312 and AVR-4810 answer `Deviceinfo.xml` with
 an error page (`tests/fixtures/denonavr/`). This integration finds the HTTP
 port and the receiver's functions in that file, so it cannot set these
-receivers up today.
+receivers up today; setup recognises the error page and says so.
 
 What is known about them comes from their protocol documents (AVR-1912 and
 AVR-2112CI v7.4.0, see [References](../references.md); the recorded

@@ -1,9 +1,10 @@
 """The capability check in Home Assistant: running it, keeping it, asking for it.
 
 The check itself (the queries) is avr/capability_check.py. Here: the result
-is kept per entry, goes into the diagnostics, and a model that has not been
-checked gets a repair that runs the receiver test (receiver_test.py), which
-starts with the check. When a check ran, a second repair
+is kept per entry, goes into the diagnostics, and a receiver of no described
+generation (avr/generation.py) gets a repair that runs the receiver test
+(receiver_test.py), which starts with the check. For the others the test is
+optional, in the options. When a check ran, a second repair
 points to a prefilled device-support issue on GitHub, where the user attaches
 the diagnostics file. Nothing is sent anywhere by the integration itself.
 """
@@ -22,11 +23,13 @@ from homeassistant.util import dt as dt_util
 
 from .avr.capability_check import KNOWN_MODELS, RELATED_MODELS
 from .avr.errors import CommandNotSent
+from .avr.generation import generation_of
 from .const import DOMAIN
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from .avr.models import DeviceInfo
     from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,8 +44,13 @@ _NEW_ISSUE = "https://github.com/johnnyh1975/ha_denonavr_plus/issues/new"
 
 
 def known_model(model: str | None) -> bool:
-    """Checked, or a sibling of a checked model: no check is asked for."""
+    """Checked, or a sibling of a checked model: no report is asked for."""
     return model in KNOWN_MODELS or model in RELATED_MODELS
+
+
+def described(device: DeviceInfo) -> bool:
+    """A receiver of a described generation, or a checked model: no test is asked for."""
+    return generation_of(device) is not None or known_model(device.model_name)
 
 
 def issue_url(model: str | None, firmware: str | None) -> str:
@@ -105,10 +113,11 @@ class CapabilityResults:
             self.async_report(result)
         return result
 
-    def async_update_issues(self, model: str | None) -> None:
-        """Ask for a check when the model has none and is not known."""
+    def async_update_issues(self, device: DeviceInfo) -> None:
+        """Ask for a check when the receiver has none and its generation is not described."""
 
-        if known_model(model) or self.result is not None:
+        model = device.model_name
+        if described(device) or self.result is not None:
             ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(ISSUE_CHECK))
             return
         ir.async_create_issue(

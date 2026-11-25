@@ -65,14 +65,14 @@ services → Discovered**; select **Add** there. Otherwise add it by hand:
 
    ![The IP address](images/guide/setup-2-address.png)
 
-3. **Only for a model that has not been checked with this integration
-   yet**, you are asked whether to test it after setup. Leave the toggle on:
-   the test only reads at first and puts back everything it changes, and
-   its result helps get the model supported (see
-   [Test a receiver model](#7-test-a-receiver-model)). A checked model skips
-   this step.
-
-   ![Model not checked yet](images/guide/setup-3-test.png)
+3. **Only for a device that is not a described AV receiver** (a system such
+   as a network CD receiver, or a generation not seen yet), you are asked
+   whether to test it after setup. Leave the toggle on: the test only reads
+   at first and puts back everything it changes (see
+   [Test a receiver model](#7-test-a-receiver-model)). Every Denon or
+   Marantz AV receiver from 2013 on skips this step
+   ([Compatibility](COMPATIBILITY.md)). A receiver from 2010–2012 cannot be
+   added: setup says so.
 
 4. Put the devices in their rooms. The receiver comes with **sub-devices**
    for its setup menus (Audio, Video, Picture, Speakers, Graphic EQ) and one
@@ -266,10 +266,11 @@ Good practice for your own:
 ## 7. Test a receiver model
 
 The receiver test finds out what your model does with this integration:
-which settings it reports and which commands it confirms. Run it once for a
-model that has not been checked, and again after a firmware update. It
-starts from **Configure → Test the receiver**, or from the repair
-*"<model> has not been checked yet"*.
+which settings it reports and which commands it confirms. It is optional:
+run it to confirm a model that is not tested yet, after a firmware update,
+or when a setting does not behave as expected. It starts from **Configure →
+Test the receiver**, or, for a device that is not a described AV receiver,
+from the repair *"<model>: receiver type not described yet"*.
 
 ![The start page](images/guide/test-1-start.png)
 
