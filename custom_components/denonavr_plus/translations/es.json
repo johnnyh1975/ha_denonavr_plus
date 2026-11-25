@@ -236,10 +236,12 @@
         "description": "Cómo muestran los reproductores lo que suena en una entrada. Elige una entrada para vincular el dispositivo conectado a ella, como un Apple TV o un streamer, o confirma para guardar.",
         "data": {
           "input": "Vincular un reproductor a una entrada",
+          "pause_on_off": "Pausar el reproductor vinculado al apagar la zona",
           "signal_state": "Reproduciendo o inactivo según la señal de entrada"
         },
         "data_description": {
-          "input": "Mientras suena la entrada, su zona muestra el título, la carátula, la posición y el estado del reproductor vinculado, y reproducir, pausar, saltar y buscar se envían a él. El encendido, el volumen y la entrada siguen en el receptor. Una entrada con reproductor lo muestra tras la flecha. La entrada de red admite el reproductor de Music Assistant: su cola y su biblioteca vienen entonces con él.",
+          "input": "Mientras suena la entrada, su zona muestra el título, la carátula, la posición y el estado del reproductor vinculado, y reproducir, pausar, saltar y buscar se envían a él. El encendido, el volumen y la entrada siguen en el receptor. Una entrada con reproductor lo muestra tras la flecha. La entrada de red admite el reproductor de Music Assistant: su cola y su biblioteca vienen entonces con él. Una búsqueda por voz en el receptor también busca en los reproductores vinculados que pueden hacerlo, como Music Assistant.",
+          "pause_on_off": "Al apagar una zona en Home Assistant se pausa el reproductor vinculado de la entrada que reproducía, para que no siga sonando sin que nadie lo oiga. No mientras otra zona siga reproduciendo esa entrada.",
           "signal_state": "Una zona en una entrada sin reproductor vinculado muestra «Reproduciendo» mientras la entrada lleva señal e «Inactivo» sin ella, en lugar de «Encendido». Las fuentes de red y el sintonizador mantienen su propio estado. Aún no probado en un receptor: no se sabe si todos los modelos avisan cuando termina una señal. Una fuente HDMI que muestra su menú suele enviar también una señal."
         }
       },

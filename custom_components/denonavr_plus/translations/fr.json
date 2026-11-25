@@ -236,10 +236,12 @@
         "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Choisissez une entrée pour lier l'appareil qui y est branché, comme une Apple TV ou un streamer, ou validez pour enregistrer.",
         "data": {
           "input": "Lier un lecteur à une entrée",
+          "pause_on_off": "Mettre en pause le lecteur lié à l'extinction de la zone",
           "signal_state": "Lecture ou inactif selon le signal d'entrée"
         },
         "data_description": {
-          "input": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche. L'entrée réseau accepte le lecteur de Music Assistant : sa file d'attente et sa bibliothèque suivent alors.",
+          "input": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche. L'entrée réseau accepte le lecteur de Music Assistant : sa file d'attente et sa bibliothèque suivent alors. Une recherche vocale sur l'ampli cherche aussi dans les lecteurs liés qui le peuvent, comme Music Assistant.",
+          "pause_on_off": "Éteindre une zone dans Home Assistant met en pause le lecteur lié de l'entrée qu'elle jouait, pour qu'il ne continue pas sans être entendu. Pas tant qu'une autre zone joue encore cette entrée.",
           "signal_state": "Une zone sur une entrée sans lecteur lié affiche « Lecture en cours » tant que l'entrée porte un signal et « Inactif » sans signal, au lieu de « Allumé ». Les sources réseau et le tuner gardent leur propre état. Pas encore essayé sur un récepteur : on ne sait pas si chaque modèle signale la fin d'un signal. Une source HDMI qui affiche son menu envoie souvent aussi un signal."
         }
       },

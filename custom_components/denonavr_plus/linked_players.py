@@ -74,6 +74,10 @@ KEY_FULL_VOLUME = "full_volume"
 #: Option: a zone on an input with a signal is "playing", without one "idle"
 #: (instead of "on"). Off by default: not yet tried on a receiver.
 OPT_SIGNAL_STATE = "signal_state"
+#: Option: switching a zone off from Home Assistant pauses the linked player
+#: of the input it played, unless another zone still plays that input.
+#: On by default (missing means on).
+OPT_PAUSE_ON_OFF = "pause_on_off"
 
 ISSUE = "linked_player_missing"
 #: Fired when the main zone followed a player: entity_id (the main zone's
@@ -379,7 +383,9 @@ class LinkedPlayers:
             (code for code, link in self._links.items() if link.entity_id == entity_id and link.follow),
             None,
         )
-        if code is not None:
+        if code is not None and not self._entry.runtime_data.announcing:
+            # Not for an announcement's stream: Music Assistant's HEOS
+            # player may report it as playing.
             self._follow(code, entity_id, event.context)
 
     # Full volume -----------------------------------------------------------

@@ -127,6 +127,8 @@ _LINKED_STATES = {
     MediaPlayerState.IDLE,
 }
 #: The linked player's states in which its title and artwork are shown.
+#: Seconds a linked player's search may take before it is left out.
+LINKED_SEARCH_TIMEOUT = 10.0
 _LINKED_MEDIA_STATES = {
     MediaPlayerState.PLAYING,
     MediaPlayerState.PAUSED,
@@ -242,6 +244,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         self._sound_mode_words: dict[str, str] = dict(sound_modes.WORDS)
         self._linked_tracked: frozenset[str] = frozenset()
         self._announce_settle: CALLBACK_TYPE | None = None
+        self._announce_generation = 0
         self._unsub_linked: CALLBACK_TYPE | None = None
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
@@ -319,11 +322,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @callback
     def _linked_changed(self, event: Event[EventStateChangedData]) -> None:
-        if event.data["entity_id"] == self._linked_entity_id:
+        if event.data["entity_id"] == self._input_link:
             self.async_write_ha_state()
 
     @property
-    def _linked_entity_id(self) -> str | None:
+    def _input_link(self) -> str | None:
         """The player linked to the input this zone plays, while it is on."""
 
         source = self._source_code
@@ -331,6 +334,26 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             return None
         link = linked_players.links_on_wire(self._entry_options, self._device).get(source)
         return link.entity_id if link is not None else None
+
+    @property
+    def _linked_entity_id(self) -> str | None:
+        """The linked player that speaks for the zone.
+
+        On a network input only while it plays or is paused, or while the
+        network player itself does neither: a HEOS favorite or a stream
+        from a phone on that input keeps its own title and transport while
+        Music Assistant is idle.
+        """
+
+        entity_id = self._input_link
+        if entity_id is None or self._source_code not in self._device.profile.netaudio.get(
+            "sources", []
+        ):
+            return entity_id
+        state = self.hass.states.get(entity_id) if self.hass is not None else None
+        if state is not None and state.state in _LINKED_MEDIA_STATES:
+            return entity_id
+        return None if self.coordinator.data.now_playing.active else entity_id
 
     @property
     def _linked(self) -> State | None:
@@ -374,7 +397,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """The linked player of the input that plays, for cards and automations."""
 
-        entity_id = self._linked_entity_id
+        entity_id = self._input_link
         return {"linked_player": entity_id} if entity_id else None
 
     def _cancel_announcement(self) -> None:
@@ -966,11 +989,52 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             # Shown as off already (only with a turn-on automation): an
             # automation that switches everything off must not fail here.
             return
-        if self._zone.is_main and self._entry_options.get(choices.OPT_MAIN_OFF_STANDBY):
+        whole = bool(self._zone.is_main and self._entry_options.get(choices.OPT_MAIN_OFF_STANDBY))
+        left = self._linked_left_playing(whole)
+        if whole:
             # The whole receiver: no other zone keeps playing.
             await self._device.async_set_system_power(False)
+        else:
+            await self._device.async_set_power(self._zone.id, False)
+        if left is not None:
+            await self._async_pause_left(left)
+
+    def _linked_left_playing(self, whole: bool) -> State | None:
+        """The linked player that would play on unheard once this zone is off.
+
+        Not when another zone stays on with the same input, nor with the
+        option off.
+        """
+
+        if not self._entry_options.get(linked_players.OPT_PAUSE_ON_OFF, True):
+            return None
+        entity_id = self._input_link
+        state = self.hass.states.get(entity_id) if entity_id is not None else None
+        if not linked_players.is_busy(state):
+            return None
+        if not whole:
+            source = self._source_code
+            for zone_id, zone in self.coordinator.data.zones.items():
+                if zone_id != self._zone.id and zone.power and self._device.zone_source(zone_id) == source:
+                    return None
+        return state
+
+    async def _async_pause_left(self, state: State) -> None:
+        """Pause (or stop) it; a player that refuses does not fail the turn off."""
+
+        features = MediaPlayerEntityFeature(int(state.attributes.get(ATTR_SUPPORTED_FEATURES, 0)))
+        if features & MediaPlayerEntityFeature.PAUSE:
+            service = SERVICE_MEDIA_PAUSE
+        elif features & MediaPlayerEntityFeature.STOP:
+            service = SERVICE_MEDIA_STOP
+        else:
             return
-        await self._device.async_set_power(self._zone.id, False)
+        try:
+            await self.hass.services.async_call(
+                MEDIA_PLAYER, service, {"entity_id": state.entity_id}, blocking=True, context=self._context
+            )
+        except HomeAssistantError as err:
+            _LOGGER.debug("Pausing %s after turning off failed: %s", state.entity_id, err)
 
     @receiver_action
     async def async_set_volume_level(self, volume: float) -> None:
@@ -1478,10 +1542,13 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         ]
 
     async def async_search_media(self, query: SearchMediaQuery) -> SearchMedia:
-        """Find quick selects, inputs and HEOS favorites by name (voice: "play Kino").
+        """Find quick selects, inputs, HEOS favorites and linked players' media.
 
-        Exact names first, then names that start with the query, then names
-        that contain it. Assist plays the first.
+        Voice: "play Kino", or "play Queen" from Music Assistant's library
+        when it is linked to the network input. Exact names first, then names
+        that start with the query, then what the linked players found (in
+        their own order), then names that contain the query. Assist plays the
+        first; a linked player's item switches to its input.
         """
 
         wanted = query.search_query.casefold().strip()
@@ -1516,7 +1583,37 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         ranked = [(rank(item), index, item) for index, item in enumerate(candidates)]
         found = sorted((r, i, item) for r, i, item in ranked if r is not None)
-        return SearchMedia(result=[item for _, _, item in found])
+        own = [item for r, _, item in found if r < 2]
+        partial = [item for r, _, item in found if r == 2]
+        linked = await self._async_search_linked(query) if wanted else []
+        return SearchMedia(result=[*own, *linked, *partial])
+
+    async def _async_search_linked(self, query: SearchMediaQuery) -> list[BrowseMedia]:
+        """What the linked players that can search find, with ids that lead back here.
+
+        Only players on inputs this zone offers; a player that fails or takes
+        too long is left out rather than failing the search.
+        """
+
+        found: list[BrowseMedia] = []
+        searched: set[str] = set()
+        component = self.hass.data[MEDIA_PLAYER_COMPONENT]
+        for code, link in linked_players.links(self._entry_options).items():
+            source = choices.source_display(self._device.discovery, self._entry_options, code)
+            if source not in (self.source_list or []) or link.entity_id in searched:
+                continue
+            searched.add(link.entity_id)
+            entity = component.get_entity(link.entity_id)
+            if entity is None or not entity.supported_features & MediaPlayerEntityFeature.SEARCH_MEDIA:
+                continue
+            try:
+                async with asyncio.timeout(LINKED_SEARCH_TIMEOUT):
+                    result = await entity.async_search_media(query)
+            except (HomeAssistantError, NotImplementedError, TimeoutError) as err:
+                _LOGGER.debug("Search on %s failed: %s", link.entity_id, err)
+                continue
+            found.extend(self._wrap_linked(code, item) for item in result.result)
+        return found
 
     @receiver_action
     async def async_play_media(
@@ -1787,12 +1884,6 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         self._cancel_volume_ramp()
 
-        if self._announce_task is not None and not self._announce_task.done():
-            self._announce_task.cancel()
-        else:
-            self._announce_snapshot = self._device.zone_snapshot(self._zone.id)
-        self.coordinator.announcing.add(self._zone.id)
-        was_playing = self._heos_state() == "play"
         if self._device.heos is None:
             # Nothing would play: say so before switching anything.
             raise HomeAssistantError(
@@ -1800,6 +1891,18 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 translation_key="heos_unavailable",
                 translation_placeholders={"model": self._model},
             )
+        if self._announce_task is not None and not self._announce_task.done():
+            self._announce_task.cancel()
+        else:
+            self._announce_snapshot = self._device.zone_snapshot(self._zone.id)
+        # This announcement owns the window: an earlier one's end no longer closes it.
+        self._announce_generation += 1
+        generation = self._announce_generation
+        if self._announce_settle is not None:
+            self._announce_settle()
+            self._announce_settle = None
+        self.coordinator.announcing.add(self._zone.id)
+        was_playing = self._heos_state() == "play"
         try:
             await self._ensure_on()
             raw = self._announce_volume(extra)
@@ -1820,10 +1923,10 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                     with suppress(CommandNotSent):
                         await self._device.async_restore(self._zone.id, snapshot)
             finally:
-                self._announcement_over()
+                self._announcement_over(generation)
             raise
         self._announce_task = self.hass.async_create_background_task(
-            self._async_restore_after_announcement(was_playing),
+            self._async_restore_after_announcement(was_playing, generation),
             f"{DOMAIN} restore after announcement",
         )
 
@@ -1848,8 +1951,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         while not condition(self._heos_state()):
             await asyncio.sleep(ANNOUNCE_POLL)
 
-    async def _async_restore_after_announcement(self, was_playing: bool) -> None:
-        """Wait for the announcement to start and to end, then restore. Never raises."""
+    async def _async_restore_after_announcement(self, was_playing: bool, generation: int) -> None:
+        """Wait for the announcement to start and to end, then restore.
+
+        Never raises but when cancelled: a newer announcement then keeps the
+        snapshot and restores it after itself.
+        """
 
         snapshot = self._announce_snapshot
         try:
@@ -1873,15 +1980,15 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         except TimeoutError:
             _LOGGER.debug("Announcement on %s: no clear end, restoring", self._zone.id)
         if snapshot is None:
-            self._announcement_over()
+            self._announcement_over(generation)
             return
-        self._announce_snapshot = None
         try:
             await self._device.async_restore(self._zone.id, snapshot)
         except CommandNotSent as err:
             _LOGGER.debug("Restoring %s after an announcement failed: %s", self._zone.id, err)
-        finally:
-            self._announcement_over()
+        if self._announce_snapshot is snapshot:
+            self._announce_snapshot = None
+        self._announcement_over(generation)
 
     @callback
     def _announcement_gone(self) -> None:
@@ -1891,9 +1998,15 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         self.coordinator.announcing.discard(self._zone.id)
 
     @callback
-    def _announcement_over(self) -> None:
-        """A moment after the restore, once the receiver has reported its input."""
+    def _announcement_over(self, generation: int) -> None:
+        """A moment after the restore, once the receiver has reported its input.
 
+        Only for the latest announcement: one that a newer one took over
+        leaves the window to it.
+        """
+
+        if generation != self._announce_generation:
+            return
         if self._announce_settle is not None:
             self._announce_settle()
 

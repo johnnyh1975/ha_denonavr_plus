@@ -1288,6 +1288,19 @@ async def test_the_playback_step_saves_without_an_input(
     assert loaded_entry.options["signal_state"] is True
 
 
+async def test_pausing_the_linked_player_on_turn_off_is_on_and_can_be_turned_off(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    result = await _options_step(hass, loaded_entry, "playback")
+    field = next(field for field in result["data_schema"].schema if str(field) == "pause_on_off")
+    assert field.default() is True
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"signal_state": False, "pause_on_off": False}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert loaded_entry.options["pause_on_off"] is False
+
+
 async def test_a_player_of_the_receiver_cannot_be_linked(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

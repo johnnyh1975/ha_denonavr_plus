@@ -236,10 +236,12 @@
         "description": "Hoe de mediaspelers tonen wat er op een ingang speelt. Kies een ingang om het daarop aangesloten apparaat te koppelen, zoals een Apple TV of een streamer, of bevestig om op te slaan.",
         "data": {
           "input": "Een speler aan een ingang koppelen",
+          "pause_on_off": "Gekoppelde speler pauzeren als de zone uitgaat",
           "signal_state": "Speelt of inactief volgens het ingangssignaal"
         },
         "data_description": {
-          "input": "Zolang de ingang speelt, toont zijn zone titel, albumhoes, positie en status van de gekoppelde speler, en afspelen, pauzeren, overslaan en zoeken gaan naar die speler. Aan/uit, volume en ingang blijven bij de receiver. Een ingang met speler toont die na de pijl. De netwerkingang neemt de speler van Music Assistant: zijn wachtrij en bibliotheek komen dan mee.",
+          "input": "Zolang de ingang speelt, toont zijn zone titel, albumhoes, positie en status van de gekoppelde speler, en afspelen, pauzeren, overslaan en zoeken gaan naar die speler. Aan/uit, volume en ingang blijven bij de receiver. Een ingang met speler toont die na de pijl. De netwerkingang neemt de speler van Music Assistant: zijn wachtrij en bibliotheek komen dan mee. Zoeken met spraak op de receiver zoekt ook in de gekoppelde spelers die dat kunnen, zoals Music Assistant.",
+          "pause_on_off": "Een zone in Home Assistant uitzetten pauzeert de gekoppelde speler van de ingang die ze speelde, zodat die niet ongehoord doorspeelt. Niet zolang een andere zone die ingang nog speelt.",
           "signal_state": "Een zone op een ingang zonder gekoppelde speler toont \"Speelt\" zolang de ingang een signaal heeft en \"Inactief\" zonder signaal, in plaats van \"Aan\". Netwerkbronnen en de tuner houden hun eigen status. Nog niet op een receiver geprobeerd: of elk model meldt wanneer een signaal stopt, is onbekend. Een HDMI-bron die zijn menu toont, stuurt vaak ook een signaal."
         }
       },

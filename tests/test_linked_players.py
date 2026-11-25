@@ -758,9 +758,9 @@ async def test_the_receiver_follows_music_assistant_to_the_network(
     hass.states.async_set("media_player.music_assistant", "playing", {"supported_features": FEATURES})
     await hass.async_block_till_done()
     # The recording lists the input as NETWORK (its Deviceinfo list, before
-    # the telnet list); the source selection sends what it sends for it.
+    # the telnet list); on the wire it is SINET.
     switched = [line for line in telnet.sent if line.startswith("SI")]
-    assert len(switched) == 1 and switched[0].startswith("SINET")
+    assert switched == ["SINET"]
     # The receiver reports NET: that is the linked input, no second switch.
     telnet.push("SINET")
     await _settle(hass)
@@ -768,3 +768,22 @@ async def test_the_receiver_follows_music_assistant_to_the_network(
     hass.states.async_set("media_player.music_assistant", "playing", {"supported_features": FEATURES})
     await hass.async_block_till_done()
     assert [line for line in telnet.sent if line.startswith("SI")] == switched
+
+
+async def test_an_announcement_stream_is_not_followed(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Music Assistant's HEOS player may show the announcement as playing."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
+    hass.states.async_set("media_player.music_assistant", "idle", {"supported_features": FEATURES})
+    _options(loaded_entry, NETWORK=_player("media_player.music_assistant", follow=True))
+    await hass.async_block_till_done()
+    events = async_capture_events(hass, linked_players.EVENT_INPUT_FOLLOWED)
+    telnet.sent.clear()
+    loaded_entry.runtime_data.announcing.add("main")
+    hass.states.async_set("media_player.music_assistant", "playing", {"supported_features": FEATURES})
+    await hass.async_block_till_done()
+    assert [line for line in telnet.sent if line.startswith("SI")] == []
+    assert events == []

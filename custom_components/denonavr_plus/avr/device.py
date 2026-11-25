@@ -891,6 +891,17 @@ class DenonAvrDevice:
             return "NET"
         return listed
 
+    def _wire_source(self, code: str) -> str:
+        """The code to send for a listed input.
+
+        Where the Deviceinfo list stands in, the network input is listed as
+        NETWORK; the receiver takes and reports it as NET.
+        """
+
+        if code == "NETWORK" and self.network_source == "NET":
+            return "NET"
+        return code
+
     def plays_network(self, zone_id: str) -> bool:
         """Whether a zone is on and plays the network input."""
 
@@ -1908,7 +1919,7 @@ class DenonAvrDevice:
     async def async_select_source(self, zone_id: str, name: str) -> None:
         """Select an input source by its display name."""
 
-        code = self._discovery.source_code(name) or name
+        code = self._wire_source(self._discovery.source_code(name) or name)
         prefix = self._additional_zone_prefix(zone_id)
         if prefix is None:
             spec = self._profile.control("main_source")
@@ -1927,7 +1938,7 @@ class DenonAvrDevice:
         checked; following the main zone is always taken.
         """
 
-        code = self._discovery.source_code(name) or name
+        code = self._wire_source(self._discovery.source_code(name) or name)
         prefix = self._additional_zone_prefix(zone_id)
         if prefix is None or code == FOLLOW_MAIN or not self._telnet.connected:
             await self.async_select_source(zone_id, name)

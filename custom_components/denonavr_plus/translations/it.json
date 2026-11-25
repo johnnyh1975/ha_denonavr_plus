@@ -236,10 +236,12 @@
         "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Scegli un ingresso per collegare il dispositivo connesso, ad esempio una Apple TV o uno streamer, oppure conferma per salvare.",
         "data": {
           "input": "Collega un lettore a un ingresso",
+          "pause_on_off": "Metti in pausa il lettore collegato quando la zona si spegne",
           "signal_state": "In esecuzione o inattivo in base al segnale d'ingresso"
         },
         "data_description": {
-          "input": "Mentre l'ingresso suona, la sua zona mostra titolo, copertina, posizione e stato del lettore collegato, e riproduci, pausa, salta e avanzamento vanno a esso. Accensione, volume e ingresso restano al ricevitore. Un ingresso con lettore lo mostra dopo la freccia. L'ingresso di rete accetta il lettore di Music Assistant: la sua coda e la sua libreria vengono allora con esso.",
+          "input": "Mentre l'ingresso suona, la sua zona mostra titolo, copertina, posizione e stato del lettore collegato, e riproduci, pausa, salta e avanzamento vanno a esso. Accensione, volume e ingresso restano al ricevitore. Un ingresso con lettore lo mostra dopo la freccia. L'ingresso di rete accetta il lettore di Music Assistant: la sua coda e la sua libreria vengono allora con esso. Una ricerca vocale sul ricevitore cerca anche nei lettori collegati che possono farlo, come Music Assistant.",
+          "pause_on_off": "Spegnere una zona in Home Assistant mette in pausa il lettore collegato dell'ingresso che riproduceva, così non continua senza che nessuno lo senta. Non mentre un'altra zona riproduce ancora quell'ingresso.",
           "signal_state": "Una zona su un ingresso senza lettore collegato mostra «In esecuzione» finché l'ingresso porta un segnale e «Inattivo» senza, invece di «Acceso». Le sorgenti di rete e il sintonizzatore mantengono il proprio stato. Non ancora provato su un ricevitore: non si sa se ogni modello segnala la fine di un segnale. Una sorgente HDMI che mostra il suo menu spesso invia anch'essa un segnale."
         }
       },

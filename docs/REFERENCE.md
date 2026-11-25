@@ -121,13 +121,20 @@ and its tokens.
   offers every input but the tuner, whose information comes from the receiver
   itself; an input with a player shows it after the arrow. The network input
   takes **Music Assistant's** player (see below); it has no full volume
-  switch. Every zone that plays the input then shows the player's title,
+  switch. On receivers that list their network services one by one
+  (Favorites, Internet Radio, Server …) each of them counts as a network
+  input. Every zone that plays the input then shows the player's title,
   artist, album, series, artwork, position and app, and its state (playing,
   paused, buffering, idle). Play, pause, stop, skip, seek, shuffle and repeat
   go to the player, as far as it has them; power, volume, mute and the input
   stay the receiver's. The zone's `linked_player` attribute names the player.
-  A player that is unavailable leaves the zone on, with the input's own
-  information. Clearing the player unlinks the input. After each input
+  On a network input the network player's own title and controls come back
+  while the linked player is neither playing nor paused but the network
+  player is. A player that is unavailable leaves the zone on, with the
+  input's own information. A player with a media browser is a folder in the
+  zone's browser; one that can search is searched too when Assist looks for
+  media on the zone (see Voice below). Either way, playing an item switches
+  the zone to the player's input first. Clearing the player unlinks the input. After each input
   comes a choice: link another input, or save; nothing is saved before that.
   Submitting the step without an input saves too. Per input:
   - **Main zone switches to this input when the player starts** (default off):
@@ -164,6 +171,13 @@ and its tokens.
   that no longer exists (checked once Home Assistant has started) raises a
   repair, **Linked media player not found**, which unlinks it; to link
   another player instead, pick the input here again.
+- **Pause the linked player when the zone is switched off** (default on):
+  switching a zone off from Home Assistant (its player or an automation)
+  pauses the linked player of the input it played, or stops it if it cannot
+  pause, so it does not play on to a receiver that is off. Only a player that
+  plays; not while another zone stays on with the same input. Switching off
+  at the receiver or by its remote pauses nothing. A player that refuses does
+  not fail the turn-off.
 - **Playing or idle by the input signal** (default off): a zone on an input
   without a linked player shows *Playing* while the input carries a signal and
   *Idle* without one, instead of *On*. The receiver reports the signal of the
@@ -300,7 +314,13 @@ AVC‑A10H describes it as 0–15).
   is turned on first, also when a source or a sound mode is picked.
 - **Voice**: "play Kino on the living room receiver" works with Assist. The
   player searches its quick selects, inputs and HEOS favorites by name
-  (`media_player.search_media`) and Assist plays the first match.
+  (`media_player.search_media`) and Assist plays the first match. Linked
+  players that can search (Music Assistant can) are searched as well, so
+  "play Queen on the living room receiver" finds Music Assistant's library
+  and plays it on the network input. Order: names equal to the query, names
+  starting with it, then what the linked players found, then names that
+  contain it. A linked player that fails or takes more than 10 seconds is
+  left out.
 - **Artwork for inputs**: an input without cover art (TV, Blu-ray, game,
   tuner, …) gets its own picture, a colour and a pictogram per kind of input,
   which the media control card paints as its background.
@@ -712,13 +732,18 @@ With **Music Assistant**, set it up in three places:
    Assistant integration), whichever provider it plays through. The receiver's player then shows what Music
    Assistant plays, its skip, shuffle and repeat go to Music Assistant's
    queue (HEOS's own would only restart the stream), and Music Assistant's
-   library is a folder in the receiver's media browser. HEOS's own title and
-   cover step aside on that input. Leave **full volume** out: it is not
+   library is a folder in the receiver's media browser and is searched by
+   voice on the receiver. While Music
+   Assistant plays or is paused, HEOS's own title and cover step aside on
+   that input; while it is idle, a HEOS favorite or a phone's stream there
+   keeps its own title and controls. Leave **full volume** out: it is not
    offered on the network input, as Music Assistant's volume may be the
    receiver's.
 3. **Optional:** **Main zone switches to this input when the player starts**
    on the network input lets the receiver follow Music Assistant even
-   without the power control, and pauses the other linked players.
+   without the power control. As soon as one input follows, every switch of
+   the main zone from one linked input to another pauses the player left
+   behind, such as the Apple TV when Music Assistant takes over.
 
 Announcements (`tts.speak`, a doorbell) still play over HEOS on the receiver
 and pause no linked player. Zone 2 plays the network by joining the main zone

@@ -236,10 +236,12 @@
         "description": "Como os leitores multimédia mostram o que toca numa entrada. Escolha uma entrada para associar o dispositivo nela conectado, como uma Apple TV ou um streamer, ou confirme para guardar.",
         "data": {
           "input": "Associar um leitor a uma entrada",
+          "pause_on_off": "Pausar o leitor ligado ao desligar a zona",
           "signal_state": "A reproduzir ou inativo pelo sinal de entrada"
         },
         "data_description": {
-          "input": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor associado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta. A entrada de rede aceita o leitor do Music Assistant: a sua fila e a sua biblioteca vêm então com ele.",
+          "input": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor associado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta. A entrada de rede aceita o leitor do Music Assistant: a sua fila e a sua biblioteca vêm então com ele. Uma pesquisa por voz no recetor também procura nos leitores ligados que o permitem, como o Music Assistant.",
+          "pause_on_off": "Desligar uma zona no Home Assistant pausa o leitor ligado da entrada que estava a tocar, para que não continue sem ninguém ouvir. Não enquanto outra zona ainda tocar essa entrada.",
           "signal_state": "Uma zona numa entrada sem leitor associado mostra \"A reproduzir\" enquanto a entrada tem sinal e \"Inativo\" sem sinal, em vez de \"Ligado\". As fontes de rede e o sintonizador mantêm o seu próprio estado. Ainda não experimentado num recetor: não se sabe se todos os modelos avisam quando um sinal termina. Uma fonte HDMI que mostra o seu menu envia muitas vezes também um sinal."
         }
       },

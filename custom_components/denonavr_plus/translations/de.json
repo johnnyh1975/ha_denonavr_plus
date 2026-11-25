@@ -236,10 +236,12 @@
         "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Wähle einen Eingang, um das daran angeschlossene Gerät zu verknüpfen, etwa ein Apple TV oder einen Streamer, oder bestätige, um zu speichern.",
         "data": {
           "input": "Player mit einem Eingang verknüpfen",
+          "pause_on_off": "Verknüpften Player beim Ausschalten der Zone pausieren",
           "signal_state": "Wiedergabe oder Leerlauf nach dem Eingangssignal"
         },
         "data_description": {
-          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Ein/Aus, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil. Der Netzwerkeingang nimmt den Player von Music Assistant: Dessen Warteschlange und Bibliothek kommen dann mit.",
+          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Ein/Aus, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil. Der Netzwerkeingang nimmt den Player von Music Assistant: Dessen Warteschlange und Bibliothek kommen dann mit. Eine Sprachsuche am Receiver durchsucht auch die verknüpften Player, die suchen können, etwa Music Assistant.",
+          "pause_on_off": "Wird eine Zone in Home Assistant ausgeschaltet, pausiert der verknüpfte Player des Eingangs, den sie gespielt hat, damit er nicht ungehört weiterspielt. Nicht, solange eine andere Zone diesen Eingang noch spielt.",
           "signal_state": "Eine Zone an einem Eingang ohne verknüpften Player zeigt „Wiedergabe“, solange der Eingang ein Signal führt, und „Leerlauf“ ohne Signal, statt „Ein“. Netzwerkquellen und der Tuner behalten ihren eigenen Zustand. Noch auf keinem Receiver ausprobiert: Ob jedes Modell meldet, wenn ein Signal endet, ist offen. Eine HDMI-Quelle, die ihr Menü zeigt, sendet oft auch ein Signal."
         }
       },

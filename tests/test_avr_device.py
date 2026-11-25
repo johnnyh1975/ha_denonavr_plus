@@ -735,6 +735,32 @@ async def test_a_source_zone_2_does_not_take(
     assert device.zone_source("zone2") == "DVD"
 
 
+async def test_the_network_input_listed_as_network_is_sent_as_net(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The Deviceinfo list names it NETWORK; the protocol has SINET only.
+
+    Zone 2 confirms by echoing Z2NET: with Z2NETWORK sent, the echo never
+    matched and the input was taken out of zone 2's list as refused.
+    """
+    device = loaded_entry.runtime_data.device
+    assert device.network_source == "NET"
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("Z2ON", "Z2CD")
+    telnet.sent.clear()
+    await device.async_select_source("main", "NETWORK")
+    assert telnet.sent == ["SINET"]
+
+    async def echo(command: str) -> None:
+        telnet.sent.append(command)
+        telnet.push(command)
+
+    with patch.object(telnet, "async_send", echo):
+        await device.async_choose_source("zone2", "NETWORK")
+    assert telnet.sent[-1] == "Z2NET"
+    assert device.refused_sources("zone2") == frozenset()
+
+
 async def test_a_repeated_signal_line_starts_no_new_query(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

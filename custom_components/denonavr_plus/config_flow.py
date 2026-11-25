@@ -68,6 +68,7 @@ from .linked_players import (
     KEY_FULL_VOLUME,
     KEY_PLAYER,
     OPT_LINKED_PLAYERS,
+    OPT_PAUSE_ON_OFF,
     OPT_SIGNAL_STATE,
     Link,
 )
@@ -787,7 +788,10 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         ]
 
     def _is_network(self, code: str) -> bool:
-        device = self.config_entry.runtime_data.device
+        coordinator = getattr(self.config_entry, "runtime_data", None)
+        device = getattr(coordinator, "device", None)
+        if device is None:
+            return False
         return linked_players.wire_code(device, code) in device.profile.netaudio.get("sources", [])
 
     def _player_name(self, entity_id: str) -> str:
@@ -812,12 +816,16 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
 
         options = dict(self.config_entry.options)
         if self._playback is None:
-            self._playback = {OPT_SIGNAL_STATE: bool(options.get(OPT_SIGNAL_STATE, False))}
+            self._playback = {
+                OPT_SIGNAL_STATE: bool(options.get(OPT_SIGNAL_STATE, False)),
+                OPT_PAUSE_ON_OFF: bool(options.get(OPT_PAUSE_ON_OFF, True)),
+            }
         links = options
         for code, link in self._link_edits.items():
             links = {OPT_LINKED_PLAYERS: linked_players.with_link(links, code, link)}
         return {
             OPT_SIGNAL_STATE: self._playback[OPT_SIGNAL_STATE],
+            OPT_PAUSE_ON_OFF: self._playback[OPT_PAUSE_ON_OFF],
             OPT_LINKED_PLAYERS: linked_players.stored_links(links),
         }
 
@@ -838,6 +846,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         if user_input is not None:
             assert self._playback is not None
             self._playback[OPT_SIGNAL_STATE] = bool(user_input.get(OPT_SIGNAL_STATE, False))
+            self._playback[OPT_PAUSE_ON_OFF] = bool(user_input.get(OPT_PAUSE_ON_OFF, True))
             draft = self._playback_draft()
             code = user_input.get("input")
             if code in dict(inputs):
@@ -863,6 +872,9 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             )
+        fields[vol.Required(OPT_PAUSE_ON_OFF, default=draft[OPT_PAUSE_ON_OFF])] = (
+            BooleanSelector()
+        )
         fields[vol.Required(OPT_SIGNAL_STATE, default=draft[OPT_SIGNAL_STATE])] = (
             BooleanSelector()
         )

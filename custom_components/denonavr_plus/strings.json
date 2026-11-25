@@ -236,10 +236,12 @@
         "description": "How the media players show what plays on an input. Pick an input to link the device connected to it, such as an Apple TV or a streamer, or submit to save.",
         "data": {
           "input": "Link a player to an input",
+          "pause_on_off": "Pause the linked player when the zone is switched off",
           "signal_state": "Playing or idle by the input signal"
         },
         "data_description": {
-          "input": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow. The network input takes Music Assistant's player: its queue and library then go with it.",
+          "input": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow. The network input takes Music Assistant's player: its queue and library then go with it. A voice search on the receiver also searches the linked players that can, such as Music Assistant.",
+          "pause_on_off": "Switching a zone off in Home Assistant pauses the linked player of the input it played, so it does not play on unheard. Not while another zone still plays that input.",
           "signal_state": "A zone on an input without a linked player shows \"Playing\" while the input carries a signal and \"Idle\" without one, instead of \"On\". Network sources and the tuner keep their own state. Not yet tried on a receiver: whether every model reports when a signal stops is unknown. An HDMI source showing its menu often sends a signal too."
         }
       },

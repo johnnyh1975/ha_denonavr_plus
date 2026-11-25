@@ -167,7 +167,9 @@ What makes it work well, and what to keep when you build your own:
 - **Zone 2 in its own section**, with the room it plays in.
 
 Voice works too: "play TV on the living room receiver" finds quick
-selects, inputs and HEOS favorites by name.
+selects, inputs and HEOS favorites by name, and with Music Assistant
+linked (section 9) "play Queen on the living room receiver" finds its
+library.
 
 ## 5. Tailor it in the options
 
@@ -238,14 +240,16 @@ switches the receiver to its input.
 
 ![The receiver's media player on the Apple TV's input: the Apple TV's title, cover and position](images/guide/more-info-linked.png)
 
-![The Playback step: an input to link, and the signal option](images/guide/options-playback.png)
+![The Playback step: an input to link, pausing on turn off, and the signal option](images/guide/options-playback.png)
 
 ![The linked player of an input, with its two switches](images/guide/options-linked-player.png)
 
 Per input, the **main zone can switch to the input when the player
 starts** (it turns on if needed, and linked players that no zone plays
 then pause; switching by remote to another linked input does the same) and **keep the player at full volume**, since you set the volume on
-the receiver. **Playing or idle by the input signal** shows *Playing* or
+the receiver. **Pause the linked player when the zone is switched off**
+(on by default) keeps a player from playing on to a receiver you switched
+off in Home Assistant. **Playing or idle by the input signal** shows *Playing* or
 *Idle* instead of *On* on inputs without a linked player; it has not been
 tried on a receiver yet.
 
@@ -423,11 +427,16 @@ Three settings make them one:
    runs on another input.
 2. **Configure → Playback** here: link the **network input** to Music
    Assistant's player of the receiver. The receiver's card then shows what
-   Music Assistant plays, skip and shuffle work on its queue, and its library
-   is in the receiver's media browser.
+   Music Assistant plays, skip and shuffle work on its queue, its library is
+   in the receiver's media browser, and a voice search on the receiver finds
+   it. Switching the zone off in Home Assistant pauses Music Assistant (the
+   option **Pause the linked player when the zone is switched off**, on by
+   default).
 3. If you like, **Main zone switches to this input when the player starts**
-   on the network input: starting music in Music Assistant then also pauses
-   an Apple TV that plays on another linked input.
+   on the network input: the receiver then follows Music Assistant even
+   without the power control. As soon as one input follows, switching from
+   one linked input to another pauses the player left behind, such as an
+   Apple TV when Music Assistant takes over.
 
 > **Recommended:** all three. There is no full volume switch on the network
 > input: Music Assistant's volume is the receiver's.
