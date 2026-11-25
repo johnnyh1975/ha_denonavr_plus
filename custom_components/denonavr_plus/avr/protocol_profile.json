@@ -642,7 +642,8 @@
       "prefix": "PSRSTR ",
       "values": ["HI", "MED", "LOW", "OFF"],
       "labels": ["High", "Medium", "Low", "Off"],
-      "doc": "Restorer (compressed audio restoration)."
+      "marantz": {"scope": "answered", "doc": "Marantz receivers from level 0300 name M-DAX Restorer in Deviceinfo.xml (FuncName Restorer, DispName M-DAX: recorded SR6011, SR6012, NR1609, AV7703). Marantz's 2019 document has no PSRSTR, only PSMDAX, and the manufacturer's apps send M-DAX as PSMDAX to every Marantz receiver above level 100 (AV7005 and SR7005 excepted). So the Restorer gate is M-DAX there; the control is kept only for a receiver that answers PSRSTR ?."},
+      "doc": "Restorer (compressed audio restoration). Denon FY21 command list: PSRSTR OFF, LOW, MED, HI and PSRSTR ?; answered by an AVR-X2000 and an AVR-X2600H."
     },
     "subwoofer_switch": {
       "group": "speaker",

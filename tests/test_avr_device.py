@@ -780,3 +780,34 @@ async def test_a_marantz_recalls_and_stores_smart_select(
     assert "Z2SMART3" in telnet.sent
     assert "MSSMART4 MEMORY" in telnet.sent
     assert not any(line.startswith(("MSQUICK", "Z2QUICK")) for line in telnet.sent)
+
+
+async def test_a_marantz_gets_no_restorer_for_its_m_dax(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """SR6012: Deviceinfo names M-DAX Restorer; Marantz's 2019 document has no PSRSTR."""
+    from homeassistant.const import CONF_PORT
+
+    from .conftest import deviceinfo
+
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _x2000_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("SR6012-Deviceinfo-8080.xml")),
+        ),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.13", CONF_PORT: 8080},
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    device = entry.runtime_data.device
+    assert device.discovery.supports("Restorer")
+    spec = device.profile.control("restorer")
+    assert spec is not None
+    assert not device.discovery.has_control(spec.scope, spec.feature, spec.id)

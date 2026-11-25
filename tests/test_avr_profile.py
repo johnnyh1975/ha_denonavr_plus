@@ -232,3 +232,8 @@ def test_marantz_receivers_get_smart_select() -> None:
     denon = profile_for_receiver(profile, 8080, 301, 0)
     assert denon is profile
     assert denon.introspection["quick_select"]["prefix"] == "MSQUICK"
+    # M-DAX is gated as Restorer on Marantz; only a Denon keeps the Restorer gate.
+    restorer = marantz.control("restorer")
+    assert restorer is not None and restorer.scope == "answered"
+    denon_restorer = denon.control("restorer")
+    assert denon_restorer is not None and denon_restorer.scope == "feature"

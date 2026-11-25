@@ -58,7 +58,7 @@ its table pairs the labels one row off. Use the token names, not the labels.
 | `PSDELAY` | Audio delay | 0–200 ms; 0–500 ms from 2016 (FY21 table) | yes | yes | yes |
 | `PSDEL` | Effect delay | 0–300 ms | yes | yes | yes |
 | `PSEFF` | Effect level | 1–15 | yes | yes | yes |
-| `PSRSTR` | Audio restorer | `OFF`, `LOW`, `MED`, `HI` | yes | yes | yes |
+| `PSRSTR` | Audio restorer (Denon; Marantz has M-DAX, `PSMDAX`, and no `PSRSTR` in its 2019 list) | `OFF`, `LOW`, `MED`, `HI` | yes | yes | yes |
 | `PSCINEMA EQ.` | Cinema EQ | `ON`/`OFF` | yes | yes | yes |
 | `PSSWR` | Subwoofer on/off in Direct/Stereo | `ON`/`OFF` | yes | yes | yes (`OFF` in Direct and Stereo only) |
 | `PSRSZ` | Room size | `S`, `MS`, `M`, `ML`, `L` | yes | yes | yes |

@@ -4,6 +4,15 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 0.9.3
+
+Marantz receivers from 2015 on: the select *Restorer* is no longer created.
+These receivers list M-DAX under the name Restorer, and Marantz's command
+list has no restorer command; M-DAX is the select *M-DAX*. The old select
+shows as no longer provided: delete it under Settings → Entities, and point
+automations that used it to the M-DAX select (options `off`, `low`,
+`medium`, `high`).
+
 ## From 0.5.x
 
 If you imported the blueprint "TV on, receiver on", import it again (same

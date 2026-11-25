@@ -229,7 +229,7 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
   and the modes within the active group (context aware, includes Auto).
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,
-  MultEQ, Restorer, ECO, Front Display dimmer, Video Mode, Picture Mode, HDMI
+  MultEQ, Restorer (Denon; on Marantz M-DAX takes its place), ECO, Front Display dimmer, Video Mode, Picture Mode, HDMI
   Monitor Out, HDMI Audio Out (Amp/TV), HDMI Resolution, Aspect Ratio, Input Mode
   (ARC/eARC/…), Quick Select, Subwoofer Mode (LFE / LFE+Main), Room Size, Volume
   Scale, Volume Limit, Muting Level, a per speaker group crossover frequency (Hz)
@@ -282,8 +282,8 @@ protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
   filter, subwoofer and its output), Auro-Matic 3D (preset, strength) and
   Auro-3D mode, Dirac Live filter slot, Tactile Transducer (on/off, level,
   low-pass filter), and on Marantz M-DAX, DAC Filter and Illumination. Their
-  command formats come from the denonavr library and have not been tried on a
-  receiver yet.
+  command formats come from the denonavr library (M-DAX from Marantz's 2019
+  command list) and have not been tried on a receiver yet.
 - **Buttons**: save a quick select preset (one per preset the receiver reports),
   reset all channel levels, restart the network module. They start disabled.
 - **Remote**: the on-screen menu keys (see Actions).

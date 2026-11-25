@@ -14,7 +14,7 @@ or image of the apps is used. Findings carry the label **App**
 | Denon AVR Remote | `com.dmholdings.DenonAVRRemote` | 3.13.4 | Java code and the native control library (with symbols) |
 | Marantz AVR Remote | `com.dmholdings.MarantzAVRRemote` | 3.13.4 | Same native library and assets as the Denon app, byte for byte; ten Java files differ (package name and build variant) |
 | HEOS | `com.dnm.heos.phone` | 3.139.353 | Java code and the native libraries |
-| Denon Remote App, Marantz Remote App | `com.dmholdings.denonremoteapp`, `com.dmholdings.marantzremoteapp` | 1.1.9 | The older apps; the same app under two names, with description files for receivers from 2010–2012 ([receivers before 2013](models/before-2013.md)) |
+| Denon Remote App, Marantz Remote App | `com.dmholdings.denonremoteapp`, `com.dmholdings.marantzremoteapp` | 1.1.9 | The older apps; the same app under two names (same native library and data; the package sets only the look, the demo device and which brand is listed first), with description files for receivers from 2010–2012 ([receivers before 2013](models/before-2013.md)) |
 
 The Java code was decompiled; in the native libraries each string was
 traced to the function that uses it, which shows which command a function
@@ -149,8 +149,13 @@ screen it does not register reaches them, so it does not send them.
   The app sends it on a path of its own, and the zone status reports
   `RestorerMode` and `MDAX` separately. Marantz's 2019 document gives
   `PSMDAX OFF`, `LOW`, `MID`, `HI` and `PSMDAX ?` for all its models, and
-  the apps send the same `PSMDAX` with `HI`, `MID`, `LOW`, `OFF`. On
-  the 2010 AV7005 and SR7005 the older app sends M-DAX as the restorer.
+  the apps send the same `PSMDAX` with `HI`, `MID`, `LOW`, `OFF` to every
+  Marantz receiver above level 100. Only to the 2010 AV7005 and SR7005 does
+  the older app send M-DAX as the restorer, `PSRSTR MODE1`–`3` or `OFF`.
+  Receivers from level 0300 on name M-DAX `Restorer` in `Deviceinfo.xml`
+  (with the display name M-DAX; recorded SR6011, SR6012, NR1609, AV7703);
+  this integration therefore offers no restorer on a Marantz from level 0300
+  unless it answers `PSRSTR ?`.
 
 ## HEOS generation: UPnP service ACT
 
