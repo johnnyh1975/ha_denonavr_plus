@@ -689,20 +689,27 @@ its own job, so nothing is controlled twice:
 | Power, input, volume, sound mode, zones, tuner, quick selects | this integration |
 | Now playing, transport, URLs, text to speech and announcements on the receiver | this integration (over HEOS) |
 | HEOS favorites, local servers, TuneIn, playlists in the browser | this integration (over HEOS) |
-| Your music library, streaming services, queues, playing on many speakers | Music Assistant (its HEOS or AirPlay provider) |
+| Your music library, streaming services, queues, playing on many speakers | Music Assistant (its HEOS, AirPlay or DLNA provider) |
 | Grouping the receiver with other HEOS speakers in the home | the HEOS integration of Home Assistant |
 
 With **Music Assistant**, set it up in three places:
 
-1. **In Music Assistant**, play to the receiver through its HEOS provider (or
-   AirPlay). Under the player's settings, **Player controls**: power by the
+1. **In Music Assistant**, play to the receiver through a provider it offers:
+   **HEOS** on receivers with HEOS, **AirPlay** on receivers without (such as
+   the AVR-X2000), **DLNA** where neither works. HEOS lets Music Assistant
+   start the receiver's network player itself, but the receiver's display
+   then shows a plain URL stream; AirPlay sends title and cover to the
+   display and adds about two seconds of delay. Whether a receiver without
+   HEOS switches to the same network input for AirPlay that the Network
+   Music switch selects is not yet tried. Under the player's settings,
+   **Player controls**: power by the
    zone's **Network Music** switch, volume by this integration's media player
    of the zone. Music Assistant then switches the zone on and to the network
    input to play, and off when it stops, without ending a film on another
    input; its volume slider is the receiver's volume.
 2. **In this integration**, Configure → Playback: link the **network input**
    to Music Assistant's media player of the receiver (from the Music
-   Assistant integration). The receiver's player then shows what Music
+   Assistant integration), whichever provider it plays through. The receiver's player then shows what Music
    Assistant plays, its skip, shuffle and repeat go to Music Assistant's
    queue (HEOS's own would only restart the stream), and Music Assistant's
    library is a folder in the receiver's media browser. HEOS's own title and
@@ -717,6 +724,13 @@ Announcements (`tts.speak`, a doorbell) still play over HEOS on the receiver
 and pause no linked player. Zone 2 plays the network by joining the main zone
 (Home Assistant's join); whether zone 2 can play a stream of its own is not
 yet tried on a receiver.
+
+**Sendspin**, Music Assistant's own protocol for playing in sync across
+rooms, is not built into Denon or Marantz receivers. Music Assistant can take
+a receiver into a Sendspin group through its AirPlay bridge; that is Music
+Assistant's matter and needs nothing here, but it is not yet tried with a
+receiver. The link in step 2 then goes to the player Music Assistant shows
+for the receiver.
 
 The **HEOS integration** is only needed to group the receiver with other HEOS
 speakers. It may run alongside: HEOS takes several connections. Its media

@@ -410,8 +410,11 @@ AVR Plus is disabled.
 ## 9. With Music Assistant
 
 Music Assistant plays your library and streaming services on the receiver
-through its HEOS or AirPlay provider; Denon AVR Plus does the rest (power,
-input, volume, sound mode, zones). Three settings make them one:
+through HEOS (receivers with HEOS), AirPlay (receivers without, such as the
+AVR-X2000) or DLNA; Denon AVR Plus does the rest (power, input, volume, sound
+mode, zones). Which of them to choose, and what Sendspin means here, is in
+the [reference](REFERENCE.md#with-music-assistant-and-the-heos-integration).
+Three settings make them one:
 
 1. **Music Assistant, Player controls** of the receiver's player: power by
    the zone's **Network Music** switch, volume by the zone's media player of
@@ -428,9 +431,6 @@ input, volume, sound mode, zones). Three settings make them one:
 
 > **Recommended:** all three. There is no full volume switch on the network
 > input: Music Assistant's volume is the receiver's.
-
-Who does what, including the HEOS integration, is in the
-[reference](REFERENCE.md#with-music-assistant-and-the-heos-integration).
 
 ## 10. Voice assistants and Apple Home
 
