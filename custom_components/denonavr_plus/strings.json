@@ -54,10 +54,18 @@
           "move_yes": "Disable the old entry and take its entities over",
           "move_no": "Leave the old entry alone. Both connected at once disturb each other; a repair offers the move later"
         }
+      },
+      "telnet_unavailable": {
+        "title": "The receiver does not accept a control connection",
+        "description": "{model} answers on the network, but not on its control connection (telnet, port 23). Without it, Home Assistant controls it over the web interface: power, volume, mute, source and, from 2013, sound mode, tone and Audyssey, with up to 10 seconds delay. The other settings and instant updates need the control connection.\n\nThe receiver allows one control connection at a time. Common causes:\n\n- Another integration or program holds it, for example the official Denon AVR integration with telnet on, or another home automation system.\n- The Denon or Marantz AVR Remote app while its tuner screen is open.\n- A firewall or VLAN rule blocks port 23.\n\nRemove the cause and check again, or continue: the integration connects by itself once the port is free.",
+        "menu_options": {
+          "telnet_retry": "Check again",
+          "telnet_continue": "Continue without it for now"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Could not reach the receiver. Check the IP address and that the receiver is powered on and on the network.",
+      "cannot_connect": "Could not reach the receiver. Check the IP address and that the receiver is powered on and on the network. With Network Standby off, the receiver cannot be reached in standby: switch it on, or turn Network Standby on in its network settings.",
       "no_receivers_found": "No receiver that is not set up yet was found on the network. Enter its IP address."
     },
     "abort": {

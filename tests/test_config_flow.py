@@ -51,11 +51,16 @@ async def no_setup(
     if "loaded_entry" in request.fixturenames:
         yield
         return
-    with patch(
-        "custom_components.denonavr_plus.async_setup_entry", return_value=True
+    with (
+        patch("custom_components.denonavr_plus.async_setup_entry", return_value=True),
+        # The receiver answers on its control connection, unless a test says not.
+        patch(_ANSWERS, AsyncMock(return_value=True)),
     ):
         yield
         await hass.async_block_till_done()
+
+
+_ANSWERS = "custom_components.denonavr_plus.config_flow.async_answers"
 
 
 def _identity(mac: str | None = MAC, model: str | None = MODEL, **info: Any) -> AsyncMock:
@@ -1102,3 +1107,46 @@ async def test_the_move_is_undone_from_the_options(
         await hass.async_block_till_done()
     assert (result["type"], result["reason"]) == (FlowResultType.ABORT, "moved_back")
     back.assert_awaited_once_with(hass, loaded_entry)
+
+
+async def test_a_receiver_without_its_control_connection_says_why(hass: HomeAssistant) -> None:
+    """HTTP answers, telnet does not: the setup names the causes; check again or go on."""
+    answers = AsyncMock(side_effect=[False, False, True])
+    with (
+        patch.object(DenonAvrDevice, "async_fetch_identity", _identity()),
+        patch(_ANSWERS, answers),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: "192.0.2.10"}
+        )
+        assert result["type"] is FlowResultType.MENU
+        assert result["step_id"] == "telnet_unavailable"
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "telnet_retry"}
+        )
+        assert result["step_id"] == "telnet_unavailable"
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "telnet_retry"}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    answers.assert_awaited_with("192.0.2.10")
+
+
+async def test_the_setup_goes_on_without_the_control_connection(hass: HomeAssistant) -> None:
+    with (
+        patch.object(DenonAvrDevice, "async_fetch_identity", _identity()),
+        patch(_ANSWERS, AsyncMock(return_value=False)),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: "192.0.2.10"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "telnet_continue"}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY

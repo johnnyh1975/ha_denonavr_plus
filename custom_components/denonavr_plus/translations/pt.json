@@ -54,10 +54,18 @@
           "move_yes": "Desativar a entrada antiga e assumir as suas entidades",
           "move_no": "Deixar a entrada antiga. Ligadas ao mesmo tempo perturbam-se; uma reparação propõe a mudança mais tarde"
         }
+      },
+      "telnet_unavailable": {
+        "title": "O recetor não aceita uma ligação de controlo",
+        "description": "{model} responde na rede, mas não na sua ligação de controlo (telnet, porta 23). Sem ela, o Home Assistant controla-o pela interface web: ligar/desligar, volume, silêncio, fonte e, a partir de 2013, modo de som, tom e Audyssey, com até 10 segundos de atraso. As restantes definições e as atualizações imediatas precisam da ligação de controlo.\n\nO recetor permite uma ligação de controlo de cada vez. Causas comuns:\n\n- Outra integração ou programa ocupa-a, por exemplo a integração oficial Denon AVR com telnet ligado ou outro sistema de domótica.\n- A app Denon ou Marantz AVR Remote enquanto o ecrã do sintonizador está aberto.\n- Uma regra de firewall ou VLAN bloqueia a porta 23.\n\nRemova a causa e verifique novamente, ou continue: a integração liga-se sozinha assim que a porta estiver livre.",
+        "menu_options": {
+          "telnet_retry": "Verificar novamente",
+          "telnet_continue": "Continuar sem ela por agora"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Não foi possível contactar o recetor. Verifique o endereço IP e se o recetor está ligado e na rede.",
+      "cannot_connect": "Não foi possível contactar o recetor. Verifique o endereço IP e se o recetor está ligado e na rede. Com o Network Standby desligado, o recetor não está acessível em espera: ligue-o ou ative o Network Standby nas definições de rede.",
       "no_receivers_found": "Não foi encontrado na rede nenhum recetor por configurar. Introduza o seu endereço IP."
     },
     "abort": {

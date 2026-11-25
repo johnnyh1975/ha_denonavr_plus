@@ -74,6 +74,23 @@ def is_query(command: str) -> bool:
     return command.rstrip().endswith("?")
 
 
+async def async_answers(host: str, *, port: int = DEFAULT_PORT, wait: float = 3.0) -> bool:
+    """Whether the receiver accepts a control connection and answers PW? on it.
+
+    Asked when a receiver is added: it answers over HTTP, but another
+    program may hold its one telnet connection, or port 23 may be blocked.
+    """
+
+    answered = False
+
+    def on_line(_line: str) -> None:
+        nonlocal answered
+        answered = True
+
+    await async_probe(host, ["PW?"], on_line, lambda: answered, port=port, deadline=wait)
+    return answered
+
+
 async def async_probe(
     host: str,
     queries: list[str],

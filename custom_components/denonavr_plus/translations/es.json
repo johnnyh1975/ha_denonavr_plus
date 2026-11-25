@@ -54,10 +54,18 @@
           "move_yes": "Desactivar la entrada antigua y tomar sus entidades",
           "move_no": "Dejar la entrada antigua. Conectadas a la vez se molestan; una reparación ofrece el traslado más tarde"
         }
+      },
+      "telnet_unavailable": {
+        "title": "El receptor no acepta una conexión de control",
+        "description": "{model} responde en la red, pero no en su conexión de control (telnet, puerto 23). Sin ella, Home Assistant lo controla por la interfaz web: encendido, volumen, silencio, fuente y, desde 2013, modo de sonido, tono y Audyssey, con hasta 10 segundos de retraso. Los demás ajustes y las actualizaciones al instante necesitan la conexión de control.\n\nEl receptor permite una sola conexión de control a la vez. Causas habituales:\n\n- Otra integración o programa la ocupa, por ejemplo la integración oficial Denon AVR con telnet activado u otro sistema domótico.\n- La app Denon o Marantz AVR Remote mientras su pantalla del sintonizador está abierta.\n- Una regla de cortafuegos o VLAN bloquea el puerto 23.\n\nElimina la causa y vuelve a comprobar, o continúa: la integración se conecta sola en cuanto el puerto quede libre.",
+        "menu_options": {
+          "telnet_retry": "Comprobar de nuevo",
+          "telnet_continue": "Continuar sin ella por ahora"
+        }
       }
     },
     "error": {
-      "cannot_connect": "No se puede acceder al receptor. Comprueba la dirección IP y que el receptor esté encendido y conectado a la red.",
+      "cannot_connect": "No se puede acceder al receptor. Comprueba la dirección IP y que el receptor esté encendido y conectado a la red. Con Network Standby desactivado, el receptor no es accesible en espera: enciéndelo o activa Network Standby en sus ajustes de red.",
       "no_receivers_found": "No se encontró en la red ningún receptor sin configurar. Introduce su dirección IP."
     },
     "abort": {

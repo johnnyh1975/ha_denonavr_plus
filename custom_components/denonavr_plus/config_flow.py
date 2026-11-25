@@ -42,6 +42,7 @@ from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 
 from .avr import DenonAvrDevice
 from .avr.profile import load_profile
+from .avr.transport.telnet import async_answers
 from .sound_modes import OPT_READABLE_SOUND_MODES
 from .const import (
     CONF_HOST,
@@ -132,6 +133,8 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         #: The other integrations' entries for this receiver, and whether to take them over.
         self._old: list[ConfigEntry] = []
         self._move: list[str] = []
+        #: The user chose to go on although the control connection is not answered.
+        self._without_telnet = False
 
     async def _async_identify(self, host: str) -> tuple[str | None, str]:
         """Fetch the receiver's unique key and model name. Raises ConnectionError.
@@ -236,7 +239,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._old = move.old_entries(self.hass, data.get(CONF_HOST), self._mac, self._serial)
         if self._old:
             return await self.async_step_move_offer()
-        return self._async_finish()
+        return await self._async_finish()
 
     async def async_step_move_offer(
         self, user_input: dict[str, Any] | None = None
@@ -262,18 +265,52 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         for old in self._old:
             await move.async_disable(self.hass, old)
         self._move = [old.entry_id for old in self._old]
-        return self._async_finish()
+        return await self._async_finish()
 
     async def async_step_move_no(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        return self._async_finish()
+        return await self._async_finish()
 
-    def _async_finish(self) -> ConfigFlowResult:
+    async def _async_finish(self) -> ConfigFlowResult:
+        """Check the control connection, then create the entry (or offer the tests).
+
+        Not when the other integration's entry is being taken over: it held
+        the connection until a moment ago and lets go once it is unloaded.
+        """
+
         title, data = self._new_entry
+        if not self._move and not self._without_telnet and not await async_answers(
+            data[CONF_HOST]
+        ):
+            return self.async_show_menu(
+                step_id="telnet_unavailable",
+                menu_options=["telnet_retry", "telnet_continue"],
+                description_placeholders={"model": title},
+            )
         if self._described:
             return self.async_create_entry(title=title, data=data, options=self._options())
         return self._unknown_model_form()
+
+    async def async_step_telnet_unavailable(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """HTTP answers, the control connection does not: check again or go on."""
+
+        return await self._async_finish()
+
+    async def async_step_telnet_retry(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        return await self._async_finish()
+
+    async def async_step_telnet_continue(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Go on over the web interface; the integration connects once the port is free."""
+
+        self._without_telnet = True
+        return await self._async_finish()
 
     def _options(self) -> dict[str, Any]:
         return {move.OPT_MOVE_PENDING: self._move} if self._move else {}

@@ -54,10 +54,18 @@
           "move_yes": "Disattivare la vecchia voce e rilevarne le entità",
           "move_no": "Lasciare la vecchia voce. Collegate insieme si disturbano; una riparazione propone il trasferimento più tardi"
         }
+      },
+      "telnet_unavailable": {
+        "title": "Il sintoamplificatore non accetta una connessione di controllo",
+        "description": "{model} risponde in rete, ma non sulla sua connessione di controllo (telnet, porta 23). Senza di essa Home Assistant lo controlla tramite l'interfaccia web: accensione, volume, silenziamento, sorgente e, dal 2013, modalità audio, toni e Audyssey, con un ritardo fino a 10 secondi. Le altre impostazioni e gli aggiornamenti immediati richiedono la connessione di controllo.\n\nIl sintoamplificatore consente una sola connessione di controllo alla volta. Cause comuni:\n\n- Un'altra integrazione o un altro programma la occupa, ad esempio l'integrazione ufficiale Denon AVR con telnet attivo o un altro sistema domotico.\n- L'app Denon o Marantz AVR Remote mentre la sua schermata del sintonizzatore è aperta.\n- Una regola di firewall o VLAN blocca la porta 23.\n\nElimina la causa e controlla di nuovo, oppure continua: l'integrazione si collega da sola appena la porta è libera.",
+        "menu_options": {
+          "telnet_retry": "Controlla di nuovo",
+          "telnet_continue": "Continua senza per ora"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Impossibile raggiungere il sintoamplificatore. Controlla l'indirizzo IP e che il sintoamplificatore sia acceso e collegato alla rete.",
+      "cannot_connect": "Impossibile raggiungere il sintoamplificatore. Controlla l'indirizzo IP e che il sintoamplificatore sia acceso e collegato alla rete. Con Network Standby disattivato, il sintoamplificatore non è raggiungibile in standby: accendilo o attiva Network Standby nelle sue impostazioni di rete.",
       "no_receivers_found": "In rete non è stato trovato alcun sintoamplificatore non ancora configurato. Inserisci il suo indirizzo IP."
     },
     "abort": {

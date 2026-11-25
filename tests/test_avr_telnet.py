@@ -455,3 +455,19 @@ async def test_the_log_keeps_what_went_out_and_came_back(receiver: FakeReceiver)
     finally:
         await client.async_stop()
     assert [entry.split(" ", 1)[1] for entry in client.log] == ["> PW?", "< PWX"]
+
+
+async def test_a_receiver_that_answers_its_control_connection() -> None:
+    from custom_components.denonavr_plus.avr.transport import telnet
+
+    async def answering(host: str, queries: list[str], on_line, is_complete, **kwargs) -> None:  # type: ignore[no-untyped-def]
+        assert queries == ["PW?"]
+        on_line("PWON")
+
+    async def silent(host: str, queries: list[str], on_line, is_complete, **kwargs) -> None:  # type: ignore[no-untyped-def]
+        return None
+
+    with patch.object(telnet, "async_probe", answering):
+        assert await telnet.async_answers("192.0.2.10")
+    with patch.object(telnet, "async_probe", silent):
+        assert not await telnet.async_answers("192.0.2.10")

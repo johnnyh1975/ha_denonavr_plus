@@ -54,10 +54,18 @@
           "move_yes": "Désactiver l'ancienne entrée et reprendre ses entités",
           "move_no": "Laisser l'ancienne entrée. Connectées en même temps, elles se gênent ; une réparation propose le transfert plus tard"
         }
+      },
+      "telnet_unavailable": {
+        "title": "L'ampli-tuner n'accepte pas de connexion de contrôle",
+        "description": "{model} répond sur le réseau, mais pas sur sa connexion de contrôle (telnet, port 23). Sans elle, Home Assistant le pilote par l'interface web : alimentation, volume, sourdine, source et, à partir de 2013, mode sonore, tonalité et Audyssey, avec jusqu'à 10 secondes de retard. Les autres réglages et les mises à jour immédiates nécessitent la connexion de contrôle.\n\nL'ampli-tuner n'accepte qu'une connexion de contrôle à la fois. Causes fréquentes :\n\n- Une autre intégration ou un autre programme l'occupe, par exemple l'intégration officielle Denon AVR avec telnet activé, ou un autre système domotique.\n- L'app Denon ou Marantz AVR Remote tant que son écran tuner est ouvert.\n- Une règle de pare-feu ou de VLAN bloque le port 23.\n\nSupprimez la cause et vérifiez à nouveau, ou continuez : l'intégration se connecte d'elle-même dès que le port est libre.",
+        "menu_options": {
+          "telnet_retry": "Vérifier à nouveau",
+          "telnet_continue": "Continuer sans pour l'instant"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de joindre l'ampli-tuner. Vérifiez l'adresse IP et que l'ampli-tuner est allumé et connecté au réseau.",
+      "cannot_connect": "Impossible de joindre l'ampli-tuner. Vérifiez l'adresse IP et que l'ampli-tuner est allumé et connecté au réseau. Avec Network Standby désactivé, l'ampli-tuner n'est pas joignable en veille : allumez-le ou activez Network Standby dans ses réglages réseau.",
       "no_receivers_found": "Aucun ampli-tuner non configuré n'a été trouvé sur le réseau. Saisissez son adresse IP."
     },
     "abort": {

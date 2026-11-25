@@ -54,10 +54,18 @@
           "move_yes": "De oude invoer uitschakelen en zijn entiteiten overnemen",
           "move_no": "De oude invoer laten. Tegelijk verbonden storen ze elkaar; een reparatie biedt de verhuizing later aan"
         }
+      },
+      "telnet_unavailable": {
+        "title": "De receiver accepteert geen besturingsverbinding",
+        "description": "{model} reageert op het netwerk, maar niet op zijn besturingsverbinding (telnet, poort 23). Zonder die verbinding bestuurt Home Assistant hem via de webinterface: aan/uit, volume, dempen, bron en vanaf 2013 geluidsmodus, toon en Audyssey, met tot 10 seconden vertraging. De overige instellingen en directe updates hebben de besturingsverbinding nodig.\n\nDe receiver staat één besturingsverbinding tegelijk toe. Veelvoorkomende oorzaken:\n\n- Een andere integratie of een ander programma houdt hem bezet, bijvoorbeeld de officiële Denon AVR-integratie met telnet aan of een ander domoticasysteem.\n- De Denon of Marantz AVR Remote-app terwijl het tunerscherm open is.\n- Een firewall- of VLAN-regel blokkeert poort 23.\n\nNeem de oorzaak weg en controleer opnieuw, of ga verder: de integratie maakt zelf verbinding zodra de poort vrij is.",
+        "menu_options": {
+          "telnet_retry": "Opnieuw controleren",
+          "telnet_continue": "Voorlopig zonder doorgaan"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Kon de receiver niet bereiken. Controleer het IP-adres en of de receiver aan staat en op het netwerk zit.",
+      "cannot_connect": "Kon de receiver niet bereiken. Controleer het IP-adres en of de receiver aan staat en op het netwerk zit. Met Network Standby uit is de receiver in stand-by niet bereikbaar: zet hem aan of schakel Network Standby in bij zijn netwerkinstellingen.",
       "no_receivers_found": "Er is op het netwerk geen receiver gevonden die nog niet is ingesteld. Voer het IP-adres in."
     },
     "abort": {

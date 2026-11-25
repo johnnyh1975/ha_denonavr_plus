@@ -65,6 +65,15 @@ services → Discovered**; select **Add** there. Otherwise add it by hand:
 
    ![The IP address](images/guide/setup-2-address.png)
 
+   If the receiver answers on the network but not on its control
+   connection (telnet, port 23), setup says so and names the usual causes:
+   another integration or program holding the receiver's one control
+   connection, the AVR Remote app with its tuner screen open, a firewall
+   rule. Remove the cause and select **Check again**, or **Continue without
+   it for now**: the integration then works over the web interface and
+   connects by itself once the port is free. A receiver that does not answer
+   at all is often in standby with Network Standby off.
+
 3. **Only for a device that is not a described AV receiver** (a system such
    as a network CD receiver, or a generation not seen yet), you are asked
    whether to test it after setup. Leave the toggle on: the test only reads

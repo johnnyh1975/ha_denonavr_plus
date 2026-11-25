@@ -54,10 +54,18 @@
           "move_yes": "Wyłącz stary wpis i przejmij jego encje",
           "move_no": "Zostaw stary wpis. Połączone jednocześnie przeszkadzają sobie; naprawa zaproponuje przeniesienie później"
         }
+      },
+      "telnet_unavailable": {
+        "title": "Amplituner nie przyjmuje połączenia sterującego",
+        "description": "{model} odpowiada w sieci, ale nie na swoim połączeniu sterującym (telnet, port 23). Bez niego Home Assistant steruje nim przez interfejs WWW: zasilanie, głośność, wyciszenie, źródło oraz od 2013 roku tryb dźwięku, barwa i Audyssey, z opóźnieniem do 10 sekund. Pozostałe ustawienia i natychmiastowe aktualizacje wymagają połączenia sterującego.\n\nAmplituner pozwala na jedno połączenie sterujące naraz. Częste przyczyny:\n\n- Zajmuje je inna integracja lub program, na przykład oficjalna integracja Denon AVR z włączonym telnetem albo inny system automatyki domowej.\n- Aplikacja Denon lub Marantz AVR Remote, gdy jej ekran tunera jest otwarty.\n- Reguła zapory lub VLAN blokuje port 23.\n\nUsuń przyczynę i sprawdź ponownie albo kontynuuj: integracja połączy się sama, gdy port będzie wolny.",
+        "menu_options": {
+          "telnet_retry": "Sprawdź ponownie",
+          "telnet_continue": "Na razie kontynuuj bez niego"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Nie można połączyć się z amplitunerem. Sprawdź adres IP oraz czy amplituner jest włączony i podłączony do sieci.",
+      "cannot_connect": "Nie można połączyć się z amplitunerem. Sprawdź adres IP oraz czy amplituner jest włączony i podłączony do sieci. Przy wyłączonym Network Standby amplituner w trybie czuwania jest nieosiągalny: włącz go lub włącz Network Standby w jego ustawieniach sieci.",
       "no_receivers_found": "W sieci nie znaleziono żadnego nieskonfigurowanego amplitunera. Wprowadź jego adres IP."
     },
     "abort": {

@@ -54,10 +54,18 @@
           "move_yes": "Alten Eintrag deaktivieren und seine Entitäten übernehmen",
           "move_no": "Alten Eintrag lassen. Gleichzeitig verbunden stören sich beide; eine Reparaturmeldung bietet den Umzug später an"
         }
+      },
+      "telnet_unavailable": {
+        "title": "Der Receiver nimmt keine Steuerverbindung an",
+        "description": "{model} antwortet im Netzwerk, aber nicht auf seiner Steuerverbindung (Telnet, Port 23). Ohne sie steuert Home Assistant ihn über die Weboberfläche: Ein/Aus, Lautstärke, Stummschaltung, Quelle und ab 2013 Klangmodus, Klangregelung und Audyssey, mit bis zu 10 Sekunden Verzögerung. Die übrigen Einstellungen und sofortige Aktualisierungen brauchen die Steuerverbindung.\n\nDer Receiver erlaubt nur eine Steuerverbindung gleichzeitig. Häufige Ursachen:\n\n- Eine andere Integration oder ein anderes Programm hält sie, zum Beispiel die offizielle Denon-AVR-Integration mit eingeschaltetem Telnet oder ein anderes Hausautomationssystem.\n- Die Denon oder Marantz AVR Remote App, solange ihre Tuner-Ansicht offen ist.\n- Eine Firewall- oder VLAN-Regel sperrt Port 23.\n\nBehebe die Ursache und prüfe erneut, oder fahre fort: Die Integration verbindet sich von selbst, sobald der Port frei ist.",
+        "menu_options": {
+          "telnet_retry": "Erneut prüfen",
+          "telnet_continue": "Vorerst ohne fortfahren"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Der Receiver ist nicht erreichbar. Prüfe die IP-Adresse und ob der Receiver eingeschaltet und im Netzwerk ist.",
+      "cannot_connect": "Der Receiver ist nicht erreichbar. Prüfe die IP-Adresse und ob der Receiver eingeschaltet und im Netzwerk ist. Mit ausgeschaltetem Netzwerk-Standby ist der Receiver im Standby nicht erreichbar: Schalte ihn ein oder Netzwerk-Standby in seinen Netzwerkeinstellungen an.",
       "no_receivers_found": "Im Netzwerk wurde kein Receiver gefunden, der noch nicht eingerichtet ist. Gib seine IP-Adresse ein."
     },
     "abort": {
