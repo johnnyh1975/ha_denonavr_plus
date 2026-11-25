@@ -9,10 +9,19 @@ nothing from you are not listed. What changed in each version is in the
 Sound modes show readable names: the media player's `sound_mode` and
 `sound_mode_list` and the sound mode select say *Dolby Surround* where they
 said *Dolby Audio - DD + DSur*, *Multichannel stereo* (in your language)
-where they said *Multi Ch Stereo*. Choosing a mode by the receiver's name
-still works. A condition or template that compares `sound_mode` with the
-receiver's name compares with the short name now, or switch **Readable
-names** off under Configure → Sound modes.
+where they said *Multi Ch Stereo*. Two modes that would get the same short
+name keep the receiver's names. The sound mode select now also shows the
+names set under Configure → Sound modes.
+
+- `media_player.select_sound_mode` still takes the receiver's names.
+- `select.select_option` on the sound mode select takes only the names it
+  shows: an automation that chose a mode there by the receiver's name needs
+  the short name now.
+- A condition or template that compares `sound_mode` or the select's state
+  with the receiver's name compares with the short name now.
+
+To keep the receiver's names everywhere, switch **Readable names** off under
+Configure → Sound modes.
 
 ## From 0.9.4
 

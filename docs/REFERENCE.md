@@ -72,10 +72,13 @@ switched off loses its device and entities; switching it on again brings them
 back. **Main zone off puts the receiver in standby**: turning the main zone off
 from Home Assistant then puts the whole receiver in standby (`PWSTANDBY`), so
 no other zone keeps playing; without it, only the main zone turns off.
-**Turn the receiver on for a setting** (default off): a setting of the main
-zone changed from Home Assistant while the receiver is in standby turns the
-main zone on first and waits until it has started (a few seconds); without
-it, the setting reports that the receiver is in standby. A receiver with one
+**Turn the receiver on for a setting** (default off): a select, switch or
+number of the main zone changed from Home Assistant while the receiver is in
+standby turns the main zone on first and waits until it has started (a few
+seconds); a value the receiver already has turns nothing on. Without it, the
+setting reports that the receiver is in standby. Speaker sizes, distances,
+crossovers, channel levels, the graphic EQ and the video setup go over the
+setup interface and do not turn the receiver on. A receiver with one
 zone shows only these two switches.
 
 **Sources** (needs the receiver connected, it reads its sources): per zone,
@@ -100,8 +103,9 @@ shows as Dolby Surround, `Multi In + Neural:X` as DTS Neural:X), the Dolby
 format spelled out (`Dolby Audio - DD+` as Dolby Digital Plus), and Multi Ch
 Stereo and Multi Ch In in the user's language. Other names stay as the
 receiver gives them; two modes that would get the same short name keep the
-receiver's names, and a name set here wins. The receiver's names still choose
-a mode in actions and automations.
+receiver's names, and a name set here wins. The names are the same in the
+media player and the sound mode select. `media_player.select_sound_mode`
+still takes the receiver's names; the select takes the names it shows.
 
 **Entities** (works even when the receiver is off): a toggle per group of the
 entities that start hidden, with how many it holds: Audio, Speakers, Video and
@@ -189,9 +193,10 @@ resolution appear only on receivers that list them (AVR‑X2600H, AVC‑X3700H,
 AVC‑A10H), and Input Mode leaves eARC out where the receiver's list does
 (AVC‑8500H, SR6011; some receivers without eARC still list it). Number
 ranges do too: levels in dB as the receiver publishes them, and Audio Delay,
-Auro-Matic Strength (0–15 on the AVC‑A10H, 1–16 on others), Containment
-Amount and Dialog Control by the values it publishes; Effect Level keeps 0–15,
-because receivers report 0 although their description starts at 1.
+Containment Amount and Dialog Control by the values it publishes. Effect
+Level keeps 0–15, because receivers report 0 although their description
+starts at 1, and Auro-Matic Strength keeps 1–16 for the same reason (the
+AVC‑A10H describes it as 0–15).
 
 - **Media player** per zone (main + zone 2 where present): power, volume, mute,
   source selection, and (main zone) sound mode. On the main zone, network sources

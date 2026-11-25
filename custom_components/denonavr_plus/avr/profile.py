@@ -319,3 +319,12 @@ def load_profile() -> ProtocolProfile:
     with _PROFILE_PATH.open(encoding="utf-8") as handle:
         raw = json.load(handle)
     return ProtocolProfile(raw)
+
+
+def range_paths(spec: ControlSpec) -> list[str]:
+    """Where in Deviceinfo.xml a control's plain value range is published, in order."""
+
+    paths = spec.get("range_from")
+    if not paths:
+        return []
+    return [paths] if isinstance(paths, str) else [str(path) for path in paths]

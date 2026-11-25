@@ -726,9 +726,21 @@ async def test_the_receiver_in_another_integration_is_offered_for_the_move(
         "title": "Wohnzimmer",
         "integration": "Denon AVR Network Receivers",
     }
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"next_step_id": choice}
-    )
+    answers = AsyncMock(return_value=False)
+    with patch(_ANSWERS, answers):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": choice}
+        )
+    if not pending:
+        # Not taken over: the old integration may hold the session; asked.
+        assert result["step_id"] == "telnet_unavailable"
+        answers.assert_awaited_once()
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "telnet_continue"}
+        )
+    else:
+        # Taken over: it lets go once it is unloaded; not asked.
+        answers.assert_not_awaited()
     assert result["type"] is FlowResultType.CREATE_ENTRY
     if pending:
         # Off at once, so this integration gets the telnet session; the

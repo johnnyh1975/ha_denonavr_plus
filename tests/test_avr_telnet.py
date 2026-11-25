@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator, Callable
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -471,3 +471,18 @@ async def test_a_receiver_that_answers_its_control_connection() -> None:
         assert await telnet.async_answers("192.0.2.10")
     with patch.object(telnet, "async_probe", silent):
         assert not await telnet.async_answers("192.0.2.10")
+
+
+async def test_a_connection_reset_by_the_receiver_counts_as_no_answer() -> None:
+    """Accepted, then reset (another client holds the session): no exception."""
+    from custom_components.denonavr_plus.avr.transport import telnet
+
+    reader = asyncio.StreamReader()
+    writer = MagicMock()
+    writer.drain = AsyncMock(side_effect=ConnectionResetError("reset"))
+    writer.wait_closed = AsyncMock()
+    with patch.object(
+        telnet.asyncio, "open_connection", AsyncMock(return_value=(reader, writer))
+    ):
+        assert not await telnet.async_answers("192.0.2.10")
+    writer.close.assert_called_once()

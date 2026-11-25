@@ -219,7 +219,7 @@
         },
         "data_description": {
           "sound_modes": "Selecciona todos para mostrar también los modos que se ofrezcan después.",
-          "readable_sound_modes": "Nombres cortos como Dolby Surround en lugar de Dolby Audio - DD + DSur del receptor. Los nombres del receptor siguen eligiendo un modo."
+          "readable_sound_modes": "Nombres cortos como Dolby Surround en lugar de Dolby Audio - DD + DSur del receptor. media_player.select_sound_mode sigue aceptando los nombres del receptor; el selector de modo de sonido ofrece los cortos."
         }
       },
       "sound_mode_names": {

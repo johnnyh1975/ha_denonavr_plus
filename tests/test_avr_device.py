@@ -1093,6 +1093,12 @@ async def test_a_setting_in_standby_can_turn_the_main_zone_on_first(
         await device.async_set_control_confirmed("dynamic_eq", True, turn_on=True)
     assert telnet.sent == ["ZMON", "PSDYNEQ ON"]
 
+    # A value the receiver already has turns nothing on.
+    telnet.push("ZMOFF")
+    telnet.sent.clear()
+    await device.async_set_control_confirmed("dynamic_eq", True, turn_on=True)
+    assert telnet.sent == ["PSDYNEQ ON"]
+
     # A zone that never reports on: the setting reports standby as before.
     telnet.echo = False
     telnet.push("ZMOFF")

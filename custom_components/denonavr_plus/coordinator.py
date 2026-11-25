@@ -169,6 +169,9 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """Save the discovery once the resync has brought it, for the next start."""
 
         await self.device.async_await_ready()
+        # The preloaded values already meet the ready condition: wait for the
+        # resync itself, so its answers are what is saved.
+        await self.device.async_await_resync()
         try:
             await self._snapshot.async_save(self.device.discovery_snapshot())
         except Exception as err:  # noqa: BLE001 - a background task must not raise
@@ -181,6 +184,9 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id)
         # A playback error is about the session that ends here.
         ir.async_delete_issue(self.hass, DOMAIN, self._playback_issue_id)
+        # Asked again at the next start; the new coordinator starts from "on".
+        assert self.config_entry is not None
+        ir.async_delete_issue(self.hass, DOMAIN, f"app_control_off_{self.config_entry.entry_id}")
         self.capabilities.async_delete_check_issue()
         await super().async_shutdown()
 

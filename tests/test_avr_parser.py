@@ -586,15 +586,17 @@ def test_control_by_apps_is_read(parser_and_state: tuple[TelnetParser, AvrState]
 @pytest.mark.parametrize(
     ("recording", "path", "expected"),
     [
-        ("AVC-A10H-Deviceinfo-8080.xml", "AuroMatic3DStrength", (0.0, 15.0)),
-        ("AVR-X4300H-Deviceinfo-8080.xml", "AuroMatic3DStrength", (1.0, 16.0)),
         ("AVC-X3700H-Deviceinfo-8080.xml", "AudioDelay/Adjust", (0.0, 500.0)),
+        # The older layout: the range on AudioDelay itself, with StepValue.
+        ("AVR-X2100W-2-Deviceinfo.xml", "AudioDelay", (0.0, 200.0)),
         ("AVC-X3700H-Deviceinfo-8080.xml", "ContainmentAmount", (1.0, 7.0)),
     ],
 )
 def test_published_value_ranges_are_read(recording: str, path: str, expected: tuple[float, float]) -> None:
+    from custom_components.denonavr_plus.avr.profile import range_paths
+
     profile = load_profile()
-    paths = {str(spec.get("range_from")) for spec in profile.controls.values() if spec.get("range_from")}
+    paths = {path for spec in profile.controls.values() for path in range_paths(spec)}
     discovery = parse_device_info(
         (Path(__file__).parent / "fixtures" / "denonavr" / recording).read_text(encoding="utf-8"),
         value_ranges=paths,
@@ -602,5 +604,6 @@ def test_published_value_ranges_are_read(recording: str, path: str, expected: tu
     meta = discovery.numeric_meta[path]
     assert (meta["min"], meta["max"], meta["step"]) == (*expected, 1.0)
     # Effect Level stays the profile's 0-15: receivers report PSEFF 00 although
-    # their Deviceinfo says 1-15.
-    assert "EffectLevel" not in paths
+    # their Deviceinfo says 1-15. Auro-Matic Strength stays 1-16 for the same
+    # reason: the AVC-A10H describes 0-15, the AVR-X4300H and the 2015 document 1-16.
+    assert "EffectLevel" not in paths and "AuroMatic3DStrength" not in paths

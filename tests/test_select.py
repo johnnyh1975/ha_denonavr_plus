@@ -396,3 +396,23 @@ async def test_the_sound_mode_select_shows_readable_names(
         "select", "select_option", {"entity_id": select, "option": "Dolby Surround"}, blocking=True
     )
     assert telnet.sent and telnet.sent[0].startswith("MS")
+
+
+async def test_a_mode_has_the_same_name_in_the_select_and_the_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Two modes the receiver listed would both read Dolby Surround: both keep their names."""
+    select = entity_id(hass, loaded_entry, "select_sound_mode")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _push(
+        hass,
+        "PWON",
+        "ZMON",
+        "OPSMLALL MOV021Dolby Audio - DD + DSur",
+        "OPSMLALL MOV030Multi In + DSur",
+        "OPSMLALL END",
+        "OPSML 021Dolby Audio - DD + DSur",
+        "OPSML END",
+    )
+    assert hass.states.get(select).attributes["options"] == ["Dolby Audio - DD + DSur"]
+    assert hass.states.get(main).attributes["sound_mode"] == "Dolby Audio - DD + DSur"

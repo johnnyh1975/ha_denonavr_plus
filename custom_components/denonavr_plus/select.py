@@ -236,7 +236,13 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
             if options.get(sound_modes.OPT_READABLE_SOUND_MODES, True)
             else None
         )
-        return choices.sound_mode_names(options, self._modes(), readable)
+        # Settled over every mode the receiver listed, as the media player does,
+        # so a mode has the same name in both and whatever the genre.
+        discovery = self.coordinator.device.discovery
+        modes = self._modes()
+        every = list(dict.fromkeys([*discovery.all_sound_modes, *discovery.current_sound_modes, *modes]))
+        names = choices.sound_mode_names(options, every, readable)
+        return {mode: names[mode] for mode in modes}
 
     @property
     def options(self) -> list[str]:

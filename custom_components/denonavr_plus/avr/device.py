@@ -15,6 +15,7 @@ All command encoding uses the profile, so no wire tokens live in this file.
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import logging
 from collections.abc import Awaitable, Callable, Coroutine, Sequence
 from dataclasses import asdict, fields, replace
@@ -41,7 +42,14 @@ from .parser import (
     parse_main_zone,
     parse_upnp_description,
 )
-from .profile import OLDER, ControlSpec, ProtocolProfile, load_profile, profile_for_receiver
+from .profile import (
+    OLDER,
+    ControlSpec,
+    ProtocolProfile,
+    load_profile,
+    profile_for_receiver,
+    range_paths,
+)
 from . import (
     appcommand,
     capability_check,
@@ -113,6 +121,8 @@ TUNER_POWER_SETTLE = 1.0
 #: The pause after turning the main zone on for a setting: an AVR-X2000
 #: ignored settings while it was starting up (the command test waits 3 s).
 POWER_ON_SETTLE = 3.0
+#: After the resync's last query: the time its answers take.
+RESYNC_QUIET = 1.0
 #: How long a zone other than the main zone has to confirm a new source.
 ZONE_SOURCE_WAIT = 2.0
 #: How long a setting the receiver may refuse has to come back, first as the
@@ -465,9 +475,9 @@ class DenonAvrDevice:
                 enum_features,
                 receiver_type=self._profile.receiver_type,
                 value_ranges={
-                    str(spec.get("range_from"))
+                    path
                     for spec in self._profile.controls.values()
-                    if spec.get("range_from")
+                    for path in range_paths(spec)
                 },
             )
         if not self._profile.variants:
@@ -595,17 +605,31 @@ class DenonAvrDevice:
         device = snapshot.get("device") or {}
         if device.get("model_name") != self._discovery.device.model_name:
             return False
+        # Only what the setup's own probe did not bring: its answers are newer.
         discovery = self._discovery
-        discovery.configured_channels = set(snapshot["configured_channels"])
-        discovery.quick_select_names = {
-            int(number): str(name)
-            for number, name in (snapshot.get("quick_select_names") or {}).items()
-        }
+        if not discovery.configured_channels:
+            discovery.configured_channels = set(snapshot["configured_channels"])
+        if not discovery.quick_select_names:
+            discovery.quick_select_names = {
+                int(number): str(name)
+                for number, name in (snapshot.get("quick_select_names") or {}).items()
+            }
         if not discovery.sources:
+            fields = {field.name for field in dataclasses.fields(SourceDescriptor)}
             discovery.sources = [
-                SourceDescriptor(**source) for source in snapshot.get("sources", [])
+                SourceDescriptor(**{key: value for key, value in source.items() if key in fields})
+                for source in snapshot.get("sources", [])
             ]
         return True
+
+    async def async_await_resync(self, timeout: float = 60.0) -> None:
+        """Wait until the queries of the resync are out and answered (quiet for a second)."""
+
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout
+        while self._telnet.queued and loop.time() < deadline:
+            await asyncio.sleep(0.2)
+        await asyncio.sleep(RESYNC_QUIET)
 
     def restore_discovery(self, snapshot: dict[str, Any]) -> None:
         """Fill the discovery from a snapshot, for a start without the receiver.
@@ -2125,7 +2149,11 @@ class DenonAvrDevice:
             reason = refusals.refusal_reason(
                 control_id, spec.group, self._state.zone("main").power, value
             )
-            if reason == refusals.STANDBY and turn_on:
+            if (
+                reason == refusals.STANDBY
+                and turn_on
+                and not command_test.same(self._state.values.get(control_id), value)
+            ):
                 # Asked to: the main zone on first, then the setting as usual.
                 await self._async_main_zone_on()
                 reason = refusals.refusal_reason(

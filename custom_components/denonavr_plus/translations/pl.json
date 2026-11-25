@@ -219,7 +219,7 @@
         },
         "data_description": {
           "sound_modes": "Wybierz wszystkie, aby pokazywać także tryby oferowane później.",
-          "readable_sound_modes": "Krótkie nazwy, np. Dolby Surround zamiast Dolby Audio - DD + DSur amplitunera. Nazwy amplitunera nadal wybierają tryb."
+          "readable_sound_modes": "Krótkie nazwy, np. Dolby Surround zamiast Dolby Audio - DD + DSur amplitunera. media_player.select_sound_mode nadal przyjmuje nazwy amplitunera; wybór trybu dźwięku oferuje krótkie."
         }
       },
       "sound_mode_names": {

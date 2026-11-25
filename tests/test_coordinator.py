@@ -420,6 +420,13 @@ async def test_control_by_apps_switched_off_is_a_repair(
     await asyncio.sleep(0.15)
     await hass.async_block_till_done()
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+    # Gone with the session too: the next start asks again.
+    telnet.push("NSARA OFF")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
 
 
 async def test_a_later_start_takes_the_speakers_from_the_last_one(
@@ -436,12 +443,17 @@ async def test_a_later_start_takes_the_speakers_from_the_last_one(
     # Saved as the last start would have.
     hass_storage[key]["data"] = loaded_entry.runtime_data.device.discovery_snapshot()
 
-    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
-    await hass.async_block_till_done()
-    device = loaded_entry.runtime_data.device
-    assert sorted(device.discovery.configured_channels) == configured
-    assert device.discovery.quick_select_names == {1: "TV"}
-    assert "ready_preloaded" in device.setup_timings
+    with patch("custom_components.denonavr_plus.avr.device.RESYNC_QUIET", 0.3):
+        assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+        device = loaded_entry.runtime_data.device
+        assert sorted(device.discovery.configured_channels) == configured
+        assert device.discovery.quick_select_names == {1: "TV"}
+        assert "ready_preloaded" in device.setup_timings
+        # The resync renames quick select 1 before the snapshot is saved again.
+        FakeTelnet.instances[-1].push("SSQSNZMAQS1 Movie", "SSQSNZMA END")
+        await asyncio.sleep(0.5)
+        await hass.async_block_till_done()
+    assert hass_storage[key]["data"]["quick_select_names"] == {"1": "Movie"}
     assert hass_storage[key]["data"]["configured_channels"] == configured
 
 
@@ -453,7 +465,9 @@ def test_the_last_start_counts_only_for_the_same_model() -> None:
     snapshot = {
         "device": {"model_name": "AVR-X2000"},
         "configured_channels": ["FL"],
-        "sources": [{"code": "CD", "name": "CD"}],
+        # A field from another version is left out, not an error.
+        "sources": [{"code": "CD", "name": "CD", "from_a_later_version": 1}],
+        "quick_select_names": {"1": "TV"},
     }
     assert not device.preload_discovery(snapshot)
     assert not device.preload_discovery(None)
@@ -462,3 +476,20 @@ def test_the_last_start_counts_only_for_the_same_model() -> None:
     assert device.preload_discovery(snapshot)
     assert device.discovery.configured_channels == {"FL"}
     assert [source.code for source in device.discovery.sources] == ["CD"]
+
+
+def test_what_this_start_already_learned_is_kept() -> None:
+    from custom_components.denonavr_plus.avr.models import DeviceInfo
+
+    device = DenonAvrDevice(AsyncMock(), "192.0.2.10")
+    device.discovery.device = DeviceInfo(model_name="AVR-X2600H")
+    device.discovery.configured_channels = {"FL", "FR"}
+    device.discovery.quick_select_names = {1: "Movie night"}
+    snapshot = {
+        "device": {"model_name": "AVR-X2600H"},
+        "configured_channels": ["FL", "FR", "C", "SW"],
+        "quick_select_names": {"1": "TV"},
+    }
+    assert device.preload_discovery(snapshot)
+    assert device.discovery.configured_channels == {"FL", "FR"}
+    assert device.discovery.quick_select_names == {1: "Movie night"}

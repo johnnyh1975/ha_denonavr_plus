@@ -143,6 +143,10 @@ async def async_probe(
             line = raw.decode("utf-8", errors="replace").strip("\r\n")
             if line:
                 on_line(line)
+    except OSError as err:
+        # Accepted, then reset or closed (another client holds the session):
+        # what came until then counts.
+        _LOGGER.debug("Discovery probe on %s ended: %s", host, err)
     finally:
         writer.close()
         try:

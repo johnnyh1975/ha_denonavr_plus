@@ -133,13 +133,17 @@ async def test_the_tuner_frequency_reads_and_tunes(
 async def test_an_integer_takes_the_range_the_receiver_publishes(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    """The AVC-X3700H publishes Containment Amount 1-7 as MinValue/MaxValue."""
+    """Audio Delay: AudioDelay/Adjust from 2016, AudioDelay itself on older ones."""
     from custom_components.denonavr_plus.number import _resolve_bounds
 
     device = loaded_entry.runtime_data.device
-    spec = device.profile.control("containment_amount")
+    spec = device.profile.control("audio_delay")
     assert spec is not None
-    device.discovery.numeric_meta["ContainmentAmount"] = {"min": 2.0, "max": 5.0, "step": 1.0}
-    assert _resolve_bounds(device, spec) == (2.0, 5.0, 1.0)
-    del device.discovery.numeric_meta["ContainmentAmount"]
-    assert _resolve_bounds(device, spec) == (1, 7, 1)
+    meta = device.discovery.numeric_meta
+    meta.pop("AudioDelay/Adjust", None)
+    meta["AudioDelay"] = {"min": 0.0, "max": 200.0, "step": 1.0}
+    assert _resolve_bounds(device, spec) == (0.0, 200.0, 1.0)
+    meta["AudioDelay/Adjust"] = {"min": 0.0, "max": 300.0, "step": 1.0}
+    assert _resolve_bounds(device, spec) == (0.0, 300.0, 1.0)
+    del meta["AudioDelay/Adjust"], meta["AudioDelay"]
+    assert _resolve_bounds(device, spec) == (0, 500, 1)

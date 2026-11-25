@@ -219,7 +219,7 @@
         },
         "data_description": {
           "sound_modes": "Kies alles om ook modi te tonen die de receiver later aanbiedt.",
-          "readable_sound_modes": "Korte namen zoals Dolby Surround in plaats van Dolby Audio - DD + DSur van de receiver. De namen van de receiver kiezen nog steeds een modus."
+          "readable_sound_modes": "Korte namen zoals Dolby Surround in plaats van Dolby Audio - DD + DSur van de receiver. media_player.select_sound_mode neemt nog steeds de namen van de receiver; de geluidsmodus-keuze biedt de korte."
         }
       },
       "sound_mode_names": {

@@ -25,7 +25,7 @@ from typing import cast
 
 from .avr import DenonAvrDevice, graphic_eq
 from .avr.models import ZoneDescriptor
-from .avr.profile import ControlSpec
+from .avr.profile import ControlSpec, range_paths
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device, control_zone_shown
@@ -224,10 +224,11 @@ def _resolve_bounds(
     """Return (min, max, step), preferring the receiver published range."""
 
     # Where the profile names it, the plain range the receiver publishes
-    # (AudioDelay/Adjust, AuroMatic3DStrength); else the feature's dB range.
-    meta = device.discovery.numeric_meta.get(str(spec.get("range_from") or spec.feature or ""))
-    if meta:
-        return meta["min"], meta["max"], meta["step"]
+    # (AudioDelay/Adjust or AudioDelay); else the feature's dB range.
+    for key in [*range_paths(spec), spec.feature or ""]:
+        meta = device.discovery.numeric_meta.get(key)
+        if meta:
+            return meta["min"], meta["max"], meta["step"]
     # Fall back to the profile's protocol defined range (LFE, sleep timer).
     return spec.get("min"), spec.get("max"), spec.get("step")
 

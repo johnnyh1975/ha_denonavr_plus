@@ -47,15 +47,16 @@ def _format_mac(raw: str | None) -> str | None:
     return ":".join(raw[i : i + 2] for i in range(0, 12, 2)).lower()
 
 
-# UPnP description local tag name -> the DeviceInfo attribute it fills. The AVR
-# firmware and serial go on the device card; the AIOS (HEOS network module)
-# version and build revision are captured for diagnostics.
 #: Whether control by Denon's apps is allowed on the receiver: the remote app
 #: (NSARA) and the HEOS app (NSHEA). Denon's AVR Remote app asks both and
 #: treats OFF as switched off; no protocol document here lists them.
 APP_CONTROL = {"NSARA ": "remote_app_control", "NSHEA ": "heos_app_control"}
 APP_CONTROL_QUERIES = ("NSARA ?", "NSHEA ?")
 
+
+# UPnP description local tag name -> the DeviceInfo attribute it fills. The AVR
+# firmware and serial go on the device card; the AIOS (HEOS network module)
+# version and build revision are captured for diagnostics.
 _UPNP_TAGS: dict[str, str] = {
     "manufacturer": "manufacturer",
     "modelName": "model_name",
@@ -217,8 +218,9 @@ def parse_device_info(
         if block is None or path in discovery.numeric_meta:
             continue
         low, high = _num(block, "MinValue"), _num(block, "MaxValue")
+        step = _num(block, "Step") or _num(block, "StepValue") or 1.0
         if low is not None and high is not None and low < high:
-            discovery.numeric_meta[path] = {"min": low, "max": high, "step": _num(block, "Step") or 1.0}
+            discovery.numeric_meta[path] = {"min": low, "max": high, "step": step}
 
     # Sound mode genre names (Movie/Music/Game/Pure), read from the receiver's
     # SoundMode genre list. Keyed by the first three upper case letters so they

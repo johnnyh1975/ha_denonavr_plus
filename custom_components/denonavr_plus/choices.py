@@ -132,14 +132,21 @@ def sound_mode_names(
 def shown_sound_modes(
     options: dict[str, Any], modes: list[str], current: str | None, readable: Readable | None = None
 ) -> dict[str, str]:
-    """The modes the main zone's list offers, with their names; current one kept."""
+    """The modes the main zone's list offers, with their names; current one kept.
 
+    Names are settled over every mode the receiver listed, before the choice
+    in the options narrows the list, so a mode keeps its name whatever else
+    is shown (sound_mode_names).
+    """
+
+    every = list(dict.fromkeys([*modes, *([current] if current else [])]))
+    names = sound_mode_names(options, every, readable)
     chosen = options.get(OPT_SOUND_MODES)
     if chosen:
         modes = [mode for mode in modes if mode in chosen]
     if current and current not in modes:
         modes = [*modes, current]
-    return sound_mode_names(options, list(dict.fromkeys(modes)), readable)
+    return {mode: names[mode] for mode in dict.fromkeys(modes)}
 
 
 def sound_mode_list(
