@@ -13,8 +13,8 @@
 
 **Your Denon or Marantz receiver in Home Assistant, completely.** Zones as
 their own devices, sources and sound modes the way the receiver offers them,
-Audyssey, speaker setup, video and graphic EQ, now playing over HEOS, and
-live updates over the local network.
+Audyssey, speaker setup, video and graphic EQ, now playing over HEOS and from
+the devices on its inputs, and live updates over the local network.
 
 ![A dashboard with the receiver, its quick selects and zone 2](https://raw.githubusercontent.com/johnnyh1975/ha_denonavr_plus/main/docs/images/guide/dashboard.png)
 
@@ -30,6 +30,11 @@ live updates over the local network.
 - **Tidy by default.** What you change while listening starts enabled; setup
   settings wait on sub-devices (Audio, Video, Picture, Speakers, Graphic EQ),
   ready to switch on per group.
+- **One player for the receiver and what plays on it.** Link the Apple TV,
+  streamer or Chromecast on an input: the receiver's media player shows its
+  title, cover and position, its buttons control it, and its library is in
+  the receiver's media browser. If you like, the receiver switches to the
+  input when the device starts playing and keeps the device at full volume.
 - **Instant and robust.** Changes arrive the moment they happen. When the
   control connection drops, power, volume, mute and source keep working.
 - **Safe to try.** It takes a receiver over from the official integration
@@ -129,7 +134,9 @@ across VLANs, ports 23 and 8080 open
    receiver, its zones and sub-devices.
 3. **[Tailor it](docs/USER_GUIDE.md#5-tailor-it-in-the-options)**: volume
    limits, sources and sound modes, the settings you want to see.
-4. **[Automate it](docs/USER_GUIDE.md#6-automations-that-work-well)**: the
+4. **[Link the devices on its inputs](docs/USER_GUIDE.md#playback)**: an
+   Apple TV or a streamer, so one card shows and controls what you hear.
+5. **[Automate it](docs/USER_GUIDE.md#6-automations-that-work-well)**: the
    blueprints for "TV on, receiver on" and a night mode.
 
 ## Documentation

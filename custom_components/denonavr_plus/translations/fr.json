@@ -76,6 +76,9 @@
       "already_in_progress": "Cet ampli-tuner est déjà en cours de configuration.",
       "not_denon_marantz": "L'appareil détecté n'est pas un appareil Denon ou Marantz.",
       "not_a_receiver": "L'appareil détecté est une enceinte HEOS, pas un ampli-tuner."
+    },
+    "create_entry": {
+      "created": "Ensuite, sous **Configurer** dans cette intégration : choisissez les entrées et les modes sonores affichés et, sous **Lecture**, liez l'appareil d'une entrée, comme une Apple TV ou un streamer. Le lecteur du récepteur montre alors ce qu'il joue, et ses boutons le pilotent."
     }
   },
   "options": {

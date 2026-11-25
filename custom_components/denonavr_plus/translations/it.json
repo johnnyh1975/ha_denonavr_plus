@@ -76,6 +76,9 @@
       "already_in_progress": "Questo sintoamplificatore è già in fase di configurazione.",
       "not_denon_marantz": "Il dispositivo rilevato non è un dispositivo Denon o Marantz.",
       "not_a_receiver": "Il dispositivo rilevato è un diffusore HEOS, non un sintoamplificatore."
+    },
+    "create_entry": {
+      "created": "Poi, in **Configura** di questa integrazione: scegli quali ingressi e modalità audio mostrare e, in **Riproduzione**, collega il dispositivo di un ingresso, ad esempio una Apple TV o uno streamer. Il lettore del ricevitore mostra allora cosa suona e i suoi pulsanti lo controllano."
     }
   },
   "options": {

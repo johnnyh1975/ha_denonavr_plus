@@ -76,6 +76,9 @@
       "already_in_progress": "Dieser Receiver wird bereits eingerichtet.",
       "not_denon_marantz": "Das gefundene Gerät ist kein Denon- oder Marantz-Gerät.",
       "not_a_receiver": "Das gefundene Gerät ist ein HEOS-Lautsprecher, kein Receiver."
+    },
+    "create_entry": {
+      "created": "Als Nächstes unter **Konfigurieren** bei dieser Integration: wählen, welche Eingänge und Klangmodi erscheinen, und unter **Wiedergabe** das Gerät an einem Eingang verknüpfen, etwa ein Apple TV oder einen Streamer. Der Media Player des Receivers zeigt dann, was es spielt, und seine Tasten steuern es."
     }
   },
   "options": {

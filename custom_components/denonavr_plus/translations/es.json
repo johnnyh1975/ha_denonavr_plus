@@ -76,6 +76,9 @@
       "already_in_progress": "Este receptor ya se está configurando.",
       "not_denon_marantz": "El dispositivo encontrado no es un equipo Denon o Marantz.",
       "not_a_receiver": "El dispositivo encontrado es un altavoz HEOS, no un receptor."
+    },
+    "create_entry": {
+      "created": "A continuación, en **Configurar** de esta integración: elige qué entradas y modos de sonido aparecen y, en **Reproducción**, vincula el dispositivo de una entrada, como un Apple TV o un streamer. El reproductor del receptor muestra entonces lo que suena y sus botones lo controlan."
     }
   },
   "options": {

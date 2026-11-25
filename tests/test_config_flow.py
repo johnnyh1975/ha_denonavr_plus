@@ -84,6 +84,8 @@ async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
     assert result["title"] == MODEL
     assert result["data"] == {CONF_HOST: HOST}
     assert result["result"].unique_id == MAC
+    # Where to go next: the options, linked players.
+    assert result["description"] == "created"
 
 
 async def test_user_flow_cannot_connect_then_recovers(hass: HomeAssistant) -> None:
@@ -477,6 +479,7 @@ async def test_an_unknown_model_can_be_checked_after_setup(hass: HomeAssistant) 
         "capability_check_pending": True,
         "command_test_pending": ["quiet"],
     }
+    assert result["description"] == "created"
 
 
 async def test_options_keep_the_markers_they_do_not_show(hass: HomeAssistant) -> None:

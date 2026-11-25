@@ -120,6 +120,10 @@ def _skip_reason(upnp: Any) -> str | None:
     return None
 
 
+
+#: The text after setup: where to go next (config.create_entry.created).
+CREATED = "created"
+
 class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Denon AVR."""
 
@@ -300,7 +304,9 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
                 description_placeholders={"model": title},
             )
         if self._described:
-            return self.async_create_entry(title=title, data=data, options=self._options())
+            return self.async_create_entry(
+                title=title, data=data, options=self._options(), description=CREATED
+            )
         return self._unknown_model_form()
 
     async def async_step_telnet_unavailable(
@@ -342,7 +348,9 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             # The audible part needs someone at the TV: not in the background.
             options[OPT_CHECK_PENDING] = True
             options[OPT_TEST_PENDING] = [QUIET]
-        return self.async_create_entry(title=title, data=data, options=options)
+        return self.async_create_entry(
+            title=title, data=data, options=options, description=CREATED
+        )
 
     async def async_step_unknown_model(
         self, user_input: dict[str, Any] | None = None

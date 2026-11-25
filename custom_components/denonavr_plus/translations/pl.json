@@ -76,6 +76,9 @@
       "already_in_progress": "Ten amplituner jest już konfigurowany.",
       "not_denon_marantz": "Znalezione urządzenie nie jest urządzeniem Denon ani Marantz.",
       "not_a_receiver": "Znalezione urządzenie to głośnik HEOS, a nie amplituner."
+    },
+    "create_entry": {
+      "created": "Następnie w **Konfiguruj** tej integracji wybierz, które wejścia i tryby dźwięku są widoczne, a w **Odtwarzanie** powiąż urządzenie na wejściu, np. Apple TV lub streamer. Odtwarzacz amplitunera pokazuje wtedy, co ono gra, a jego przyciski nim sterują."
     }
   },
   "options": {

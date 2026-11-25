@@ -95,3 +95,23 @@ async def test_a_tv_that_drops_off_the_network_leaves_the_receiver_alone(
     hass.states.async_set("media_player.tv", "off")
     await hass.async_block_till_done()
     assert len(turn_off) == 1
+
+
+def test_the_example_dashboard_uses_entity_ids_a_new_setup_has() -> None:
+    """Each entity of the example exists in a new setup (the recorded receiver)."""
+    import json
+
+    view = yaml.load_yaml(str(ROOT / "examples" / "dashboard.yaml"))
+    snapshot = json.loads(
+        (ROOT / "tests" / "fixtures" / "entity_ids" / "AVC-X3700H.json").read_text()
+    )
+    known = {item["entity_id"] for item in snapshot.values()}
+    entities = {
+        card["entity"].replace(".avr_x2600h", ".avc_x3700h")
+        for section in view["sections"]
+        for card in section["cards"]
+        if "entity" in card
+    }
+    # Created only when the receiver reports quick selects; the recording does not.
+    model_dependent = {"select.avc_x3700h_quick_select"}
+    assert entities - model_dependent <= known, entities - model_dependent - known

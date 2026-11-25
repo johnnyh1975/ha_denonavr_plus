@@ -135,7 +135,8 @@ The media player is the receiver's remote in Home Assistant: power, volume,
 mute, source and sound mode. On network sources it shows title, artist and
 cover and takes play, pause and skip; on other inputs it shows the input with
 its own artwork, the sound mode and the signal (for example
-`PCM · 44.1 kHz`).
+`PCM · 44.1 kHz`). On an input with a [linked player](#playback), such as an
+Apple TV, it shows what that device plays and its buttons control it.
 
 ![The media player](images/guide/more-info-player.png)
 
@@ -158,6 +159,8 @@ What makes it work well, and what to keep when you build your own:
   fit as buttons.
 - **The volume in dB** next to the player's percent: it is the number the
   receiver's display shows.
+- **Play and pause on the tile** work for network sources and for every
+  input with a linked player.
 - **The tuner only while it plays.** Its preset and frequency are unknown
   otherwise; the example hides the section then. Choosing a preset switches
   the receiver to the tuner.
@@ -233,6 +236,8 @@ input stay with the receiver, so one card does both. The receiver's media
 browser has a folder for the Apple TV too: starting an app or a show there
 switches the receiver to its input.
 
+![The receiver's media player on the Apple TV's input: the Apple TV's title, cover and position](images/guide/more-info-linked.png)
+
 ![The Playback step: an input to link, and the signal option](images/guide/options-playback.png)
 
 ![The linked player of an input, with its two switches](images/guide/options-linked-player.png)
@@ -306,6 +311,11 @@ Good practice for your own:
   same.
 - **Raw commands** (`denonavr_plus.send_command`) only for what has no
   entity; they are not checked against what the receiver can do.
+- **Let the receiver follow your Apple TV** with **Main zone switches to
+  this input when the player starts** (Configure → Playback) instead of an
+  automation. To react to such a switch, trigger on the event
+  `denonavr_plus_input_followed` (see the
+  [reference](REFERENCE.md#event-input-followed)).
 - **Receiver without network standby?** Build an automation on the device
   trigger **Turn on requested while the receiver does not answer** that
   switches it on by infrared or HDMI-CEC (see
@@ -443,6 +453,9 @@ of its source list. What they understand depends on the names you give.
 | A setting jumps back right after you change it, or an error says the receiver kept it | The receiver takes it only for some signals, sound modes or settings, and none in standby; the error names the condition. | Meet the condition and try again (for example Dynamic Compression with Dolby sound); the [reference](REFERENCE.md#notes-and-limitations) lists them. |
 | A sound mode you expect is missing | The receiver offers only the modes that fit the current signal. | Play the signal it is for; the list follows. |
 | An entity you need is not there | It starts hidden. | Device page → *+N disabled entities*, or **Configure → Entities**. |
+| The receiver's player does not show what the linked Apple TV plays | The zone plays another input, the Apple TV is idle or unavailable, or it reports no title. | Check the zone's input and the `linked_player` attribute of its media player; the Apple TV's own media player must show the title. |
+| The receiver switches inputs by itself | **Main zone switches to this input when the player starts** is on for a device that plays in the background. | Switch it off for that input under **Configure → Playback**. |
+| Repair *"Linked media player not found"* | The linked player was removed or its integration is gone. | Fix it to unlink, or pick another player under **Configure → Playback**. |
 | New texts are missing or show raw keys after an update | The app keeps the old texts. | Reload the browser page or restart the companion app. |
 
 Still stuck? Open an issue on GitHub with your model, its firmware version

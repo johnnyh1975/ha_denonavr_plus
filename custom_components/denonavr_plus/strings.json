@@ -76,6 +76,9 @@
       "already_in_progress": "This receiver is already being set up.",
       "not_denon_marantz": "The discovered device is not a Denon or Marantz unit.",
       "not_a_receiver": "The discovered device is a HEOS speaker, not a receiver."
+    },
+    "create_entry": {
+      "created": "Next, under **Configure** on this integration: choose which inputs and sound modes show, and under **Playback** link the device on an input, such as an Apple TV or a streamer. The receiver's media player then shows what it plays, and its buttons control it."
     }
   },
   "options": {

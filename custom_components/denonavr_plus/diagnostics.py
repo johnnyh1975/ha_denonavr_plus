@@ -12,7 +12,10 @@ from dataclasses import asdict
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
+from homeassistant.const import ATTR_SUPPORTED_FEATURES, CONF_HOST
 from homeassistant.core import HomeAssistant
+
+from . import linked_players
 
 from .avr.device import DenonAvrDevice
 from .avr.generation import generation_of
@@ -79,7 +82,39 @@ async def async_get_config_entry_diagnostics(
             "channel_levels": state.channel_levels,
             "channel_trims": state.channel_trims,
         },
+        # What is set in the options (zones, sources, names, playback), and
+        # the linked players as Home Assistant has them now.
+        "options": async_redact_data(dict(entry.options), TO_REDACT | {CONF_HOST}),
+        "linked_players": _linked_players(hass, entry),
     }
+
+
+def _linked_players(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> dict[str, Any]:
+    """Each linked input: its player, the player's state and features, who plays it.
+
+    No titles or artwork: the diagnostics are attached to public issues.
+    """
+
+    coordinator = entry.runtime_data
+    found: dict[str, Any] = {}
+    for code, link in linked_players.links(dict(entry.options)).items():
+        state = hass.states.get(link.entity_id)
+        found[code] = {
+            "player": link.entity_id,
+            "follow": link.follow,
+            "full_volume": link.full_volume,
+            "player_state": state.state if state is not None else None,
+            "player_features": (
+                int(state.attributes.get(ATTR_SUPPORTED_FEATURES, 0)) if state is not None else None
+            ),
+            "played_by": [
+                zone
+                for zone in coordinator.shown_zones
+                if coordinator.data.zone(zone).power
+                and coordinator.device.zone_source(zone) == code
+            ],
+        }
+    return found
 
 
 def _media(device: DenonAvrDevice) -> dict[str, Any]:

@@ -621,6 +621,33 @@ its whole status, which takes several seconds; the current values follow
 within a few seconds. The diagnostics show how long each part took
 (`setup_timings_ms`).
 
+## Event: input followed
+
+When the main zone follows a linked player (**Main zone switches to this
+input when the player starts**, under Configure → Playback), Home Assistant
+gets the event `denonavr_plus_input_followed`, with the player's context:
+
+| Field | Value |
+|---|---|
+| `entity_id` | The main zone's media player |
+| `source` | The input it switched to, as the media player names it |
+| `previous_source` | The input it played before; `None` when the zone was off |
+| `player` | The linked player that started |
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: denonavr_plus_input_followed
+    event_data:
+      player: media_player.apple_tv
+actions:
+  - action: light.turn_on
+    target:
+      entity_id: light.living_room
+    data:
+      brightness_pct: 20
+```
+
 ## Blueprints and an example dashboard
 
 How to build on them: [user guide, sections 4 and 6](USER_GUIDE.md#4-everyday-use).

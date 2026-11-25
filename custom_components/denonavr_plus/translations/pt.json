@@ -76,6 +76,9 @@
       "already_in_progress": "Este recetor já está a ser configurado.",
       "not_denon_marantz": "O dispositivo encontrado não é um equipamento Denon ou Marantz.",
       "not_a_receiver": "O dispositivo encontrado é uma coluna HEOS, não um recetor."
+    },
+    "create_entry": {
+      "created": "A seguir, em **Configurar** nesta integração: escolha que entradas e modos de som aparecem e, em **Reprodução**, associe o dispositivo de uma entrada, como uma Apple TV ou um streamer. O leitor do recetor mostra então o que toca, e os seus botões controlam-no."
     }
   },
   "options": {

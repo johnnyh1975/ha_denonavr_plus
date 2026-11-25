@@ -76,6 +76,9 @@
       "already_in_progress": "Deze receiver wordt al ingesteld.",
       "not_denon_marantz": "Het gevonden apparaat is geen Denon- of Marantz-apparaat.",
       "not_a_receiver": "Het gevonden apparaat is een HEOS-luidspreker, geen receiver."
+    },
+    "create_entry": {
+      "created": "Kies daarna onder **Configureren** bij deze integratie welke ingangen en geluidsmodi verschijnen, en koppel onder **Afspelen** het apparaat op een ingang, zoals een Apple TV of een streamer. De mediaspeler van de receiver toont dan wat het speelt, en zijn knoppen bedienen het."
     }
   },
   "options": {

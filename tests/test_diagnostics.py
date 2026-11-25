@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any
 from unittest.mock import AsyncMock, patch
@@ -149,3 +150,45 @@ async def test_diagnostics_hold_the_heos_lines(
     FakeHeos.instances[-1].log = ["12:00:00.000 < event/player_state_changed pid=202&state=play"]
     result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
     assert result["heos_log"] == ["12:00:00.000 < event/player_state_changed pid=202&state=play"]
+
+
+async def test_diagnostics_show_the_options_and_the_linked_players(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    loaded_entry: MockConfigEntry,
+) -> None:
+    """What is set, and each linked player as Home Assistant has it, not what it plays."""
+    FakeTelnet.instances[-1].push("PWON", "ZMON", "SIDVD")
+    await asyncio.sleep(0.1)
+    await hass.async_block_till_done()
+    hass.states.async_set(
+        "media_player.apple_tv",
+        "playing",
+        {"supported_features": 1, "media_title": "Severance"},
+    )
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "signal_state": True,
+            "linked_players": {
+                "DVD": {"player": "media_player.apple_tv", "follow": True, "full_volume": False}
+            },
+        },
+    )
+    await hass.async_block_till_done()
+
+    result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
+
+    assert result["options"]["signal_state"] is True
+    assert result["linked_players"] == {
+        "DVD": {
+            "player": "media_player.apple_tv",
+            "follow": True,
+            "full_volume": False,
+            "player_state": "playing",
+            "player_features": 1,
+            "played_by": ["main"],
+        }
+    }
+    assert "Severance" not in json.dumps(result)
