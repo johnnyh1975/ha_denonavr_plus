@@ -467,10 +467,11 @@ async def test_an_avr_x2000_offers_the_sound_modes_it_lists(
     main = entity_id(hass, entry, "media_player_main")
     state = hass.states.get(main)
     assert state is not None
-    assert state.attributes["sound_mode"] == "MULTI CH STEREO"
+    # Shown as words; the receiver's capitals stay valid for choosing.
+    assert state.attributes["sound_mode"] == "Multichannel stereo"
     modes = state.attributes["sound_mode_list"]
-    assert {"STEREO", "PURE DIRECT", "MULTI CH STEREO", "MOVIE"} <= set(modes)
-    assert "PURE" not in modes and "MCH STEREO" not in modes
+    assert {"Stereo", "Pure Direct", "Multichannel stereo", "Movie"} <= set(modes)
+    assert "Pure" not in modes and "MCH STEREO" not in modes
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call(
@@ -2168,7 +2169,7 @@ async def test_the_browser_has_the_linked_players_media(
     root = await player.async_browse_media()
     linked = [child for child in root.children or [] if child.media_content_id.startswith("linked:")]
     assert [(child.title, child.media_content_id) for child in linked] == [
-        ("Apple TV", "linked:DVD|")
+        ("Apple TV (DVD)", "linked:DVD|")
     ]
     top = await player.async_browse_media("", "linked:DVD|")
     assert [child.media_content_id for child in top.children or []] == ["linked:DVD|apps"]

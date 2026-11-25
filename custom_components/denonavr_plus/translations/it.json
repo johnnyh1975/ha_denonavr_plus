@@ -242,7 +242,7 @@
       },
       "linked_input": {
         "title": "Lettore collegato",
-        "description": "Il lettore multimediale del dispositivo su {input}. Lascialo vuoto per scollegare l'ingresso; i due interruttori allora non hanno effetto.",
+        "description": "**{input}**: il lettore multimediale del dispositivo collegato a questo ingresso. Lascialo vuoto per scollegare l'ingresso; i due interruttori allora non hanno effetto.",
         "data": {
           "player": "Lettore multimediale",
           "follow": "La zona principale passa a questo ingresso quando il lettore parte",
@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Titolo, copertina, posizione e stato compaiono su ogni zona che riproduce questo ingresso; riproduci, pausa, salta e avanzamento vanno a esso.",
-          "follow": "Quando il lettore inizia a suonare, la zona principale si accende se serve e passa a questo ingresso. Finché questa opzione è attiva, a ogni cambio d'ingresso della zona principale (anche a mano o con il telecomando) i lettori collegati che nessuna zona riproduce vengono messi in pausa. Un secondo lettore che parte entro 5 secondi viene invece messo in pausa, così due lettori non si alternano. Il registro mostra il cambio come causato dal lettore.",
+          "follow": "Quando il lettore parte, la zona principale si accende se serve e passa qui. I lettori collegati che nessuna zona riproduce vengono allora messi in pausa, anche dopo un cambio a mano o con il telecomando. Un lettore che parte entro 5 secondi da un cambio viene invece messo in pausa.",
           "full_volume": "Il volume si regola sul ricevitore: finché una zona accesa riproduce questo ingresso, il lettore viene portato al volume massimo e riattivato, e di nuovo ogni volta che il suo volume cambia. Non per un dispositivo con altoparlanti propri, come un televisore: lì suonerebbe al volume massimo."
         }
       },
@@ -294,8 +294,8 @@
           "video": "{n_video} entità: impostazioni HDMI, video e immagine",
           "graphic_eq": "{n_graphic_eq} entità: bande e curve",
           "zones": "{n_zones} entità delle zone 2 e 3",
-          "receiver": "{n_receiver} entità: interruttori di accensione e muto, limite di volume, ECO, modalità di ingresso",
-          "diagnostic": "{n_diagnostic} entità: segnale, decoder, ripristina audio"
+          "receiver": "{n_receiver} entità: interruttori di accensione e muto, limite di volume, ECO, modalità di ingresso, sintonizzatore",
+          "diagnostic": "{n_diagnostic} entità: segnale, decoder, ripristina audio, sensore firmware"
         }
       },
       "tests_start": {

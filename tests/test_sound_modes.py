@@ -73,3 +73,23 @@ def test_a_mode_is_chosen_by_its_short_or_its_receiver_name() -> None:
     assert choices.sound_mode_match({}, "Dolby Audio - DD + DSur", known, readable) == known[0]
     assert choices.sound_mode_match({}, "Multichannel stereo", known, readable) == known[1]
     assert choices.sound_mode_match({}, "Dolby Surround", known) is None
+
+
+@pytest.mark.parametrize(
+    ("name", "shown"),
+    [
+        ("PURE DIRECT", "Pure Direct"),
+        ("DOLBY DIGITAL", "Dolby Digital"),
+        ("MCH STEREO", "Multichannel stereo"),
+        ("MULTI CH STEREO", "Multichannel stereo"),
+        ("MULTI CH IN 7.1", "Multichannel input 7.1"),
+        ("DTS SURROUND", "DTS Surround"),
+        # Words with punctuation or digits stay as the receiver writes them.
+        ("DTS:X", "DTS:X"),
+        ("AURO-3D", "AURO-3D"),
+        ("7CH STEREO", "7CH Stereo"),
+    ],
+)
+def test_names_in_capitals_are_written_as_words(name: str, shown: str) -> None:
+    """Older receivers (AVR-X2000) and the MS tokens give every name in capitals."""
+    assert sound_modes.readable(name) == shown

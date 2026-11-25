@@ -4,8 +4,9 @@ Receivers name their modes for a small display: "Dolby Audio - DD + DSur" is
 Dolby Surround upmixing a Dolby Digital signal, "Multi Ch Stereo" plays
 stereo on every speaker. Home Assistant shows a short name instead: the
 upmixer where the mode has one, the Dolby format spelled out, the two
-multichannel modes in the user's language. Every other name stays as the
-receiver gives it. The receiver's name stays valid for choosing a mode, and
+multichannel modes in the user's language. A name in capitals (older
+receivers) is written as words, abbreviations such as DTS kept. Every other
+name stays as the receiver gives it. The receiver's name stays valid for choosing a mode, and
 the options can switch the readable names off or rename a mode.
 
 The names follow from the receivers' lists (an AVR-X2600H's diagnostics),
@@ -45,6 +46,21 @@ _DOLBY = {
     "DSur": "Dolby Surround",
 }
 _DOLBY_AUDIO = "Dolby Audio - "
+#: Words that stay in capitals when an all-capitals name is written normally.
+_ACRONYMS = {"DTS", "PCM", "LPCM", "DSD", "IMAX", "THX", "HD", "ES", "MA", "AAC", "MPEG", "DSP", "DD", "DD+"}
+#: All-capitals names (older receivers, the tokens of MS) of the two multichannel modes.
+_CAPS_STEREO = {"MCH STEREO", "MULTI CH STEREO"}
+_CAPS_INPUT = "MULTI CH IN"
+
+
+def _written(text: str) -> str:
+    """An all-capitals name as words: "PURE DIRECT" -> "Pure Direct", "DTS:X" stays."""
+
+    # Only plain words: "DTS:X", "AURO-3D", "7CH" and abbreviations stay.
+    return " ".join(
+        word.capitalize() if word.isalpha() and word not in _ACRONYMS else word
+        for word in text.split(" ")
+    )
 
 
 def readable(name: str, words: Mapping[str, str] = WORDS) -> str:
@@ -66,6 +82,14 @@ def readable(name: str, words: Mapping[str, str] = WORDS) -> str:
     if text == "Multi Ch In" or text.startswith("Multi Ch In "):
         word = words.get(MULTICHANNEL_INPUT, WORDS[MULTICHANNEL_INPUT])
         return word + text[len("Multi Ch In") :]
+    if text.isupper():
+        # Older receivers (AVR-X2000) and the MS tokens shout every name.
+        if text in _CAPS_STEREO:
+            return words.get(MULTICHANNEL_STEREO, WORDS[MULTICHANNEL_STEREO])
+        if text == _CAPS_INPUT or text.startswith(_CAPS_INPUT + " "):
+            word = words.get(MULTICHANNEL_INPUT, WORDS[MULTICHANNEL_INPUT])
+            return word + _written(text[len(_CAPS_INPUT) :])
+        return _written(text)
     return name
 
 

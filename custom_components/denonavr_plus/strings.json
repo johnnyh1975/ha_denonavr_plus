@@ -242,7 +242,7 @@
       },
       "linked_input": {
         "title": "Linked player",
-        "description": "The media player of the device on {input}. Leave it empty to unlink the input; the two switches then do nothing.",
+        "description": "**{input}**: the media player of the device connected to this input. Leave it empty to unlink the input; the two switches then do nothing.",
         "data": {
           "player": "Media player",
           "follow": "Main zone switches to this input when the player starts",
@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Its title, artwork, position and state show on every zone that plays this input; play, pause, skip and seek go to it.",
-          "follow": "When the player starts playing, the main zone turns on if needed and switches to this input. While this is on, whenever the main zone changes input (also by hand or by remote) the linked players that no zone plays are paused. A second player that starts within 5 seconds is paused instead, so two players cannot take turns. The logbook shows the switch as caused by the player.",
+          "follow": "When the player starts, the main zone turns on if needed and switches here. Linked players that no zone plays are then paused, also after a switch by hand or remote. A player that starts within 5 seconds of a switch is paused instead.",
           "full_volume": "The volume is set on the receiver, so while a zone that is on plays this input, the player is set to full volume and unmuted, and again whenever its volume changes. Not for a device with its own speakers, such as a television: it would play at full volume there."
         }
       },
@@ -294,8 +294,8 @@
           "video": "{n_video} entities: HDMI, video and picture settings",
           "graphic_eq": "{n_graphic_eq} entities: bands and curves",
           "zones": "{n_zones} entities of Zone 2 and 3",
-          "receiver": "{n_receiver} entities: power and mute switches, volume limit, ECO, input mode",
-          "diagnostic": "{n_diagnostic} entities: signal, decoder, recover audio"
+          "receiver": "{n_receiver} entities: power and mute switches, volume limit, ECO, input mode, tuner",
+          "diagnostic": "{n_diagnostic} entities: signal, decoder, recover audio, firmware sensor"
         }
       },
       "tests_start": {

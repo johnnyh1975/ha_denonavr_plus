@@ -242,7 +242,7 @@
       },
       "linked_input": {
         "title": "Powiązany odtwarzacz",
-        "description": "Odtwarzacz multimedialny urządzenia na wejściu {input}. Zostaw puste, aby usunąć powiązanie wejścia; oba przełączniki nie mają wtedy znaczenia.",
+        "description": "**{input}**: odtwarzacz multimedialny urządzenia podłączonego do tego wejścia. Zostaw puste, aby usunąć powiązanie; oba przełączniki nie mają wtedy znaczenia.",
         "data": {
           "player": "Odtwarzacz multimedialny",
           "follow": "Strefa główna przełącza na to wejście, gdy odtwarzacz zacznie grać",
@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Jego tytuł, okładka, pozycja i stan pojawiają się w każdej strefie grającej to wejście; odtwarzanie, pauza, przeskok i przewijanie trafiają do niego.",
-          "follow": "Gdy odtwarzacz zacznie grać, strefa główna w razie potrzeby się włącza i przełącza na to wejście. Dopóki ta opcja jest włączona, przy każdej zmianie wejścia strefy głównej (także ręcznie lub pilotem) powiązane odtwarzacze, których nie gra żadna strefa, zostają wstrzymane. Drugi odtwarzacz, który ruszy w ciągu 5 sekund, zostaje wstrzymany zamiast tego, aby dwa odtwarzacze nie przełączały amplitunera na zmianę. Dziennik pokazuje przełączenie jako wywołane przez odtwarzacz.",
+          "follow": "Gdy odtwarzacz rusza, strefa główna w razie potrzeby się włącza i przełącza tutaj. Powiązane odtwarzacze, których nie gra żadna strefa, zostają wtedy wstrzymane, także po zmianie ręcznej lub pilotem. Odtwarzacz, który ruszy w ciągu 5 sekund od zmiany, zostaje wstrzymany zamiast tego.",
           "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością."
         }
       },
@@ -294,8 +294,8 @@
           "video": "{n_video} encji: ustawienia HDMI, wideo i obrazu",
           "graphic_eq": "{n_graphic_eq} encji: pasma i krzywe",
           "zones": "{n_zones} encji stref 2 i 3",
-          "receiver": "{n_receiver} encji: przełączniki zasilania i wyciszenia, limit głośności, ECO, tryb wejścia",
-          "diagnostic": "{n_diagnostic} encji: sygnał, dekoder, przywróć dźwięk"
+          "receiver": "{n_receiver} encji: przełączniki zasilania i wyciszenia, limit głośności, ECO, tryb wejścia, tuner",
+          "diagnostic": "{n_diagnostic} encji: sygnał, dekoder, przywróć dźwięk, czujnik firmware"
         }
       },
       "tests_start": {

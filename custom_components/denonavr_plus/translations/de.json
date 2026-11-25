@@ -242,7 +242,7 @@
       },
       "linked_input": {
         "title": "Verknüpfter Player",
-        "description": "Der Media Player des Geräts an {input}. Leer lassen, um die Verknüpfung zu lösen; die beiden Schalter wirken dann nicht.",
+        "description": "**{input}**: der Media Player des Geräts an diesem Eingang. Leer lassen, um die Verknüpfung zu lösen; die beiden Schalter wirken dann nicht.",
         "data": {
           "player": "Media Player",
           "follow": "Hauptzone schaltet auf diesen Eingang, wenn der Player startet",
@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Titel, Cover, Position und Zustand erscheinen auf jeder Zone, die diesen Eingang spielt; Wiedergabe, Pause, Springen und Spulen gehen an ihn.",
-          "follow": "Beginnt der Player zu spielen, schaltet sich die Hauptzone bei Bedarf ein und wechselt auf diesen Eingang. Solange das eingeschaltet ist, werden bei jedem Eingangswechsel der Hauptzone (auch von Hand oder per Fernbedienung) die verknüpften Player angehalten, die keine Zone spielt. Ein zweiter Player, der innerhalb von 5 Sekunden startet, wird stattdessen angehalten, damit sich zwei Player nicht abwechseln. Das Logbuch zeigt den Wechsel als vom Player ausgelöst.",
+          "follow": "Startet der Player, schaltet sich die Hauptzone bei Bedarf ein und wechselt hierher. Verknüpfte Player, die keine Zone spielt, werden dann angehalten, auch nach einem Wechsel von Hand oder per Fernbedienung. Ein Player, der binnen 5 Sekunden nach einem Wechsel startet, wird stattdessen angehalten.",
           "full_volume": "Die Lautstärke wird am Receiver eingestellt. Solange eine eingeschaltete Zone diesen Eingang spielt, wird der Player deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, und erneut, sobald sich seine Lautstärke ändert. Nicht für ein Gerät mit eigenen Lautsprechern wie einen Fernseher: Es würde dort mit voller Lautstärke spielen."
         }
       },
@@ -294,8 +294,8 @@
           "video": "{n_video} Entitäten: HDMI-, Video- und Bildeinstellungen",
           "graphic_eq": "{n_graphic_eq} Entitäten: Bänder und Kurven",
           "zones": "{n_zones} Entitäten von Zone 2 und 3",
-          "receiver": "{n_receiver} Entitäten: Schalter für Ein/Aus und Stumm, Lautstärkegrenze, ECO, Eingangsmodus",
-          "diagnostic": "{n_diagnostic} Entitäten: Signal, Decoder, Ton wiederherstellen"
+          "receiver": "{n_receiver} Entitäten: Schalter für Ein/Aus und Stumm, Lautstärkegrenze, ECO, Eingangsmodus, Tuner",
+          "diagnostic": "{n_diagnostic} Entitäten: Signal, Decoder, Ton wiederherstellen, Firmware-Sensor"
         }
       },
       "tests_start": {

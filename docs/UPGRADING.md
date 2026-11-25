@@ -4,6 +4,17 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 1.1.x
+
+- **Sound mode names in capitals** (AVR-X2000 and other receivers before
+  2016) show as words: *Pure Direct* where it said *PURE DIRECT*,
+  *Multichannel stereo* where it said *MULTI CH STEREO*. Choosing by the
+  receiver's name still works; a condition or template that compares
+  `sound_mode` with the capitals needs the new name. **Readable names** off
+  under Configure → Sound modes keeps the capitals.
+- **New setups** start with the firmware binary sensor and the tuner preset
+  and frequency disabled. An existing setup keeps its entities as they are.
+
 ## From 1.0.x
 
 Sound modes show readable names: the media player's `sound_mode` and

@@ -1265,13 +1265,16 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         return found
 
     def _linked_folders(self) -> list[BrowseMedia]:
-        """A folder per linked player with a media browser, named after the player."""
+        """A folder per linked player with a media browser: "Player (Input)"."""
 
         folders = []
         for code, entity_id in self._browsable_links().items():
             state = self.hass.states.get(entity_id)
-            title = state.name if state is not None else entity_id
-            folders.append(self._folder(f"{_LINKED}{code}|", str(title), None))
+            player = str(state.name) if state is not None else entity_id
+            source = choices.source_display(self._device.discovery, self._entry_options, code)
+            # The input too, as playing from here switches to it.
+            title = player if player.casefold() == source.casefold() else f"{player} ({source})"
+            folders.append(self._folder(f"{_LINKED}{code}|", title, None))
         return folders
 
     def _linked_entity(self, code: str) -> MediaPlayerEntity:

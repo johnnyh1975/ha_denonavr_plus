@@ -225,7 +225,14 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
         if discovery.current_sound_modes:
             return list(discovery.current_sound_modes)
         code = self.coordinator.data.values.get("sound_mode_genre")
-        return discovery.sound_mode_groups.get(str(code), []) if code else []
+        group = discovery.sound_mode_groups.get(str(code), []) if code else []
+        # A receiver without these lists (AVR-X2000): every mode it has, as
+        # the media player offers them, rather than an empty selection.
+        return (
+            list(group)
+            or list(discovery.all_sound_modes)
+            or list(self.coordinator.device.fallback_sound_modes)
+        )
 
     def _names(self) -> dict[str, str]:
         """Each mode of the group with the name shown, as the media player shows it."""

@@ -242,7 +242,7 @@
       },
       "linked_input": {
         "title": "Lecteur lié",
-        "description": "Le lecteur multimédia de l'appareil sur {input}. Laissez vide pour délier l'entrée ; les deux interrupteurs n'ont alors aucun effet.",
+        "description": "**{input}** : le lecteur multimédia de l'appareil branché sur cette entrée. Laissez vide pour délier l'entrée ; les deux interrupteurs n'ont alors aucun effet.",
         "data": {
           "player": "Lecteur multimédia",
           "follow": "La zone principale passe à cette entrée quand le lecteur démarre",
@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Son titre, sa pochette, sa position et son état apparaissent sur chaque zone qui joue cette entrée ; lecture, pause, saut et avance rapide lui sont envoyés.",
-          "follow": "Quand le lecteur commence à jouer, la zone principale s'allume si besoin et passe à cette entrée. Tant que cette option est active, à chaque changement d'entrée de la zone principale (aussi à la main ou par la télécommande), les lecteurs liés qu'aucune zone ne joue sont mis en pause. Un second lecteur qui démarre dans les 5 secondes est mis en pause à la place, pour que deux lecteurs ne prennent pas la main à tour de rôle. Le journal montre le changement comme provoqué par le lecteur.",
+          "follow": "Quand le lecteur démarre, la zone principale s'allume si besoin et passe ici. Les lecteurs liés qu'aucune zone ne joue sont alors mis en pause, aussi après un changement à la main ou par la télécommande. Un lecteur qui démarre dans les 5 secondes suivant un changement est mis en pause à la place.",
           "full_volume": "Le volume se règle sur le récepteur : tant qu'une zone allumée joue cette entrée, le lecteur est mis au volume maximal et sans sourdine, puis à nouveau dès que son volume change. Pas pour un appareil avec ses propres haut-parleurs, comme un téléviseur : il y jouerait au volume maximal."
         }
       },
@@ -294,8 +294,8 @@
           "video": "{n_video} entités : réglages HDMI, vidéo et image",
           "graphic_eq": "{n_graphic_eq} entités : bandes et courbes",
           "zones": "{n_zones} entités des zones 2 et 3",
-          "receiver": "{n_receiver} entités : interrupteurs d'alimentation et de sourdine, limite de volume, ECO, mode d'entrée",
-          "diagnostic": "{n_diagnostic} entités : signal, décodeur, rétablir le son"
+          "receiver": "{n_receiver} entités : interrupteurs d'alimentation et de sourdine, limite de volume, ECO, mode d'entrée, tuner",
+          "diagnostic": "{n_diagnostic} entités : signal, décodeur, rétablir le son, capteur de firmware"
         }
       },
       "tests_start": {

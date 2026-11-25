@@ -242,7 +242,7 @@
       },
       "linked_input": {
         "title": "Leitor associado",
-        "description": "O leitor multimédia do dispositivo em {input}. Deixe vazio para desassociar a entrada; os dois interruptores não têm então efeito.",
+        "description": "**{input}**: o leitor multimédia do dispositivo conectado a esta entrada. Deixe vazio para desassociar a entrada; os dois interruptores não têm então efeito.",
         "data": {
           "player": "Leitor multimédia",
           "follow": "A zona principal muda para esta entrada quando o leitor começa",
@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "O título, a capa, a posição e o estado aparecem em cada zona que toca esta entrada; reproduzir, pausa, saltar e avançar vão para ele.",
-          "follow": "Quando o leitor começa a tocar, a zona principal liga-se se necessário e muda para esta entrada. Enquanto isto estiver ativo, sempre que a zona principal muda de entrada (também à mão ou pelo comando) os leitores associados que nenhuma zona toca são pausados. Um segundo leitor que comece em menos de 5 segundos é pausado em vez disso, para que dois leitores não se revezem. O registo mostra a mudança como causada pelo leitor.",
+          "follow": "Quando o leitor começa, a zona principal liga-se se necessário e muda para aqui. Os leitores associados que nenhuma zona toca são então pausados, também após uma mudança à mão ou pelo comando. Um leitor que comece nos 5 segundos seguintes a uma mudança é pausado em vez disso.",
           "full_volume": "O volume é ajustado no recetor: enquanto uma zona ligada toca esta entrada, o leitor é posto no volume máximo e sem silêncio, e de novo sempre que o seu volume muda. Não para um dispositivo com altifalantes próprios, como um televisor: tocaria aí no volume máximo."
         }
       },
@@ -294,8 +294,8 @@
           "video": "{n_video} entidades: definições de HDMI, vídeo e imagem",
           "graphic_eq": "{n_graphic_eq} entidades: bandas e curvas",
           "zones": "{n_zones} entidades das zonas 2 e 3",
-          "receiver": "{n_receiver} entidades: interruptores de alimentação e silêncio, limite de volume, ECO, modo de entrada",
-          "diagnostic": "{n_diagnostic} entidades: sinal, descodificador, recuperar áudio"
+          "receiver": "{n_receiver} entidades: interruptores de alimentação e silêncio, limite de volume, ECO, modo de entrada, sintonizador",
+          "diagnostic": "{n_diagnostic} entidades: sinal, descodificador, recuperar áudio, sensor de firmware"
         }
       },
       "tests_start": {

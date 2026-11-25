@@ -233,6 +233,10 @@ input stay with the receiver, so one card does both. The receiver's media
 browser has a folder for the Apple TV too: starting an app or a show there
 switches the receiver to its input.
 
+![The Playback step: an input to link, and the signal option](images/guide/options-playback.png)
+
+![The linked player of an input, with its two switches](images/guide/options-linked-player.png)
+
 Per input, the **main zone can switch to the input when the player
 starts** (it turns on if needed, and linked players that no zone plays
 then pause) and **keep the player at full volume**, since you set the volume on

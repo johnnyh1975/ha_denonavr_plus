@@ -242,7 +242,7 @@
       },
       "linked_input": {
         "title": "Reproductor vinculado",
-        "description": "El reproductor del dispositivo en {input}. Déjalo vacío para desvincular la entrada; los dos interruptores no tienen efecto entonces.",
+        "description": "**{input}**: el reproductor del dispositivo conectado a esta entrada. Déjalo vacío para desvincular la entrada; los dos interruptores no tienen efecto entonces.",
         "data": {
           "player": "Reproductor multimedia",
           "follow": "La zona principal cambia a esta entrada cuando el reproductor empieza",
@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Su título, carátula, posición y estado aparecen en cada zona que reproduce esta entrada; reproducir, pausar, saltar y buscar se envían a él.",
-          "follow": "Cuando el reproductor empieza a sonar, la zona principal se enciende si hace falta y cambia a esta entrada. Mientras esto esté activo, cada vez que la zona principal cambia de entrada (también a mano o con el mando) se pausan los reproductores vinculados que ninguna zona reproduce. Un segundo reproductor que empieza en menos de 5 segundos se pausa en su lugar, para que dos reproductores no se turnen. El registro muestra el cambio como causado por el reproductor.",
+          "follow": "Cuando el reproductor empieza, la zona principal se enciende si hace falta y cambia aquí. Los reproductores vinculados que ninguna zona reproduce se pausan entonces, también tras un cambio a mano o con el mando. Un reproductor que empieza en los 5 segundos siguientes a un cambio se pausa en su lugar.",
           "full_volume": "El volumen se ajusta en el receptor: mientras una zona encendida reproduce esta entrada, el reproductor se pone al volumen máximo y sin silencio, y de nuevo cada vez que cambia su volumen. No para un dispositivo con altavoces propios, como un televisor: sonaría allí al volumen máximo."
         }
       },
@@ -294,8 +294,8 @@
           "video": "{n_video} entidades: ajustes de HDMI, vídeo e imagen",
           "graphic_eq": "{n_graphic_eq} entidades: bandas y curvas",
           "zones": "{n_zones} entidades de las zonas 2 y 3",
-          "receiver": "{n_receiver} entidades: interruptores de encendido y silencio, límite de volumen, ECO, modo de entrada",
-          "diagnostic": "{n_diagnostic} entidades: señal, decodificador, recuperar audio"
+          "receiver": "{n_receiver} entidades: interruptores de encendido y silencio, límite de volumen, ECO, modo de entrada, sintonizador",
+          "diagnostic": "{n_diagnostic} entidades: señal, decodificador, recuperar audio, sensor de firmware"
         }
       },
       "tests_start": {

@@ -474,3 +474,18 @@ async def test_a_name_shown_wins_over_another_mode_s_receiver_name(
             "select", "select_option", {"entity_id": select, "option": "dsur UPMIX"}, blocking=True
         )
         choose.assert_awaited_with("Dolby Surround")
+
+
+async def test_the_sound_mode_select_is_never_empty(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Without the group lists (OPSML, OPSMLALL), every mode the receiver has."""
+    discovery = loaded_entry.runtime_data.device.discovery
+    discovery.current_sound_modes = []
+    discovery.sound_mode_groups = {}
+    loaded_entry.runtime_data.async_update_listeners()
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id(hass, loaded_entry, "select_sound_mode"))
+    assert state is not None
+    # The recording lists no modes either: the ones its device description names.
+    assert state.attributes["options"] == ["Game"]
