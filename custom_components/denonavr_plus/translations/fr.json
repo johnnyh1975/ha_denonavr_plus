@@ -230,19 +230,19 @@
       },
       "playback": {
         "title": "Lecture",
-        "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Choisis une entrée pour lier l'appareil qui y est branché, comme une Apple TV ou un streamer.",
+        "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Choisissez une entrée pour lier l'appareil qui y est branché, comme une Apple TV ou un streamer ; après chaque entrée, vous revenez ici. Validez sans entrée pour enregistrer.",
         "data": {
           "input": "Lier un lecteur à une entrée",
           "signal_state": "Lecture ou inactif selon le signal d'entrée"
         },
         "data_description": {
           "input": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche.",
-          "signal_state": "Une zone sur une entrée sans lecteur lié affiche « Lecture » tant que l'entrée porte un signal et « Inactif » sans signal, au lieu de « Allumé ». Les sources réseau et le tuner gardent leur propre état. Pas encore essayé sur un récepteur : on ne sait pas si chaque modèle signale la fin d'un signal."
+          "signal_state": "Une zone sur une entrée sans lecteur lié affiche « Lecture en cours » tant que l'entrée porte un signal et « Inactif » sans signal, au lieu de « Allumé ». Les sources réseau et le tuner gardent leur propre état. Pas encore essayé sur un récepteur : on ne sait pas si chaque modèle signale la fin d'un signal. Une source HDMI qui affiche son menu envoie souvent aussi un signal."
         }
       },
       "linked_input": {
         "title": "Lecteur lié",
-        "description": "Le lecteur multimédia de l'appareil sur {input}. Laisse vide pour le délier.",
+        "description": "Le lecteur multimédia de l'appareil sur {input}. Laissez vide pour délier l'entrée ; les deux interrupteurs n'ont alors aucun effet.",
         "data": {
           "player": "Lecteur multimédia",
           "follow": "Passer à cette entrée quand le lecteur commence à jouer",
@@ -251,7 +251,7 @@
         "data_description": {
           "player": "Son titre, sa pochette, sa position et son état apparaissent sur chaque zone qui joue cette entrée ; lecture, pause, saut et avance rapide lui sont envoyés.",
           "follow": "Quand le lecteur commence à jouer, la zone principale s'allume si besoin et passe à cette entrée, et le lecteur lié de l'entrée quittée est mis en pause. Un second lecteur qui démarre dans les 5 secondes est mis en pause à la place, pour que deux lecteurs ne prennent pas la main à tour de rôle. Le journal montre le changement comme provoqué par le lecteur.",
-          "full_volume": "Le volume se règle sur le récepteur : le lecteur est donc mis au volume maximal et sans sourdine dès que son volume change."
+          "full_volume": "Le volume se règle sur le récepteur : tant qu'une zone allumée joue cette entrée, le lecteur est mis au volume maximal et sans sourdine, puis à nouveau dès que son volume change. Pas pour un appareil avec ses propres haut-parleurs, comme un téléviseur : il y jouerait au volume maximal."
         }
       },
       "connection": {
@@ -1349,7 +1349,7 @@
         "step": {
           "confirm": {
             "title": "Délier les lecteurs manquants",
-            "description": "{title} : ces lecteurs multimédias liés n'existent plus : {players}. Valide pour les délier ; les entrées montrent alors à nouveau les informations du récepteur. Pour lier un autre lecteur, ouvre les options sous Lecture."
+            "description": "{title} : ces lecteurs multimédias liés n'existent plus : {players}. Validez pour les délier ; les entrées montrent alors à nouveau les informations du récepteur. Pour lier un autre lecteur, ouvrez les options sous Lecture."
           }
         }
       }

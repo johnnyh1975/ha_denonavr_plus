@@ -230,19 +230,19 @@
       },
       "playback": {
         "title": "Wiedergabe",
-        "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Wähle einen Eingang, um das daran angeschlossene Gerät zu verknüpfen, etwa ein Apple TV oder einen Streamer.",
+        "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Wähle einen Eingang, um das daran angeschlossene Gerät zu verknüpfen, etwa ein Apple TV oder einen Streamer; nach jedem Eingang kommst du hierher zurück. Ohne Eingang bestätigen, um zu speichern.",
         "data": {
           "input": "Player mit einem Eingang verknüpfen",
-          "signal_state": "Spielt oder Leerlauf nach dem Eingangssignal"
+          "signal_state": "Wiedergabe oder Leerlauf nach dem Eingangssignal"
         },
         "data_description": {
-          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Strom, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil.",
-          "signal_state": "Eine Zone an einem Eingang ohne verknüpften Player zeigt „Spielt“, solange der Eingang ein Signal führt, und „Leerlauf“ ohne Signal, statt „An“. Netzwerkquellen und der Tuner behalten ihren eigenen Zustand. Noch auf keinem Receiver ausprobiert: Ob jedes Modell meldet, wenn ein Signal endet, ist offen."
+          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Ein/Aus, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil.",
+          "signal_state": "Eine Zone an einem Eingang ohne verknüpften Player zeigt „Wiedergabe“, solange der Eingang ein Signal führt, und „Leerlauf“ ohne Signal, statt „Ein“. Netzwerkquellen und der Tuner behalten ihren eigenen Zustand. Noch auf keinem Receiver ausprobiert: Ob jedes Modell meldet, wenn ein Signal endet, ist offen. Eine HDMI-Quelle, die ihr Menü zeigt, sendet oft auch ein Signal."
         }
       },
       "linked_input": {
         "title": "Verknüpfter Player",
-        "description": "Der Media Player des Geräts an {input}. Leer lassen, um die Verknüpfung zu lösen.",
+        "description": "Der Media Player des Geräts an {input}. Leer lassen, um die Verknüpfung zu lösen; die beiden Schalter wirken dann nicht.",
         "data": {
           "player": "Media Player",
           "follow": "Auf diesen Eingang umschalten, wenn der Player zu spielen beginnt",
@@ -251,7 +251,7 @@
         "data_description": {
           "player": "Titel, Cover, Position und Zustand erscheinen auf jeder Zone, die diesen Eingang spielt; Wiedergabe, Pause, Springen und Spulen gehen an ihn.",
           "follow": "Beginnt der Player zu spielen, schaltet sich die Hauptzone bei Bedarf ein und wechselt auf diesen Eingang, und der verknüpfte Player des verlassenen Eingangs wird angehalten. Ein zweiter Player, der innerhalb von 5 Sekunden startet, wird stattdessen angehalten, damit sich zwei Player nicht abwechseln. Das Logbuch zeigt den Wechsel als vom Player ausgelöst.",
-          "full_volume": "Die Lautstärke wird am Receiver eingestellt; der Player wird deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, sobald sich seine Lautstärke ändert."
+          "full_volume": "Die Lautstärke wird am Receiver eingestellt. Solange eine eingeschaltete Zone diesen Eingang spielt, wird der Player deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, und erneut, sobald sich seine Lautstärke ändert. Nicht für ein Gerät mit eigenen Lautsprechern wie einen Fernseher: Es würde dort mit voller Lautstärke spielen."
         }
       },
       "connection": {

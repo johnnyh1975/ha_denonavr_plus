@@ -121,21 +121,27 @@ mode the receiver has listed and its tokens.
   go to the player, as far as it has them; power, volume, mute and the input
   stay the receiver's. The zone's `linked_player` attribute names the player.
   A player that is unavailable leaves the zone on, with the input's own
-  information. Clearing the player unlinks the input. Per input:
+  information. Clearing the player unlinks the input. After each input the
+  step comes back, so several inputs are linked in one go; submitting it
+  without an input saves. Per input:
   - **Switch to this input when the player starts playing** (default off):
     the main zone turns on if needed and switches to the input, through its
     own action, so the turn-on volume and the volume limit apply. The linked
     player of the input the main zone leaves is paused (stopped, if it cannot
     pause), unless another zone still plays that input. Nothing happens while a
     zone already plays the input, when the player comes back after being
-    unavailable, or when it is already playing as Home Assistant starts. A
+    unavailable, when it is already playing as Home Assistant starts, or
+    while the main zone's player is unavailable. A
     second player that starts within 5 seconds of a switch is paused instead,
     so two players cannot take turns. The logbook shows the switch as caused
     by the player.
   - **Keep the player at full volume** (default off): the volume is set on the
-    receiver, so the player is set to 100 % and unmuted when it is linked and
-    whenever its volume or mute changes. A player that refuses gets no second
-    command until its volume changes again.
+    receiver, so while a zone that is on plays the input, the player is set to
+    100 % and unmuted: when the zone switches to the input, when the option is
+    switched on, and whenever the player's volume or mute changes. A player
+    that refuses gets no second command until its volume changes again. Not
+    for a device with its own speakers, such as a television: it would play
+    at full volume there whenever the receiver plays its input.
 
   A linked player that is renamed stays linked under its new entity id. One
   that no longer exists (checked once Home Assistant has started) raises a

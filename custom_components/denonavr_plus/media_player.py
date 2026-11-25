@@ -462,9 +462,13 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         """The network player's now playing, where this zone hears it.
 
         The main zone always; another zone while it plays a network source or
-        the same source as the main zone (Z2SOURCE included).
+        the same source as the main zone (Z2SOURCE included). Never on an
+        input with a linked player: that player decides what is shown, and a
+        paused network session must not lend it a title or cover.
         """
 
+        if self._linked_entity_id is not None:
+            return None
         if self._zone.is_main:
             return self.coordinator.data.now_playing
         if not self._zone_state.power:

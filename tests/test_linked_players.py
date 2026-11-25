@@ -106,6 +106,57 @@ async def test_a_player_that_only_appears_playing_is_not_followed(
     assert telnet.sent == []
 
 
+async def test_a_player_that_comes_up_playing_is_not_followed(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """After a restart the player is first unavailable (restored), then playing."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "unavailable")
+    _options(loaded_entry, DVD=_player(APPLE_TV, follow=True))
+    await hass.async_block_till_done()
+    telnet.sent.clear()
+    hass.states.async_set(APPLE_TV, "playing")
+    await hass.async_block_till_done()
+    assert telnet.sent == []
+    # Its next start is followed.
+    hass.states.async_set(APPLE_TV, "paused")
+    hass.states.async_set(APPLE_TV, "playing")
+    await hass.async_block_till_done()
+    assert telnet.sent[-1] == "SIDVD"
+
+
+async def test_nothing_is_followed_while_the_main_zone_is_unavailable(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Home Assistant would skip the switch; the player left must keep playing."""
+    from homeassistant.components.media_player import DATA_COMPONENT
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "idle", {"supported_features": FEATURES})
+    hass.states.async_set(STREAMER, "playing", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV, follow=True), CD=_player(STREAMER))
+    await hass.async_block_till_done()
+    main = next(
+        item.entity_id
+        for item in er.async_entries_for_config_entry(er.async_get(hass), loaded_entry.entry_id)
+        if item.unique_id.endswith("_media_player_main")
+    )
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    telnet.sent.clear()
+    with patch.object(type(player), "available", False):
+        player.async_write_ha_state()
+        hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
+        await hass.async_block_till_done(wait_background_tasks=True)
+    assert telnet.sent == []
+    assert pauses == []
+
+
 async def test_a_player_without_follow_is_not_followed(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -216,9 +267,12 @@ async def test_a_refused_switch_is_logged(
 # Full volume -----------------------------------------------------------------
 
 
-async def test_a_player_is_kept_at_full_volume(
+async def test_a_player_is_kept_at_full_volume_while_its_input_plays(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
     volume = async_mock_service(hass, "media_player", "volume_set")
     mute = async_mock_service(hass, "media_player", "volume_mute")
     hass.states.async_set(
@@ -226,16 +280,27 @@ async def test_a_player_is_kept_at_full_volume(
         "idle",
         {"supported_features": FEATURES, "volume_level": 0.4, "is_volume_muted": True},
     )
-    # At once when linked.
     _options(loaded_entry, DVD=_player(APPLE_TV, full_volume=True))
     await hass.async_block_till_done()
+    # Another input plays: the player's volume is its own business.
+    hass.states.async_set(
+        APPLE_TV,
+        "idle",
+        {"supported_features": FEATURES, "volume_level": 0.3, "is_volume_muted": True},
+    )
+    await hass.async_block_till_done()
+    assert volume == [] and mute == []
+
+    # The zone switches to its input: full volume at once.
+    telnet.push("SIDVD")
+    await _settle(hass)
     assert [call.data["volume_level"] for call in volume] == [1.0]
     assert [call.data["is_volume_muted"] for call in mute] == [False]
     # Not again while the volume stays (a player that refuses).
     hass.states.async_set(
         APPLE_TV,
         "playing",
-        {"supported_features": FEATURES, "volume_level": 0.4, "is_volume_muted": True},
+        {"supported_features": FEATURES, "volume_level": 0.3, "is_volume_muted": True},
     )
     await hass.async_block_till_done()
     assert len(volume) == 1
@@ -252,10 +317,38 @@ async def test_a_player_is_kept_at_full_volume(
     await hass.async_block_till_done()
     assert len(volume) == 2
 
+    # The receiver in standby: a television playing on its own speakers.
+    hass.states.async_set(APPLE_TV, "idle", {"supported_features": FEATURES, "volume_level": 0.5})
+    telnet.push("PWSTANDBY", "ZMOFF")
+    await _settle(hass)
+    calls = len(volume)
+    hass.states.async_set(APPLE_TV, "idle", {"supported_features": FEATURES, "volume_level": 0.2})
+    await hass.async_block_till_done()
+    assert len(volume) == calls
+
+
+async def test_switching_full_volume_on_applies_it_at_once(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    volume = async_mock_service(hass, "media_player", "volume_set")
+    hass.states.async_set(APPLE_TV, "idle", {"supported_features": FEATURES, "volume_level": 0.4})
+    _options(loaded_entry, DVD=_player(APPLE_TV))
+    await hass.async_block_till_done()
+    assert volume == []
+    _options(loaded_entry, DVD=_player(APPLE_TV, full_volume=True))
+    await hass.async_block_till_done()
+    assert [call.data["volume_level"] for call in volume] == [1.0]
+
 
 async def test_full_volume_is_only_for_players_that_have_it(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD", "Z2ON", "Z2CD")
+    await _settle(hass)
     volume = async_mock_service(hass, "media_player", "volume_set")
     hass.states.async_set(APPLE_TV, "idle", {"supported_features": 4096, "volume_level": 0.4})
     hass.states.async_set(STREAMER, "idle", {"supported_features": FEATURES, "volume_level": 0.4})
@@ -326,7 +419,7 @@ async def test_a_removed_player_raises_the_repair_and_a_new_one_ends_it(
 
 
 async def test_missing_players_are_looked_for_once_home_assistant_has_started(
-    hass: HomeAssistant, loaded_entry: MockConfigEntry
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Other integrations add their players while Home Assistant starts."""
     hass.config_entries.async_update_entry(
@@ -343,6 +436,11 @@ async def test_missing_players_are_looked_for_once_home_assistant_has_started(
     hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
     await hass.async_block_till_done()
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue) is not None
+    # A reload after the start stops cleanly.
+    caplog.clear()
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert "Unable to remove unknown" not in caplog.text
 
 
 async def test_the_repair_ends_when_the_entry_is_gone(
@@ -366,6 +464,24 @@ async def test_unloading_stops_following(
     hass.states.async_set(APPLE_TV, "playing")
     await hass.async_block_till_done()
     assert telnet.sent == []
+
+
+async def test_zone2_on_the_main_zone_source_moves_along(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Zone 2 following the main zone does not keep the input left."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD", "Z2ON", "Z2SOURCE")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "idle", {"supported_features": FEATURES})
+    hass.states.async_set(STREAMER, "playing", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV, follow=True), CD=_player(STREAMER))
+    await hass.async_block_till_done()
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
+    await hass.async_block_till_done()
+    assert telnet.sent[-1] == "SIDVD"
+    assert [call.data["entity_id"] for call in pauses] == [STREAMER]
 
 
 async def test_one_player_on_two_inputs_is_not_paused(
@@ -400,3 +516,15 @@ async def test_the_player_left_keeps_playing_in_another_zone(
     await hass.async_block_till_done()
     assert telnet.sent[-1] == "SIDVD"
     assert pauses == []
+
+
+async def test_removing_the_entry_removes_the_repair(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    issue = linked_players.issue_id(loaded_entry.entry_id)
+    _options(loaded_entry, DVD=_player(APPLE_TV))
+    await hass.async_block_till_done()
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue) is not None
+    assert await hass.config_entries.async_remove(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue) is None

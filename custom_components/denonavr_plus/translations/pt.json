@@ -96,7 +96,7 @@
         "menu_option_descriptions": {
           "tests_start": "Três passos, cerca de seis minutos; tudo é reposto.",
           "move_back": "Devolver as entidades à integração antiga",
-          "playback": "Leitores ligados às entradas, reprodução pelo sinal de entrada"
+          "playback": "Leitores associados às entradas, reprodução pelo sinal de entrada"
         }
       },
       "volume": {
@@ -230,19 +230,19 @@
       },
       "playback": {
         "title": "Reprodução",
-        "description": "Como os leitores multimédia mostram o que toca numa entrada. Escolhe uma entrada para ligar o dispositivo nela conectado, como uma Apple TV ou um streamer.",
+        "description": "Como os leitores multimédia mostram o que toca numa entrada. Escolha uma entrada para associar o dispositivo nela conectado, como uma Apple TV ou um streamer; depois de cada entrada, volta aqui. Confirme sem entrada para guardar.",
         "data": {
-          "input": "Ligar um leitor a uma entrada",
+          "input": "Associar um leitor a uma entrada",
           "signal_state": "A reproduzir ou inativo pelo sinal de entrada"
         },
         "data_description": {
-          "input": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor ligado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta.",
-          "signal_state": "Uma zona numa entrada sem leitor ligado mostra \"A reproduzir\" enquanto a entrada tem sinal e \"Inativo\" sem sinal, em vez de \"Ligado\". As fontes de rede e o sintonizador mantêm o seu próprio estado. Ainda não experimentado num recetor: não se sabe se todos os modelos avisam quando um sinal termina."
+          "input": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor associado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta.",
+          "signal_state": "Uma zona numa entrada sem leitor associado mostra \"A reproduzir\" enquanto a entrada tem sinal e \"Inativo\" sem sinal, em vez de \"Ligado\". As fontes de rede e o sintonizador mantêm o seu próprio estado. Ainda não experimentado num recetor: não se sabe se todos os modelos avisam quando um sinal termina. Uma fonte HDMI que mostra o seu menu envia muitas vezes também um sinal."
         }
       },
       "linked_input": {
-        "title": "Leitor ligado",
-        "description": "O leitor multimédia do dispositivo em {input}. Deixa vazio para desligar a ligação.",
+        "title": "Leitor associado",
+        "description": "O leitor multimédia do dispositivo em {input}. Deixe vazio para desassociar a entrada; os dois interruptores não têm então efeito.",
         "data": {
           "player": "Leitor multimédia",
           "follow": "Mudar para esta entrada quando o leitor começa a tocar",
@@ -250,8 +250,8 @@
         },
         "data_description": {
           "player": "O título, a capa, a posição e o estado aparecem em cada zona que toca esta entrada; reproduzir, pausa, saltar e avançar vão para ele.",
-          "follow": "Quando o leitor começa a tocar, a zona principal liga-se se necessário e muda para esta entrada, e o leitor ligado da entrada que deixa é pausado. Um segundo leitor que comece em menos de 5 segundos é pausado em vez disso, para que dois leitores não se revezem. O registo mostra a mudança como causada pelo leitor.",
-          "full_volume": "O volume é ajustado no recetor, por isso o leitor é posto no volume máximo e sem silêncio sempre que o seu volume muda."
+          "follow": "Quando o leitor começa a tocar, a zona principal liga-se se necessário e muda para esta entrada, e o leitor associado da entrada que deixa é pausado. Um segundo leitor que comece em menos de 5 segundos é pausado em vez disso, para que dois leitores não se revezem. O registo mostra a mudança como causada pelo leitor.",
+          "full_volume": "O volume é ajustado no recetor: enquanto uma zona ligada toca esta entrada, o leitor é posto no volume máximo e sem silêncio, e de novo sempre que o seu volume muda. Não para um dispositivo com altifalantes próprios, como um televisor: tocaria aí no volume máximo."
         }
       },
       "connection": {
@@ -1232,7 +1232,7 @@
       "message": "{model} não alterou {setting}: só o aceita no modo de imagem Personalizado."
     },
     "no_linked_player": {
-      "message": "Nenhum leitor ligado toca na entrada de {entity}."
+      "message": "Nenhum leitor associado toca na entrada de {entity}."
     }
   },
   "issues": {
@@ -1344,12 +1344,12 @@
       "description": "{model} responde NSARA OFF: o controlo pela app remota está desligado no recetor. A app AVR Remote da Denon trata então o recetor como não controlável. O Home Assistant usa a mesma interface de rede; se as definições a partir do Home Assistant não tiverem efeito, volte a ligar o controlo por apps no menu de configuração do recetor.\n\nEsta resposta ainda não foi vista num recetor. Um relatório com o diagnóstico do recetor ajuda."
     },
     "linked_player_missing": {
-      "title": "Leitor multimédia ligado não encontrado",
+      "title": "Leitor multimédia associado não encontrado",
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Desligar os leitores em falta",
-            "description": "{title}: estes leitores multimédia ligados já não existem: {players}. Confirma para os desligar; as entradas voltam a mostrar a informação do próprio recetor. Para ligar outro leitor, abre as opções em Reprodução."
+            "title": "Desassociar os leitores em falta",
+            "description": "{title}: estes leitores multimédia associados já não existem: {players}. Confirme para os desassociar; as entradas voltam a mostrar a informação do próprio recetor. Para associar outro leitor, abra as opções em Reprodução."
           }
         }
       }

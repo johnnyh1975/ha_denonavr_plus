@@ -230,19 +230,19 @@
       },
       "playback": {
         "title": "Riproduzione",
-        "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Scegli un ingresso per collegare il dispositivo connesso, ad esempio una Apple TV o uno streamer.",
+        "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Scegli un ingresso per collegare il dispositivo connesso, ad esempio una Apple TV o uno streamer; dopo ogni ingresso torni qui. Conferma senza ingresso per salvare.",
         "data": {
           "input": "Collega un lettore a un ingresso",
-          "signal_state": "In riproduzione o inattivo in base al segnale d'ingresso"
+          "signal_state": "In esecuzione o inattivo in base al segnale d'ingresso"
         },
         "data_description": {
           "input": "Mentre l'ingresso suona, la sua zona mostra titolo, copertina, posizione e stato del lettore collegato, e riproduci, pausa, salta e avanzamento vanno a esso. Accensione, volume e ingresso restano al ricevitore. Un ingresso con lettore lo mostra dopo la freccia.",
-          "signal_state": "Una zona su un ingresso senza lettore collegato mostra «In riproduzione» finché l'ingresso porta un segnale e «Inattivo» senza, invece di «Acceso». Le sorgenti di rete e il sintonizzatore mantengono il proprio stato. Non ancora provato su un ricevitore: non si sa se ogni modello segnala la fine di un segnale."
+          "signal_state": "Una zona su un ingresso senza lettore collegato mostra «In esecuzione» finché l'ingresso porta un segnale e «Inattivo» senza, invece di «Acceso». Le sorgenti di rete e il sintonizzatore mantengono il proprio stato. Non ancora provato su un ricevitore: non si sa se ogni modello segnala la fine di un segnale. Una sorgente HDMI che mostra il suo menu spesso invia anch'essa un segnale."
         }
       },
       "linked_input": {
         "title": "Lettore collegato",
-        "description": "Il lettore multimediale del dispositivo su {input}. Lascialo vuoto per scollegarlo.",
+        "description": "Il lettore multimediale del dispositivo su {input}. Lascialo vuoto per scollegare l'ingresso; i due interruttori allora non hanno effetto.",
         "data": {
           "player": "Lettore multimediale",
           "follow": "Passa a questo ingresso quando il lettore inizia a suonare",
@@ -251,7 +251,7 @@
         "data_description": {
           "player": "Titolo, copertina, posizione e stato compaiono su ogni zona che riproduce questo ingresso; riproduci, pausa, salta e avanzamento vanno a esso.",
           "follow": "Quando il lettore inizia a suonare, la zona principale si accende se serve e passa a questo ingresso, e il lettore collegato dell'ingresso lasciato viene messo in pausa. Un secondo lettore che parte entro 5 secondi viene invece messo in pausa, così due lettori non si alternano. Il registro mostra il cambio come causato dal lettore.",
-          "full_volume": "Il volume si regola sul ricevitore, quindi il lettore viene portato al volume massimo e riattivato ogni volta che il suo volume cambia."
+          "full_volume": "Il volume si regola sul ricevitore: finché una zona accesa riproduce questo ingresso, il lettore viene portato al volume massimo e riattivato, e di nuovo ogni volta che il suo volume cambia. Non per un dispositivo con altoparlanti propri, come un televisore: lì suonerebbe al volume massimo."
         }
       },
       "connection": {

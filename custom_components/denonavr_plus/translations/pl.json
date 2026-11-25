@@ -230,19 +230,19 @@
       },
       "playback": {
         "title": "Odtwarzanie",
-        "description": "Jak odtwarzacze multimedialne pokazują, co gra na wejściu. Wybierz wejście, aby powiązać podłączone do niego urządzenie, np. Apple TV lub streamer.",
+        "description": "Jak odtwarzacze multimedialne pokazują, co gra na wejściu. Wybierz wejście, aby powiązać podłączone do niego urządzenie, np. Apple TV lub streamer; po każdym wejściu wracasz tutaj. Zatwierdź bez wejścia, aby zapisać.",
         "data": {
           "input": "Powiąż odtwarzacz z wejściem",
-          "signal_state": "Odtwarzanie lub bezczynność według sygnału wejściowego"
+          "signal_state": "Odtwarzanie lub brak aktywności według sygnału wejściowego"
         },
         "data_description": {
           "input": "Gdy wejście gra, jego strefa pokazuje tytuł, okładkę, pozycję i stan powiązanego odtwarzacza, a odtwarzanie, pauza, przeskok i przewijanie trafiają do niego. Zasilanie, głośność i wejście pozostają przy amplitunerze. Wejście z odtwarzaczem pokazuje go za strzałką.",
-          "signal_state": "Strefa na wejściu bez powiązanego odtwarzacza pokazuje „Odtwarzanie”, gdy wejście ma sygnał, i „Bezczynny” bez sygnału, zamiast „Włączony”. Źródła sieciowe i tuner zachowują własny stan. Jeszcze niewypróbowane na amplitunerze: nie wiadomo, czy każdy model zgłasza koniec sygnału."
+          "signal_state": "Strefa na wejściu bez powiązanego odtwarzacza pokazuje „odtwarzanie”, gdy wejście ma sygnał, i „brak aktywności” bez sygnału, zamiast „włączono”. Źródła sieciowe i tuner zachowują własny stan. Jeszcze niewypróbowane na amplitunerze: nie wiadomo, czy każdy model zgłasza koniec sygnału. Źródło HDMI pokazujące swoje menu często też wysyła sygnał."
         }
       },
       "linked_input": {
         "title": "Powiązany odtwarzacz",
-        "description": "Odtwarzacz multimedialny urządzenia na wejściu {input}. Zostaw puste, aby usunąć powiązanie.",
+        "description": "Odtwarzacz multimedialny urządzenia na wejściu {input}. Zostaw puste, aby usunąć powiązanie wejścia; oba przełączniki nie mają wtedy znaczenia.",
         "data": {
           "player": "Odtwarzacz multimedialny",
           "follow": "Przełącz na to wejście, gdy odtwarzacz zacznie grać",
@@ -250,8 +250,8 @@
         },
         "data_description": {
           "player": "Jego tytuł, okładka, pozycja i stan pojawiają się w każdej strefie grającej to wejście; odtwarzanie, pauza, przeskok i przewijanie trafiają do niego.",
-          "follow": "Gdy odtwarzacz zacznie grać, strefa główna w razie potrzeby się włącza i przełącza na to wejście, a powiązany odtwarzacz opuszczonego wejścia zostaje wstrzymany. Drugi odtwarzacz, który ruszy w ciągu 5 sekund, zostaje wstrzymany zamiast tego, aby dwa odtwarzacze nie przejmowały się nawzajem. Dziennik pokazuje przełączenie jako wywołane przez odtwarzacz.",
-          "full_volume": "Głośność ustawia się na amplitunerze, więc odtwarzacz jest ustawiany na pełną głośność i odciszany, gdy tylko zmieni się jego głośność."
+          "follow": "Gdy odtwarzacz zacznie grać, strefa główna w razie potrzeby się włącza i przełącza na to wejście, a powiązany odtwarzacz opuszczonego wejścia zostaje wstrzymany. Drugi odtwarzacz, który ruszy w ciągu 5 sekund, zostaje wstrzymany zamiast tego, aby dwa odtwarzacze nie przełączały amplitunera na zmianę. Dziennik pokazuje przełączenie jako wywołane przez odtwarzacz.",
+          "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością."
         }
       },
       "connection": {

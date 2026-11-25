@@ -524,6 +524,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         self._pending: dict[str, Any] = {}
         self._mode_names_for: list[str] = []
         self._link_input: str = ""
+        self._playback: dict[str, Any] | None = None
 
     # Helpers -------------------------------------------------------------
 
@@ -788,26 +789,38 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
             if item.domain == "media_player"
         ]
 
+    def _playback_draft(self) -> dict[str, Any]:
+        """The playback options being edited: saved together when the user is done."""
+
+        if self._playback is None:
+            options = dict(self.config_entry.options)
+            self._playback = {
+                OPT_SIGNAL_STATE: bool(options.get(OPT_SIGNAL_STATE, False)),
+                OPT_LINKED_PLAYERS: linked_players.stored_links(options),
+            }
+        return self._playback
+
     async def async_step_playback(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """How the media players show playback: linked players, input signal.
 
-        Picking an input leads to its linked player; without one, the step
-        saves at once.
+        Picking an input leads to its linked player and back here, so several
+        inputs are linked in one go; submitting without an input saves.
         """
 
         if self._discovery() is None:
             return self.async_abort(reason="not_connected")
         inputs = self._linkable()
+        draft = self._playback_draft()
         if user_input is not None:
-            self._pending = {OPT_SIGNAL_STATE: bool(user_input.get(OPT_SIGNAL_STATE, False))}
+            draft[OPT_SIGNAL_STATE] = bool(user_input.get(OPT_SIGNAL_STATE, False))
             code = user_input.get("input")
             if code in dict(inputs):
                 self._link_input = str(code)
                 return await self.async_step_linked_input()
-            return self._save(self._pending)
-        current = linked_players.links(dict(self.config_entry.options))
+            return self._save(dict(draft))
+        current = linked_players.links(draft)
         fields: dict[Any, Any] = {}
         if inputs:
             fields[vol.Optional("input")] = SelectSelector(
@@ -826,12 +839,9 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             )
-        fields[
-            vol.Required(
-                OPT_SIGNAL_STATE,
-                default=bool(self.config_entry.options.get(OPT_SIGNAL_STATE, False)),
-            )
-        ] = BooleanSelector()
+        fields[vol.Required(OPT_SIGNAL_STATE, default=draft[OPT_SIGNAL_STATE])] = (
+            BooleanSelector()
+        )
         return self.async_show_form(step_id="playback", data_schema=vol.Schema(fields))
 
     async def async_step_linked_input(
@@ -841,9 +851,11 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
 
         code = self._link_input
         names = dict(self._linkable())
-        current = linked_players.links(dict(self.config_entry.options)).get(code)
+        draft = self._playback_draft()
+        current = linked_players.links(draft).get(code)
         if user_input is not None:
-            # The selector refuses the receiver's own players.
+            # The selector refuses the receiver's own players; without a
+            # player the input is unlinked and its switches have no meaning.
             player = str(user_input.get(KEY_PLAYER) or "")
             link = (
                 Link(
@@ -854,14 +866,8 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 if player
                 else None
             )
-            return self._save(
-                {
-                    **self._pending,
-                    OPT_LINKED_PLAYERS: linked_players.with_link(
-                        dict(self.config_entry.options), code, link
-                    ),
-                }
-            )
+            draft[OPT_LINKED_PLAYERS] = linked_players.with_link(draft, code, link)
+            return await self.async_step_playback()
         schema = vol.Schema(
             {
                 # A suggestion, not a default, so the player can be cleared.

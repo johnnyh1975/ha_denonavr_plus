@@ -1220,27 +1220,50 @@ async def test_a_player_is_linked_to_an_input(
         result["flow_id"],
         {"player": "media_player.apple_tv", "follow": True, "full_volume": False},
     )
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert loaded_entry.options["signal_state"] is True
-    assert loaded_entry.options["linked_players"] == {
-        "DVD": {"player": "media_player.apple_tv", "follow": True, "full_volume": False}
-    }
-
-    # The input now shows its player; clearing the player unlinks it.
-    result = await _options_step(hass, loaded_entry, "playback")
+    # Back to the inputs: the next one, or save. Nothing is saved yet.
+    assert result["step_id"] == "playback"
+    assert "linked_players" not in loaded_entry.options
     inputs = next(field for field in result["data_schema"].schema if str(field) == "input")
     labels = {
         option["value"]: option["label"]
         for option in result["data_schema"].schema[inputs].config["options"]
     }
     assert labels["DVD"].endswith("→ Apple TV")
+    signal = next(field for field in result["data_schema"].schema if str(field) == "signal_state")
+    assert signal.default() is True
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"input": "CD", "signal_state": True}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"player": "media_player.streamer", "follow": False, "full_volume": True},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"signal_state": True}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert loaded_entry.options["signal_state"] is True
+    assert loaded_entry.options["linked_players"] == {
+        "DVD": {"player": "media_player.apple_tv", "follow": True, "full_volume": False},
+        "CD": {"player": "media_player.streamer", "follow": False, "full_volume": True},
+    }
+
+    # Clearing the player unlinks the input; its switches have no meaning then.
+    result = await _options_step(hass, loaded_entry, "playback")
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"input": "DVD", "signal_state": True}
     )
+    player = next(field for field in result["data_schema"].schema if str(field) == "player")
+    assert player.description == {"suggested_value": "media_player.apple_tv"}
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"follow": True, "full_volume": False}
     )
-    assert loaded_entry.options["linked_players"] == {}
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"signal_state": True}
+    )
+    assert loaded_entry.options["linked_players"] == {
+        "CD": {"player": "media_player.streamer", "follow": False, "full_volume": True}
+    }
 
 
 async def test_the_playback_step_saves_without_an_input(

@@ -230,19 +230,19 @@
       },
       "playback": {
         "title": "Playback",
-        "description": "How the media players show what plays on an input. Pick an input to link the device connected to it, such as an Apple TV or a streamer.",
+        "description": "How the media players show what plays on an input. Pick an input to link the device connected to it, such as an Apple TV or a streamer; after each input you come back here. Submit without an input to save.",
         "data": {
           "input": "Link a player to an input",
           "signal_state": "Playing or idle by the input signal"
         },
         "data_description": {
           "input": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow.",
-          "signal_state": "A zone on an input without a linked player shows \"Playing\" while the input carries a signal and \"Idle\" without one, instead of \"On\". Network sources and the tuner keep their own state. Not yet tried on a receiver: whether every model reports when a signal stops is unknown."
+          "signal_state": "A zone on an input without a linked player shows \"Playing\" while the input carries a signal and \"Idle\" without one, instead of \"On\". Network sources and the tuner keep their own state. Not yet tried on a receiver: whether every model reports when a signal stops is unknown. An HDMI source showing its menu often sends a signal too."
         }
       },
       "linked_input": {
         "title": "Linked player",
-        "description": "The media player of the device on {input}. Leave it empty to unlink it.",
+        "description": "The media player of the device on {input}. Leave it empty to unlink the input; the two switches then do nothing.",
         "data": {
           "player": "Media player",
           "follow": "Switch to this input when the player starts playing",
@@ -251,7 +251,7 @@
         "data_description": {
           "player": "Its title, artwork, position and state show on every zone that plays this input; play, pause, skip and seek go to it.",
           "follow": "When the player starts playing, the main zone turns on if needed and switches to this input, and the linked player of the input it leaves is paused. A second player that starts within 5 seconds is paused instead, so two players cannot take turns. The logbook shows the switch as caused by the player.",
-          "full_volume": "The volume is set on the receiver, so the player is set to full volume and unmuted whenever its volume changes."
+          "full_volume": "The volume is set on the receiver, so while a zone that is on plays this input, the player is set to full volume and unmuted, and again whenever its volume changes. Not for a device with its own speakers, such as a television: it would play at full volume there."
         }
       },
       "connection": {

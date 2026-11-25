@@ -36,7 +36,6 @@ from homeassistant.components.repairs import ConfirmRepairFlow
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_SUPPORTED_FEATURES,
-    EVENT_HOMEASSISTANT_STARTED,
     SERVICE_MEDIA_PAUSE,
     SERVICE_MEDIA_STOP,
     SERVICE_VOLUME_MUTE,
@@ -59,8 +58,10 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.start import async_at_started
 
 from . import choices
+from .avr.device import FOLLOW_MAIN
 from .const import DOMAIN
 from .coordinator import DenonAvrConfigEntry
 
@@ -124,10 +125,16 @@ def links(options: dict[str, Any]) -> dict[str, Link]:
     return found
 
 
+def stored_links(options: dict[str, Any]) -> dict[str, Any]:
+    """The links as they are stored, without entries that hold no player."""
+
+    return {key: value.stored() for key, value in links(options).items()}
+
+
 def with_link(options: dict[str, Any], code: str, link: Link | None) -> dict[str, Any]:
     """The stored links with one input linked, changed or (None) unlinked."""
 
-    stored = {key: value.stored() for key, value in links(options).items()}
+    stored = stored_links(options)
     if link is None:
         stored.pop(code, None)
     else:
@@ -156,6 +163,7 @@ class LinkedPlayers:
         self._last_real: dict[str, str] = {}
         self._followed_at = 0.0
         self._followed: str | None = None
+        self._full_volume_active: frozenset[str] = frozenset()
 
     # Setup -----------------------------------------------------------------
 
@@ -168,18 +176,14 @@ class LinkedPlayers:
             self._entry.runtime_data.async_add_listener(self._options_maybe_changed),
         ]
         self._track()
+        self._refresh_full_volume()
+
         # Other integrations add their players while Home Assistant starts.
-        if self._hass.state is CoreState.running:
+        @callback
+        def started(_hass: HomeAssistant) -> None:
             self.async_check_missing()
-        else:
 
-            @callback
-            def started(_event: Event) -> None:
-                self.async_check_missing()
-
-            unsubs.append(
-                self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, started)
-            )
+        unsubs.append(async_at_started(self._hass, started))
 
         def stop() -> None:
             for unsub in unsubs:
@@ -200,6 +204,7 @@ class LinkedPlayers:
 
         if self._track() and self._hass.state is CoreState.running:
             self.async_check_missing()
+        self._refresh_full_volume()
 
     @callback
     def _track(self) -> bool:
@@ -217,10 +222,7 @@ class LinkedPlayers:
                 self._hass, sorted(players), self._state_changed
             )
         for entity_id in players:
-            state = self._hass.states.get(entity_id)
-            self._remember(entity_id, state)
-            if self._full_volume(entity_id):
-                self._keep_full_volume(state, None)
+            self._remember(entity_id, self._hass.states.get(entity_id))
         return True
 
     # Renamed or removed players --------------------------------------------
@@ -291,10 +293,27 @@ class LinkedPlayers:
         if state is not None and state.state not in _GONE:
             self._last_real[entity_id] = state.state
 
-    def _full_volume(self, entity_id: str) -> bool:
-        return any(
-            link.full_volume for link in self._links.values() if link.entity_id == entity_id
+    def _full_volume_now(self) -> frozenset[str]:
+        """The players kept at full volume now: their input plays in a zone that is on.
+
+        Not otherwise: a television linked to an input may play on its own
+        speakers while the receiver is off.
+        """
+
+        return frozenset(
+            link.entity_id
+            for code, link in self._links.items()
+            if link.full_volume and self._zone_playing(code)
         )
+
+    @callback
+    def _refresh_full_volume(self) -> None:
+        """Full volume for a player whose input just started (or that just got the option)."""
+
+        now = self._full_volume_now()
+        for entity_id in now - self._full_volume_active:
+            self._keep_full_volume(self._hass.states.get(entity_id), None)
+        self._full_volume_active = now
 
     @callback
     def _state_changed(self, event: Event[EventStateChangedData]) -> None:
@@ -302,13 +321,13 @@ class LinkedPlayers:
         new = event.data["new_state"]
         before = self._last_real.get(entity_id)
         self._remember(entity_id, new)
-        if self._full_volume(entity_id):
+        if entity_id in self._full_volume_active:
             self._keep_full_volume(new, event.data["old_state"])
         if new is None or new.state != MediaPlayerState.PLAYING:
             return
-        if event.data["old_state"] is None or before == MediaPlayerState.PLAYING:
-            # The player just appeared (Home Assistant starting), is back
-            # after a short drop, or only the title changed.
+        if event.data["old_state"] is None or before in (None, MediaPlayerState.PLAYING):
+            # The player just appeared or came up playing (Home Assistant
+            # starting), is back after a short drop, or only the title changed.
             return
         code = next(
             (code for code, link in self._links.items() if link.entity_id == entity_id and link.follow),
@@ -386,14 +405,19 @@ class LinkedPlayers:
     # Following a player ------------------------------------------------------
 
     def _zone_playing(self, code: str, *, besides: str | None = None) -> bool:
-        """Whether a shown zone (other than `besides`) is on and plays the input."""
+        """Whether a shown zone is on and plays the input.
+
+        `besides`: leave out that zone and the zones that follow it (Zone 2
+        on the main zone's source moves along with it).
+        """
 
         coordinator = self._entry.runtime_data
+        data = coordinator.data
         return any(
-            coordinator.data.zone(zone).power
-            and coordinator.device.zone_source(zone) == code
+            data.zone(zone).power and coordinator.device.zone_source(zone) == code
             for zone in coordinator.shown_zones
             if zone != besides
+            and not (besides == FOLLOW_ZONE and data.zone(zone).source == FOLLOW_MAIN)
         )
 
     @callback
@@ -438,7 +462,11 @@ class LinkedPlayers:
 
         coordinator = self._entry.runtime_data
         target = self._main_player()
-        if target is None:
+        state = self._hass.states.get(target) if target is not None else None
+        if target is None or state is None or state.state == STATE_UNAVAILABLE:
+            # Home Assistant would skip the action without a word, and the
+            # player of the input left would be paused for nothing.
+            _LOGGER.info("The main zone is unavailable; not following the player")
             return
         main = coordinator.data.zone(FOLLOW_ZONE)
         left = coordinator.device.zone_source(FOLLOW_ZONE) if main.power else None

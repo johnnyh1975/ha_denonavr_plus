@@ -2037,3 +2037,27 @@ async def test_a_linked_player_decides_over_the_signal(
     _link(hass, loaded_entry, signal_state=True)
     await hass.async_block_till_done()
     assert hass.states.get(main).state == "paused"
+
+
+async def test_network_details_stay_off_an_input_with_a_linked_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A paused network session lends the linked input no title or cover."""
+    from custom_components.denonavr_plus.avr.models import NowPlaying
+
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    loaded_entry.runtime_data.data.now_playing = NowPlaying(
+        state="pause", title="Old song", image_url="http://192.0.2.1/cover.jpg"
+    )
+    # The linked player plays, but has no title or picture.
+    hass.states.async_set(_APPLE_TV, "playing", {"supported_features": _APPLE_TV_FEATURES})
+    _link(hass, loaded_entry)
+    await hass.async_block_till_done()
+    state = hass.states.get(main)
+    assert state.state == "playing"
+    assert state.attributes["media_title"] == "DVD"
+    from homeassistant.components.media_player import DATA_COMPONENT
+
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None and player.media_image_url is None

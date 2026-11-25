@@ -225,7 +225,8 @@ Surround instead of the receiver's Dolby Audio - DD + DSur); switch
 ### Playback
 
 Link the device on an input to its media player in Home Assistant, such as
-an Apple TV on the Media Player input: pick the input, then the player. While
+an Apple TV on the Media Player input: pick the input, then the player, and
+the next input; submit without an input to save. While
 the input plays, the receiver's media player shows what the Apple TV plays,
 with artwork and position, and its play, pause and skip buttons control the
 Apple TV. Power, volume and the input stay with the receiver, so one card
@@ -247,6 +248,7 @@ tried on a receiver yet.
 >   in the background, or the receiver switches when you did not want it.
 > - Switch on **full volume** for players with their own volume (AirPlay,
 >   Chromecast), so a lowered player does not make the receiver sound quiet.
+>   Not for a television or another device with its own speakers.
 
 ### Entities
 

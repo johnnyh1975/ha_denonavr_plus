@@ -230,19 +230,19 @@
       },
       "playback": {
         "title": "Reproducción",
-        "description": "Cómo muestran los reproductores lo que suena en una entrada. Elige una entrada para vincular el dispositivo conectado a ella, como un Apple TV o un streamer.",
+        "description": "Cómo muestran los reproductores lo que suena en una entrada. Elige una entrada para vincular el dispositivo conectado a ella, como un Apple TV o un streamer; tras cada entrada vuelves aquí. Confirma sin entrada para guardar.",
         "data": {
           "input": "Vincular un reproductor a una entrada",
           "signal_state": "Reproduciendo o inactivo según la señal de entrada"
         },
         "data_description": {
           "input": "Mientras suena la entrada, su zona muestra el título, la carátula, la posición y el estado del reproductor vinculado, y reproducir, pausar, saltar y buscar se envían a él. El encendido, el volumen y la entrada siguen en el receptor. Una entrada con reproductor lo muestra tras la flecha.",
-          "signal_state": "Una zona en una entrada sin reproductor vinculado muestra «Reproduciendo» mientras la entrada lleva señal e «Inactivo» sin ella, en lugar de «Encendido». Las fuentes de red y el sintonizador mantienen su propio estado. Aún no probado en un receptor: no se sabe si todos los modelos avisan cuando termina una señal."
+          "signal_state": "Una zona en una entrada sin reproductor vinculado muestra «Reproduciendo» mientras la entrada lleva señal e «Inactivo» sin ella, en lugar de «Encendido». Las fuentes de red y el sintonizador mantienen su propio estado. Aún no probado en un receptor: no se sabe si todos los modelos avisan cuando termina una señal. Una fuente HDMI que muestra su menú suele enviar también una señal."
         }
       },
       "linked_input": {
         "title": "Reproductor vinculado",
-        "description": "El reproductor del dispositivo en {input}. Déjalo vacío para desvincularlo.",
+        "description": "El reproductor del dispositivo en {input}. Déjalo vacío para desvincular la entrada; los dos interruptores no tienen efecto entonces.",
         "data": {
           "player": "Reproductor multimedia",
           "follow": "Cambiar a esta entrada cuando el reproductor empiece a sonar",
@@ -251,7 +251,7 @@
         "data_description": {
           "player": "Su título, carátula, posición y estado aparecen en cada zona que reproduce esta entrada; reproducir, pausar, saltar y buscar se envían a él.",
           "follow": "Cuando el reproductor empieza a sonar, la zona principal se enciende si hace falta y cambia a esta entrada, y el reproductor vinculado de la entrada que deja se pausa. Un segundo reproductor que empieza en menos de 5 segundos se pausa en su lugar, para que dos reproductores no se turnen. El registro muestra el cambio como causado por el reproductor.",
-          "full_volume": "El volumen se ajusta en el receptor, así que el reproductor se pone al volumen máximo y sin silencio cada vez que cambia su volumen."
+          "full_volume": "El volumen se ajusta en el receptor: mientras una zona encendida reproduce esta entrada, el reproductor se pone al volumen máximo y sin silencio, y de nuevo cada vez que cambia su volumen. No para un dispositivo con altavoces propios, como un televisor: sonaría allí al volumen máximo."
         }
       },
       "connection": {
