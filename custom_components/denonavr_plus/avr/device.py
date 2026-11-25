@@ -464,6 +464,11 @@ class DenonAvrDevice:
                 feature_names,
                 enum_features,
                 receiver_type=self._profile.receiver_type,
+                value_ranges={
+                    str(spec.get("range_from"))
+                    for spec in self._profile.controls.values()
+                    if spec.get("range_from")
+                },
             )
         if not self._profile.variants:
             # Older receivers encode some values differently, and Marantz

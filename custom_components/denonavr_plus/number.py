@@ -223,7 +223,9 @@ def _resolve_bounds(
 ) -> tuple[float | None, float | None, float | None]:
     """Return (min, max, step), preferring the receiver published range."""
 
-    meta = device.discovery.numeric_meta.get(spec.feature or "")
+    # Where the profile names it, the plain range the receiver publishes
+    # (AudioDelay/Adjust, AuroMatic3DStrength); else the feature's dB range.
+    meta = device.discovery.numeric_meta.get(str(spec.get("range_from") or spec.feature or ""))
     if meta:
         return meta["min"], meta["max"], meta["step"]
     # Fall back to the profile's protocol defined range (LFE, sleep timer).

@@ -187,7 +187,11 @@ Select options follow what the receiver lists in its device description:
 an AVR‑X2600H offers no Manual for MultEQ, Video Mode Bypass and the 8K
 resolution appear only on receivers that list them (AVR‑X2600H, AVC‑X3700H,
 AVC‑A10H), and Input Mode leaves eARC out where the receiver's list does
-(AVC‑8500H, SR6011; some receivers without eARC still list it).
+(AVC‑8500H, SR6011; some receivers without eARC still list it). Number
+ranges do too: levels in dB as the receiver publishes them, and Audio Delay,
+Auro-Matic Strength (0–15 on the AVC‑A10H, 1–16 on others), Containment
+Amount and Dialog Control by the values it publishes; Effect Level keeps 0–15,
+because receivers report 0 although their description starts at 1.
 
 - **Media player** per zone (main + zone 2 where present): power, volume, mute,
   source selection, and (main zone) sound mode. On the main zone, network sources

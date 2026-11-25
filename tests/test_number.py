@@ -128,3 +128,18 @@ async def test_the_tuner_frequency_reads_and_tunes(
     telnet.push("SITUNER")
     await task
     assert telnet.sent == ["SITUNER", "TFAN009900"]
+
+
+async def test_an_integer_takes_the_range_the_receiver_publishes(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The AVC-X3700H publishes Containment Amount 1-7 as MinValue/MaxValue."""
+    from custom_components.denonavr_plus.number import _resolve_bounds
+
+    device = loaded_entry.runtime_data.device
+    spec = device.profile.control("containment_amount")
+    assert spec is not None
+    device.discovery.numeric_meta["ContainmentAmount"] = {"min": 2.0, "max": 5.0, "step": 1.0}
+    assert _resolve_bounds(device, spec) == (2.0, 5.0, 1.0)
+    del device.discovery.numeric_meta["ContainmentAmount"]
+    assert _resolve_bounds(device, spec) == (1, 7, 1)

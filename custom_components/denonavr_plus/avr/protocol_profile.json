@@ -903,19 +903,21 @@
       "scope": "feature",
       "feature": "ContainmentAmount",
       "kind": "integer",
+      "range_from": "ContainmentAmount",
       "query": "PSCNTAMT ?",
       "prefix": "PSCNTAMT ",
       "width": 2,
       "min": 1,
       "max": 7,
       "step": 1,
-      "doc": "LFC containment amount. Verified live (PSCNTAMT). The receiver publishes only step/default, so the range is 1-7 (01-07) from Denon's FY21 AVR protocol table (v02, 2020). Applies when LFC is on."
+      "doc": "LFC containment amount. Verified live (PSCNTAMT). The range is the one Deviceinfo.xml publishes (MinValue/MaxValue, 1-7 on the AVC-X3700H); 1-7 (01-07) from Denon's FY21 AVR protocol table (v02, 2020) where it publishes none. Applies when LFC is on."
     },
     "audio_delay": {
       "group": "audio",
       "scope": "feature",
       "feature": "AudioDelay",
       "kind": "integer",
+      "range_from": "AudioDelay/Adjust",
       "query": "PSDELAY ?",
       "prefix": "PSDELAY ",
       "width": 3,
@@ -924,20 +926,21 @@
       "max": 500,
       "step": 1,
       "older": {"max": 200, "doc": "0-200 ms in the AVR-X2000/E400 (v03) and 2015 X-series documents."},
-      "doc": "Audio delay in milliseconds. Denon's FY21 table gives 0-500 ms for receivers from 2016 on; the older documents give 0-200 ms (older variant). The receiver does not publish the range over telnet."
+      "doc": "Audio delay in milliseconds. Denon's FY21 table gives 0-500 ms for receivers from 2016 on; the older documents give 0-200 ms (older variant). Where Deviceinfo.xml publishes the range (AudioDelay/Adjust), that range is used."
     },
     "dialog_control": {
       "group": "surround",
       "scope": "feature",
       "feature": "DialogControl",
       "kind": "integer",
+      "range_from": "DialogControl",
       "query": "PSDIC ?",
       "prefix": "PSDIC ",
       "width": 2,
       "min": 0,
       "max": 6,
       "step": 1,
-      "doc": "Dialog Control level 0-6. The receiver publishes only the step and default, so the 0-6 range is the protocol fallback."
+      "doc": "Dialog Control level 0-6, or the range Deviceinfo.xml publishes (MinValue/MaxValue)."
     },
     "dimmer": {
       "group": "system",
@@ -1131,7 +1134,7 @@
     "imax_subwoofer": {"group": "surround", "scope": "answered", "kind": "onoff", "query": "PSIMAXSWM ?", "prefix": "PSIMAXSWM ", "on": "ON", "off": "OFF", "doc": "IMAX subwoofer mode. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "imax_subwoofer_output": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSIMAXSWO ?", "prefix": "PSIMAXSWO ", "values": ["L+M", "LFE"], "labels": ["LFE + Main", "LFE"], "doc": "IMAX subwoofer output, L+M or LFE, in Denon's CY2022 AVR protocol table (v02) for the AVR-X3800H and up and in the denonavr library; not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "auro_matic_preset": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSAUROPR ?", "prefix": "PSAUROPR ", "values": ["SMA", "MED", "LAR", "SPE", "MOV"], "labels": ["Small", "Medium", "Large", "Speech", "Movie"], "doc": "Auro-Matic 3D preset. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
-    "auro_matic_strength": {"group": "surround", "scope": "answered", "kind": "integer", "query": "PSAUROST ?", "prefix": "PSAUROST ", "width": 2, "min": 1, "max": 16, "step": 1, "doc": "Auro-Matic 3D strength 1-16; two digits assumed. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
+    "auro_matic_strength": {"group": "surround", "scope": "answered", "kind": "integer", "range_from": "AuroMatic3DStrength", "query": "PSAUROST ?", "prefix": "PSAUROST ", "width": 2, "min": 1, "max": 16, "step": 1, "doc": "Auro-Matic 3D strength 1-16, or the range Deviceinfo.xml publishes (AuroMatic3DStrength: 0-15 on the AVC-A10H); two digits assumed. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "auro_3d_mode": {"group": "surround", "scope": "answered", "kind": "enum", "query": "PSAUROMODE ?", "prefix": "PSAUROMODE ", "values": ["DRCT", "EXP"], "labels": ["Direct", "Channel Expansion"], "doc": "Auro-3D mode. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "dirac_filter": {"group": "audyssey", "scope": "answered", "kind": "enum", "query": "PSDIRAC ?", "prefix": "PSDIRAC ", "values": ["1", "2", "3", "OFF"], "labels": ["Slot 1", "Slot 2", "Slot 3", "Off"], "doc": "Dirac Live filter slot. Command format from the denonavr library (const.py, TelnetCommands); not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},
     "mdax": {"group": "audio", "scope": "answered", "kind": "enum", "query": "PSMDAX ?", "prefix": "PSMDAX ", "values": ["OFF", "LOW", "MID", "HI"], "labels": ["Off", "Low", "Medium", "High"], "doc": "M-DAX (Marantz): OFF, LOW, MID, HI and PSMDAX ? for all five models of the Marantz FY20 AVR control protocol (Ver 3, 2019), and the Denon and Marantz AVR Remote apps (3.13.4) send the same four values; the denonavr library sends MED, which that table does not have. Not yet tried on a receiver by this integration. Shown only when the receiver answers the query at setup."},

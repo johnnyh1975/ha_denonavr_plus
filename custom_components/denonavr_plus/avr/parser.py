@@ -94,6 +94,7 @@ def parse_device_info(
     feature_names: set[str] | None = None,
     enum_features: set[str] | None = None,
     receiver_type: dict[str, str] | None = None,
+    value_ranges: set[str] | None = None,
 ) -> Discovery:
     """Parse the Deviceinfo XML into a Discovery object.
 
@@ -208,6 +209,16 @@ def parse_device_info(
         meta = _range_from_block(block)
         if meta:
             discovery.numeric_meta[feature] = meta
+
+    # Plain value ranges (MinValue/MaxValue/Step, not dB) for the controls
+    # whose profile names where the receiver publishes them ("range_from").
+    for path in value_ranges or ():
+        block = root.find(f".//{path}")
+        if block is None or path in discovery.numeric_meta:
+            continue
+        low, high = _num(block, "MinValue"), _num(block, "MaxValue")
+        if low is not None and high is not None and low < high:
+            discovery.numeric_meta[path] = {"min": low, "max": high, "step": _num(block, "Step") or 1.0}
 
     # Sound mode genre names (Movie/Music/Game/Pure), read from the receiver's
     # SoundMode genre list. Keyed by the first three upper case letters so they
