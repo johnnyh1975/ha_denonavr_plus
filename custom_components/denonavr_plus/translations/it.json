@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Titolo, copertina, posizione e stato compaiono su ogni zona che riproduce questo ingresso; riproduci, pausa, salta e avanzamento vanno a esso.",
-          "follow": "Quando il lettore inizia a suonare, la zona principale si accende se serve e passa a questo ingresso, e il lettore collegato dell'ingresso lasciato viene messo in pausa. Un secondo lettore che parte entro 5 secondi viene invece messo in pausa, così due lettori non si alternano. Il registro mostra il cambio come causato dal lettore.",
+          "follow": "Quando il lettore inizia a suonare, la zona principale si accende se serve e passa a questo ingresso. Finché questa opzione è attiva, a ogni cambio d'ingresso della zona principale (anche a mano o con il telecomando) i lettori collegati che nessuna zona riproduce vengono messi in pausa. Un secondo lettore che parte entro 5 secondi viene invece messo in pausa, così due lettori non si alternano. Il registro mostra il cambio come causato dal lettore.",
           "full_volume": "Il volume si regola sul ricevitore: finché una zona accesa riproduce questo ingresso, il lettore viene portato al volume massimo e riattivato, e di nuovo ogni volta che il suo volume cambia. Non per un dispositivo con altoparlanti propri, come un televisore: lì suonerebbe al volume massimo."
         }
       },
@@ -1241,6 +1241,9 @@
     },
     "no_linked_player": {
       "message": "Nessun lettore collegato suona sull'ingresso di {entity}."
+    },
+    "linked_player_gone": {
+      "message": "Il lettore collegato a {input} non è più collegato o non esiste più."
     }
   },
   "issues": {

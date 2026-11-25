@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Jego tytuł, okładka, pozycja i stan pojawiają się w każdej strefie grającej to wejście; odtwarzanie, pauza, przeskok i przewijanie trafiają do niego.",
-          "follow": "Gdy odtwarzacz zacznie grać, strefa główna w razie potrzeby się włącza i przełącza na to wejście, a powiązany odtwarzacz opuszczonego wejścia zostaje wstrzymany. Drugi odtwarzacz, który ruszy w ciągu 5 sekund, zostaje wstrzymany zamiast tego, aby dwa odtwarzacze nie przełączały amplitunera na zmianę. Dziennik pokazuje przełączenie jako wywołane przez odtwarzacz.",
+          "follow": "Gdy odtwarzacz zacznie grać, strefa główna w razie potrzeby się włącza i przełącza na to wejście. Dopóki ta opcja jest włączona, przy każdej zmianie wejścia strefy głównej (także ręcznie lub pilotem) powiązane odtwarzacze, których nie gra żadna strefa, zostają wstrzymane. Drugi odtwarzacz, który ruszy w ciągu 5 sekund, zostaje wstrzymany zamiast tego, aby dwa odtwarzacze nie przełączały amplitunera na zmianę. Dziennik pokazuje przełączenie jako wywołane przez odtwarzacz.",
           "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością."
         }
       },
@@ -1241,6 +1241,9 @@
     },
     "no_linked_player": {
       "message": "Na wejściu {entity} nie gra żaden powiązany odtwarzacz."
+    },
+    "linked_player_gone": {
+      "message": "Odtwarzacz powiązany z wejściem {input} nie jest już powiązany lub już nie istnieje."
     }
   },
   "issues": {

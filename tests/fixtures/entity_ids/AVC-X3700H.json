@@ -6,7 +6,7 @@
   },
   "binary_sensor_firmware_update": {
     "entity_id": "binary_sensor.avc_x3700h_firmware_update",
-    "enabled": true,
+    "enabled": false,
     "category": "diagnostic"
   },
   "button_channel_level_reset": {
@@ -396,7 +396,7 @@
   },
   "number_tuner_frequency": {
     "entity_id": "number.avc_x3700h_tuner_frequency",
-    "enabled": true,
+    "enabled": false,
     "category": null
   },
   "number_volume_main": {
@@ -521,7 +521,7 @@
   },
   "select_tuner_preset": {
     "entity_id": "select.avc_x3700h_tuner_preset",
-    "enabled": true,
+    "enabled": false,
     "category": null
   },
   "select_video_mode": {

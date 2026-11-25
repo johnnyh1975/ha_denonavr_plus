@@ -61,7 +61,6 @@ from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.start import async_at_started
 
 from . import choices
-from .avr.device import FOLLOW_MAIN
 from .const import DOMAIN
 from .coordinator import DenonAvrConfigEntry
 
@@ -77,6 +76,9 @@ KEY_FULL_VOLUME = "full_volume"
 OPT_SIGNAL_STATE = "signal_state"
 
 ISSUE = "linked_player_missing"
+#: Fired when the main zone followed a player: entity_id (the main zone's
+#: player), source, previous_source (None when it was off), player.
+EVENT_INPUT_FOLLOWED = f"{DOMAIN}_input_followed"
 
 #: A second player starting this soon after the receiver followed another
 #: is paused instead of followed, so two players cannot take turns.
@@ -164,6 +166,10 @@ class LinkedPlayers:
         self._followed_at = 0.0
         self._followed: str | None = None
         self._full_volume_active: frozenset[str] = frozenset()
+        # The main zone's input while it is on, to see it change.
+        self._main_input: str | None = None
+        # The context of a follow, for the pauses that come of it.
+        self._follow_context: Context | None = None
 
     # Setup -----------------------------------------------------------------
 
@@ -177,6 +183,7 @@ class LinkedPlayers:
         ]
         self._track()
         self._refresh_full_volume()
+        self._main_input = self._current_main_input()
 
         # Other integrations add their players while Home Assistant starts.
         @callback
@@ -205,6 +212,7 @@ class LinkedPlayers:
         if self._track() and self._hass.state is CoreState.running:
             self.async_check_missing()
         self._refresh_full_volume()
+        self._main_input_changed()
 
     @callback
     def _track(self) -> bool:
@@ -404,21 +412,47 @@ class LinkedPlayers:
 
     # Following a player ------------------------------------------------------
 
-    def _zone_playing(self, code: str, *, besides: str | None = None) -> bool:
-        """Whether a shown zone is on and plays the input.
-
-        `besides`: leave out that zone and the zones that follow it (Zone 2
-        on the main zone's source moves along with it).
-        """
+    def _zone_playing(self, code: str) -> bool:
+        """Whether a shown zone is on and plays the input (Zone 2 on the main
+        zone's source plays the main zone's input)."""
 
         coordinator = self._entry.runtime_data
         data = coordinator.data
         return any(
             data.zone(zone).power and coordinator.device.zone_source(zone) == code
             for zone in coordinator.shown_zones
-            if zone != besides
-            and not (besides == FOLLOW_ZONE and data.zone(zone).source == FOLLOW_MAIN)
         )
+
+    def _current_main_input(self) -> str | None:
+        coordinator = self._entry.runtime_data
+        if not coordinator.data.zone(FOLLOW_ZONE).power:
+            return None
+        return coordinator.device.zone_source(FOLLOW_ZONE)
+
+    # Only the player that is heard keeps playing --------------------------
+
+    @callback
+    def _main_input_changed(self) -> None:
+        """The main zone went to another input (by a follow, by hand, by remote).
+
+        While the receiver follows a player, the other linked players whose
+        input no zone plays are paused: they would play into nothing (as the
+        Rotel integration does).
+        """
+
+        current = self._current_main_input()
+        if current == self._main_input:
+            return
+        self._main_input = current
+        context, self._follow_context = self._follow_context, None
+        if current is None or not any(link.follow for link in self._links.values()):
+            return
+        heard = {
+            link.entity_id for code, link in self._links.items() if self._zone_playing(code)
+        }
+        for entity_id in sorted({link.entity_id for link in self._links.values()} - heard):
+            if is_busy(self._hass.states.get(entity_id)):
+                self._pause_later(entity_id, context)
 
     @callback
     def _follow(self, code: str, entity_id: str, context: Context) -> None:
@@ -453,11 +487,11 @@ class LinkedPlayers:
         )
 
     async def _async_follow(self, code: str, context: Context) -> None:
-        """The main zone on and to the input, then the player it left paused.
+        """The main zone on and to the input; the other players pause once it is there.
 
         Through the zone's own action, so the turn-on volume and the volume
         limit apply. The context is the player's: the logbook shows the
-        receiver's change as caused by it.
+        receiver's change as caused by it. An event tells automations.
         """
 
         coordinator = self._entry.runtime_data
@@ -472,24 +506,29 @@ class LinkedPlayers:
         left = coordinator.device.zone_source(FOLLOW_ZONE) if main.power else None
         name = choices.source_display(coordinator.device.discovery, dict(self._entry.options), code)
         _LOGGER.debug("Following the player of %s", name)
+        self._follow_context = context
         if not await self._async_call(target, SERVICE_SELECT_SOURCE, {ATTR_INPUT_SOURCE: name}, context):
+            self._follow_context = None
             return
-        if left is None or left == code:
-            return
-        previous_code = left
-        previous = self._links.get(previous_code)
-        followed = self._links.get(code)
-        if previous is None or followed is None or previous.entity_id == followed.entity_id:
-            # Unlinked meanwhile, or one player on both inputs.
-            return
-        if self._zone_playing(previous_code, besides=FOLLOW_ZONE):
-            # Another zone still plays it.
-            return
-        if is_busy(self._hass.states.get(previous.entity_id)):
-            self._pause_later(previous.entity_id, context)
+        options = dict(self._entry.options)
+        link = self._links.get(code)
+        self._hass.bus.async_fire(
+            EVENT_INPUT_FOLLOWED,
+            {
+                ATTR_ENTITY_ID: target,
+                "source": name,
+                "previous_source": (
+                    choices.source_display(coordinator.device.discovery, options, left)
+                    if left is not None
+                    else None
+                ),
+                "player": link.entity_id if link is not None else None,
+            },
+            context=context,
+        )
 
     @callback
-    def _pause_later(self, entity_id: str, context: Context) -> None:
+    def _pause_later(self, entity_id: str, context: Context | None) -> None:
         state = self._hass.states.get(entity_id)
         features = MediaPlayerEntityFeature(
             int(state.attributes.get(ATTR_SUPPORTED_FEATURES, 0)) if state else 0

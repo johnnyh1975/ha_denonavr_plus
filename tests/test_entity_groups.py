@@ -60,8 +60,8 @@ async def test_the_groups_of_the_recording(
         "video": 6,
         "graphic_eq": 15,
         "zones": 1,
-        "receiver": 9,
-        "diagnostic": 6,
+        "receiver": 11,
+        "diagnostic": 7,
     }
 
 
@@ -140,7 +140,7 @@ async def test_the_groups_apply_at_setup(hass: HomeAssistant, receiver_network: 
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
     assert _disabled(hass, entry, "sensor_sample_rate") is None
-    assert len(entry.options["entity_groups_enabled"]) == 6
+    assert len(entry.options["entity_groups_enabled"]) == 7
 
 
 async def test_only_groups_with_hidden_entities_are_offered(

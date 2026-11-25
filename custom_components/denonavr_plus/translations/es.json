@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Su título, carátula, posición y estado aparecen en cada zona que reproduce esta entrada; reproducir, pausar, saltar y buscar se envían a él.",
-          "follow": "Cuando el reproductor empieza a sonar, la zona principal se enciende si hace falta y cambia a esta entrada, y el reproductor vinculado de la entrada que deja se pausa. Un segundo reproductor que empieza en menos de 5 segundos se pausa en su lugar, para que dos reproductores no se turnen. El registro muestra el cambio como causado por el reproductor.",
+          "follow": "Cuando el reproductor empieza a sonar, la zona principal se enciende si hace falta y cambia a esta entrada. Mientras esto esté activo, cada vez que la zona principal cambia de entrada (también a mano o con el mando) se pausan los reproductores vinculados que ninguna zona reproduce. Un segundo reproductor que empieza en menos de 5 segundos se pausa en su lugar, para que dos reproductores no se turnen. El registro muestra el cambio como causado por el reproductor.",
           "full_volume": "El volumen se ajusta en el receptor: mientras una zona encendida reproduce esta entrada, el reproductor se pone al volumen máximo y sin silencio, y de nuevo cada vez que cambia su volumen. No para un dispositivo con altavoces propios, como un televisor: sonaría allí al volumen máximo."
         }
       },
@@ -1241,6 +1241,9 @@
     },
     "no_linked_player": {
       "message": "Ningún reproductor vinculado suena en la entrada de {entity}."
+    },
+    "linked_player_gone": {
+      "message": "El reproductor vinculado a {input} ya no está vinculado o ya no existe."
     }
   },
   "issues": {

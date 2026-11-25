@@ -62,11 +62,13 @@ class DenonAvrFirmwareSensor(DenonAvrEntity, BinarySensorEntity):
     HEOS tells only that there is one (player/check_update), not its
     version; the receiver installs it from its menu or the HEOS app. For
     automations; the update entity (update.py) shows the same under
-    Settings → Updates. Asked every 12 hours while HEOS answers.
+    Settings → Updates. Asked every 12 hours while HEOS answers. Starts
+    disabled: the update entity is where people look for it.
     """
 
     _attr_device_class = BinarySensorDeviceClass.UPDATE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "binary_sensor_firmware_update")

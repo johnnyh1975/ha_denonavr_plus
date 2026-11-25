@@ -42,6 +42,8 @@ sections:
       - type: tile
         entity: switch.avr_x2600h_music
         name: Music
+  # The tuner entities start disabled: enable "Tuner preset" and "Tuner
+  # frequency" on the device page to use this section.
   - type: grid
     visibility:
       - condition: state

@@ -324,9 +324,12 @@ class DenonAvrTunerFrequency(DenonAvrEntity, NumberEntity):
     """The FM frequency in MHz, to read and to tune directly.
 
     Unknown while no zone plays the tuner on FM; tuning then switches the
-    main zone to the tuner first.
+    main zone to the tuner first. Starts disabled: the media player shows
+    the station and has the presets in its browser, so only people who
+    want the tuner on a dashboard need it.
     """
 
+    _attr_entity_registry_enabled_default = False
     _attr_device_class = NumberDeviceClass.FREQUENCY
     _attr_mode = NumberMode.BOX
     _attr_native_unit_of_measurement = UnitOfFrequency.MEGAHERTZ

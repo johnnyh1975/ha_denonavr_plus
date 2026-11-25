@@ -519,7 +519,10 @@ class DenonAvrTunerPreset(DenonAvrEntity, SelectEntity):
 
     Unknown while no zone plays the tuner; choosing a preset then switches
     the main zone to the tuner first. The receiver reports no preset names.
+    Starts disabled, like the frequency: the media player covers the tuner.
     """
+
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "select_tuner_preset")

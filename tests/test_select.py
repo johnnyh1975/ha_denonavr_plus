@@ -19,7 +19,7 @@ from custom_components.denonavr_plus.avr.profile import load_profile
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 from custom_components.denonavr_plus.helpers import enum_options, option_key
 
-from .common import entity_id, registry_entry
+from .common import async_enable, entity_id, registry_entry
 from .setup_api import FakeSetupApi, answering_receiver
 from .test_init import HOST, FakeTelnet, loaded_entry, receiver_network  # noqa: F401
 
@@ -141,6 +141,7 @@ async def test_the_tuner_preset_is_offered_while_the_tuner_plays(
 ) -> None:
     from homeassistant.const import STATE_UNKNOWN
 
+    await async_enable(hass, loaded_entry, "select_tuner_preset")
     select = entity_id(hass, loaded_entry, "select_tuner_preset")
     await _push(hass, "PWON", "ZMON", "SICD")
     # Off the tuner it is unknown, not unavailable: it can still be chosen.
@@ -160,6 +161,7 @@ async def test_the_tuner_preset_is_offered_while_the_tuner_plays(
 async def test_a_tuner_preset_switches_to_the_tuner_first(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
+    await async_enable(hass, loaded_entry, "select_tuner_preset")
     select = entity_id(hass, loaded_entry, "select_tuner_preset")
     await _push(hass, "PWON", "ZMON", "SICD")
     telnet = FakeTelnet.instances[-1]
@@ -183,6 +185,7 @@ async def test_a_preset_from_standby_waits_for_the_zone(
     """Nothing but ZMON until the zone reports on: a waking receiver drops commands."""
     from unittest.mock import patch
 
+    await async_enable(hass, loaded_entry, "select_tuner_preset")
     select = entity_id(hass, loaded_entry, "select_tuner_preset")
     await _push(hass, "PWON", "ZMOFF", "SITUNER")
     telnet = FakeTelnet.instances[-1]

@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Its title, artwork, position and state show on every zone that plays this input; play, pause, skip and seek go to it.",
-          "follow": "When the player starts playing, the main zone turns on if needed and switches to this input, and the linked player of the input it leaves is paused. A second player that starts within 5 seconds is paused instead, so two players cannot take turns. The logbook shows the switch as caused by the player.",
+          "follow": "When the player starts playing, the main zone turns on if needed and switches to this input. While this is on, whenever the main zone changes input (also by hand or by remote) the linked players that no zone plays are paused. A second player that starts within 5 seconds is paused instead, so two players cannot take turns. The logbook shows the switch as caused by the player.",
           "full_volume": "The volume is set on the receiver, so while a zone that is on plays this input, the player is set to full volume and unmuted, and again whenever its volume changes. Not for a device with its own speakers, such as a television: it would play at full volume there."
         }
       },
@@ -1241,6 +1241,9 @@
     },
     "no_linked_player": {
       "message": "No linked player plays on the input of {entity}."
+    },
+    "linked_player_gone": {
+      "message": "The player linked to {input} is no longer linked or no longer exists."
     }
   },
   "issues": {

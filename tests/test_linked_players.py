@@ -16,7 +16,11 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import MockConfigEntry, async_mock_service
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_capture_events,
+    async_mock_service,
+)
 
 from custom_components.denonavr_plus import linked_players
 from custom_components.denonavr_plus.const import DOMAIN
@@ -187,7 +191,7 @@ async def test_an_input_that_plays_already_is_left_alone(
     assert telnet.sent == []
 
 
-async def test_following_pauses_the_player_of_the_input_left(
+async def test_following_pauses_the_players_no_zone_hears(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     telnet = FakeTelnet.instances[-1]
@@ -201,13 +205,26 @@ async def test_following_pauses_the_player_of_the_input_left(
         CD=_player(STREAMER),
     )
     await hass.async_block_till_done()
+    events = async_capture_events(hass, linked_players.EVENT_INPUT_FOLLOWED)
     pauses = async_mock_service(hass, "media_player", "media_pause")
     hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
     await hass.async_block_till_done()
     assert telnet.sent[-1] == "SIDVD"
+    # The receiver reports the new input: the other players pause now.
+    telnet.push("SIDVD")
+    await _settle(hass)
     assert [call.data["entity_id"] for call in pauses] == [STREAMER]
     # The logbook names the player as the cause: its context goes along.
     assert pauses[0].context.id == hass.states.get(APPLE_TV).context.id
+    assert [event.data for event in events] == [
+        {
+            "entity_id": main_player(hass, loaded_entry),
+            "source": "DVD",
+            "previous_source": "CD",
+            "player": APPLE_TV,
+        }
+    ]
+    assert events[0].context.id == pauses[0].context.id
 
 
 async def test_a_second_player_right_after_is_paused_instead(
@@ -481,6 +498,9 @@ async def test_zone2_on_the_main_zone_source_moves_along(
     hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
     await hass.async_block_till_done()
     assert telnet.sent[-1] == "SIDVD"
+    # The receiver reports the new input: the other players pause now.
+    telnet.push("SIDVD")
+    await _settle(hass)
     assert [call.data["entity_id"] for call in pauses] == [STREAMER]
 
 
@@ -498,6 +518,9 @@ async def test_one_player_on_two_inputs_is_not_paused(
     hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
     await hass.async_block_till_done()
     assert telnet.sent[-1] == "SIDVD"
+    # The receiver reports the new input: the other players pause now.
+    telnet.push("SIDVD")
+    await _settle(hass)
     assert pauses == []
 
 
@@ -515,6 +538,9 @@ async def test_the_player_left_keeps_playing_in_another_zone(
     hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
     await hass.async_block_till_done()
     assert telnet.sent[-1] == "SIDVD"
+    # The receiver reports the new input: the other players pause now.
+    telnet.push("SIDVD")
+    await _settle(hass)
     assert pauses == []
 
 
@@ -528,3 +554,46 @@ async def test_removing_the_entry_removes_the_repair(
     assert await hass.config_entries.async_remove(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue) is None
+
+
+def main_player(hass: HomeAssistant, entry: MockConfigEntry) -> str:
+    return next(
+        item.entity_id
+        for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+        if item.unique_id.endswith("_media_player_main")
+    )
+
+
+async def test_switching_by_hand_pauses_the_players_no_zone_hears(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """With a followed player, only what a zone plays keeps playing (as Rotel)."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV, follow=True), CD=_player(STREAMER))
+    await hass.async_block_till_done()
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    # By remote to an input without a player.
+    telnet.push("SITV")
+    await _settle(hass)
+    assert [call.data["entity_id"] for call in pauses] == [APPLE_TV]
+
+
+async def test_without_a_followed_player_every_player_keeps_playing(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV), CD=_player(STREAMER))
+    await hass.async_block_till_done()
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    telnet.push("SITV")
+    await _settle(hass)
+    # Off and on again: no change of input is no reason either.
+    telnet.push("ZMOFF")
+    await _settle(hass)
+    assert pauses == []

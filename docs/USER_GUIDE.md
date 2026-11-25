@@ -228,12 +228,14 @@ Link the device on an input to its media player in Home Assistant, such as
 an Apple TV on the Media Player input: pick the input, then the player, then
 link another input or save. While the input plays, the receiver's media
 player shows what the Apple TV plays, with artwork and position, and its
-play, pause and skip buttons control the Apple TV. Power, volume and the input stay with the receiver, so one card
-does both.
+play, pause and skip buttons control the Apple TV. Power, volume and the
+input stay with the receiver, so one card does both. The receiver's media
+browser has a folder for the Apple TV too: starting an app or a show there
+switches the receiver to its input.
 
 Per input, the **main zone can switch to the input when the player
-starts** (it turns on if needed and pauses the player of the input it
-leaves) and **keep the player at full volume**, since you set the volume on
+starts** (it turns on if needed, and linked players that no zone plays
+then pause) and **keep the player at full volume**, since you set the volume on
 the receiver. **Playing or idle by the input signal** shows *Playing* or
 *Idle* instead of *On* on inputs without a linked player; it has not been
 tried on a receiver yet.

@@ -9,10 +9,15 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from freezegun.api import FrozenDateTimeFactory
-from homeassistant.components.media_player import BrowseError
+from homeassistant.components.media_player import (
+    BrowseError,
+    MediaPlayerEntity,
+    MediaPlayerEntityFeature,
+    MediaPlayerState,
+)
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
@@ -2061,3 +2066,160 @@ async def test_network_details_stay_off_an_input_with_a_linked_player(
 
     player = hass.data[DATA_COMPONENT].get_entity(main)
     assert player is not None and player.media_image_url is None
+
+
+class _BrowsingPlayer(MediaPlayerEntity):
+    """A linked player with a media browser, as an Apple TV or a Chromecast has."""
+
+    _attr_name = "Apple TV"
+    _attr_should_poll = False
+    _attr_state = MediaPlayerState.IDLE
+    _attr_supported_features = (
+        MediaPlayerEntityFeature.BROWSE_MEDIA
+        | MediaPlayerEntityFeature.PLAY_MEDIA
+        | MediaPlayerEntityFeature.PLAY
+    )
+
+    def __init__(self) -> None:
+        self.entity_id = _APPLE_TV
+        self.played: list[tuple[str, str, dict[str, Any]]] = []
+
+    async def async_browse_media(
+        self, media_content_type: Any = None, media_content_id: str | None = None
+    ) -> Any:
+        from homeassistant.components.media_player import BrowseMedia, MediaClass
+
+        if media_content_id == "apps":
+            return BrowseMedia(
+                media_class=MediaClass.DIRECTORY,
+                media_content_id="apps",
+                media_content_type="apps",
+                title="Apps",
+                can_play=False,
+                can_expand=True,
+                children=[
+                    BrowseMedia(
+                        media_class=MediaClass.APP,
+                        media_content_id="com.example.tv",
+                        media_content_type="app",
+                        title="TV",
+                        can_play=True,
+                        can_expand=False,
+                        thumbnail="/api/media_player_proxy/media_player.apple_tv/browse_media/app/1",
+                    )
+                ],
+            )
+        return BrowseMedia(
+            media_class=MediaClass.DIRECTORY,
+            media_content_id="",
+            media_content_type="",
+            title="Apple TV",
+            can_play=False,
+            can_expand=True,
+            children=[
+                BrowseMedia(
+                    media_class=MediaClass.DIRECTORY,
+                    media_content_id="apps",
+                    media_content_type="apps",
+                    title="Apps",
+                    can_play=False,
+                    can_expand=True,
+                )
+            ],
+        )
+
+    async def async_play_media(self, media_type: Any, media_id: str, **kwargs: Any) -> None:
+        self.played.append((str(media_type), media_id, kwargs))
+
+
+async def _browsing_player(hass: HomeAssistant) -> _BrowsingPlayer:
+    from homeassistant.components.media_player import DATA_COMPONENT
+
+    player = _BrowsingPlayer()
+    await hass.data[DATA_COMPONENT].async_add_entities([player])
+    await hass.async_block_till_done()
+    return player
+
+
+async def test_the_browser_has_the_linked_players_media(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import DATA_COMPONENT
+
+    await _browsing_player(hass)
+    # A linked player without a browser gets no folder.
+    hass.states.async_set("media_player.streamer", "idle", {"supported_features": 1})
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "linked_players": {
+                "DVD": {"player": _APPLE_TV},
+                "CD": {"player": "media_player.streamer"},
+                # The same player on a second input: one folder.
+                "GAME": {"player": _APPLE_TV},
+            },
+        },
+    )
+    await hass.async_block_till_done()
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None
+    root = await player.async_browse_media()
+    linked = [child for child in root.children or [] if child.media_content_id.startswith("linked:")]
+    assert [(child.title, child.media_content_id) for child in linked] == [
+        ("Apple TV", "linked:DVD|")
+    ]
+    top = await player.async_browse_media("", "linked:DVD|")
+    assert [child.media_content_id for child in top.children or []] == ["linked:DVD|apps"]
+    apps = await player.async_browse_media("apps", "linked:DVD|apps")
+    app = (apps.children or [])[0]
+    assert app.media_content_id == "linked:DVD|com.example.tv"
+    assert app.media_content_type == "app" and app.can_play
+    assert app.thumbnail.startswith("/api/media_player_proxy/media_player.apple_tv/")
+
+
+async def test_playing_a_linked_players_media_switches_to_its_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    linked = await _browsing_player(hass)
+    _link(hass, loaded_entry)
+    await _push(hass, "PWON", "ZMON", "SICD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "media_player",
+        "play_media",
+        {
+            "entity_id": main,
+            "media_content_type": "app",
+            "media_content_id": "linked:DVD|com.example.tv",
+            "enqueue": "add",
+        },
+        blocking=True,
+    )
+    assert "SIDVD" in telnet.sent
+    assert [played[:2] for played in linked.played] == [("app", "com.example.tv")]
+    assert linked.played[0][2]["enqueue"] == "add"
+
+
+async def test_a_gone_linked_player_is_a_clear_error(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import DATA_COMPONENT, BrowseError
+
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None
+    with pytest.raises(BrowseError) as raised:
+        await player.async_browse_media("", "linked:DVD|")
+    assert raised.value.translation_key == "linked_player_gone"
+    with pytest.raises(ServiceValidationError) as failed:
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "app", "media_content_id": "linked:DVD|x"},
+            blocking=True,
+        )
+    assert failed.value.translation_key == "linked_player_gone"

@@ -126,15 +126,20 @@ mode the receiver has listed and its tokens.
   Submitting the step without an input saves too. Per input:
   - **Main zone switches to this input when the player starts** (default off):
     the main zone turns on if needed and switches to the input, through its
-    own action, so the turn-on volume and the volume limit apply. The linked
-    player of the input the main zone leaves is paused (stopped, if it cannot
-    pause), unless another zone still plays that input. Nothing happens while a
-    zone already plays the input, when the player comes back after being
-    unavailable, when it is already playing as Home Assistant starts, or
-    while the main zone's player is unavailable. A
-    second player that starts within 5 seconds of a switch is paused instead,
-    so two players cannot take turns. The logbook shows the switch as caused
-    by the player.
+    own action, so the turn-on volume and the volume limit apply. Nothing
+    happens while a zone already plays the input, when the player comes back
+    after being unavailable, when it is already playing as Home Assistant
+    starts, or while the main zone's player is unavailable. A second player
+    that starts within 5 seconds of a switch is paused instead, so two players
+    cannot take turns. The logbook shows the switch as caused by the player,
+    and the event `denonavr_plus_input_followed` tells automations (data:
+    `entity_id` of the main zone's player, `source`, `previous_source`, `None`
+    when the zone was off, and `player`).
+
+    While one input has this switched on, only what a zone plays keeps
+    playing: whenever the main zone changes input, by a follow, by hand or by
+    the remote, the linked players whose input no zone plays are paused
+    (stopped, if they cannot pause). A player that Zone 2 plays keeps playing.
   - **Keep the player at full volume** (default off): the volume is set on the
     receiver, so while a zone that is on plays the input, the player is set to
     100 % and unmuted: when the zone switches to the input, when the option is
@@ -276,8 +281,10 @@ AVC‑A10H describes it as 0–15).
   (text to speech, radio, …), shown on the first level (HEOS `play_stream`,
   not yet tried on a receiver); another zone hears them by joining the main
   zone. Receivers without HEOS take quick selects, sources and presets only.
-  A zone in standby is turned on first, also when a source or a sound mode is
-  picked.
+  Each **linked player** with a browser of its own (an Apple TV, a Chromecast)
+  gets a folder under its name with that browser; playing from it switches
+  the zone to the player's input, then plays on the player. A zone in standby
+  is turned on first, also when a source or a sound mode is picked.
 - **Voice**: "play Kino on the living room receiver" works with Assist. The
   player searches its quick selects, inputs and HEOS favorites by name
   (`media_player.search_media`) and Assist plays the first match.
@@ -351,7 +358,9 @@ AVC‑A10H describes it as 0–15).
   signal change. Not yet confirmed on a receiver.
 - **Binary sensors**: telnet connectivity, and on receivers with HEOS whether
   HEOS reports a **firmware update** (asked twice a day; HEOS gives no version,
-  so the update is installed from the receiver's menu or the HEOS app).
+  so the update is installed from the receiver's menu or the HEOS app). The
+  firmware binary sensor starts disabled: the update entity below shows the
+  same where Home Assistant lists updates.
 - **Firmware** (an update entity, on receivers with HEOS): the same update
   under Settings → Updates. Its installed version is the receiver's firmware;
   its latest version is the installed one while there is no update and
@@ -379,7 +388,9 @@ AVC‑A10H describes it as 0–15).
   MHz (a number, to tune directly). While no zone plays the tuner both are
   unknown; choosing a preset or a frequency then turns the main zone on and
   switches it to the tuner first, as the receiver takes tuner commands only
-  then. Recalling and tuning have not been tried on a receiver yet.
+  then. Both start disabled: the media player already shows the station,
+  skips through the presets and has them in its browser. Recalling and tuning
+  have not been tried on a receiver yet.
 
 ### Enabled and disabled entities
 
@@ -387,7 +398,6 @@ A receiver offers well over a hundred settings, so only what you change while
 listening starts enabled:
 
 - the media players, the sound mode selects and quick select
-- the tuner preset and frequency
 - tone (bass, treble, tone control), Dynamic EQ, Dynamic Volume, Dynamic
   Compression, MultEQ, Cinema EQ, center level and Dialog Control
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer

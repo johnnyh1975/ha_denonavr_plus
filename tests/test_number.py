@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.avr.profile import load_profile
 
-from .common import entity_id, registry_entry
+from .common import async_enable, entity_id, registry_entry
 from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401
 
 __all__ = ["loaded_entry", "receiver_network"]
@@ -88,6 +88,7 @@ async def test_times_are_durations(hass: HomeAssistant, loaded_entry: MockConfig
 async def test_the_tuner_frequency_reads_and_tunes(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
+    await async_enable(hass, loaded_entry, "number_tuner_frequency")
     import asyncio
 
     from homeassistant.const import STATE_UNKNOWN

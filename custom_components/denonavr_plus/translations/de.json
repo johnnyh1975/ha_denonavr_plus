@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "Titel, Cover, Position und Zustand erscheinen auf jeder Zone, die diesen Eingang spielt; Wiedergabe, Pause, Springen und Spulen gehen an ihn.",
-          "follow": "Beginnt der Player zu spielen, schaltet sich die Hauptzone bei Bedarf ein und wechselt auf diesen Eingang, und der verknüpfte Player des verlassenen Eingangs wird angehalten. Ein zweiter Player, der innerhalb von 5 Sekunden startet, wird stattdessen angehalten, damit sich zwei Player nicht abwechseln. Das Logbuch zeigt den Wechsel als vom Player ausgelöst.",
+          "follow": "Beginnt der Player zu spielen, schaltet sich die Hauptzone bei Bedarf ein und wechselt auf diesen Eingang. Solange das eingeschaltet ist, werden bei jedem Eingangswechsel der Hauptzone (auch von Hand oder per Fernbedienung) die verknüpften Player angehalten, die keine Zone spielt. Ein zweiter Player, der innerhalb von 5 Sekunden startet, wird stattdessen angehalten, damit sich zwei Player nicht abwechseln. Das Logbuch zeigt den Wechsel als vom Player ausgelöst.",
           "full_volume": "Die Lautstärke wird am Receiver eingestellt. Solange eine eingeschaltete Zone diesen Eingang spielt, wird der Player deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, und erneut, sobald sich seine Lautstärke ändert. Nicht für ein Gerät mit eigenen Lautsprechern wie einen Fernseher: Es würde dort mit voller Lautstärke spielen."
         }
       },
@@ -1241,6 +1241,9 @@
     },
     "no_linked_player": {
       "message": "Am Eingang von {entity} spielt kein verknüpfter Player."
+    },
+    "linked_player_gone": {
+      "message": "Der mit {input} verknüpfte Player ist nicht mehr verknüpft oder existiert nicht mehr."
     }
   },
   "issues": {

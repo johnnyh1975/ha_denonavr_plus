@@ -40,6 +40,7 @@ from homeassistant.components.media_player import (
     ATTR_MEDIA_SHUFFLE,
     ATTR_MEDIA_TITLE,
     ATTR_MEDIA_TRACK,
+    DATA_COMPONENT as MEDIA_PLAYER_COMPONENT,
     DOMAIN as MEDIA_PLAYER,
     BrowseError,
     BrowseMedia,
@@ -102,6 +103,9 @@ _LOGGER = logging.getLogger(__name__)
 _QUICK_SELECT = "quick_select/"
 _SOURCE = "source/"
 _TUNER_PRESET = "tuner_preset/"
+#: A linked player's media: "linked:<input code>|<the player's own id>".
+#: Input codes may hold a slash (SAT/CBL), never a bar.
+_LINKED = "linked:"
 _TRANSPORT = (
     MediaPlayerEntityFeature.PLAY
     | MediaPlayerEntityFeature.PAUSE
@@ -1184,6 +1188,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 media_content_id,
                 content_filter=lambda item: item.media_content_type.startswith("audio/"),
             )
+        if media_content_id and str(media_content_id).startswith(_LINKED):
+            return await self._async_browse_linked(str(media_content_id), media_content_type)
         names = await self._folder_names()
         if heos_media.is_heos_id(media_content_id) and self._zone.is_main:
             heos = self._device.heos
@@ -1210,6 +1216,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             children.append(self._folder("tuner_presets", names["tuner_presets"], None))
         if self._zone.is_main and self._device.heos is not None:
             children.append(self._folder(heos_media.ROOT, "HEOS", None))
+        children.extend(self._linked_folders())
         if self._device.can_play_url and self._zone.is_main:
             try:
                 media = await media_source.async_browse_media(
@@ -1240,6 +1247,114 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             can_expand=True,
             children=children,
             children_media_class=MediaClass.DIRECTORY,
+        )
+
+    # The linked players' media ---------------------------------------------
+
+    def _browsable_links(self) -> dict[str, str]:
+        """Input code -> linked player that has a media browser (each player once)."""
+
+        found: dict[str, str] = {}
+        for code, link in linked_players.links(self._entry_options).items():
+            state = self.hass.states.get(link.entity_id)
+            if state is None or link.entity_id in found.values():
+                continue
+            features = int(state.attributes.get(ATTR_SUPPORTED_FEATURES, 0))
+            if features & MediaPlayerEntityFeature.BROWSE_MEDIA:
+                found[code] = link.entity_id
+        return found
+
+    def _linked_folders(self) -> list[BrowseMedia]:
+        """A folder per linked player with a media browser, named after the player."""
+
+        folders = []
+        for code, entity_id in self._browsable_links().items():
+            state = self.hass.states.get(entity_id)
+            title = state.name if state is not None else entity_id
+            folders.append(self._folder(f"{_LINKED}{code}|", str(title), None))
+        return folders
+
+    def _linked_entity(self, code: str) -> MediaPlayerEntity:
+        """The linked player of an input, as an entity to browse."""
+
+        link = linked_players.links(self._entry_options).get(code)
+        entity = (
+            self.hass.data[MEDIA_PLAYER_COMPONENT].get_entity(link.entity_id)
+            if link is not None
+            else None
+        )
+        if entity is None:
+            raise BrowseError(
+                translation_domain=DOMAIN,
+                translation_key="linked_player_gone",
+                translation_placeholders={
+                    "input": choices.source_display(
+                        self._device.discovery, self._entry_options, code
+                    )
+                },
+            )
+        return entity
+
+    async def _async_browse_linked(
+        self, content_id: str, content_type: MediaType | str | None
+    ) -> BrowseMedia:
+        """A level of a linked player's own browser, with ids that lead back here."""
+
+        code, _, inner = content_id[len(_LINKED):].partition("|")
+        entity = self._linked_entity(code)
+        item = await entity.async_browse_media(
+            (content_type or None) if inner else None, inner or None
+        )
+        return self._wrap_linked(code, item)
+
+    def _wrap_linked(self, code: str, item: BrowseMedia) -> BrowseMedia:
+        return BrowseMedia(
+            media_class=item.media_class,
+            media_content_id=f"{_LINKED}{code}|{item.media_content_id}",
+            media_content_type=item.media_content_type,
+            title=item.title,
+            can_play=item.can_play,
+            can_expand=item.can_expand,
+            children=(
+                [self._wrap_linked(code, child) for child in item.children]
+                if item.children is not None
+                else None
+            ),
+            children_media_class=item.children_media_class,
+            thumbnail=item.thumbnail,
+            not_shown=item.not_shown,
+        )
+
+    async def _async_play_linked(
+        self, media_type: MediaType | str, media_id: str, kwargs: dict[str, Any]
+    ) -> None:
+        """Play from a linked player's browser: this zone to its input, then the player."""
+
+        code, _, inner = media_id[len(_LINKED):].partition("|")
+        link = linked_players.links(self._entry_options).get(code)
+        if link is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="linked_player_gone",
+                translation_placeholders={
+                    "input": choices.source_display(
+                        self._device.discovery, self._entry_options, code
+                    )
+                },
+            )
+        await self._ensure_on()
+        if self._source_code != code:
+            await self._device.async_select_source(self._zone.id, code)
+        data: dict[str, Any] = {
+            ATTR_MEDIA_CONTENT_TYPE: media_type,
+            ATTR_MEDIA_CONTENT_ID: inner,
+            "entity_id": link.entity_id,
+        }
+        for key in (ATTR_MEDIA_ENQUEUE, ATTR_MEDIA_EXTRA):
+            if (value := kwargs.get(key)) is not None:
+                data[key] = getattr(value, "value", value)
+        await self.hass.services.async_call(
+            MEDIA_PLAYER, "play_media", data, blocking=True, context=self._context
         )
 
     async def _folder_names(self) -> dict[str, str]:
@@ -1390,8 +1505,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     async def async_play_media(
         self, media_type: MediaType | str, media_id: str, **kwargs: Any
     ) -> None:
-        """A quick select, a source, or a URL (also from Home Assistant's media, TTS)."""
+        """A quick select, a source, a linked player's media, or a URL (also TTS)."""
 
+        if media_id.startswith(_LINKED):
+            await self._async_play_linked(media_type, media_id, kwargs)
+            return
         if (
             kwargs.get(ATTR_MEDIA_ANNOUNCE)
             and self._zone.is_main

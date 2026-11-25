@@ -250,7 +250,7 @@
         },
         "data_description": {
           "player": "O título, a capa, a posição e o estado aparecem em cada zona que toca esta entrada; reproduzir, pausa, saltar e avançar vão para ele.",
-          "follow": "Quando o leitor começa a tocar, a zona principal liga-se se necessário e muda para esta entrada, e o leitor associado da entrada que deixa é pausado. Um segundo leitor que comece em menos de 5 segundos é pausado em vez disso, para que dois leitores não se revezem. O registo mostra a mudança como causada pelo leitor.",
+          "follow": "Quando o leitor começa a tocar, a zona principal liga-se se necessário e muda para esta entrada. Enquanto isto estiver ativo, sempre que a zona principal muda de entrada (também à mão ou pelo comando) os leitores associados que nenhuma zona toca são pausados. Um segundo leitor que comece em menos de 5 segundos é pausado em vez disso, para que dois leitores não se revezem. O registo mostra a mudança como causada pelo leitor.",
           "full_volume": "O volume é ajustado no recetor: enquanto uma zona ligada toca esta entrada, o leitor é posto no volume máximo e sem silêncio, e de novo sempre que o seu volume muda. Não para um dispositivo com altifalantes próprios, como um televisor: tocaria aí no volume máximo."
         }
       },
@@ -1241,6 +1241,9 @@
     },
     "no_linked_player": {
       "message": "Nenhum leitor associado toca na entrada de {entity}."
+    },
+    "linked_player_gone": {
+      "message": "O leitor associado a {input} já não está associado ou já não existe."
     }
   },
   "issues": {

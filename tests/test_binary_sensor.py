@@ -8,7 +8,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .common import entity_id
+from .common import async_enable, entity_id
 from .test_init import FakeHeos, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
@@ -21,6 +21,7 @@ __all__ = ["loaded_entry", "receiver_network"]
 async def test_the_firmware_sensor_asks_heos_twice_a_day(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
+    await async_enable(hass, loaded_entry, "binary_sensor_firmware_update")
     coordinator = loaded_entry.runtime_data
     sensor = entity_id(hass, loaded_entry, "binary_sensor_firmware_update")
     heos = FakeHeos.instances[-1]
