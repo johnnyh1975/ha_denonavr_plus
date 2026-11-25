@@ -230,7 +230,7 @@
       },
       "playback": {
         "title": "Wiedergabe",
-        "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Wähle einen Eingang, um das daran angeschlossene Gerät zu verknüpfen, etwa ein Apple TV oder einen Streamer; nach jedem Eingang kommst du hierher zurück. Ohne Eingang bestätigen, um zu speichern.",
+        "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Wähle einen Eingang, um das daran angeschlossene Gerät zu verknüpfen, etwa ein Apple TV oder einen Streamer, oder bestätige, um zu speichern.",
         "data": {
           "input": "Player mit einem Eingang verknüpfen",
           "signal_state": "Wiedergabe oder Leerlauf nach dem Eingangssignal"
@@ -245,13 +245,21 @@
         "description": "Der Media Player des Geräts an {input}. Leer lassen, um die Verknüpfung zu lösen; die beiden Schalter wirken dann nicht.",
         "data": {
           "player": "Media Player",
-          "follow": "Auf diesen Eingang umschalten, wenn der Player zu spielen beginnt",
+          "follow": "Hauptzone schaltet auf diesen Eingang, wenn der Player startet",
           "full_volume": "Player auf voller Lautstärke halten"
         },
         "data_description": {
           "player": "Titel, Cover, Position und Zustand erscheinen auf jeder Zone, die diesen Eingang spielt; Wiedergabe, Pause, Springen und Spulen gehen an ihn.",
           "follow": "Beginnt der Player zu spielen, schaltet sich die Hauptzone bei Bedarf ein und wechselt auf diesen Eingang, und der verknüpfte Player des verlassenen Eingangs wird angehalten. Ein zweiter Player, der innerhalb von 5 Sekunden startet, wird stattdessen angehalten, damit sich zwei Player nicht abwechseln. Das Logbuch zeigt den Wechsel als vom Player ausgelöst.",
           "full_volume": "Die Lautstärke wird am Receiver eingestellt. Solange eine eingeschaltete Zone diesen Eingang spielt, wird der Player deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, und erneut, sobald sich seine Lautstärke ändert. Nicht für ein Gerät mit eigenen Lautsprechern wie einen Fernseher: Es würde dort mit voller Lautstärke spielen."
+        }
+      },
+      "playback_next": {
+        "title": "Weitere Eingänge?",
+        "description": "Die Änderung für {input} ist vorgemerkt. Sie wird zusammen mit weiteren gespeichert, wenn du Speichern wählst.",
+        "menu_options": {
+          "playback": "Weiteren Eingang verknüpfen",
+          "playback_save": "Speichern"
         }
       },
       "connection": {

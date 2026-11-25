@@ -230,7 +230,7 @@
       },
       "playback": {
         "title": "Reprodução",
-        "description": "Como os leitores multimédia mostram o que toca numa entrada. Escolha uma entrada para associar o dispositivo nela conectado, como uma Apple TV ou um streamer; depois de cada entrada, volta aqui. Confirme sem entrada para guardar.",
+        "description": "Como os leitores multimédia mostram o que toca numa entrada. Escolha uma entrada para associar o dispositivo nela conectado, como uma Apple TV ou um streamer, ou confirme para guardar.",
         "data": {
           "input": "Associar um leitor a uma entrada",
           "signal_state": "A reproduzir ou inativo pelo sinal de entrada"
@@ -245,13 +245,21 @@
         "description": "O leitor multimédia do dispositivo em {input}. Deixe vazio para desassociar a entrada; os dois interruptores não têm então efeito.",
         "data": {
           "player": "Leitor multimédia",
-          "follow": "Mudar para esta entrada quando o leitor começa a tocar",
+          "follow": "A zona principal muda para esta entrada quando o leitor começa",
           "full_volume": "Manter o leitor no volume máximo"
         },
         "data_description": {
           "player": "O título, a capa, a posição e o estado aparecem em cada zona que toca esta entrada; reproduzir, pausa, saltar e avançar vão para ele.",
           "follow": "Quando o leitor começa a tocar, a zona principal liga-se se necessário e muda para esta entrada, e o leitor associado da entrada que deixa é pausado. Um segundo leitor que comece em menos de 5 segundos é pausado em vez disso, para que dois leitores não se revezem. O registo mostra a mudança como causada pelo leitor.",
           "full_volume": "O volume é ajustado no recetor: enquanto uma zona ligada toca esta entrada, o leitor é posto no volume máximo e sem silêncio, e de novo sempre que o seu volume muda. Não para um dispositivo com altifalantes próprios, como um televisor: tocaria aí no volume máximo."
+        }
+      },
+      "playback_next": {
+        "title": "Mais entradas?",
+        "description": "A alteração para {input} fica registada. É guardada com as restantes quando escolher Guardar.",
+        "menu_options": {
+          "playback": "Associar outra entrada",
+          "playback_save": "Guardar"
         }
       },
       "connection": {

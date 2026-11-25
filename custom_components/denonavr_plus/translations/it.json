@@ -230,7 +230,7 @@
       },
       "playback": {
         "title": "Riproduzione",
-        "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Scegli un ingresso per collegare il dispositivo connesso, ad esempio una Apple TV o uno streamer; dopo ogni ingresso torni qui. Conferma senza ingresso per salvare.",
+        "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Scegli un ingresso per collegare il dispositivo connesso, ad esempio una Apple TV o uno streamer, oppure conferma per salvare.",
         "data": {
           "input": "Collega un lettore a un ingresso",
           "signal_state": "In esecuzione o inattivo in base al segnale d'ingresso"
@@ -245,13 +245,21 @@
         "description": "Il lettore multimediale del dispositivo su {input}. Lascialo vuoto per scollegare l'ingresso; i due interruttori allora non hanno effetto.",
         "data": {
           "player": "Lettore multimediale",
-          "follow": "Passa a questo ingresso quando il lettore inizia a suonare",
+          "follow": "La zona principale passa a questo ingresso quando il lettore parte",
           "full_volume": "Mantieni il lettore al volume massimo"
         },
         "data_description": {
           "player": "Titolo, copertina, posizione e stato compaiono su ogni zona che riproduce questo ingresso; riproduci, pausa, salta e avanzamento vanno a esso.",
           "follow": "Quando il lettore inizia a suonare, la zona principale si accende se serve e passa a questo ingresso, e il lettore collegato dell'ingresso lasciato viene messo in pausa. Un secondo lettore che parte entro 5 secondi viene invece messo in pausa, così due lettori non si alternano. Il registro mostra il cambio come causato dal lettore.",
           "full_volume": "Il volume si regola sul ricevitore: finché una zona accesa riproduce questo ingresso, il lettore viene portato al volume massimo e riattivato, e di nuovo ogni volta che il suo volume cambia. Non per un dispositivo con altoparlanti propri, come un televisore: lì suonerebbe al volume massimo."
+        }
+      },
+      "playback_next": {
+        "title": "Altri ingressi?",
+        "description": "La modifica per {input} è annotata. Viene salvata insieme alle altre quando scegli Salva.",
+        "menu_options": {
+          "playback": "Collega un altro ingresso",
+          "playback_save": "Salva"
         }
       },
       "connection": {

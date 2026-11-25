@@ -225,15 +225,14 @@ Surround instead of the receiver's Dolby Audio - DD + DSur); switch
 ### Playback
 
 Link the device on an input to its media player in Home Assistant, such as
-an Apple TV on the Media Player input: pick the input, then the player, and
-the next input; submit without an input to save. While
-the input plays, the receiver's media player shows what the Apple TV plays,
-with artwork and position, and its play, pause and skip buttons control the
-Apple TV. Power, volume and the input stay with the receiver, so one card
+an Apple TV on the Media Player input: pick the input, then the player, then
+link another input or save. While the input plays, the receiver's media
+player shows what the Apple TV plays, with artwork and position, and its
+play, pause and skip buttons control the Apple TV. Power, volume and the input stay with the receiver, so one card
 does both.
 
-Per input, the receiver can **switch to the input when the player starts
-playing** (it turns on if needed and pauses the player of the input it
+Per input, the **main zone can switch to the input when the player
+starts** (it turns on if needed and pauses the player of the input it
 leaves) and **keep the player at full volume**, since you set the volume on
 the receiver. **Playing or idle by the input signal** shows *Playing* or
 *Idle* instead of *On* on inputs without a linked player; it has not been
@@ -243,8 +242,8 @@ tried on a receiver yet.
 > - Link every input with a device that Home Assistant knows: an Apple TV,
 >   a Chromecast, a streamer. One media player card then shows and controls
 >   what you hear.
-> - Switch on **switch to the input** for devices you start from their own
->   remote or app, such as an Apple TV. Leave it off for a device that plays
+> - Switch on **main zone switches to this input** for devices you start
+>   from their own remote or app, such as an Apple TV. Leave it off for a device that plays
 >   in the background, or the receiver switches when you did not want it.
 > - Switch on **full volume** for players with their own volume (AirPlay,
 >   Chromecast), so a lowered player does not make the receiver sound quiet.

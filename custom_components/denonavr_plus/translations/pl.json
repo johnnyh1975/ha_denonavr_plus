@@ -230,7 +230,7 @@
       },
       "playback": {
         "title": "Odtwarzanie",
-        "description": "Jak odtwarzacze multimedialne pokazują, co gra na wejściu. Wybierz wejście, aby powiązać podłączone do niego urządzenie, np. Apple TV lub streamer; po każdym wejściu wracasz tutaj. Zatwierdź bez wejścia, aby zapisać.",
+        "description": "Jak odtwarzacze multimedialne pokazują, co gra na wejściu. Wybierz wejście, aby powiązać podłączone do niego urządzenie, np. Apple TV lub streamer, albo zatwierdź, aby zapisać.",
         "data": {
           "input": "Powiąż odtwarzacz z wejściem",
           "signal_state": "Odtwarzanie lub brak aktywności według sygnału wejściowego"
@@ -245,13 +245,21 @@
         "description": "Odtwarzacz multimedialny urządzenia na wejściu {input}. Zostaw puste, aby usunąć powiązanie wejścia; oba przełączniki nie mają wtedy znaczenia.",
         "data": {
           "player": "Odtwarzacz multimedialny",
-          "follow": "Przełącz na to wejście, gdy odtwarzacz zacznie grać",
+          "follow": "Strefa główna przełącza na to wejście, gdy odtwarzacz zacznie grać",
           "full_volume": "Utrzymuj odtwarzacz na pełnej głośności"
         },
         "data_description": {
           "player": "Jego tytuł, okładka, pozycja i stan pojawiają się w każdej strefie grającej to wejście; odtwarzanie, pauza, przeskok i przewijanie trafiają do niego.",
           "follow": "Gdy odtwarzacz zacznie grać, strefa główna w razie potrzeby się włącza i przełącza na to wejście, a powiązany odtwarzacz opuszczonego wejścia zostaje wstrzymany. Drugi odtwarzacz, który ruszy w ciągu 5 sekund, zostaje wstrzymany zamiast tego, aby dwa odtwarzacze nie przełączały amplitunera na zmianę. Dziennik pokazuje przełączenie jako wywołane przez odtwarzacz.",
           "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością."
+        }
+      },
+      "playback_next": {
+        "title": "Więcej wejść?",
+        "description": "Zmiana dla {input} jest zapamiętana. Zostanie zapisana razem z pozostałymi po wybraniu Zapisz.",
+        "menu_options": {
+          "playback": "Powiąż kolejne wejście",
+          "playback_save": "Zapisz"
         }
       },
       "connection": {

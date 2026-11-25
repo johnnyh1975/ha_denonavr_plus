@@ -121,10 +121,10 @@ mode the receiver has listed and its tokens.
   go to the player, as far as it has them; power, volume, mute and the input
   stay the receiver's. The zone's `linked_player` attribute names the player.
   A player that is unavailable leaves the zone on, with the input's own
-  information. Clearing the player unlinks the input. After each input the
-  step comes back, so several inputs are linked in one go; submitting it
-  without an input saves. Per input:
-  - **Switch to this input when the player starts playing** (default off):
+  information. Clearing the player unlinks the input. After each input
+  comes a choice: link another input, or save; nothing is saved before that.
+  Submitting the step without an input saves too. Per input:
+  - **Main zone switches to this input when the player starts** (default off):
     the main zone turns on if needed and switches to the input, through its
     own action, so the turn-on volume and the volume limit apply. The linked
     player of the input the main zone leaves is paused (stopped, if it cannot

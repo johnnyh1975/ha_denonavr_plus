@@ -230,7 +230,7 @@
       },
       "playback": {
         "title": "Afspelen",
-        "description": "Hoe de mediaspelers tonen wat er op een ingang speelt. Kies een ingang om het daarop aangesloten apparaat te koppelen, zoals een Apple TV of een streamer; na elke ingang kom je hier terug. Bevestig zonder ingang om op te slaan.",
+        "description": "Hoe de mediaspelers tonen wat er op een ingang speelt. Kies een ingang om het daarop aangesloten apparaat te koppelen, zoals een Apple TV of een streamer, of bevestig om op te slaan.",
         "data": {
           "input": "Een speler aan een ingang koppelen",
           "signal_state": "Speelt of inactief volgens het ingangssignaal"
@@ -245,13 +245,21 @@
         "description": "De mediaspeler van het apparaat op {input}. Laat leeg om de koppeling van de ingang op te heffen; de twee schakelaars doen dan niets.",
         "data": {
           "player": "Mediaspeler",
-          "follow": "Naar deze ingang schakelen als de speler begint te spelen",
+          "follow": "Hoofdzone schakelt naar deze ingang als de speler start",
           "full_volume": "De speler op vol volume houden"
         },
         "data_description": {
           "player": "Titel, albumhoes, positie en status verschijnen op elke zone die deze ingang speelt; afspelen, pauzeren, overslaan en zoeken gaan naar die speler.",
           "follow": "Begint de speler te spelen, dan gaat de hoofdzone zo nodig aan en schakelt naar deze ingang, en de gekoppelde speler van de verlaten ingang wordt gepauzeerd. Een tweede speler die binnen 5 seconden start, wordt in plaats daarvan gepauzeerd, zodat twee spelers elkaar niet afwisselen. Het logboek toont de wissel als veroorzaakt door de speler.",
           "full_volume": "Het volume wordt op de receiver ingesteld: zolang een ingeschakelde zone deze ingang speelt, wordt de speler op vol volume gezet en het dempen opgeheven, en opnieuw zodra zijn volume verandert. Niet voor een apparaat met eigen luidsprekers, zoals een televisie: die zou daar op vol volume spelen."
+        }
+      },
+      "playback_next": {
+        "title": "Meer ingangen?",
+        "description": "De wijziging voor {input} is genoteerd. Ze wordt samen met de andere opgeslagen als je Opslaan kiest.",
+        "menu_options": {
+          "playback": "Nog een ingang koppelen",
+          "playback_save": "Opslaan"
         }
       },
       "connection": {

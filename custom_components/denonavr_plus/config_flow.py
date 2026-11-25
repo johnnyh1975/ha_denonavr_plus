@@ -805,8 +805,9 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
     ) -> ConfigFlowResult:
         """How the media players show playback: linked players, input signal.
 
-        Picking an input leads to its linked player and back here, so several
-        inputs are linked in one go; submitting without an input saves.
+        Picking an input leads to its linked player, then to a choice between
+        another input and saving, so several inputs are linked in one go and
+        saving is a deliberate step. Submitting without an input saves.
         """
 
         if self._discovery() is None:
@@ -867,7 +868,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 else None
             )
             draft[OPT_LINKED_PLAYERS] = linked_players.with_link(draft, code, link)
-            return await self.async_step_playback()
+            return await self.async_step_playback_next()
         schema = vol.Schema(
             {
                 # A suggestion, not a default, so the player can be cleared.
@@ -892,6 +893,25 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
             data_schema=schema,
             description_placeholders={"input": names.get(code, code)},
         )
+
+    async def async_step_playback_next(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Another input, or save: closing the dialog keeps nothing."""
+
+        names = dict(self._linkable())
+        return self.async_show_menu(
+            step_id="playback_next",
+            menu_options=["playback", "playback_save"],
+            description_placeholders={"input": names.get(self._link_input, self._link_input)},
+        )
+
+    async def async_step_playback_save(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Save the linked players and the signal option edited so far."""
+
+        return self._save(dict(self._playback_draft()))
 
     # Sources -----------------------------------------------------------------
 

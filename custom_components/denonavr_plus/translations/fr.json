@@ -230,7 +230,7 @@
       },
       "playback": {
         "title": "Lecture",
-        "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Choisissez une entrée pour lier l'appareil qui y est branché, comme une Apple TV ou un streamer ; après chaque entrée, vous revenez ici. Validez sans entrée pour enregistrer.",
+        "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Choisissez une entrée pour lier l'appareil qui y est branché, comme une Apple TV ou un streamer, ou validez pour enregistrer.",
         "data": {
           "input": "Lier un lecteur à une entrée",
           "signal_state": "Lecture ou inactif selon le signal d'entrée"
@@ -245,13 +245,21 @@
         "description": "Le lecteur multimédia de l'appareil sur {input}. Laissez vide pour délier l'entrée ; les deux interrupteurs n'ont alors aucun effet.",
         "data": {
           "player": "Lecteur multimédia",
-          "follow": "Passer à cette entrée quand le lecteur commence à jouer",
+          "follow": "La zone principale passe à cette entrée quand le lecteur démarre",
           "full_volume": "Garder le lecteur au volume maximal"
         },
         "data_description": {
           "player": "Son titre, sa pochette, sa position et son état apparaissent sur chaque zone qui joue cette entrée ; lecture, pause, saut et avance rapide lui sont envoyés.",
           "follow": "Quand le lecteur commence à jouer, la zone principale s'allume si besoin et passe à cette entrée, et le lecteur lié de l'entrée quittée est mis en pause. Un second lecteur qui démarre dans les 5 secondes est mis en pause à la place, pour que deux lecteurs ne prennent pas la main à tour de rôle. Le journal montre le changement comme provoqué par le lecteur.",
           "full_volume": "Le volume se règle sur le récepteur : tant qu'une zone allumée joue cette entrée, le lecteur est mis au volume maximal et sans sourdine, puis à nouveau dès que son volume change. Pas pour un appareil avec ses propres haut-parleurs, comme un téléviseur : il y jouerait au volume maximal."
+        }
+      },
+      "playback_next": {
+        "title": "D'autres entrées ?",
+        "description": "La modification pour {input} est notée. Elle sera enregistrée avec les autres lorsque vous choisirez Enregistrer.",
+        "menu_options": {
+          "playback": "Lier une autre entrée",
+          "playback_save": "Enregistrer"
         }
       },
       "connection": {
