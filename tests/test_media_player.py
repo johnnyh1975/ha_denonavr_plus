@@ -21,6 +21,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
+    async_mock_service,
 )
 
 from custom_components.denonavr_plus import volume
@@ -1329,6 +1330,7 @@ async def test_an_announcement_puts_the_zone_back(
     with (
         patch("custom_components.denonavr_plus.media_player.ANNOUNCE_POLL", 0.01),
         patch("custom_components.denonavr_plus.media_player.ANNOUNCE_STOP_GRACE", 0.5),
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_SETTLE", 0.05),
     ):
         await announce()
         # Loud enough, and a muted zone is unmuted for it.
@@ -1351,8 +1353,12 @@ async def test_an_announcement_puts_the_zone_back(
         heos.on_update(_heos_state("play"))
         await asyncio.sleep(0.6)
         assert restored() == []
+        # Meanwhile its input changes are no one's choice (linked players).
+        assert loaded_entry.runtime_data.announcing == {"main"}
         heos.on_update(_heos_state("stop"))
         await _eventually(lambda: restored() == ["SITV", "MV50", "MUON"])
+        # A moment after the restore, the input is someone's choice again.
+        await _eventually(lambda: not loaded_entry.runtime_data.announcing)
 
 
 async def test_an_announcement_that_does_not_start_puts_the_zone_back_at_once(
@@ -2284,3 +2290,44 @@ async def test_zone_2_gets_no_folder_for_an_input_it_does_not_offer(
     with patch.object(type(zone2), "source_list", new_callable=PropertyMock, return_value=["CD"]):
         root = await zone2.async_browse_media()
     assert not [c for c in root.children or [] if c.media_content_id.startswith("linked:")]
+
+
+# Music Assistant on the network input -----------------------------------------
+
+_MASS = "media_player.living_room_music_assistant"
+
+
+async def test_music_assistant_on_the_network_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Its title and queue on the receiver's player; HEOS's own details step aside."""
+    from homeassistant.components.media_player import DATA_COMPONENT
+
+    from .test_init import FakeHeos
+
+    await _push(hass, "PWON", "ZMON", "SINET")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    FakeHeos.instances[-1].on_update(_heos_state("play"))
+    hass.states.async_set(
+        _MASS,
+        "playing",
+        {"media_title": "Track from the queue", "supported_features": _APPLE_TV_FEATURES},
+    )
+    # The receiver lists the input as NETWORK and reports it as NET.
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "linked_players": {"NETWORK": {"player": _MASS, "follow": False, "full_volume": False}},
+        },
+    )
+    await hass.async_block_till_done()
+    state = hass.states.get(main)
+    assert state.attributes["media_title"] == "Track from the queue"
+    assert state.attributes["linked_player"] == _MASS
+    calls = async_mock_service(hass, "media_player", "media_next_track")
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None
+    await player.async_media_next_track()
+    # Skip goes to Music Assistant's queue, not to HEOS.
+    assert [call.data["entity_id"] for call in calls] == [_MASS]

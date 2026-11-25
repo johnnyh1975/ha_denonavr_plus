@@ -91,6 +91,9 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self.main_device_id: str | None = None
         # The zones that got entities at setup (main always; see choices.py).
         self.shown_zones: frozenset[str] = frozenset()
+        # Zones playing an announcement: their input changes are no one's
+        # choice (linked_players.py leaves the players alone then).
+        self.announcing: set[str] = set()
         # Connection diagnosis: when the telnet link went down, and whether the
         # long outage has already been reported (log once, repair while it lasts).
         self._link_down_since: datetime | None = None

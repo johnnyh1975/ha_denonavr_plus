@@ -79,7 +79,7 @@ from homeassistant.core import (
     State,
     callback,
 )
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
@@ -154,6 +154,9 @@ ANNOUNCE_START_WAIT = 10.0
 ANNOUNCE_POLL = 0.25
 ANNOUNCE_STOP_GRACE = 3.0
 ANNOUNCE_MAX_LENGTH = 300.0
+#: How long after the restore an announcement still counts (the receiver
+#: reports the input it went back to).
+ANNOUNCE_SETTLE = 3.0
 
 # An icon-style picture of the selected input, shown when there is no album art
 # to display. Keyed by the receiver's wire source code (what the state holds);
@@ -238,6 +241,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         self._ramp_task: asyncio.Task[None] | None = None
         self._sound_mode_words: dict[str, str] = dict(sound_modes.WORDS)
         self._linked_tracked: frozenset[str] = frozenset()
+        self._announce_settle: CALLBACK_TYPE | None = None
         self._unsub_linked: CALLBACK_TYPE | None = None
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
@@ -277,6 +281,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         self.async_on_remove(self._cancel_announcement)
         self.async_on_remove(self._cancel_volume_ramp)
         self.async_on_remove(self._untrack_linked)
+        self.async_on_remove(self._announcement_gone)
         self._track_linked()
         if self._zone.is_main:
             self._sound_mode_words = await sound_modes.async_words(self.hass)
@@ -324,7 +329,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         source = self._source_code
         if not self._zone_state.power or source is None:
             return None
-        link = linked_players.links(self._entry_options).get(source)
+        link = linked_players.links_on_wire(self._entry_options, self._device).get(source)
         return link.entity_id if link is not None else None
 
     @property
@@ -1350,7 +1355,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if link is None or self.hass.data[MEDIA_PLAYER_COMPONENT].get_entity(link.entity_id) is None:
             # Before switching: Home Assistant would only log a missing entity.
             raise self._linked_gone(ServiceValidationError, code)
-        if not self._zone_state.power or self._source_code != code:
+        if not self._zone_state.power or self._source_code != linked_players.wire_code(
+            self._device, code
+        ):
             # As choosing the input: turns on, and a zone that refuses it says so.
             await self.async_select_source(
                 choices.source_display(self._device.discovery, self._entry_options, code)
@@ -1784,6 +1791,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             self._announce_task.cancel()
         else:
             self._announce_snapshot = self._device.zone_snapshot(self._zone.id)
+        self.coordinator.announcing.add(self._zone.id)
         was_playing = self._heos_state() == "play"
         if self._device.heos is None:
             # Nothing would play: say so before switching anything.
@@ -1807,9 +1815,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         except BaseException:
             # It did not start: put the zone back now instead of after it.
             snapshot, self._announce_snapshot = self._announce_snapshot, None
-            if snapshot is not None:
-                with suppress(CommandNotSent):
-                    await self._device.async_restore(self._zone.id, snapshot)
+            try:
+                if snapshot is not None:
+                    with suppress(CommandNotSent):
+                        await self._device.async_restore(self._zone.id, snapshot)
+            finally:
+                self._announcement_over()
             raise
         self._announce_task = self.hass.async_create_background_task(
             self._async_restore_after_announcement(was_playing),
@@ -1862,12 +1873,36 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         except TimeoutError:
             _LOGGER.debug("Announcement on %s: no clear end, restoring", self._zone.id)
         if snapshot is None:
+            self._announcement_over()
             return
         self._announce_snapshot = None
         try:
             await self._device.async_restore(self._zone.id, snapshot)
         except CommandNotSent as err:
             _LOGGER.debug("Restoring %s after an announcement failed: %s", self._zone.id, err)
+        finally:
+            self._announcement_over()
+
+    @callback
+    def _announcement_gone(self) -> None:
+        if self._announce_settle is not None:
+            self._announce_settle()
+            self._announce_settle = None
+        self.coordinator.announcing.discard(self._zone.id)
+
+    @callback
+    def _announcement_over(self) -> None:
+        """A moment after the restore, once the receiver has reported its input."""
+
+        if self._announce_settle is not None:
+            self._announce_settle()
+
+        @callback
+        def settled(_now: Any) -> None:
+            self._announce_settle = None
+            self.coordinator.announcing.discard(self._zone.id)
+
+        self._announce_settle = async_call_later(self.hass, ANNOUNCE_SETTLE, settled)
 
     async def _ensure_on(self) -> None:
         """Turn the zone on and wait until it reports so.

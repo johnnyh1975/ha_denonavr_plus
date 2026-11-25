@@ -239,7 +239,7 @@
           "signal_state": "Playing or idle by the input signal"
         },
         "data_description": {
-          "input": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow.",
+          "input": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow. The network input takes Music Assistant's player: its queue and library then go with it.",
           "signal_state": "A zone on an input without a linked player shows \"Playing\" while the input carries a signal and \"Idle\" without one, instead of \"On\". Network sources and the tuner keep their own state. Not yet tried on a receiver: whether every model reports when a signal stops is unknown. An HDMI source showing its menu often sends a signal too."
         }
       },

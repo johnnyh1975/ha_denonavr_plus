@@ -1208,9 +1208,8 @@ async def test_a_player_is_linked_to_an_input(
         for option in result["data_schema"].schema[inputs].config["options"]
     ]
     # Not the network player and the tuner: they have their own information.
-    assert "DVD" in offered and "TUNER" not in offered
-    network = loaded_entry.runtime_data.device.profile.netaudio["sources"]
-    assert not set(offered) & set(network)
+    # Not the tuner; the network input for Music Assistant's player.
+    assert "DVD" in offered and "NETWORK" in offered and "TUNER" not in offered
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"input": "DVD", "signal_state": True}
     )
@@ -1348,4 +1347,25 @@ async def test_a_rename_during_the_playback_dialog_is_kept(
     assert loaded_entry.options["linked_players"] == {
         "CD": {"player": "media_player.kitchen", "follow": False, "full_volume": False},
         "DVD": {"player": "media_player.apple_tv", "follow": False, "full_volume": False},
+    }
+
+
+async def test_the_network_input_has_no_full_volume(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Music Assistant's player may have the receiver itself as its volume."""
+    result = await _options_step(hass, loaded_entry, "playback")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"input": "NETWORK", "signal_state": False}
+    )
+    assert result["step_id"] == "linked_input"
+    assert [str(field) for field in result["data_schema"].schema] == ["player", "follow"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"player": "media_player.music_assistant", "follow": True}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "playback_save"}
+    )
+    assert loaded_entry.options["linked_players"] == {
+        "NETWORK": {"player": "media_player.music_assistant", "follow": True, "full_volume": False}
     }

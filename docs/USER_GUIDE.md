@@ -411,13 +411,23 @@ AVR Plus is disabled.
 
 Music Assistant plays your library and streaming services on the receiver
 through its HEOS or AirPlay provider; Denon AVR Plus does the rest (power,
-input, volume, sound mode, zones).
+input, volume, sound mode, zones). Three settings make them one:
 
-> **Recommended:** use the zone's **Network Music** switch as the power control of
-> the Music Assistant player. It switches the zone on and to the network
-> input to play, and off when the music stops, but never ends a film that
-> runs on another input. Volume can stay on the media player of this
-> integration.
+1. **Music Assistant, Player controls** of the receiver's player: power by
+   the zone's **Network Music** switch, volume by the zone's media player of
+   this integration. Music Assistant turns the zone on and to the network
+   input to play, and off when the music stops, but never ends a film that
+   runs on another input.
+2. **Configure → Playback** here: link the **network input** to Music
+   Assistant's player of the receiver. The receiver's card then shows what
+   Music Assistant plays, skip and shuffle work on its queue, and its library
+   is in the receiver's media browser.
+3. If you like, **Main zone switches to this input when the player starts**
+   on the network input: starting music in Music Assistant then also pauses
+   an Apple TV that plays on another linked input.
+
+> **Recommended:** all three. There is no full volume switch on the network
+> input: Music Assistant's volume is the receiver's.
 
 Who does what, including the HEOS integration, is in the
 [reference](REFERENCE.md#with-music-assistant-and-the-heos-integration).

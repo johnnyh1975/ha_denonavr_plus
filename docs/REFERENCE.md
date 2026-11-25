@@ -118,9 +118,10 @@ and its tokens.
 
 - **Link a player to an input**: pick an input, then the media player of the
   device on it, such as an Apple TV, a streamer or a Chromecast. The list
-  offers every input but the network player and the tuner, whose information
-  comes from the receiver itself; an input with a player shows it after the
-  arrow. Every zone that plays the input then shows the player's title,
+  offers every input but the tuner, whose information comes from the receiver
+  itself; an input with a player shows it after the arrow. The network input
+  takes **Music Assistant's** player (see below); it has no full volume
+  switch. Every zone that plays the input then shows the player's title,
   artist, album, series, artwork, position and app, and its state (playing,
   paused, buffering, idle). Play, pause, stop, skip, seek, shuffle and repeat
   go to the player, as far as it has them; power, volume, mute and the input
@@ -691,12 +692,31 @@ its own job, so nothing is controlled twice:
 | Your music library, streaming services, queues, playing on many speakers | Music Assistant (its HEOS or AirPlay provider) |
 | Grouping the receiver with other HEOS speakers in the home | the HEOS integration of Home Assistant |
 
-With **Music Assistant**, use the Network Music switch of a zone as the power control
-of the Music Assistant player: Music Assistant switches it on to play (zone on,
-network input) and off when it stops, without ending a film on another input.
-Volume can stay on this integration's media player. Zone 2 plays the network
-by joining the main zone (Home Assistant's join); whether zone 2 can play a
-stream of its own is not yet tried on a receiver.
+With **Music Assistant**, set it up in three places:
+
+1. **In Music Assistant**, play to the receiver through its HEOS provider (or
+   AirPlay). Under the player's settings, **Player controls**: power by the
+   zone's **Network Music** switch, volume by this integration's media player
+   of the zone. Music Assistant then switches the zone on and to the network
+   input to play, and off when it stops, without ending a film on another
+   input; its volume slider is the receiver's volume.
+2. **In this integration**, Configure → Playback: link the **network input**
+   to Music Assistant's media player of the receiver (from the Music
+   Assistant integration). The receiver's player then shows what Music
+   Assistant plays, its skip, shuffle and repeat go to Music Assistant's
+   queue (HEOS's own would only restart the stream), and Music Assistant's
+   library is a folder in the receiver's media browser. HEOS's own title and
+   cover step aside on that input. Leave **full volume** out: it is not
+   offered on the network input, as Music Assistant's volume may be the
+   receiver's.
+3. **Optional:** **Main zone switches to this input when the player starts**
+   on the network input lets the receiver follow Music Assistant even
+   without the power control, and pauses the other linked players.
+
+Announcements (`tts.speak`, a doorbell) still play over HEOS on the receiver
+and pause no linked player. Zone 2 plays the network by joining the main zone
+(Home Assistant's join); whether zone 2 can play a stream of its own is not
+yet tried on a receiver.
 
 The **HEOS integration** is only needed to group the receiver with other HEOS
 speakers. It may run alongside: HEOS takes several connections. Its media

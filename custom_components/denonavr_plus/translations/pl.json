@@ -239,7 +239,7 @@
           "signal_state": "Odtwarzanie lub brak aktywności według sygnału wejściowego"
         },
         "data_description": {
-          "input": "Gdy wejście gra, jego strefa pokazuje tytuł, okładkę, pozycję i stan powiązanego odtwarzacza, a odtwarzanie, pauza, przeskok i przewijanie trafiają do niego. Zasilanie, głośność i wejście pozostają przy amplitunerze. Wejście z odtwarzaczem pokazuje go za strzałką.",
+          "input": "Gdy wejście gra, jego strefa pokazuje tytuł, okładkę, pozycję i stan powiązanego odtwarzacza, a odtwarzanie, pauza, przeskok i przewijanie trafiają do niego. Zasilanie, głośność i wejście pozostają przy amplitunerze. Wejście z odtwarzaczem pokazuje go za strzałką. Wejście sieciowe przyjmuje odtwarzacz Music Assistant: jego kolejka i biblioteka przychodzą wtedy razem z nim.",
           "signal_state": "Strefa na wejściu bez powiązanego odtwarzacza pokazuje „odtwarzanie”, gdy wejście ma sygnał, i „brak aktywności” bez sygnału, zamiast „włączono”. Źródła sieciowe i tuner zachowują własny stan. Jeszcze niewypróbowane na amplitunerze: nie wiadomo, czy każdy model zgłasza koniec sygnału. Źródło HDMI pokazujące swoje menu często też wysyła sygnał."
         }
       },

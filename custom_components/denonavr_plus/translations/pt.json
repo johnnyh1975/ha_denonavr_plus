@@ -239,7 +239,7 @@
           "signal_state": "A reproduzir ou inativo pelo sinal de entrada"
         },
         "data_description": {
-          "input": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor associado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta.",
+          "input": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor associado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta. A entrada de rede aceita o leitor do Music Assistant: a sua fila e a sua biblioteca vêm então com ele.",
           "signal_state": "Uma zona numa entrada sem leitor associado mostra \"A reproduzir\" enquanto a entrada tem sinal e \"Inativo\" sem sinal, em vez de \"Ligado\". As fontes de rede e o sintonizador mantêm o seu próprio estado. Ainda não experimentado num recetor: não se sabe se todos os modelos avisam quando um sinal termina. Uma fonte HDMI que mostra o seu menu envia muitas vezes também um sinal."
         }
       },

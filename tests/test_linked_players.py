@@ -697,3 +697,74 @@ async def test_without_a_followed_player_every_player_keeps_playing(
     telnet.push("ZMOFF")
     await _settle(hass)
     assert pauses == []
+
+
+async def test_an_announcement_pauses_nothing(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Over to the network and back, also with Music Assistant linked there."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
+    _options(
+        loaded_entry,
+        DVD=_player(APPLE_TV, follow=True),
+        NETWORK=_player("media_player.music_assistant"),
+    )
+    await hass.async_block_till_done()
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    loaded_entry.runtime_data.announcing.add("main")
+    telnet.push("SINET")
+    await _settle(hass)
+    telnet.push("SIDVD")
+    await _settle(hass)
+    loaded_entry.runtime_data.announcing.clear()
+    assert pauses == []
+    # Not an announcement: switching to Music Assistant's input pauses the Apple TV.
+    telnet.push("SINET")
+    await _settle(hass)
+    assert [call.data["entity_id"] for call in pauses] == [APPLE_TV]
+
+
+async def test_full_volume_never_on_the_network_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Music Assistant's player may have the receiver as its volume control."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SINET")
+    await _settle(hass)
+    volume = async_mock_service(hass, "media_player", "volume_set")
+    hass.states.async_set(
+        "media_player.music_assistant",
+        "playing",
+        {"supported_features": FEATURES, "volume_level": 0.3},
+    )
+    _options(loaded_entry, NETWORK=_player("media_player.music_assistant", full_volume=True))
+    await hass.async_block_till_done()
+    assert volume == []
+
+
+async def test_the_receiver_follows_music_assistant_to_the_network(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
+    hass.states.async_set("media_player.music_assistant", "idle", {"supported_features": FEATURES})
+    _options(loaded_entry, NETWORK=_player("media_player.music_assistant", follow=True))
+    await hass.async_block_till_done()
+    telnet.sent.clear()
+    hass.states.async_set("media_player.music_assistant", "playing", {"supported_features": FEATURES})
+    await hass.async_block_till_done()
+    # The recording lists the input as NETWORK (its Deviceinfo list, before
+    # the telnet list); the source selection sends what it sends for it.
+    switched = [line for line in telnet.sent if line.startswith("SI")]
+    assert len(switched) == 1 and switched[0].startswith("SINET")
+    # The receiver reports NET: that is the linked input, no second switch.
+    telnet.push("SINET")
+    await _settle(hass)
+    hass.states.async_set("media_player.music_assistant", "paused", {"supported_features": FEATURES})
+    hass.states.async_set("media_player.music_assistant", "playing", {"supported_features": FEATURES})
+    await hass.async_block_till_done()
+    assert [line for line in telnet.sent if line.startswith("SI")] == switched

@@ -239,7 +239,7 @@
           "signal_state": "Lecture ou inactif selon le signal d'entrée"
         },
         "data_description": {
-          "input": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche.",
+          "input": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche. L'entrée réseau accepte le lecteur de Music Assistant : sa file d'attente et sa bibliothèque suivent alors.",
           "signal_state": "Une zone sur une entrée sans lecteur lié affiche « Lecture en cours » tant que l'entrée porte un signal et « Inactif » sans signal, au lieu de « Allumé ». Les sources réseau et le tuner gardent leur propre état. Pas encore essayé sur un récepteur : on ne sait pas si chaque modèle signale la fin d'un signal. Une source HDMI qui affiche son menu envoie souvent aussi un signal."
         }
       },

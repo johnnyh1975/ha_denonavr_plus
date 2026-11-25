@@ -239,7 +239,7 @@
           "signal_state": "Reproduciendo o inactivo según la señal de entrada"
         },
         "data_description": {
-          "input": "Mientras suena la entrada, su zona muestra el título, la carátula, la posición y el estado del reproductor vinculado, y reproducir, pausar, saltar y buscar se envían a él. El encendido, el volumen y la entrada siguen en el receptor. Una entrada con reproductor lo muestra tras la flecha.",
+          "input": "Mientras suena la entrada, su zona muestra el título, la carátula, la posición y el estado del reproductor vinculado, y reproducir, pausar, saltar y buscar se envían a él. El encendido, el volumen y la entrada siguen en el receptor. Una entrada con reproductor lo muestra tras la flecha. La entrada de red admite el reproductor de Music Assistant: su cola y su biblioteca vienen entonces con él.",
           "signal_state": "Una zona en una entrada sin reproductor vinculado muestra «Reproduciendo» mientras la entrada lleva señal e «Inactivo» sin ella, en lugar de «Encendido». Las fuentes de red y el sintonizador mantienen su propio estado. Aún no probado en un receptor: no se sabe si todos los modelos avisan cuando termina una señal. Una fuente HDMI que muestra su menú suele enviar también una señal."
         }
       },

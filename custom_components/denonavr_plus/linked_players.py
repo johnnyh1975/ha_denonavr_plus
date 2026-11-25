@@ -148,6 +148,33 @@ def with_link(options: dict[str, Any], code: str, link: Link | None) -> dict[str
     return stored
 
 
+def wire_code(device: Any, code: str) -> str:
+    """The code a zone reports for a listed input.
+
+    Receivers that list the network input as NETWORK (in Deviceinfo.xml)
+    report it as NET; the options keep the listed code.
+    """
+
+    if code == "NETWORK":
+        return str(device.network_source or code)
+    return code
+
+
+def listed_code(device: Any, wire: str) -> str:
+    """The listed code of a reported input (NET back to NETWORK where listed so)."""
+
+    codes = {source.code for source in device.discovery.sources}
+    if wire not in codes and wire == device.network_source and "NETWORK" in codes:
+        return "NETWORK"
+    return wire
+
+
+def links_on_wire(options: dict[str, Any], device: Any) -> dict[str, Link]:
+    """The linked players by the code a zone reports for their input."""
+
+    return {wire_code(device, code): link for code, link in links(options).items()}
+
+
 def issue_id(entry_id: str) -> str:
     return f"{ISSUE}_{entry_id}"
 
@@ -310,13 +337,19 @@ class LinkedPlayers:
         """The players kept at full volume now: their input plays in a zone that is on.
 
         Not otherwise: a television linked to an input may play on its own
-        speakers while the receiver is off.
+        speakers while the receiver is off. Never on a network input: Music
+        Assistant's player there may have the receiver itself as its volume
+        control, and full volume would be the receiver's.
         """
 
+        device = self._entry.runtime_data.device
+        network = set(device.profile.netaudio.get("sources", []))
         return frozenset(
             link.entity_id
             for code, link in self._links.items()
-            if link.full_volume and self._zone_playing(code)
+            if link.full_volume
+            and wire_code(device, code) not in network
+            and self._zone_playing(code)
         )
 
     @callback
@@ -424,8 +457,9 @@ class LinkedPlayers:
 
         coordinator = self._entry.runtime_data
         data = coordinator.data
+        wire = wire_code(coordinator.device, code)
         return any(
-            zone.power and coordinator.device.zone_source(zone_id) == code
+            zone.power and coordinator.device.zone_source(zone_id) == wire
             for zone_id, zone in data.zones.items()
         )
 
@@ -450,8 +484,8 @@ class LinkedPlayers:
         While the receiver follows a player, the other linked players whose
         input no zone plays are paused: they would play into nothing. As in
         the Rotel integration, only when the new input has a linked player
-        itself: switching to the TV, the tuner or the network (an
-        announcement) pauses nothing. Not either on the way to a follow's
+        itself: switching to the TV or the tuner pauses nothing, and an
+        announcement (network and back) never does. Not either on the way to a follow's
         input (the zone first turns on with its old input), when the main
         zone only turns on, or when the receiver first reports after a start
         or a reload.
@@ -461,6 +495,9 @@ class LinkedPlayers:
         if current == previous:
             return
         self._main_input = current
+        if self._entry.runtime_data.announcing:
+            # An announcement switched to the network and back: no one's choice.
+            return
         if self._follow_target is not None:
             code, context, since = self._follow_target
             if current == code:
@@ -473,7 +510,7 @@ class LinkedPlayers:
             self._follow_target = None
         if previous in (None, UNKNOWN) or current in (None, UNKNOWN):
             return
-        if current in self._links:
+        if current in links_on_wire(dict(self._entry.options), self._entry.runtime_data.device):
             self._pause_unheard(None)
 
     @callback
@@ -539,7 +576,7 @@ class LinkedPlayers:
         left = coordinator.device.zone_source(FOLLOW_ZONE) if main.power else None
         name = choices.source_display(coordinator.device.discovery, dict(self._entry.options), code)
         _LOGGER.debug("Following the player of %s", name)
-        self._follow_target = (code, context, time.monotonic())
+        self._follow_target = (wire_code(coordinator.device, code), context, time.monotonic())
         if not await self._async_call(target, SERVICE_SELECT_SOURCE, {ATTR_INPUT_SOURCE: name}, context):
             self._follow_target = None
             return
@@ -551,7 +588,11 @@ class LinkedPlayers:
                 ATTR_ENTITY_ID: target,
                 "source": name,
                 "previous_source": (
-                    choices.source_display(coordinator.device.discovery, options, left)
+                    choices.source_display(
+                        coordinator.device.discovery,
+                        options,
+                        listed_code(coordinator.device, left),
+                    )
                     if left is not None
                     else None
                 ),

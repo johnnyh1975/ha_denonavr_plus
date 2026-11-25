@@ -35,6 +35,8 @@ the devices on its inputs, and live updates over the local network.
   title, cover and position, its buttons control it, and its library is in
   the receiver's media browser. If you like, the receiver switches to the
   input when the device starts playing and keeps the device at full volume.
+  Music Assistant fits the same way: linked to the network input, its queue
+  and library come with it.
 - **Instant and robust.** Changes arrive the moment they happen. When the
   control connection drops, power, volume, mute and source keep working.
 - **Safe to try.** It takes a receiver over from the official integration

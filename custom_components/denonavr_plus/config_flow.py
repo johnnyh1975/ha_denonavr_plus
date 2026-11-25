@@ -770,21 +770,25 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
     def _linkable(self) -> list[tuple[str, str]]:
         """The inputs a player can be linked to, with their shown names.
 
-        Not the network player and the tuner: what they play comes from the
-        receiver itself.
+        Not the tuner: what it plays comes from the receiver itself. The
+        network input can take Music Assistant's player, whose queue and
+        library then go with it.
         """
 
         coordinator = getattr(self.config_entry, "runtime_data", None)
         device = getattr(coordinator, "device", None)
         if device is None:
             return []
-        network = set(device.profile.netaudio.get("sources", []))
         options = dict(self.config_entry.options)
         return [
             (source.code, choices.source_display(device.discovery, options, source.code))
             for source in device.discovery.visible_sources()
-            if source.code not in network and not device.is_tuner(source.code)
+            if not device.is_tuner(source.code)
         ]
+
+    def _is_network(self, code: str) -> bool:
+        device = self.config_entry.runtime_data.device
+        return linked_players.wire_code(device, code) in device.profile.netaudio.get("sources", [])
 
     def _player_name(self, entity_id: str) -> str:
         state = self.hass.states.get(entity_id)
@@ -881,7 +885,8 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 Link(
                     player,
                     bool(user_input.get(KEY_FOLLOW, False)),
-                    bool(user_input.get(KEY_FULL_VOLUME, False)),
+                    # Not on the network input: see linked_players._full_volume_now.
+                    bool(user_input.get(KEY_FULL_VOLUME, False)) and not self._is_network(code),
                 )
                 if player
                 else None
@@ -902,11 +907,18 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 vol.Required(
                     KEY_FOLLOW, default=current.follow if current else False
                 ): BooleanSelector(),
-                vol.Required(
-                    KEY_FULL_VOLUME, default=current.full_volume if current else False
-                ): BooleanSelector(),
             }
         )
+        if not self._is_network(code):
+            # Music Assistant's player may have the receiver as its volume:
+            # full volume there would be the receiver's.
+            schema = schema.extend(
+                {
+                    vol.Required(
+                        KEY_FULL_VOLUME, default=current.full_volume if current else False
+                    ): BooleanSelector()
+                }
+            )
         return self.async_show_form(
             step_id="linked_input",
             data_schema=schema,

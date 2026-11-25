@@ -239,7 +239,7 @@
           "signal_state": "Wiedergabe oder Leerlauf nach dem Eingangssignal"
         },
         "data_description": {
-          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Ein/Aus, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil.",
+          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Ein/Aus, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil. Der Netzwerkeingang nimmt den Player von Music Assistant: Dessen Warteschlange und Bibliothek kommen dann mit.",
           "signal_state": "Eine Zone an einem Eingang ohne verknüpften Player zeigt „Wiedergabe“, solange der Eingang ein Signal führt, und „Leerlauf“ ohne Signal, statt „Ein“. Netzwerkquellen und der Tuner behalten ihren eigenen Zustand. Noch auf keinem Receiver ausprobiert: Ob jedes Modell meldet, wenn ein Signal endet, ist offen. Eine HDMI-Quelle, die ihr Menü zeigt, sendet oft auch ein Signal."
         }
       },
