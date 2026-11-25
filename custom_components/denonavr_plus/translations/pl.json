@@ -1306,6 +1306,10 @@
           "not_loaded": "Integracja nie jest teraz załadowana; spróbuj ponownie, gdy amplituner będzie połączony."
         }
       }
+    },
+    "app_control_off": {
+      "title": "{model} zgłasza wyłączone sterowanie przez aplikacje",
+      "description": "{model} odpowiada NSARA OFF: sterowanie przez aplikację zdalną jest wyłączone w amplitunerze. Aplikacja AVR Remote firmy Denon traktuje wtedy amplituner jako niesterowalny. Home Assistant korzysta z tego samego interfejsu sieciowego; jeśli ustawienia z Home Assistant nie działają, włącz ponownie sterowanie przez aplikacje w menu konfiguracji amplitunera.\n\nTej odpowiedzi nie widziano jeszcze na amplitunerze. Zgłoszenie z diagnostyką amplitunera pomoże."
     }
   },
   "selector": {

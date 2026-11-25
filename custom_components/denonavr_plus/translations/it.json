@@ -1306,6 +1306,10 @@
           "not_loaded": "L'integrazione non è caricata in questo momento; riprova quando il ricevitore è collegato."
         }
       }
+    },
+    "app_control_off": {
+      "title": "{model} indica che il controllo tramite app è disattivato",
+      "description": "{model} risponde NSARA OFF: il controllo tramite l'app remota è disattivato sul sintoamplificatore. L'app AVR Remote di Denon considera allora il sintoamplificatore non controllabile. Home Assistant usa la stessa interfaccia di rete; se le impostazioni da Home Assistant non hanno effetto, riattiva il controllo tramite app nel menu di configurazione del sintoamplificatore.\n\nQuesta risposta non è ancora stata vista su un sintoamplificatore. Una segnalazione con la diagnostica aiuta."
     }
   },
   "selector": {

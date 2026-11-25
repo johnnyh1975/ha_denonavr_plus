@@ -34,7 +34,13 @@ from .models import (
     ZoneSnapshot,
 )
 from .generation import generation_of, legacy_device_info
-from .parser import TelnetParser, parse_device_info, parse_main_zone, parse_upnp_description
+from .parser import (
+    APP_CONTROL_QUERIES,
+    TelnetParser,
+    parse_device_info,
+    parse_main_zone,
+    parse_upnp_description,
+)
 from .profile import OLDER, ControlSpec, ProtocolProfile, load_profile, profile_for_receiver
 from . import (
     appcommand,
@@ -1323,6 +1329,9 @@ class DenonAvrDevice:
         for answered in self._profile.controls_by_scope("answered"):
             if answered.id in self._discovery.answered:
                 add(answered.query)
+        # Whether the receiver allows control by apps (diagnostics, a repair).
+        for query in APP_CONTROL_QUERIES:
+            add(query)
         return queries
 
     # Notification ---------------------------------------------------------

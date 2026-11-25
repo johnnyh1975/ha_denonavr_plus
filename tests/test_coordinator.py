@@ -404,3 +404,19 @@ async def test_unloading_clears_the_playback_error_repair(
     await hass.config_entries.async_unload(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert registry.async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_control_by_apps_switched_off_is_a_repair(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    issue_id = f"app_control_off_{loaded_entry.entry_id}"
+    telnet = FakeTelnet.instances[-1]
+    assert "NSARA ?" in telnet.sent and "NSHEA ?" in telnet.sent
+    telnet.push("NSARA OFF")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
+    telnet.push("NSARA ON")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None

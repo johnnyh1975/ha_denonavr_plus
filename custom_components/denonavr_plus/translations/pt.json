@@ -1306,6 +1306,10 @@
           "not_loaded": "A integração não está carregada agora; tente novamente quando o recetor estiver ligado."
         }
       }
+    },
+    "app_control_off": {
+      "title": "{model} indica o controlo por apps desligado",
+      "description": "{model} responde NSARA OFF: o controlo pela app remota está desligado no recetor. A app AVR Remote da Denon trata então o recetor como não controlável. O Home Assistant usa a mesma interface de rede; se as definições a partir do Home Assistant não tiverem efeito, volte a ligar o controlo por apps no menu de configuração do recetor.\n\nEsta resposta ainda não foi vista num recetor. Um relatório com o diagnóstico do recetor ajuda."
     }
   },
   "selector": {

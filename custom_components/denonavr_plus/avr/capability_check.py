@@ -17,7 +17,7 @@ from __future__ import annotations
 import re
 
 #: Bump when the queries or the result format change.
-CHECK_VERSION = 4
+CHECK_VERSION = 5
 
 #: Models whose capabilities have been checked on a receiver. Others get the
 #: repair that asks for a check. Add a model once its check has been reviewed.
@@ -184,6 +184,8 @@ QUERIES: tuple[tuple[str, str], ...] = (
     ("NSE", "Network audio"),
     ("NSH", "Network audio"),
     ("NSFRN ?", "Network audio"),
+    ("NSARA ?", "Network audio"),
+    ("NSHEA ?", "Network audio"),
     ("SSINF ?", "Signal and setup"),
     ("SSINFAISSIG ?", "Signal and setup"),
     ("SSINFAISFSV ?", "Signal and setup"),

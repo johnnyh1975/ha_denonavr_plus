@@ -1306,6 +1306,10 @@
           "not_loaded": "L'intégration n'est pas chargée pour le moment ; réessayez une fois le récepteur connecté."
         }
       }
+    },
+    "app_control_off": {
+      "title": "{model} indique que le contrôle par les apps est désactivé",
+      "description": "{model} répond NSARA OFF : le contrôle par l'app de télécommande est désactivé sur l'ampli-tuner. L'app AVR Remote de Denon considère alors l'ampli-tuner comme non pilotable. Home Assistant utilise la même interface réseau ; si les réglages depuis Home Assistant restent sans effet, réactivez le contrôle par les apps dans le menu de configuration de l'ampli-tuner.\n\nCette réponse n'a pas encore été vue sur un ampli-tuner. Un rapport avec le diagnostic de l'ampli-tuner aide."
     }
   },
   "selector": {

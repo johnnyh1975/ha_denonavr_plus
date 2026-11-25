@@ -1306,6 +1306,10 @@
           "not_loaded": "De integratie is nu niet geladen; probeer het opnieuw zodra de receiver verbonden is."
         }
       }
+    },
+    "app_control_off": {
+      "title": "{model} meldt dat besturing via apps uit staat",
+      "description": "{model} antwoordt NSARA OFF: besturing via de remote-app staat uit op de receiver. De AVR Remote-app van Denon behandelt de receiver dan als niet bestuurbaar. Home Assistant gebruikt dezelfde netwerkinterface; als instellingen vanuit Home Assistant geen effect hebben, zet besturing via apps weer aan in het instellingenmenu van de receiver.\n\nDit antwoord is nog niet op een receiver gezien. Een melding met de diagnose van de receiver helpt."
     }
   },
   "selector": {

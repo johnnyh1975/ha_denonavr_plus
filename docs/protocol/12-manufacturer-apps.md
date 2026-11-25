@@ -93,7 +93,8 @@ unless HEOS is switched off in its options.
 The Denon app opens port 23 for three queries: `ZM?` to align the power
 state, and `NSARA ?` and `NSHEA ?`. The last two ask whether control by the
 remote app or by the HEOS app is switched off on the receiver; the app
-treats a reply `NSARA OFF` or `NSHEA OFF` as switched off. On a
+treats a reply `NSARA OFF` or `NSHEA OFF` as switched off. This integration asks both after connecting, shows the answers in the
+diagnostics and raises a repair at `NSARA OFF`. On a
 HEOS-generation receiver it also keeps a telnet session open while its
 tuner view is shown, and only listens on it, for `OPTPN…` and
 `OPTPSTUNER…` (the preset list changed). Neither reply is in a protocol

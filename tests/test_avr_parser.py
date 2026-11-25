@@ -569,3 +569,15 @@ def test_a_2011_receiver_reports_volume_99_as_the_minimum() -> None:
     assert state.zone("main").volume_raw == 0.0
     assert parser.feed("Z299", state)
     assert state.zone("zone2").volume_raw == 0.0
+
+
+@pytest.mark.assumed(
+    "NSARA/NSHEA ON|OFF as Denon's AVR Remote app reads them; no receiver has answered yet"
+)
+def test_control_by_apps_is_read(parser_and_state: tuple[TelnetParser, AvrState]) -> None:
+    parser, state = parser_and_state
+    assert parser.feed("NSARA OFF", state)
+    assert parser.feed("NSHEA ON", state)
+    assert state.values["remote_app_control"] is False
+    assert state.values["heos_app_control"] is True
+    assert not parser.feed("NSARA ?", state)

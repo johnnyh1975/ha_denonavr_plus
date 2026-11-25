@@ -1306,6 +1306,10 @@
           "not_loaded": "The integration is not loaded right now; try again once the receiver is connected."
         }
       }
+    },
+    "app_control_off": {
+      "title": "{model} reports control by apps switched off",
+      "description": "{model} answers NSARA OFF: control by the remote app is switched off on the receiver. Denon's AVR Remote app then treats the receiver as not controllable. Home Assistant uses the same network interface; if settings from Home Assistant have no effect, switch control by apps on again in the receiver's setup menu.\n\nThis answer has not yet been seen on a receiver. A report with the receiver's diagnostics helps."
     }
   },
   "selector": {

@@ -50,6 +50,12 @@ def _format_mac(raw: str | None) -> str | None:
 # UPnP description local tag name -> the DeviceInfo attribute it fills. The AVR
 # firmware and serial go on the device card; the AIOS (HEOS network module)
 # version and build revision are captured for diagnostics.
+#: Whether control by Denon's apps is allowed on the receiver: the remote app
+#: (NSARA) and the HEOS app (NSHEA). Denon's AVR Remote app asks both and
+#: treats OFF as switched off; no protocol document here lists them.
+APP_CONTROL = {"NSARA ": "remote_app_control", "NSHEA ": "heos_app_control"}
+APP_CONTROL_QUERIES = ("NSARA ?", "NSHEA ?")
+
 _UPNP_TAGS: dict[str, str] = {
     "manufacturer": "manufacturer",
     "modelName": "model_name",
@@ -454,6 +460,13 @@ class TelnetParser:
             if self._set_zone(int(line[1]), line[2:], state):
                 return True
             # A zone setting (Z2SLP, Z2CVFL ...): decoded by the matchers below.
+        for prefix, key in APP_CONTROL.items():
+            if line.startswith(prefix):
+                answer = line[len(prefix) :].strip()
+                if answer not in ("ON", "OFF"):
+                    return False
+                state.values[key] = answer == "ON"
+                return True
         if line.startswith("NSE") and len(line) > 3 and line[3].isdigit():
             return self._set_netaudio(int(line[3]), line[4:], state)
         if line.startswith("TFANNAME"):

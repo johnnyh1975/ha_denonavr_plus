@@ -96,6 +96,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._link_down_since: datetime | None = None
         self._outage_reported = False
         self._playback_error: str | None = None
+        self._app_control_off = False
         # Set when the receiver did not answer at setup and the media players
         # were built from the last discovery; the entry reloads once it answers.
         self.started_offline = False
@@ -205,7 +206,37 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
 
         self._check_link()
         self._check_playback_error()
+        self._check_app_control()
         self.async_set_updated_data(self.device.state)
+
+    @callback
+    def _check_app_control(self) -> None:
+        """A repair while the receiver reports control by the remote app switched off.
+
+        Denon's app asks NSARA ? and treats OFF as off; what else the
+        setting blocks is not known. Not yet seen on a receiver.
+        """
+
+        assert self.config_entry is not None
+        off = self.device.state.values.get("remote_app_control") is False
+        if off == self._app_control_off:
+            return
+        self._app_control_off = off
+        issue_id = f"app_control_off_{self.config_entry.entry_id}"
+        if off:
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                issue_id,
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="app_control_off",
+                translation_placeholders={
+                    "model": self.device.discovery.device.model_name or "Denon AVR"
+                },
+            )
+        else:
+            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
 
     @callback
     def _check_playback_error(self) -> None:

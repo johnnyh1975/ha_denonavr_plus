@@ -241,6 +241,8 @@ CATALOGUE: list[Query] = [
     _q("NSA", "Network audio", "On-screen text, ASCII", ends_with="NSA8", wait=2.0),
     _q("NSH", "Network audio", "Network preset names", wait=2.0),
     _q("NSFRN ?", "Network audio", "Friendly name"),
+    _q("NSARA ?", "Network audio", "Control by the remote app allowed"),
+    _q("NSHEA ?", "Network audio", "Control by the HEOS app allowed"),
     # Signal information and setup data (2016+)
     _q("SSINF ?", "Signal and setup", "Signal information", wait=1.0),
     _q("SSINFAISSIG ?", "Signal and setup", "Input signal"),

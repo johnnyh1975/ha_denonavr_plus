@@ -1306,6 +1306,10 @@
           "not_loaded": "Die Integration ist gerade nicht geladen; versuche es erneut, sobald der Receiver verbunden ist."
         }
       }
+    },
+    "app_control_off": {
+      "title": "{model} meldet die Steuerung per App als ausgeschaltet",
+      "description": "{model} antwortet NSARA OFF: Die Steuerung per Remote-App ist am Receiver ausgeschaltet. Denons AVR Remote App behandelt den Receiver dann als nicht steuerbar. Home Assistant nutzt dieselbe Netzwerkschnittstelle; wenn Einstellungen aus Home Assistant nicht wirken, schalte die Steuerung per App im Einrichtungsmenü des Receivers wieder ein.\n\nDiese Antwort ist auf einem Receiver noch nicht gesehen worden. Eine Meldung mit der Diagnose des Receivers hilft."
     }
   },
   "selector": {
