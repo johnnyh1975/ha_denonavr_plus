@@ -2550,6 +2550,7 @@ async def test_turning_a_zone_off_pauses_its_linked_player(
     zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
     paused = async_mock_service(hass, "media_player", "media_pause")
     await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    await hass.async_block_till_done()
     assert [call.data["entity_id"] for call in paused] == [_APPLE_TV]
 
     # Zone 2 still plays the input: it keeps playing.
@@ -2575,23 +2576,38 @@ async def test_turning_a_zone_off_pauses_its_linked_player(
     assert len(paused) == 1
 
 
-async def test_a_linked_player_that_refuses_to_pause_does_not_fail_turn_off(
+async def test_a_linked_player_that_refuses_or_hangs_does_not_hold_up_turn_off(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     _link(hass, loaded_entry)
     await hass.async_block_till_done()
     hass.states.async_set(_APPLE_TV, "playing", {"supported_features": _APPLE_TV_FEATURES})
     await _push(hass, "PWON", "ZMON", "SIDVD")
+    release = asyncio.Event()
+    calls: list[str] = []
 
     async def refuse(call: ServiceCall) -> None:
-        raise HomeAssistantError("not now")
+        calls.append("pause")
+        if len(calls) == 1:
+            raise OSError("player asleep")
+        await release.wait()
 
     hass.services.async_register("media_player", "media_pause", refuse)
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
+    # A player that fails with any error.
     await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
     assert "ZMOFF" in telnet.sent
+    # A player that hangs: the turn off does not wait for it.
+    await _push(hass, "ZMON")
+    async with asyncio.timeout(2):
+        await hass.services.async_call(
+            "media_player", "turn_off", {"entity_id": main}, blocking=True
+        )
+    await _eventually(lambda: len(calls) == 2)
+    release.set()
+    await hass.async_block_till_done()
 
 
 async def test_an_announcement_during_the_restore_still_restores(
@@ -2676,5 +2692,151 @@ async def test_standby_of_the_whole_receiver_pauses_every_zones_player(
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    await hass.async_block_till_done()
     assert "PWSTANDBY" in telnet.sent
     assert sorted(call.data["entity_id"] for call in paused) == sorted([_APPLE_TV, streamer])
+
+
+async def test_an_announcement_right_after_a_restore_puts_back_the_first_state(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The receiver has not yet reported the restored input: the first snapshot holds."""
+    from .test_init import FakeHeos
+
+    await _push(hass, "PWON", "ZMON", "SICD")
+    heos = FakeHeos.instances[-1]
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+
+    async def announce() -> None:
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/tts.mp3",
+                "announce": True,
+            },
+            blocking=True,
+        )
+
+    with (
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_POLL", 0.01),
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_STOP_GRACE", 0.05),
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_SETTLE", 0.3),
+    ):
+        await announce()
+        await _push(hass, "SINET")
+        heos.on_update(_heos_state("play"))
+        await asyncio.sleep(0.05)
+        heos.on_update(_heos_state("stop"))
+        await _eventually(lambda: "SICD" in telnet.sent)
+        # No echo yet: the zone still reads NET.
+        telnet.sent.clear()
+        await announce()
+        heos.on_update(_heos_state("play"))
+        await asyncio.sleep(0.05)
+        heos.on_update(_heos_state("stop"))
+        await _eventually(lambda: "SICD" in telnet.sent)
+        await _eventually(lambda: loaded_entry.runtime_data.announcing == set())
+
+
+async def test_turning_off_during_an_announcement_puts_nothing_back(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A restore after the turn off would switch the zone on again."""
+    from .test_init import FakeHeos
+
+    await _push(hass, "PWON", "ZMON", "SICD")
+    heos = FakeHeos.instances[-1]
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    with (
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_POLL", 0.01),
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_STOP_GRACE", 0.05),
+        patch("custom_components.denonavr_plus.media_player.ANNOUNCE_SETTLE", 0.05),
+    ):
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/tts.mp3",
+                "announce": True,
+            },
+            blocking=True,
+        )
+        await _push(hass, "SINET")
+        heos.on_update(_heos_state("play"))
+        await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+        await _push(hass, "ZMOFF")
+        telnet.sent.clear()
+        heos.on_update(_heos_state("stop"))
+        await asyncio.sleep(0.3)
+    assert [c for c in telnet.sent if c[:2] in ("SI", "ZM", "PW")] == []
+    assert loaded_entry.runtime_data.announcing == set()
+
+
+async def test_heos_speaks_while_music_assistant_is_paused_and_heos_plays(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A phone's stream started on NET while Music Assistant's queue is paused."""
+    from .test_init import FakeHeos
+
+    await _push(hass, "PWON", "ZMON", "SINET")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    hass.states.async_set(
+        _MASS, "paused", {"media_title": "Queue", "supported_features": _APPLE_TV_FEATURES}
+    )
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "linked_players": {"NETWORK": {"player": _MASS, "follow": False, "full_volume": False}},
+        },
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(main).attributes["media_title"] == "Queue"
+    heos = FakeHeos.instances[-1]
+    heos.on_update(_heos_state("play"))
+    await _eventually(lambda: hass.states.get(main).attributes.get("media_title") == "Announcement")
+    # Music Assistant paused through HEOS (HEOS paused too): its queue again.
+    heos.on_update(_heos_state("pause"))
+    await _eventually(lambda: hass.states.get(main).attributes.get("media_title") == "Queue")
+
+
+async def test_a_linked_search_that_breaks_leaves_the_others(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import DATA_COMPONENT, SearchMediaQuery
+
+    class _Odd(_SearchingPlayer):
+        async def async_search_media(self, query: Any) -> Any:
+            self.queries.append(query.search_query)
+            if self.entity_id.endswith("raises"):
+                raise ValueError("unexpected")
+            return None
+
+    raises = _Odd("media_player.raises")
+    nothing = _Odd("media_player.nothing")
+    mass = _SearchingPlayer(_MASS)
+    await hass.data[DATA_COMPONENT].async_add_entities([raises, nothing, mass])
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "linked_players": {
+                "DVD": {"player": "media_player.raises", "follow": False, "full_volume": False},
+                "GAME": {"player": "media_player.nothing", "follow": False, "full_volume": False},
+                "NETWORK": {"player": _MASS, "follow": False, "full_volume": False},
+            },
+        },
+    )
+    await hass.async_block_till_done()
+    player = hass.data[DATA_COMPONENT].get_entity(entity_id(hass, loaded_entry, "media_player_main"))
+    assert player is not None
+    found = await player.async_search_media(SearchMediaQuery(search_query="queen"))
+    assert [item.media_content_id for item in found.result] == ["linked:NETWORK|library://artist/1"]
+    assert raises.queries == ["queen"] and nothing.queries == ["queen"]

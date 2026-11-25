@@ -1938,7 +1938,8 @@ class DenonAvrDevice:
         checked; following the main zone is always taken.
         """
 
-        code = self._wire_source(self._discovery.source_code(name) or name)
+        listed = self._discovery.source_code(name) or name
+        code = self._wire_source(listed)
         prefix = self._additional_zone_prefix(zone_id)
         if prefix is None or code == FOLLOW_MAIN or not self._telnet.connected:
             await self.async_select_source(zone_id, name)
@@ -1947,13 +1948,14 @@ class DenonAvrDevice:
         replies = await self.async_collect(
             lambda line: line == command, lambda: self._send(command), ZONE_SOURCE_WAIT
         )
+        # Remembered and reported by the listed code, as the source lists have it.
         refused = self._refused_sources.setdefault(zone_id, set())
         if replies or self._state.zone(zone_id).source == code:
-            refused.discard(code)
+            refused.discard(listed)
             return
-        refused.add(code)
+        refused.add(listed)
         self._schedule_update()
-        raise SourceNotTaken(zone_id, code)
+        raise SourceNotTaken(zone_id, listed)
 
     @property
     def communication_log(self) -> list[str]:

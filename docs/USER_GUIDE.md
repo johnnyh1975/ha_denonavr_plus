@@ -263,6 +263,9 @@ tried on a receiver yet.
 > - Switch on **full volume** for players with their own volume (AirPlay,
 >   Chromecast), so a lowered player does not make the receiver sound quiet.
 >   Not for a television or another device with its own speakers.
+> - Leave **pause the linked player when the zone is switched off** on,
+>   unless you link a television and keep watching on its own speakers once
+>   the receiver is off.
 
 ### Entities
 

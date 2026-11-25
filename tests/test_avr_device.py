@@ -760,6 +760,16 @@ async def test_the_network_input_listed_as_network_is_sent_as_net(
     assert telnet.sent[-1] == "Z2NET"
     assert device.refused_sources("zone2") == frozenset()
 
+    # Refused, it is remembered and reported by the listed code.
+    telnet.push("Z2CD")
+    with (
+        patch("custom_components.denonavr_plus.avr.device.ZONE_SOURCE_WAIT", 0.05),
+        pytest.raises(SourceNotTaken) as refused,
+    ):
+        await device.async_choose_source("zone2", "NETWORK")
+    assert refused.value.source == "NETWORK"
+    assert device.refused_sources("zone2") == {"NETWORK"}
+
 
 async def test_a_repeated_signal_line_starts_no_new_query(
     hass: HomeAssistant, loaded_entry: MockConfigEntry

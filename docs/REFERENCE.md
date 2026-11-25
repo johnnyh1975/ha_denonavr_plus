@@ -175,10 +175,12 @@ and its tokens.
   switching a zone off from Home Assistant (its player or an automation)
   pauses the linked player of the input it played, or stops it if it cannot
   pause, so it does not play on to a receiver that is off. Only a player that
-  plays; not while another zone stays on with the same input. With **Main zone off puts
-  the receiver in standby**, the players of every zone that was on are paused. Switching off
-  at the receiver or by its remote pauses nothing. A player that refuses does
-  not fail the turn-off.
+  plays; not while another zone stays on with the same input. With **Main
+  zone off puts the receiver in standby**, the players of every zone that was
+  on are paused. Switching off at the receiver or by its remote pauses
+  nothing. The turn-off does not wait for the player, and a player that
+  refuses does not fail it. Switch the option off if you link a television
+  and keep watching on its own speakers once the receiver is off.
 - **Playing or idle by the input signal** (default off): a zone on an input
   without a linked player shows *Playing* while the input carries a signal and
   *Idle* without one, instead of *On*. The receiver reports the signal of the
