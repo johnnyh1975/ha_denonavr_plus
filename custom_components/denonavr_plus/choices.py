@@ -157,6 +157,21 @@ def sound_mode_list(
     return list(shown_sound_modes(options, modes, current, readable).values())
 
 
+def match_mode(value: str, names: dict[str, str]) -> str | None:
+    """The mode a name stands for among modes shown under names, in any case.
+
+    The name shown comes first, the receiver's name second: what a list
+    shows chooses what it shows, whatever the case and the list's order.
+    """
+
+    key = normalized(value)
+    for candidates in (names.items(), ((mode, mode) for mode in names)):
+        for mode, name in candidates:
+            if normalized(name) == key:
+                return mode
+    return None
+
+
 def sound_mode_match(
     options: dict[str, Any], value: str, known: list[str], readable: Readable | None = None
 ) -> str | None:

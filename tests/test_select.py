@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 from typing import Any
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import json
@@ -426,14 +427,47 @@ async def test_the_sound_mode_select_takes_the_receiver_s_names_too(
 
     select = entity_id(hass, loaded_entry, "select_sound_mode")
     await _push(hass, "OPSML 010Stereo", "OPSML 021Dolby Audio - DD + DSur", "OPSML END")
-    telnet = FakeTelnet.instances[-1]
-    for name in ("Dolby Audio - DD + DSur", "dolby audio - dd + dsur", "DOLBY SURROUND"):
-        telnet.sent.clear()
+    device = loaded_entry.runtime_data.device
+    with patch.object(type(device), "async_select_sound_mode", AsyncMock()) as choose:
+        for name in ("Dolby Audio - DD + DSur", "dolby audio - dd + dsur", "DOLBY SURROUND"):
+            await hass.services.async_call(
+                "select", "select_option", {"entity_id": select, "option": name}, blocking=True
+            )
+            choose.assert_awaited_with("Dolby Audio - DD + DSur")
+        with pytest.raises(ServiceValidationError):
+            await hass.services.async_call(
+                "select", "select_option", {"entity_id": select, "option": "Jazz Club"}, blocking=True
+            )
+
+
+async def test_a_name_shown_wins_over_another_mode_s_receiver_name(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Mode A (receiver name Dolby Surround) renamed, mode B shown as Dolby Surround:
+    any spelling of Dolby Surround chooses B, in the select and in the media player."""
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"sound_mode_names": {"Dolby Surround": "DSur upmix"}}
+    )
+    select = entity_id(hass, loaded_entry, "select_sound_mode")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _push(
+        hass, "PWON", "ZMON", "OPSML 010Dolby Surround", "OPSML 021Dolby Audio - DD + DSur", "OPSML END"
+    )
+    assert hass.states.get(select).attributes["options"] == ["DSur upmix", "Dolby Surround"]
+    device = loaded_entry.runtime_data.device
+    with patch.object(type(device), "async_select_sound_mode", AsyncMock()) as choose:
+        for name in ("Dolby Surround", "dolby surround"):
+            await hass.services.async_call(
+                "select", "select_option", {"entity_id": select, "option": name}, blocking=True
+            )
+            choose.assert_awaited_with("Dolby Audio - DD + DSur")
+            await hass.services.async_call(
+                "media_player", "select_sound_mode", {"entity_id": main, "sound_mode": name},
+                blocking=True,
+            )
+            choose.assert_awaited_with("Dolby Audio - DD + DSur")
+        # The renamed mode by its new name.
         await hass.services.async_call(
-            "select", "select_option", {"entity_id": select, "option": name}, blocking=True
+            "select", "select_option", {"entity_id": select, "option": "dsur UPMIX"}, blocking=True
         )
-        assert telnet.sent and telnet.sent[0].startswith("MS"), name
-    with pytest.raises(ServiceValidationError):
-        await hass.services.async_call(
-            "select", "select_option", {"entity_id": select, "option": "Jazz Club"}, blocking=True
-        )
+        choose.assert_awaited_with("Dolby Surround")

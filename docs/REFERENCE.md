@@ -105,7 +105,9 @@ Stereo and Multi Ch In in the user's language. Other names stay as the
 receiver gives them; two modes that would get the same short name keep the
 receiver's names, and a name set here wins. The names are the same in the
 media player and the sound mode select. Both still take the receiver's names
-(in any case) to choose a mode, and turn them into the name shown.
+(in any case) to choose a mode; a name a list shows comes first. The select
+offers the modes of the current group only; the media player takes every
+mode the receiver has listed and its tokens.
 
 **Entities** (works even when the receiver is off): a toggle per group of the
 entities that start hidden, with how many it holds: Audio, Speakers, Video and

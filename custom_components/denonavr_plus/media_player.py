@@ -819,7 +819,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_select_sound_mode(self, sound_mode: str) -> None:
-        mode = choices.sound_mode_match(
+        # The names the list shows first, so a name chooses what the list
+        # shows under it; then every name and token the receiver knows.
+        mode = choices.match_mode(sound_mode, self._shown_sound_modes()) or choices.sound_mode_match(
             self._entry_options, sound_mode, self._known_sound_modes(), self._readable()
         )
         if mode is None and sound_mode.isupper():

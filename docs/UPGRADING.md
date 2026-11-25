@@ -18,6 +18,10 @@ names set under Configure → Sound modes.
   sound mode select.
 - A condition or template that compares `sound_mode` or the select's state
   with the receiver's name compares with the short name now.
+- A scene that holds the sound mode select's state stored the receiver's
+  name, which the select no longer lists: Home Assistant skips it when the
+  scene runs. Save the scene again, or keep the sound mode in the media
+  player's state.
 
 To keep the receiver's names everywhere, switch **Readable names** off under
 Configure → Sound modes.
