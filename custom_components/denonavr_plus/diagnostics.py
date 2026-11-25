@@ -44,6 +44,8 @@ async def async_get_config_entry_diagnostics(
         "capability_check": coordinator.capabilities.result,
         # The command test (None: not run).
         "command_test": coordinator.command_test.result,
+        # How long each part of the discovery at the last start took.
+        "setup_timings_ms": device.setup_timings,
         "telnet_response_ms": (
             None
             if device.telnet_response_time is None

@@ -45,6 +45,10 @@ async def test_diagnostics_redact_the_mac(
     assert result["setup_port"] is None
     assert result["started_offline"] is False
     assert result["generation"] == "2016"
+    # Where the start spent its time, part by part.
+    assert {"deviceinfo", "description", "setup_interface", "introspection", "discovery", "ready"} <= set(
+        result["setup_timings_ms"]
+    )
     assert [zone["id"] for zone in result["zones"]] == ["main", "zone2"]
     assert result["state"]["zones"]["main"]["volume_raw"] == 40.0
 

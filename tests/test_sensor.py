@@ -98,8 +98,10 @@ async def test_signal_sensors_follow_the_receiver(hass: HomeAssistant, receiver_
         assert hass.states.get(resolution).state == "3840x2160p 60Hz"
         assert registry_entry(hass, entry, "sensor_audio_active_speakers").disabled_by is not None
 
-        answers[3] = VIDEO.replace("3840x2160p 60Hz", "1920x1080p 50Hz")
         telnet = FakeTelnet.instances[-1]
+        # The answer to the resync, then a change of input.
+        telnet.push("SIDVD")
+        answers[3] = VIDEO.replace("3840x2160p 60Hz", "1920x1080p 50Hz")
         telnet.push("SICD")
         await asyncio.sleep(0.2)
         await hass.async_block_till_done()

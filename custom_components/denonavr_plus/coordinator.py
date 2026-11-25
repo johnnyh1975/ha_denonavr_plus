@@ -83,6 +83,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         )
         # When the setup settings were last read by the poll (see _async_update_data).
         self._setup_read_at: datetime | None = None
+        # The first poll follows the discovery, which has just read the signal.
+        self._polled = False
         self.device.register_update_callback(self._handle_device_update)
         # Registry id of the main receiver device, set once at setup so the
         # sub-devices can link to it via `via_device_id` (HA 2026.8+).
@@ -169,8 +171,10 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             await self.device.async_poll()
             await self._maybe_read_setup()
             if self.device.available:
-                await self.device.async_refresh_signal()
+                if self._polled:
+                    await self.device.async_refresh_signal()
                 await self.device.async_check_firmware()
+            self._polled = True
         except Exception as err:  # noqa: BLE001 - surface as an update failure
             raise UpdateFailed(f"Error polling Denon AVR: {err}") from err
         self._check_link()

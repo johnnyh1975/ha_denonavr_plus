@@ -71,6 +71,9 @@ CHANNEL_TRIMS_QUERY = "CV?"
 #: zone that exists answers its power, source and volume.
 LEGACY_ZONE_QUERIES = ("Z2?", "Z3?")
 #: The profile variant of receivers on port 80 (AVR-X2000 and its time).
+#: Within this many seconds of our own OPSMLALL query its END is its answer:
+#: an AVR-X2600H sends a line every 74 ms, 26 lines and more.
+SOUND_MODES_ANSWER = 6.0
 #: How often the now playing list and the tuner are asked while they play.
 MEDIA_POLL_INTERVAL = 5.0
 #: Telnet lines after which the live signal information may have changed:
@@ -192,6 +195,16 @@ class DenonAvrDevice:
         # at once. A group is scheduled at most once until its re-query fires.
         self._refresh_groups = self._profile.refresh_groups
         self._refresh_scheduled: set[str] = set()
+        # The trigger prefixes reported since the link came up. The first
+        # report of each after connecting is the answer to the resync, not a
+        # change: it starts no re-query (an AVR-X2600H otherwise got the sound
+        # mode lists five times in its first seconds).
+        self._seen_triggers: set[str] = set()
+        # When the full sound mode list was last asked for: its END is then
+        # the end of our own answer, which needs no OPSML re-query.
+        self._sound_modes_asked_at: float | None = None
+        #: How long each part of the discovery took, for the diagnostics.
+        self.setup_timings: dict[str, int] = {}
         self._available = False
         # Whether the last HTTP reconciliation poll got an answer. Tells a
         # blocked or occupied telnet port apart from a receiver that is off.
@@ -396,7 +409,9 @@ class DenonAvrDevice:
         config flow can report a clear failure.
         """
 
+        started = asyncio.get_running_loop().time()
         xml_text = await self._async_device_info()
+        self.setup_timings["deviceinfo"] = self._ms_since(started)
         # Tell the parser which feature blocks to read titles/labels from, using
         # the feature names the profile associates with its controls.
         feature_names = {
@@ -441,9 +456,6 @@ class DenonAvrDevice:
             "avr_x_type"
         ):
             discovered.device.hardware_type = receiver_type.get("avr_x_port80_type")
-        # Enrich the device identity with the firmware version and serial number,
-        # which the goform document omits but the UPnP description carries.
-        await self._async_fetch_version_info()
         self._discovery.features = discovered.features
         self._discovery.channels = discovered.channels
         self._discovery.zones = discovered.zones
@@ -452,25 +464,22 @@ class DenonAvrDevice:
         self._discovery.numeric_meta = discovered.numeric_meta
         self._discovery.volume = discovered.volume
         self._discovery.sound_mode_genres = discovered.sound_mode_genres
-        # Read the video setup config availability + values (over the /ajax API),
-        # and inject the menus that are present as discovery features so the
-        # telnet picture controls (gated on "PictureAdjust") are built at setup.
-        await self._video_config.discover()
-        self._discovery.features |= self._video_config.feature_flags()
-        # Speaker /ajax config (amp assign): no availability map, just read it.
-        await self._speaker_config.discover()
-        # Live video and channel information, where the setup interface has it.
-        await self.async_refresh_signal()
         # The authoritative source list comes from the telnet SSFUN/SSSOD
         # introspection (correct codes, names and visibility). Keep the Deviceinfo
         # source list only as a fallback for models without that introspection.
         self._fallback_sources = discovered.sources
         self._discovery.sources = []
-        # Reliably populate the telnet-discovered parts of the model (sources,
-        # channels/speaker config, sound modes, quick selects) with a short
-        # dedicated telnet session, so entities are built correctly regardless of
-        # the persistent connection's later timing.
-        await self._async_probe_introspection()
+        # Three independent reads, asked together so the setup waits for the
+        # slowest instead of their sum: the UPnP description (firmware, serial
+        # number), the setup interface (video, speakers, signal) and the telnet
+        # introspection over its own short connection (sources, channels,
+        # speaker configuration, sound modes, quick selects), which builds the
+        # entities regardless of the persistent connection's later timing.
+        await asyncio.gather(
+            self._timed("description", self._async_fetch_version_info()),
+            self._timed("setup_interface", self._async_discover_setup_interface()),
+            self._timed("introspection", self._async_probe_introspection()),
+        )
         self._add_network_source()
         specs = self._answer_gated_controls()
         queries = {spec.query for spec in specs if spec.query}
@@ -484,8 +493,33 @@ class DenonAvrDevice:
             self._discovery.answered = {spec.id for spec in specs if spec.query in known.answered}
             self.known_answers = known
         else:
-            await self._async_probe_answered(specs)
+            await self._timed("answers", self._async_probe_answered(specs))
+        self.setup_timings["discovery"] = self._ms_since(started)
         return self._discovery
+
+    async def _async_discover_setup_interface(self) -> None:
+        """Read what the setup interface (HTTPS 10443 or HTTP 11080) offers.
+
+        The video setup's availability and values, whose present menus become
+        discovery features (the telnet picture controls are gated on
+        "PictureAdjust"), the speaker setup (amp assign) and the live signal.
+        """
+
+        await self._video_config.discover()
+        self._discovery.features |= self._video_config.feature_flags()
+        await self._speaker_config.discover()
+        await self.async_refresh_signal()
+
+    async def _timed(self, name: str, step: Awaitable[None]) -> None:
+        """Run a discovery step and keep how long it took."""
+
+        started = asyncio.get_running_loop().time()
+        await step
+        self.setup_timings[name] = self._ms_since(started)
+
+    @staticmethod
+    def _ms_since(started: float) -> int:
+        return round((asyncio.get_running_loop().time() - started) * 1000)
 
     def discovery_snapshot(self) -> dict[str, Any]:
         """The part of the discovery the media players need, as plain data.
@@ -864,7 +898,8 @@ class DenonAvrDevice:
         """
 
         loop = asyncio.get_running_loop()
-        deadline = loop.time() + timeout
+        started = loop.time()
+        deadline = started + timeout
         while loop.time() < deadline:
             if (
                 self._state.system_power is not None
@@ -873,6 +908,7 @@ class DenonAvrDevice:
             ):
                 break
             await asyncio.sleep(0.1)
+        self.setup_timings["ready"] = self._ms_since(started)
         # If the telnet introspection produced no sources, fall back to the
         # Deviceinfo source list so the media player still has a source list.
         if not self._discovery.sources and self._fallback_sources:
@@ -1038,22 +1074,27 @@ class DenonAvrDevice:
         for listener in tuple(self._reply_listeners):
             listener(line)
         before = self._signal_context()
+        # The first report of a trigger after connecting answers the resync,
+        # which asked for everything already.
+        first = self._first_report(line)
         # The receiver repeats signal lines (an AVR-X2600H after every OPSML
         # query); only a change is worth reading again, or the re-query that
         # brings the repeat starts the next one.
         changed = False
         if self._parser.feed(line, self._state):
             self._schedule_update()
-            changed = self._signal_context() != before
+            changed = self._signal_context() != before and not first
             if changed and line.startswith(SIGNAL_TRIGGERS):
                 self._schedule_signal_refresh()
         # The receiver pushes OPSMLALL (all groups) when the sound mode context
         # changes, e.g. after a genre group switch, but never pushes OPSML (the
         # current group's selectable modes). When an OPSMLALL push completes,
         # re-query OPSML so the per group Sound Mode list follows the change.
+        # The end of the answer to our own OPSMLALL query needs none: whoever
+        # asked for it (the resync, a refresh group) asks for OPSML as well.
         if line.startswith("OPSMLALL"):
             remainder = line[len("OPSMLALL") :].strip()
-            if remainder.startswith(self._profile.list_terminator):
+            if remainder.startswith(self._profile.list_terminator) and not self._asked_recently():
                 self._create_task(self._query_current_sound_modes())
         # Data driven refresh: any group whose trigger prefix this line matches
         # gets a coalesced re-query. This keeps state the receiver does not
@@ -1066,6 +1107,29 @@ class DenonAvrDevice:
             on = group.get("on")
             if on and line.startswith(tuple(on)):
                 self._schedule_refresh(group_id)
+
+    def _first_report(self, line: str) -> bool:
+        """Whether the line is the first report of its trigger since connecting."""
+
+        prefixes = {prefix for prefix in SIGNAL_TRIGGERS if line.startswith(prefix)}
+        for group in self._refresh_groups.values():
+            prefixes.update(prefix for prefix in group.get("on", ()) if line.startswith(prefix))
+        if not prefixes or prefixes <= self._seen_triggers:
+            return False
+        self._seen_triggers |= prefixes
+        return True
+
+    def _note_sent(self, command: str) -> None:
+        """Remember when the full sound mode list was asked for."""
+
+        if command == self._profile.introspection_query("sound_mode_list"):
+            self._sound_modes_asked_at = asyncio.get_running_loop().time()
+
+    def _asked_recently(self) -> bool:
+        """Whether an OPSMLALL list now ending is the answer to our own query."""
+
+        asked = self._sound_modes_asked_at
+        return asked is not None and asyncio.get_running_loop().time() - asked < SOUND_MODES_ANSWER
 
     def _signal_context(self) -> tuple[Any, ...]:
         """What the signal and the sound mode lists depend on, to spot a change."""
@@ -1094,7 +1158,9 @@ class DenonAvrDevice:
     async def _resynchronise(self) -> None:
         """Query the full state after connecting so nothing is stale."""
 
+        self._seen_triggers.clear()
         for command in self._resync_queries():
+            self._note_sent(command)
             await self._telnet.async_send(command)
         # The setup settings may have changed while the link was down.
         self._create_task(self._refresh_setup_quietly())
@@ -1410,6 +1476,7 @@ class DenonAvrDevice:
         """
 
         if self._telnet.connected or is_query(command):
+            self._note_sent(command)
             await self._telnet.async_send(command)
             return
         if not self._http_reachable or not await self._goform.async_send_command(command):

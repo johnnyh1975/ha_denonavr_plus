@@ -738,6 +738,8 @@ async def test_a_repeated_signal_line_starts_no_new_query(
     two queries every 3.6 s for as long as the receiver was on.
     """
     telnet = FakeTelnet.instances[-1]
+    # The answers to the resync, then a change of signal.
+    telnet.push("SSINFAISSIG 03", "SYSDA DOLBY")
     telnet.push("SSINFAISSIG 17", "SYSDA PCM")
     await asyncio.sleep(1.1)
     assert "OPSMLALL ?" in telnet.sent
@@ -745,6 +747,27 @@ async def test_a_repeated_signal_line_starts_no_new_query(
     telnet.push("SSINFAISSIG 17", "SYSDA PCM")
     await asyncio.sleep(1.1)
     assert "OPSMLALL ?" not in telnet.sent
+
+
+async def test_the_answers_to_the_resync_start_no_new_query(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """AVR-X2600H diagnostics (0.9.4): in its first five seconds the sound mode
+    list was asked for five times and the full list twice; the first answers
+    after connecting counted as changes."""
+    telnet = FakeTelnet.instances[-1]
+    asked = telnet.sent.count("OPSML ?"), telnet.sent.count("OPSMLALL ?")
+    telnet.push("SSINFAISSIG 12", "SSINFAISFSV NON", "SYSDA Unknown", "SIAUX2", "MSDOLBY AUDIO-DD+DSUR")
+    # The end of the answer to the resync's own OPSMLALL query.
+    telnet.push("OPSMLALL MOV010Stereo", "OPSMLALL END")
+    await asyncio.sleep(1.2)
+    assert (telnet.sent.count("OPSML ?"), telnet.sent.count("OPSMLALL ?")) == asked
+    # A pushed list later (a change of genre) still brings the OPSML query.
+    await asyncio.sleep(0)
+    with patch("custom_components.denonavr_plus.avr.device.SOUND_MODES_ANSWER", 0.0):
+        telnet.push("OPSMLALL MUS080Stereo", "OPSMLALL END")
+        await asyncio.sleep(0.05)
+    assert telnet.sent.count("OPSML ?") == asked[0] + 1
 
 
 async def test_a_marantz_recalls_and_stores_smart_select(
