@@ -192,7 +192,9 @@ switch it on again.
 
 Per zone, which inputs the media player offers and how they are called;
 which sound modes the main zone offers. Names and hidden inputs set on the
-receiver are taken over already.
+receiver are taken over already. Sound modes show short names (Dolby
+Surround instead of the receiver's Dolby Audio - DD + DSur); switch
+**Readable names** off to see the receiver's names.
 
 > **Recommended:** hide the inputs nobody uses. Rename on the **receiver**
 > when you want the same names on its display; rename here when only Home

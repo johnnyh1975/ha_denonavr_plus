@@ -299,6 +299,42 @@ async def test_volume_ramp_needs_the_zone_on_and_survives_a_lost_receiver(
     assert set_volume.await_count == 1
 
 
+async def test_sound_modes_show_readable_names(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """As an AVR-X2600H lists them; the receiver's names still choose a mode."""
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _push(
+        hass,
+        "PWON",
+        "ZMON",
+        "OPSMLALL MOV010Stereo",
+        "OPSMLALL MOV021Dolby Audio - DD + DSur",
+        "OPSMLALL MOV030Multi Ch Stereo",
+        "OPSMLALL END",
+        "OPSML 010Stereo",
+        "OPSML 021Dolby Audio - DD + DSur",
+        "OPSML END",
+    )
+    state = hass.states.get(main)
+    assert state.attributes["sound_mode_list"] == ["Stereo", "Dolby Surround", "Multichannel stereo"]
+    assert state.attributes["sound_mode"] == "Dolby Surround"
+    telnet = FakeTelnet.instances[-1]
+    for name in ("Multichannel stereo", "Multi Ch Stereo"):
+        telnet.sent.clear()
+        await hass.services.async_call(
+            "media_player", "select_sound_mode", {"entity_id": main, "sound_mode": name}, blocking=True
+        )
+        assert "MSMCH STEREO" in telnet.sent
+
+    # Switched off in the options: the receiver's names.
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={"readable_sound_modes": False}
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(main).attributes["sound_mode"] == "Dolby Audio - DD + DSur"
+
+
 async def test_sources_follow_the_selection_and_names(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

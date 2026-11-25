@@ -204,10 +204,12 @@
         "title": "Geluidsmodi",
         "description": "Welke geluidsmodi de mediaspeler van de hoofdzone aanbiedt. De receiver biedt alleen de modi die bij het huidige signaal passen.",
         "data": {
-          "sound_modes": "Getoonde geluidsmodi"
+          "sound_modes": "Getoonde geluidsmodi",
+          "readable_sound_modes": "Leesbare namen"
         },
         "data_description": {
-          "sound_modes": "Kies alles om ook modi te tonen die de receiver later aanbiedt."
+          "sound_modes": "Kies alles om ook modi te tonen die de receiver later aanbiedt.",
+          "readable_sound_modes": "Korte namen zoals Dolby Surround in plaats van Dolby Audio - DD + DSur van de receiver. De namen van de receiver kiezen nog steeds een modus."
         }
       },
       "sound_mode_names": {
@@ -1329,6 +1331,12 @@
         "zone2": "Zone 2",
         "setup_menu": "Instelmenu op de tv",
         "zone2_follow_main": "Zone 2 volgt de hoofdzone"
+      }
+    },
+    "sound_mode_word": {
+      "options": {
+        "multichannel_stereo": "Meerkanaals stereo",
+        "multichannel_input": "Meerkanaals ingang"
       }
     }
   },

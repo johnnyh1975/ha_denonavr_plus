@@ -380,3 +380,19 @@ async def test_the_resolution_follows_the_receivers_list(
     state = hass.states.get(select)
     assert state is not None
     assert state.attributes["options"] == ["auto", "480p_576p", "1080i", "720p", "1080p", "4k", "8k"]
+
+
+async def test_the_sound_mode_select_shows_readable_names(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    select = entity_id(hass, loaded_entry, "select_sound_mode")
+    await _push(hass, "OPSML 010Stereo", "OPSML 021Dolby Audio - DD + DSur", "OPSML END")
+    state = hass.states.get(select)
+    assert state.attributes["options"] == ["Stereo", "Dolby Surround"]
+    assert state.state == "Dolby Surround"
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": select, "option": "Dolby Surround"}, blocking=True
+    )
+    assert telnet.sent and telnet.sent[0].startswith("MS")

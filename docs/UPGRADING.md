@@ -4,6 +4,16 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 1.0.x
+
+Sound modes show readable names: the media player's `sound_mode` and
+`sound_mode_list` and the sound mode select say *Dolby Surround* where they
+said *Dolby Audio - DD + DSur*, *Multichannel stereo* (in your language)
+where they said *Multi Ch Stereo*. Choosing a mode by the receiver's name
+still works. A condition or template that compares `sound_mode` with the
+receiver's name compares with the short name now, or switch **Readable
+names** off under Configure → Sound modes.
+
 ## From 0.9.4
 
 The tuner preset and frequency are now *unknown* instead of *unavailable*

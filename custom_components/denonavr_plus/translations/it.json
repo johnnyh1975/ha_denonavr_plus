@@ -204,10 +204,12 @@
         "title": "Modalità audio",
         "description": "Quali modalità audio offre il lettore multimediale della zona principale. Il sintoamplificatore offre solo le modalità adatte al segnale attuale.",
         "data": {
-          "sound_modes": "Modalità audio mostrate"
+          "sound_modes": "Modalità audio mostrate",
+          "readable_sound_modes": "Nomi leggibili"
         },
         "data_description": {
-          "sound_modes": "Seleziona tutto per mostrare anche le modalità offerte in seguito."
+          "sound_modes": "Seleziona tutto per mostrare anche le modalità offerte in seguito.",
+          "readable_sound_modes": "Nomi brevi come Dolby Surround invece di Dolby Audio - DD + DSur del ricevitore. I nomi del ricevitore scelgono ancora una modalità."
         }
       },
       "sound_mode_names": {
@@ -1329,6 +1331,12 @@
         "zone2": "Zona 2",
         "setup_menu": "Menu di configurazione sul televisore",
         "zone2_follow_main": "La Zona 2 segue la zona principale"
+      }
+    },
+    "sound_mode_word": {
+      "options": {
+        "multichannel_stereo": "Stereo multicanale",
+        "multichannel_input": "Ingresso multicanale"
       }
     }
   },

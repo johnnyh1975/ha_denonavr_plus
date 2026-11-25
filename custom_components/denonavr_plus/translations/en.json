@@ -204,10 +204,12 @@
         "title": "Sound modes",
         "description": "Which sound modes the main zone's media player offers. The receiver only offers the modes that fit the current signal.",
         "data": {
-          "sound_modes": "Sound modes shown"
+          "sound_modes": "Sound modes shown",
+          "readable_sound_modes": "Readable names"
         },
         "data_description": {
-          "sound_modes": "Select all to also show modes the receiver offers later."
+          "sound_modes": "Select all to also show modes the receiver offers later.",
+          "readable_sound_modes": "Short names such as Dolby Surround instead of the receiver's Dolby Audio - DD + DSur. The receiver's names still choose a mode."
         }
       },
       "sound_mode_names": {
@@ -1329,6 +1331,12 @@
         "zone2": "Zone 2",
         "setup_menu": "Setup menu on the TV",
         "zone2_follow_main": "Zone 2 follows the main zone"
+      }
+    },
+    "sound_mode_word": {
+      "options": {
+        "multichannel_stereo": "Multichannel stereo",
+        "multichannel_input": "Multichannel input"
       }
     }
   },

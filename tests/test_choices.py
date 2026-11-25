@@ -58,8 +58,6 @@ def test_sound_modes_are_filtered_renamed_and_keep_the_current_one() -> None:
     assert choices.sound_mode_list(options, modes, "Multi Ch Stereo") == [
         "Stereo", "Film", "Multi Ch Stereo",
     ]
-    assert choices.sound_mode_for(options, "Film") == "Dolby Surround"
-    assert choices.sound_mode_for(options, "Stereo") == "Stereo"
 
 
 def test_the_main_zone_is_always_enabled() -> None:

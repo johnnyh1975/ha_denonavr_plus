@@ -603,6 +603,8 @@ async def test_sound_modes_are_chosen_and_renamed(
     )
     assert loaded_entry.options["sound_modes"] == ["Stereo"]
     assert loaded_entry.options["sound_mode_names"] == {"Stereo": "Zwei Kanäle"}
+    # Readable names are on unless switched off.
+    assert loaded_entry.options["readable_sound_modes"] is True
 
 
 async def test_zones_can_be_switched_off(

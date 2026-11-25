@@ -204,10 +204,12 @@
         "title": "Modos de sonido",
         "description": "Qué modos de sonido ofrece el reproductor multimedia de la zona principal. El receptor solo ofrece los modos adecuados a la señal actual.",
         "data": {
-          "sound_modes": "Modos de sonido mostrados"
+          "sound_modes": "Modos de sonido mostrados",
+          "readable_sound_modes": "Nombres legibles"
         },
         "data_description": {
-          "sound_modes": "Selecciona todos para mostrar también los modos que se ofrezcan después."
+          "sound_modes": "Selecciona todos para mostrar también los modos que se ofrezcan después.",
+          "readable_sound_modes": "Nombres cortos como Dolby Surround en lugar de Dolby Audio - DD + DSur del receptor. Los nombres del receptor siguen eligiendo un modo."
         }
       },
       "sound_mode_names": {
@@ -1329,6 +1331,12 @@
         "zone2": "Zona 2",
         "setup_menu": "Menú de configuración en el televisor",
         "zone2_follow_main": "La Zona 2 sigue a la zona principal"
+      }
+    },
+    "sound_mode_word": {
+      "options": {
+        "multichannel_stereo": "Estéreo multicanal",
+        "multichannel_input": "Entrada multicanal"
       }
     }
   },

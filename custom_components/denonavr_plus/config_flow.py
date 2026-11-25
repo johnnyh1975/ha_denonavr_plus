@@ -42,6 +42,7 @@ from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 
 from .avr import DenonAvrDevice
 from .avr.profile import load_profile
+from .sound_modes import OPT_READABLE_SOUND_MODES
 from .const import (
     CONF_HOST,
     CONF_PORT,
@@ -808,7 +809,10 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         if user_input is not None:
             chosen_in = list(user_input[OPT_SOUND_MODES])
             # The names step lists the chosen modes; "all" is stored as empty.
-            self._pending = {OPT_SOUND_MODES: [] if set(chosen_in) >= set(modes) else chosen_in}
+            self._pending = {
+                OPT_SOUND_MODES: [] if set(chosen_in) >= set(modes) else chosen_in,
+                OPT_READABLE_SOUND_MODES: bool(user_input.get(OPT_READABLE_SOUND_MODES, True)),
+            }
             self._mode_names_for = chosen_in
             return await self.async_step_sound_mode_names()
         chosen = self.config_entry.options.get(OPT_SOUND_MODES) or modes
@@ -818,7 +822,13 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 {
                     vol.Required(OPT_SOUND_MODES, default=list(chosen)): SelectSelector(
                         SelectSelectorConfig(options=modes, multiple=True)
-                    )
+                    ),
+                    vol.Required(
+                        OPT_READABLE_SOUND_MODES,
+                        default=bool(
+                            self.config_entry.options.get(OPT_READABLE_SOUND_MODES, True)
+                        ),
+                    ): BooleanSelector(),
                 }
             ),
         )

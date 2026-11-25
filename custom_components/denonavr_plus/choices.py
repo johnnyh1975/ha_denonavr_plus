@@ -17,6 +17,7 @@ selection, so the media player never shows nothing while something plays.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from .avr.models import Discovery
@@ -101,37 +102,63 @@ def source_code_for(discovery: Discovery, options: dict[str, Any], display: str)
 # Sound modes ---------------------------------------------------------------
 
 
-def sound_mode_display(options: dict[str, Any], mode: str) -> str:
-    return _mapping(options, OPT_SOUND_MODE_NAMES).get(mode) or mode
+#: Turns a receiver's sound mode name into the one shown (sound_modes.py).
+Readable = Callable[[str], str]
 
 
-def sound_mode_list(
-    options: dict[str, Any], modes: list[str], current: str | None
-) -> list[str]:
-    """The sound modes the main zone's list offers, renamed, current one kept."""
+def sound_mode_names(
+    options: dict[str, Any], modes: list[str], readable: Readable | None = None
+) -> dict[str, str]:
+    """The name shown for each mode: renamed in the options, else readable.
+
+    Two modes whose readable names would be the same keep the receiver's
+    names, so every name in a list chooses one mode.
+    """
+
+    renamed = _mapping(options, OPT_SOUND_MODE_NAMES)
+    shown = {mode: renamed.get(mode) or (readable(mode) if readable else mode) for mode in modes}
+    counts: dict[str, int] = {}
+    for name in shown.values():
+        counts[name] = counts.get(name, 0) + 1
+    return {
+        mode: name if counts[name] == 1 or mode in renamed else mode
+        for mode, name in shown.items()
+    }
+
+
+def shown_sound_modes(
+    options: dict[str, Any], modes: list[str], current: str | None, readable: Readable | None = None
+) -> dict[str, str]:
+    """The modes the main zone's list offers, with their names; current one kept."""
 
     chosen = options.get(OPT_SOUND_MODES)
     if chosen:
         modes = [mode for mode in modes if mode in chosen]
     if current and current not in modes:
         modes = [*modes, current]
-    return [sound_mode_display(options, mode) for mode in modes]
+    return sound_mode_names(options, list(dict.fromkeys(modes)), readable)
 
 
-def sound_mode_for(options: dict[str, Any], display: str) -> str:
-    """The receiver's sound mode behind a name Home Assistant showed."""
+def sound_mode_list(
+    options: dict[str, Any], modes: list[str], current: str | None, readable: Readable | None = None
+) -> list[str]:
+    """The names of the sound modes the main zone's list offers."""
 
-    for mode, name in _mapping(options, OPT_SOUND_MODE_NAMES).items():
-        if name == display:
-            return mode
-    return display
+    return list(shown_sound_modes(options, modes, current, readable).values())
 
 
-def sound_mode_match(options: dict[str, Any], value: str, known: list[str]) -> str | None:
-    """The sound mode a name stands for: renamed or known, in any case."""
+def sound_mode_match(
+    options: dict[str, Any], value: str, known: list[str], readable: Readable | None = None
+) -> str | None:
+    """The sound mode a name stands for: renamed, readable or known, in any case."""
 
     key = normalized(value)
     for mode, name in _mapping(options, OPT_SOUND_MODE_NAMES).items():
         if normalized(name) == key:
             return mode
-    return next((mode for mode in known if normalized(mode) == key), None)
+    found = next((mode for mode in known if normalized(mode) == key), None)
+    if found is None and readable is not None:
+        for mode, name in sound_mode_names(options, list(dict.fromkeys(known)), readable).items():
+            if normalized(name) == key:
+                return mode
+    return found

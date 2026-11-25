@@ -89,7 +89,14 @@ favorites after the inputs.
 zone's media player offers, and their names. The receiver only offers the
 modes that fit the current signal. The current source and sound mode are
 always shown, also when they are not selected. The sound mode selects keep
-the receiver's full list.
+the receiver's full list. **Readable names** (default on) shorten the
+receiver's names: the upmixer where a mode has one (`Dolby Audio - DD + DSur`
+shows as Dolby Surround, `Multi In + Neural:X` as DTS Neural:X), the Dolby
+format spelled out (`Dolby Audio - DD+` as Dolby Digital Plus), and Multi Ch
+Stereo and Multi Ch In in the user's language. Other names stay as the
+receiver gives them; two modes that would get the same short name keep the
+receiver's names, and a name set here wins. The receiver's names still choose
+a mode in actions and automations.
 
 **Entities** (works even when the receiver is off): a toggle per group of the
 entities that start hidden, with how many it holds: Audio, Speakers, Video and

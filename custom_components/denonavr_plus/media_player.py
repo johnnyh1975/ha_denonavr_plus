@@ -42,7 +42,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import artwork, choices, heos_media
+from . import artwork, choices, heos_media, sound_modes
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent, SourceNotTaken
@@ -172,6 +172,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         self._announce_snapshot: ZoneSnapshot | None = None
         self._snapshot: ZoneSnapshot | None = None
         self._ramp_task: asyncio.Task[None] | None = None
+        self._sound_mode_words: dict[str, str] = dict(sound_modes.WORDS)
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
         self._attr_name = None
@@ -209,6 +210,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             )
         self.async_on_remove(self._cancel_announcement)
         self.async_on_remove(self._cancel_volume_ramp)
+        if self._zone.is_main:
+            self._sound_mode_words = await sound_modes.async_words(self.hass)
 
     def _cancel_announcement(self) -> None:
         if self._announce_task is not None:
@@ -439,7 +442,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         # Prefer the receiver's display name for the active mode; fall back to
         # the raw wire token when the display name is not known yet.
         mode = self._current_sound_mode
-        return choices.sound_mode_display(self._entry_options, mode) if mode else None
+        if not mode:
+            return None
+        return self._shown_sound_modes().get(mode, mode)
 
     @property
     def _current_sound_mode(self) -> str | None:
@@ -463,6 +468,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         # the receiver's own order, plus any current-context extras (e.g. Auto)
         # and the active mode. Not sorted, to keep a sensible order. The set is
         # signal dependent: the receiver only lists modes valid for the signal.
+        shown = list(self._shown_sound_modes().values())
+        return shown or None
+
+    def _shown_sound_modes(self) -> dict[str, str]:
+        """The modes of the main zone's list, each with the name shown for it."""
+
         discovery = self._device.discovery
         modes = list(discovery.all_sound_modes)
         for mode in discovery.current_sound_modes:
@@ -470,8 +481,16 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 modes.append(mode)
         if not modes:
             modes = self._device.fallback_sound_modes
-        shown = choices.sound_mode_list(self._entry_options, modes, self._current_sound_mode)
-        return shown or None
+        return choices.shown_sound_modes(
+            self._entry_options, modes, self._current_sound_mode, self._readable()
+        )
+
+    def _readable(self) -> choices.Readable | None:
+        """Readable sound mode names, unless the options switched them off."""
+
+        if not self._entry_options.get(sound_modes.OPT_READABLE_SOUND_MODES, True):
+            return None
+        return sound_modes.readable_with(self._sound_mode_words)
 
     # Now-playing media (network sources, via HEOS) ------------------------
 
@@ -800,7 +819,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_select_sound_mode(self, sound_mode: str) -> None:
-        mode = choices.sound_mode_match(self._entry_options, sound_mode, self._known_sound_modes())
+        mode = choices.sound_mode_match(
+            self._entry_options, sound_mode, self._known_sound_modes(), self._readable()
+        )
         if mode is None and sound_mode.isupper():
             # In capitals: the receiver's own token (MSDOLBY ATMOS), as before.
             mode = sound_mode

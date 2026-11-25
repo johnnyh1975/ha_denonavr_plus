@@ -204,10 +204,12 @@
         "title": "Modes son",
         "description": "Quels modes son le lecteur multimédia de la zone principale propose. L'ampli-tuner ne propose que les modes adaptés au signal actuel.",
         "data": {
-          "sound_modes": "Modes son affichés"
+          "sound_modes": "Modes son affichés",
+          "readable_sound_modes": "Noms lisibles"
         },
         "data_description": {
-          "sound_modes": "Sélectionnez tout pour afficher aussi les modes proposés plus tard."
+          "sound_modes": "Sélectionnez tout pour afficher aussi les modes proposés plus tard.",
+          "readable_sound_modes": "Des noms courts comme Dolby Surround au lieu de Dolby Audio - DD + DSur du récepteur. Les noms du récepteur choisissent toujours un mode."
         }
       },
       "sound_mode_names": {
@@ -1329,6 +1331,12 @@
         "zone2": "Zone 2",
         "setup_menu": "Menu de configuration sur le téléviseur",
         "zone2_follow_main": "La Zone 2 suit la zone principale"
+      }
+    },
+    "sound_mode_word": {
+      "options": {
+        "multichannel_stereo": "Stéréo multicanal",
+        "multichannel_input": "Entrée multicanal"
       }
     }
   },

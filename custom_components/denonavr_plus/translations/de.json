@@ -204,10 +204,12 @@
         "title": "Klangmodi",
         "description": "Welche Klangmodi der Media Player der Hauptzone anbietet. Der Receiver bietet nur die Modi an, die zum aktuellen Signal passen.",
         "data": {
-          "sound_modes": "Angezeigte Klangmodi"
+          "sound_modes": "Angezeigte Klangmodi",
+          "readable_sound_modes": "Lesbare Namen"
         },
         "data_description": {
-          "sound_modes": "Alle wählen, damit auch Modi erscheinen, die der Receiver später anbietet."
+          "sound_modes": "Alle wählen, damit auch Modi erscheinen, die der Receiver später anbietet.",
+          "readable_sound_modes": "Kurze Namen wie Dolby Surround statt Dolby Audio - DD + DSur des Receivers. Die Namen des Receivers wählen weiterhin einen Modus."
         }
       },
       "sound_mode_names": {
@@ -1329,6 +1331,12 @@
         "zone2": "Zone 2",
         "setup_menu": "Setup-Menü am Fernseher",
         "zone2_follow_main": "Zone 2 folgt der Hauptzone"
+      }
+    },
+    "sound_mode_word": {
+      "options": {
+        "multichannel_stereo": "Mehrkanal-Stereo",
+        "multichannel_input": "Mehrkanal-Eingang"
       }
     }
   },

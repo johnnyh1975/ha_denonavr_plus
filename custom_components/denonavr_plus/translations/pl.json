@@ -204,10 +204,12 @@
         "title": "Tryby dźwięku",
         "description": "Które tryby dźwięku oferuje odtwarzacz strefy głównej. Amplituner oferuje tylko tryby pasujące do bieżącego sygnału.",
         "data": {
-          "sound_modes": "Wyświetlane tryby dźwięku"
+          "sound_modes": "Wyświetlane tryby dźwięku",
+          "readable_sound_modes": "Czytelne nazwy"
         },
         "data_description": {
-          "sound_modes": "Wybierz wszystkie, aby pokazywać także tryby oferowane później."
+          "sound_modes": "Wybierz wszystkie, aby pokazywać także tryby oferowane później.",
+          "readable_sound_modes": "Krótkie nazwy, np. Dolby Surround zamiast Dolby Audio - DD + DSur amplitunera. Nazwy amplitunera nadal wybierają tryb."
         }
       },
       "sound_mode_names": {
@@ -1329,6 +1331,12 @@
         "zone2": "Strefa 2",
         "setup_menu": "Menu konfiguracji na telewizorze",
         "zone2_follow_main": "Strefa 2 podąża za strefą główną"
+      }
+    },
+    "sound_mode_word": {
+      "options": {
+        "multichannel_stereo": "Stereo wielokanałowe",
+        "multichannel_input": "Wejście wielokanałowe"
       }
     }
   },

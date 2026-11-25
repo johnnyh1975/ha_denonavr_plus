@@ -16,6 +16,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from typing import Any, cast
 
+from . import choices, sound_modes
 from .avr import graphic_eq
 from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
@@ -208,9 +209,13 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "select_sound_mode")
         self._attr_translation_key = "sound_mode"
+        self._words: dict[str, str] = dict(sound_modes.WORDS)
 
-    @property
-    def options(self) -> list[str]:
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._words = await sound_modes.async_words(self.hass)
+
+    def _modes(self) -> list[str]:
         # The receiver's current-context list (OPSML) is authoritative: it holds
         # exactly what the active group offers now, including modes OPSMLALL omits
         # such as Auto. Fall back to the static per genre group if unavailable.
@@ -220,14 +225,30 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
         code = self.coordinator.data.values.get("sound_mode_genre")
         return discovery.sound_mode_groups.get(str(code), []) if code else []
 
+    def _names(self) -> dict[str, str]:
+        """Each mode of the group with the name shown, as the media player shows it."""
+
+        options = self._entry_options
+        readable = (
+            sound_modes.readable_with(self._words)
+            if options.get(sound_modes.OPT_READABLE_SOUND_MODES, True)
+            else None
+        )
+        return choices.sound_mode_names(options, self._modes(), readable)
+
+    @property
+    def options(self) -> list[str]:
+        return list(self._names().values())
+
     @property
     def current_option(self) -> str | None:
         current = self.coordinator.data.values.get("sound_mode_display")
-        return current if current in self.options else None
+        return self._names().get(str(current)) if current else None
 
     @receiver_action
     async def async_select_option(self, option: str) -> None:
-        await self.coordinator.device.async_select_sound_mode(option)
+        mode = next((mode for mode, name in self._names().items() if name == option), option)
+        await self.coordinator.device.async_select_sound_mode(mode)
 
 
 class DenonAvrCrossover(DenonAvrEntity, SelectEntity):
