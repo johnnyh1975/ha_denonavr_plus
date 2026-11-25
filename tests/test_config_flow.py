@@ -627,6 +627,7 @@ async def test_zones_can_be_switched_off(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert loaded_entry.options["zones"] == []
     assert loaded_entry.options["main_off_standby"] is True
+    assert loaded_entry.options["settings_turn_on"] is False
     # A change of zones reloads the entry; let it finish inside the test, or
     # it runs during teardown without the fake receiver.
     await hass.async_block_till_done()
@@ -1156,3 +1157,23 @@ async def test_the_setup_goes_on_without_the_control_connection(hass: HomeAssist
             result["flow_id"], {"next_step_id": "telnet_continue"}
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+
+
+async def test_a_receiver_with_one_zone_gets_the_power_settings(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus.avr.models import ZoneDescriptor
+
+    discovery = loaded_entry.runtime_data.device.discovery
+    with patch.object(discovery, "zones", [ZoneDescriptor(id="main", index=1)]):
+        result = await _options_step(hass, loaded_entry, "zones")
+        assert [str(key) for key in result["data_schema"].schema] == [
+            "main_off_standby",
+            "settings_turn_on",
+        ]
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {"main_off_standby": False, "settings_turn_on": True}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert loaded_entry.options["settings_turn_on"] is True
+    assert "zones" not in loaded_entry.options

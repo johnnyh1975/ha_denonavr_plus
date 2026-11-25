@@ -84,7 +84,7 @@
         "title": "Opções",
         "menu_options": {
           "volume": "Volume",
-          "zones": "Zonas",
+          "zones": "Zonas e ligar",
           "sources": "Fontes",
           "sound_modes": "Modos de som",
           "connection": "Ligação",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Zonas",
-        "description": "Que zonas adicionais têm entidades no Home Assistant. O recetor não é alterado.",
+        "title": "Zonas e ligar",
+        "description": "Que zonas adicionais têm entidades no Home Assistant e como o Home Assistant liga o recetor. As definições do recetor não são alteradas.",
         "data": {
           "zones": "Zonas mostradas",
-          "main_off_standby": "Desligar a zona principal põe o recetor em espera"
+          "main_off_standby": "Desligar a zona principal põe o recetor em espera",
+          "settings_turn_on": "Ligar o recetor para uma definição"
         },
         "data_description": {
           "zones": "Uma zona não selecionada não tem leitor multimédia, volume nem sensor de fonte; as suas entidades são removidas.",
-          "main_off_standby": "Ao desligar a zona principal a partir do Home Assistant, todo o recetor entra em espera e nenhuma outra zona continua a tocar. Sem esta opção só a zona principal se desliga."
+          "main_off_standby": "Ao desligar a zona principal a partir do Home Assistant, todo o recetor entra em espera e nenhuma outra zona continua a tocar. Sem esta opção só a zona principal se desliga.",
+          "settings_turn_on": "Uma definição da zona principal alterada a partir do Home Assistant com o recetor em espera liga primeiro a zona principal, porque o recetor não aceita definições em espera. Sem esta opção, a definição indica que o recetor está em espera."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "O recetor não está ligado à rede. As fontes e os modos de som são lidos do aparelho; tente novamente quando estiver ligado.",
-      "no_additional_zones": "Este recetor não tem zonas adicionais.",
       "no_sound_modes": "O recetor ainda não indicou nenhum modo de som.",
       "test_not_connected": "O recetor não está ligado. O teste de comandos precisa da sua ligação telnet; tente novamente quando estiver ligado.",
       "no_hidden_entities": "Este recetor não tem entidades ocultas.",

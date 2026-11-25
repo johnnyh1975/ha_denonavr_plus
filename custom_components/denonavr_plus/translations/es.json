@@ -84,7 +84,7 @@
         "title": "Opciones",
         "menu_options": {
           "volume": "Volumen",
-          "zones": "Zonas",
+          "zones": "Zonas y encendido",
           "sources": "Fuentes",
           "sound_modes": "Modos de sonido",
           "connection": "Conexión",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Zonas",
-        "description": "Qué zonas adicionales tienen entidades en Home Assistant. El receptor no se modifica.",
+        "title": "Zonas y encendido",
+        "description": "Qué zonas adicionales tienen entidades en Home Assistant y cómo Home Assistant enciende el receptor. Los ajustes del receptor no se modifican.",
         "data": {
           "zones": "Zonas mostradas",
-          "main_off_standby": "Apagar la zona principal pone el receptor en espera"
+          "main_off_standby": "Apagar la zona principal pone el receptor en espera",
+          "settings_turn_on": "Encender el receptor para un ajuste"
         },
         "data_description": {
           "zones": "Una zona no seleccionada no tiene reproductor multimedia, volumen ni sensor de fuente; sus entidades se eliminan.",
-          "main_off_standby": "Al apagar la zona principal desde Home Assistant, todo el receptor pasa a espera y ninguna otra zona sigue sonando. Sin esta opción solo se apaga la zona principal."
+          "main_off_standby": "Al apagar la zona principal desde Home Assistant, todo el receptor pasa a espera y ninguna otra zona sigue sonando. Sin esta opción solo se apaga la zona principal.",
+          "settings_turn_on": "Un ajuste de la zona principal cambiado desde Home Assistant con el receptor en espera enciende primero la zona principal, porque el receptor no acepta ajustes en espera. Sin esta opción, el ajuste indica que el receptor está en espera."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
-      "no_additional_zones": "Este receptor no tiene zonas adicionales.",
       "no_sound_modes": "El receptor aún no ha informado de ningún modo de sonido.",
       "test_not_connected": "El receptor no está conectado. La prueba de comandos necesita su conexión telnet; inténtalo de nuevo cuando esté encendido.",
       "no_hidden_entities": "Este receptor no tiene entidades ocultas.",

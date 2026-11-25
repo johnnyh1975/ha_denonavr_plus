@@ -84,7 +84,7 @@
         "title": "Opties",
         "menu_options": {
           "volume": "Volume",
-          "zones": "Zones",
+          "zones": "Zones en inschakelen",
           "sources": "Bronnen",
           "sound_modes": "Geluidsmodi",
           "connection": "Verbinding",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Zones",
-        "description": "Welke extra zones entiteiten in Home Assistant krijgen. De receiver wordt niet gewijzigd.",
+        "title": "Zones en inschakelen",
+        "description": "Welke extra zones entiteiten in Home Assistant krijgen en hoe Home Assistant de receiver inschakelt. De instellingen van de receiver veranderen niet.",
         "data": {
           "zones": "Getoonde zones",
-          "main_off_standby": "Hoofdzone uit zet de receiver op stand-by"
+          "main_off_standby": "Hoofdzone uit zet de receiver op stand-by",
+          "settings_turn_on": "Receiver inschakelen voor een instelling"
         },
         "data_description": {
           "zones": "Een niet gekozen zone heeft geen mediaspeler, volume of bronsensor; de entiteiten ervan worden verwijderd.",
-          "main_off_standby": "Zet Home Assistant de hoofdzone uit, dan gaat de hele receiver op stand-by en speelt geen andere zone door. Zonder deze optie gaat alleen de hoofdzone uit."
+          "main_off_standby": "Zet Home Assistant de hoofdzone uit, dan gaat de hele receiver op stand-by en speelt geen andere zone door. Zonder deze optie gaat alleen de hoofdzone uit.",
+          "settings_turn_on": "Een instelling van de hoofdzone die Home Assistant in stand-by wijzigt, schakelt eerst de hoofdzone in, omdat de receiver in stand-by geen instelling overneemt. Zonder deze optie meldt de instelling dat de receiver in stand-by staat."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "De receiver is niet verbonden. De bronnen en geluidsmodi worden van de receiver gelezen; probeer het opnieuw als hij aan staat.",
-      "no_additional_zones": "Deze receiver heeft geen extra zone.",
       "no_sound_modes": "De receiver heeft nog geen geluidsmodi gemeld.",
       "test_not_connected": "De receiver is niet verbonden. De commandotest heeft zijn telnetverbinding nodig; probeer het opnieuw als hij aan staat.",
       "no_hidden_entities": "Deze receiver heeft geen verborgen entiteiten.",

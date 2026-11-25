@@ -84,7 +84,7 @@
         "title": "Options",
         "menu_options": {
           "volume": "Volume",
-          "zones": "Zones",
+          "zones": "Zones et mise en marche",
           "sources": "Sources",
           "sound_modes": "Modes son",
           "connection": "Connexion",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Zones",
-        "description": "Quelles zones supplémentaires ont des entités dans Home Assistant. L'ampli-tuner n'est pas modifié.",
+        "title": "Zones et mise en marche",
+        "description": "Quelles zones supplémentaires ont des entités dans Home Assistant, et comment Home Assistant allume l'ampli-tuner. Les réglages de l'ampli-tuner ne sont pas modifiés.",
         "data": {
           "zones": "Zones affichées",
-          "main_off_standby": "Éteindre la zone principale met l'ampli-tuner en veille"
+          "main_off_standby": "Éteindre la zone principale met l'ampli-tuner en veille",
+          "settings_turn_on": "Allumer l'ampli-tuner pour un réglage"
         },
         "data_description": {
           "zones": "Une zone non sélectionnée n'a ni lecteur multimédia, ni volume, ni capteur de source ; ses entités sont supprimées.",
-          "main_off_standby": "Éteindre la zone principale depuis Home Assistant met tout l'ampli-tuner en veille, aucune autre zone ne continue de jouer. Sans cette option, seule la zone principale s'éteint."
+          "main_off_standby": "Éteindre la zone principale depuis Home Assistant met tout l'ampli-tuner en veille, aucune autre zone ne continue de jouer. Sans cette option, seule la zone principale s'éteint.",
+          "settings_turn_on": "Un réglage de la zone principale modifié depuis Home Assistant pendant la veille allume d'abord la zone principale, car l'ampli-tuner n'accepte aucun réglage en veille. Sans cette option, le réglage indique que l'ampli-tuner est en veille."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "L'ampli-tuner n'est pas connecté. Ses sources et modes son sont lus depuis l'appareil ; réessayez lorsqu'il est allumé.",
-      "no_additional_zones": "Cet ampli-tuner n'a pas de zone supplémentaire.",
       "no_sound_modes": "L'ampli-tuner n'a encore signalé aucun mode son.",
       "test_not_connected": "Le récepteur n'est pas connecté. Le test des commandes a besoin de sa connexion telnet ; réessayez quand il est allumé.",
       "no_hidden_entities": "Ce récepteur n'a pas d'entités masquées.",

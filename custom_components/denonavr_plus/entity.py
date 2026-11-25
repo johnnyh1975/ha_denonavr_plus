@@ -156,6 +156,12 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
         )
 
     @property
+    def _turn_on_for_settings(self) -> bool:
+        """Whether a setting in standby turns the main zone on first (option)."""
+
+        return bool(self._entry_options.get(choices.OPT_SETTINGS_TURN_ON, False))
+
+    @property
     def _entry_options(self) -> dict[str, Any]:
         """The entry options (volume settings), empty before the entry exists."""
 

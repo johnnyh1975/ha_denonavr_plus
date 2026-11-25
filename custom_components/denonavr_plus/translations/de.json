@@ -84,7 +84,7 @@
         "title": "Optionen",
         "menu_options": {
           "volume": "Lautstärke",
-          "zones": "Zonen",
+          "zones": "Zonen und Einschalten",
           "sources": "Quellen",
           "sound_modes": "Klangmodi",
           "connection": "Verbindung",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Zonen",
-        "description": "Welche weiteren Zonen in Home Assistant Entitäten bekommen. Am Receiver ändert sich nichts.",
+        "title": "Zonen und Einschalten",
+        "description": "Welche weiteren Zonen in Home Assistant Entitäten bekommen und wie Home Assistant den Receiver schaltet. Die Einstellungen am Receiver ändern sich nicht.",
         "data": {
           "zones": "Angezeigte Zonen",
-          "main_off_standby": "Hauptzone aus schaltet den Receiver in Standby"
+          "main_off_standby": "Hauptzone aus schaltet den Receiver in Standby",
+          "settings_turn_on": "Receiver für eine Einstellung einschalten"
         },
         "data_description": {
           "zones": "Eine nicht gewählte Zone hat keinen Media Player, keine Lautstärke und keinen Quellen-Sensor; ihre Entitäten werden entfernt.",
-          "main_off_standby": "Schaltet Home Assistant die Hauptzone aus, geht der ganze Receiver in Standby, und keine andere Zone spielt weiter. Ohne diese Option schaltet nur die Hauptzone aus."
+          "main_off_standby": "Schaltet Home Assistant die Hauptzone aus, geht der ganze Receiver in Standby, und keine andere Zone spielt weiter. Ohne diese Option schaltet nur die Hauptzone aus.",
+          "settings_turn_on": "Eine Einstellung der Hauptzone, die Home Assistant im Standby ändert, schaltet zuerst die Hauptzone ein, weil der Receiver im Standby keine Einstellung übernimmt. Ohne diese Option meldet die Einstellung, dass der Receiver im Standby ist."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "Der Receiver ist nicht verbunden. Seine Quellen und Klangmodi werden von ihm gelesen; versuche es erneut, wenn er eingeschaltet ist.",
-      "no_additional_zones": "Dieser Receiver hat keine weitere Zone.",
       "no_sound_modes": "Der Receiver hat noch keine Klangmodi gemeldet.",
       "test_not_connected": "Der Receiver ist nicht verbunden. Der Befehlstest braucht seine Telnet-Verbindung; versuche es erneut, wenn er eingeschaltet ist.",
       "no_hidden_entities": "Dieser Receiver hat keine ausgeblendeten Entitäten.",

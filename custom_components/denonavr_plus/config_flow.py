@@ -63,6 +63,7 @@ from .coordinator import connection_options
 from . import choices, entity_groups, move
 from .choices import (
     OPT_MAIN_OFF_STANDBY,
+    OPT_SETTINGS_TURN_ON,
     OPT_SOURCE_SHORTCUTS,
     OPT_SOUND_MODE_NAMES,
     OPT_SOUND_MODES,
@@ -678,33 +679,34 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         stored = self.config_entry.options.get(OPT_ZONES)
         known += [zone for zone in stored or [] if zone not in known]
         additional = [zone for zone in _ZONE_ORDER if zone in known and zone != "main"]
-        if not additional:
-            return self.async_abort(reason="no_additional_zones")
+        options = self.config_entry.options
         if user_input is not None:
-            return self._save(
-                {
-                    OPT_ZONES: list(user_input[OPT_ZONES]),
-                    OPT_MAIN_OFF_STANDBY: bool(user_input.get(OPT_MAIN_OFF_STANDBY, False)),
-                }
+            values: dict[str, Any] = {
+                OPT_MAIN_OFF_STANDBY: bool(user_input.get(OPT_MAIN_OFF_STANDBY, False)),
+                OPT_SETTINGS_TURN_ON: bool(user_input.get(OPT_SETTINGS_TURN_ON, False)),
+            }
+            if additional:
+                values[OPT_ZONES] = list(user_input[OPT_ZONES])
+            return self._save(values)
+        fields: dict[Any, Any] = {}
+        if additional:
+            # A receiver with one zone gets the power settings only.
+            current = stored if stored is not None else additional
+            fields[vol.Required(OPT_ZONES, default=list(current))] = SelectSelector(
+                SelectSelectorConfig(
+                    options=additional,
+                    multiple=True,
+                    mode=SelectSelectorMode.LIST,
+                    translation_key="zone",
+                )
             )
-        current = stored if stored is not None else additional
-        standby = bool(self.config_entry.options.get(OPT_MAIN_OFF_STANDBY, False))
-        return self.async_show_form(
-            step_id="zones",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(OPT_ZONES, default=list(current)): SelectSelector(
-                        SelectSelectorConfig(
-                            options=additional,
-                            multiple=True,
-                            mode=SelectSelectorMode.LIST,
-                            translation_key="zone",
-                        )
-                    ),
-                    vol.Required(OPT_MAIN_OFF_STANDBY, default=standby): BooleanSelector(),
-                }
-            ),
-        )
+        fields[
+            vol.Required(OPT_MAIN_OFF_STANDBY, default=bool(options.get(OPT_MAIN_OFF_STANDBY, False)))
+        ] = BooleanSelector()
+        fields[
+            vol.Required(OPT_SETTINGS_TURN_ON, default=bool(options.get(OPT_SETTINGS_TURN_ON, False)))
+        ] = BooleanSelector()
+        return self.async_show_form(step_id="zones", data_schema=vol.Schema(fields))
 
     # Entities ----------------------------------------------------------------
 

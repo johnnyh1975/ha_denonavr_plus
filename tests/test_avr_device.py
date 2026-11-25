@@ -1075,3 +1075,31 @@ async def test_values_read_over_http_follow_the_page_and_yield_to_telnet(
         post.side_effect = answer_late
         await device.async_poll()
     assert device.state.values["bass"] == -3.0
+
+
+async def test_a_setting_in_standby_can_turn_the_main_zone_on_first(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """With the option, ZMON first; the setting goes out once the zone reports on."""
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("ZMOFF", "PSDYNEQ OFF")
+    telnet.echo = True
+    telnet.sent.clear()
+    with (
+        patch("custom_components.denonavr_plus.avr.device.POWER_ON_SETTLE", 0),
+        patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05),
+    ):
+        await device.async_set_control_confirmed("dynamic_eq", True, turn_on=True)
+    assert telnet.sent == ["ZMON", "PSDYNEQ ON"]
+
+    # A zone that never reports on: the setting reports standby as before.
+    telnet.echo = False
+    telnet.push("ZMOFF")
+    with (
+        patch("custom_components.denonavr_plus.avr.device.TUNER_POWER_WAIT", 0.05),
+        patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05),
+        pytest.raises(SettingNotTaken) as err,
+    ):
+        await device.async_set_control_confirmed("dynamic_eq", False, turn_on=True)
+    assert err.value.reason == "standby"

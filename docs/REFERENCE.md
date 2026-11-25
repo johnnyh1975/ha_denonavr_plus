@@ -63,7 +63,7 @@ changes what Home Assistant shows and does.
   - **Announcement volume** (main zone): the volume announcements play at.
     Empty: the volume as it is.
 
-**Zones**: which additional zones (zone 2, zone 3) get entities. Each such zone
+**Zones and power**: which additional zones (zone 2, zone 3) get entities. Each such zone
 is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume and
 source sensor, and the zone's sleep timer, front left and right level, quick
 select, auto standby and HDMI audio (through or PCM) where the receiver answers them, so you can put it in the room where it
@@ -72,6 +72,11 @@ switched off loses its device and entities; switching it on again brings them
 back. **Main zone off puts the receiver in standby**: turning the main zone off
 from Home Assistant then puts the whole receiver in standby (`PWSTANDBY`), so
 no other zone keeps playing; without it, only the main zone turns off.
+**Turn the receiver on for a setting** (default off): a setting of the main
+zone changed from Home Assistant while the receiver is in standby turns the
+main zone on first and waits until it has started (a few seconds); without
+it, the setting reports that the receiver is in standby. A receiver with one
+zone shows only these two switches.
 
 **Sources** (needs the receiver connected, it reads its sources): per zone,
 which sources the media player offers, then a name for each in Home
@@ -594,7 +599,7 @@ Which receivers work, and what differs by generation and brand:
 
   | Setting | Taken only |
   |---|---|
-  | Any setting of the main zone's sound, picture or speakers (also the volume limit and scale, the speaker preset and the LFE low-pass) | with the main zone on |
+  | Any setting of the main zone's sound, picture or speakers (also the volume limit and scale, the speaker preset and the LFE low-pass) | with the main zone on (or with **Turn the receiver on for a setting** under Zones and power) |
   | Dynamic Compression, Loudness Management, LFE level | while a Dolby or DTS signal plays |
   | Dialog Control | while DTS:X plays |
   | Effect level | in a DSP sound mode |

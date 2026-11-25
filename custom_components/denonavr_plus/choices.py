@@ -33,6 +33,9 @@ OPT_SOURCE_SHORTCUTS = "source_shortcuts"
 #: Turning the main zone off puts the whole receiver in standby (PWSTANDBY),
 #: so no other zone keeps playing.
 OPT_MAIN_OFF_STANDBY = "main_off_standby"
+#: A main-zone setting while the receiver is in standby turns the main zone
+#: on first (default off): the receiver takes no setting in standby.
+OPT_SETTINGS_TURN_ON = "settings_turn_on"
 
 MAIN_ZONE = "main"
 

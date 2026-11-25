@@ -192,3 +192,24 @@ async def test_setup_api_switches_follow_the_receiver(
         ("video", 3, "<HDMIControl>2</HDMIControl>"),
         ("video", 3, "<HDMIControl>1</HDMIControl>"),
     ]
+
+
+async def test_with_the_option_a_switch_in_standby_turns_the_receiver_on(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+    from unittest.mock import patch
+
+    hass.config_entries.async_update_entry(loaded_entry, options={"settings_turn_on": True})
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("ZMOFF", "PSDYNEQ OFF")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    telnet.echo = True
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.avr.device.POWER_ON_SETTLE", 0):
+        await hass.services.async_call(
+            "switch", "turn_on", {"entity_id": entity_id(hass, loaded_entry, "switch_dynamic_eq")},
+            blocking=True,
+        )
+    assert telnet.sent[:2] == ["ZMON", "PSDYNEQ ON"]

@@ -84,7 +84,7 @@
         "title": "Opcje",
         "menu_options": {
           "volume": "Głośność",
-          "zones": "Strefy",
+          "zones": "Strefy i włączanie",
           "sources": "Źródła",
           "sound_modes": "Tryby dźwięku",
           "connection": "Połączenie",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Strefy",
-        "description": "Które dodatkowe strefy mają encje w Home Assistant. Amplituner nie jest zmieniany.",
+        "title": "Strefy i włączanie",
+        "description": "Które dodatkowe strefy mają encje w Home Assistant i jak Home Assistant włącza amplituner. Ustawienia amplitunera nie są zmieniane.",
         "data": {
           "zones": "Wyświetlane strefy",
-          "main_off_standby": "Wyłączenie strefy głównej przełącza amplituner w czuwanie"
+          "main_off_standby": "Wyłączenie strefy głównej przełącza amplituner w czuwanie",
+          "settings_turn_on": "Włącz amplituner dla ustawienia"
         },
         "data_description": {
           "zones": "Strefa, która nie jest wybrana, nie ma odtwarzacza, głośności ani czujnika źródła; jej encje są usuwane.",
-          "main_off_standby": "Wyłączenie strefy głównej z Home Assistant przełącza cały amplituner w tryb czuwania, więc żadna inna strefa nie gra dalej. Bez tej opcji wyłącza się tylko strefa główna."
+          "main_off_standby": "Wyłączenie strefy głównej z Home Assistant przełącza cały amplituner w tryb czuwania, więc żadna inna strefa nie gra dalej. Bez tej opcji wyłącza się tylko strefa główna.",
+          "settings_turn_on": "Ustawienie strefy głównej zmienione z Home Assistant w trybie czuwania najpierw włącza strefę główną, bo w trybie czuwania amplituner nie przyjmuje ustawień. Bez tej opcji ustawienie zgłasza, że amplituner jest w trybie czuwania."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "Amplituner nie jest połączony. Jego źródła i tryby dźwięku są odczytywane z urządzenia; spróbuj ponownie, gdy będzie włączony.",
-      "no_additional_zones": "Ten amplituner nie ma dodatkowych stref.",
       "no_sound_modes": "Amplituner nie zgłosił jeszcze żadnych trybów dźwięku.",
       "test_not_connected": "Amplituner nie jest połączony. Test poleceń wymaga jego połączenia telnet; spróbuj ponownie, gdy będzie włączony.",
       "no_hidden_entities": "Ten amplituner nie ma ukrytych encji.",

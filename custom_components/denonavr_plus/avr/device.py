@@ -110,6 +110,9 @@ TUNER_SWITCH_WAIT = 3.0
 #: the pause before the input and the tuner command.
 TUNER_POWER_WAIT = 15.0
 TUNER_POWER_SETTLE = 1.0
+#: The pause after turning the main zone on for a setting: an AVR-X2000
+#: ignored settings while it was starting up (the command test waits 3 s).
+POWER_ON_SETTLE = 3.0
 #: How long a zone other than the main zone has to confirm a new source.
 ZONE_SOURCE_WAIT = 2.0
 #: How long a setting the receiver may refuse has to come back, first as the
@@ -914,6 +917,20 @@ class DenonAvrDevice:
             raise ValueError(f"no tuner preset {code!r}")
         await self._async_to_tuner(zone_id)
         await self._send(f"{presets['prefix']}{code}")
+
+    async def _async_main_zone_on(self) -> None:
+        """Turn the main zone on and wait until it reports on and has settled."""
+
+        zone_id = self._main_zone_id()
+        await self.async_set_power(zone_id, True)
+        try:
+            async with asyncio.timeout(TUNER_POWER_WAIT):
+                while not self._state.zone(zone_id).power:
+                    await asyncio.sleep(0.1)
+        except TimeoutError:
+            _LOGGER.debug("%s did not report the main zone on in time", self._host)
+            return
+        await asyncio.sleep(POWER_ON_SETTLE)
 
     async def _async_to_tuner(self, zone_id: str) -> None:
         """Turn the zone on and switch it to the tuner, unless it plays it already."""
@@ -2054,7 +2071,9 @@ class DenonAvrDevice:
             return
         await self._send(f"{spec.prefix}{argument}")
 
-    async def async_set_control_confirmed(self, control_id: str, value: object) -> None:
+    async def async_set_control_confirmed(
+        self, control_id: str, value: object, *, turn_on: bool = False
+    ) -> None:
         """Set a control; raise SettingNotTaken when the receiver keeps the old value.
 
         Confirmed only where the receiver may refuse (avr/refusals.py): a
@@ -2070,6 +2089,12 @@ class DenonAvrDevice:
             reason = refusals.refusal_reason(
                 control_id, spec.group, self._state.zone("main").power, value
             )
+            if reason == refusals.STANDBY and turn_on:
+                # Asked to: the main zone on first, then the setting as usual.
+                await self._async_main_zone_on()
+                reason = refusals.refusal_reason(
+                    control_id, spec.group, self._state.zone("main").power, value
+                )
         if (
             spec is None
             or reason is None

@@ -84,7 +84,7 @@
         "title": "Opzioni",
         "menu_options": {
           "volume": "Volume",
-          "zones": "Zone",
+          "zones": "Zone e accensione",
           "sources": "Sorgenti",
           "sound_modes": "Modalità audio",
           "connection": "Connessione",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Zone",
-        "description": "Quali zone aggiuntive hanno entità in Home Assistant. Il sintoamplificatore non viene modificato.",
+        "title": "Zone e accensione",
+        "description": "Quali zone aggiuntive hanno entità in Home Assistant e come Home Assistant accende il sintoamplificatore. Le impostazioni del sintoamplificatore non vengono modificate.",
         "data": {
           "zones": "Zone mostrate",
-          "main_off_standby": "Spegnere la zona principale mette il sintoamplificatore in standby"
+          "main_off_standby": "Spegnere la zona principale mette il sintoamplificatore in standby",
+          "settings_turn_on": "Accendi il sintoamplificatore per un'impostazione"
         },
         "data_description": {
           "zones": "Una zona non selezionata non ha lettore multimediale, volume né sensore della sorgente; le sue entità vengono rimosse.",
-          "main_off_standby": "Spegnendo la zona principale da Home Assistant, tutto il sintoamplificatore va in standby e nessun'altra zona continua a suonare. Senza questa opzione si spegne solo la zona principale."
+          "main_off_standby": "Spegnendo la zona principale da Home Assistant, tutto il sintoamplificatore va in standby e nessun'altra zona continua a suonare. Senza questa opzione si spegne solo la zona principale.",
+          "settings_turn_on": "Un'impostazione della zona principale cambiata da Home Assistant con il sintoamplificatore in standby accende prima la zona principale, perché in standby il sintoamplificatore non accetta impostazioni. Senza questa opzione, l'impostazione segnala che il sintoamplificatore è in standby."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "Il sintoamplificatore non è connesso. Sorgenti e modalità audio vengono lette dal dispositivo; riprova quando è acceso.",
-      "no_additional_zones": "Questo sintoamplificatore non ha zone aggiuntive.",
       "no_sound_modes": "Il sintoamplificatore non ha ancora segnalato modalità audio.",
       "test_not_connected": "Il ricevitore non è connesso. La prova dei comandi richiede la sua connessione telnet; riprova quando è acceso.",
       "no_hidden_entities": "Questo ricevitore non ha entità nascoste.",

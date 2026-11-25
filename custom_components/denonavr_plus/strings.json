@@ -84,7 +84,7 @@
         "title": "Options",
         "menu_options": {
           "volume": "Volume",
-          "zones": "Zones",
+          "zones": "Zones and power",
           "sources": "Sources",
           "sound_modes": "Sound modes",
           "connection": "Connection",
@@ -154,15 +154,17 @@
         }
       },
       "zones": {
-        "title": "Zones",
-        "description": "Which additional zones get entities in Home Assistant. The receiver is not changed.",
+        "title": "Zones and power",
+        "description": "Which additional zones get entities in Home Assistant, and how Home Assistant switches the receiver. The receiver's settings are not changed.",
         "data": {
           "zones": "Zones shown",
-          "main_off_standby": "Main zone off puts the receiver in standby"
+          "main_off_standby": "Main zone off puts the receiver in standby",
+          "settings_turn_on": "Turn the receiver on for a setting"
         },
         "data_description": {
           "zones": "A zone that is not selected has no media player, volume or source sensor; its entities are removed.",
-          "main_off_standby": "Turning the main zone off from Home Assistant puts the whole receiver in standby, so no other zone keeps playing. Without it, only the main zone turns off."
+          "main_off_standby": "Turning the main zone off from Home Assistant puts the whole receiver in standby, so no other zone keeps playing. Without it, only the main zone turns off.",
+          "settings_turn_on": "A setting of the main zone changed from Home Assistant while the receiver is in standby turns the main zone on first, because the receiver takes no setting in standby. Without it, the setting reports that the receiver is in standby."
         }
       },
       "sources": {
@@ -302,7 +304,6 @@
     },
     "abort": {
       "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
-      "no_additional_zones": "This receiver has no additional zone.",
       "no_sound_modes": "The receiver has not reported any sound modes yet.",
       "test_not_connected": "The receiver is not connected. The command test needs its telnet connection; try again when it is on.",
       "no_hidden_entities": "This receiver has no hidden entities.",

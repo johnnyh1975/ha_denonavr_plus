@@ -190,12 +190,14 @@ Per zone, in dB as the receiver shows it.
 > - Leave **Volume scale of the official integration** off, unless you
 >   moved over from the official integration (the move switches it on).
 
-### Zones
+### Zones and power
 
-Which additional zones get a device with its entities, and whether turning
-the main zone off puts the whole receiver in standby. Switch off a zone
-you do not use: its device and entities go away, and come back when you
-switch it on again.
+Which additional zones get a device with its entities, whether turning
+the main zone off puts the whole receiver in standby, and whether a setting
+changed while the receiver is in standby turns it on first (the receiver
+takes no setting in standby; without this, the setting says so). Switch off
+a zone you do not use: its device and entities go away, and come back when
+you switch it on again.
 
 ### Sources and sound modes
 
