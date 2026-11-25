@@ -103,7 +103,6 @@ Tokens the apps send that no protocol document here lists; all are
 | `SSDGO ON`, `SSDGO OFF` | Digital output on or off | Systems and stereo receivers |
 | `SSPLV` | Network display: go to the playing view | |
 | `NS92`, `NS94`, `NS9W`, `NSRND`, `NSRPT` | Pop-up OK, play/pause, iPod mode, shuffle, repeat | `NS9A`–`NS9E` are documented |
-| `NSP1`–`NSP3`, `NSP<n> MEM` | Recall and store network presets | Strings only; 2012 models with network presets |
 | `TFHDUP`/`DOWN`, `TFHDMCUP`/`DOWN`, `TFSTUP`/`DOWN`, `TPSTUP`/`DOWN` | HD Radio multicast, Sirius | North American models |
 | `Z4SLP` | Sleep timer of a Zone 4 | String only; no recorded receiver has four zones |
 | `PSBAL `, `PSSDB `, `PSSDI ` | Balance, Super Dynamic Bass, Source Direct | Stereo receivers and systems; strings only |
@@ -119,7 +118,9 @@ Confirmed by the apps and already used here: `PWON`, `PWSTANDBY`, `ZM?`,
 `MNCRT`, `MNENT`, `MNRTN`, `MNINF`, `MNOPT`, `MNMEN ON`/`OFF`, `NSFRN`,
 `PSBAS`, `PSTRE`, `Z2SLP`, `Z3SLP`, `TFANUP`/`DOWN`, `TPANUP`/`DOWN`, and
 `MSQUICK<n>`, `Z2QUICK<n>`, `Z3QUICK<n>` (put together at run time, sent to
-receivers without the HTTP command for Quick Select).
+receivers without the HTTP command for Quick Select). The network presets `NSP1`–`NSP3` and
+`NSP<n> MEM` that the apps hold as strings are in the AVR-1912/2112CI
+document (page 40).
 
 ## Marantz
 
