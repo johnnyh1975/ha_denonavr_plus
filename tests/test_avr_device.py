@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-
+from dataclasses import replace
 from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, patch
@@ -971,3 +971,72 @@ async def test_a_setting_over_http_is_not_confirmed(
     with patch.object(type(device), "async_set_control", AsyncMock()) as send:
         await device.async_set_control_confirmed("subwoofer_switch", False)
     send.assert_awaited_once_with("subwoofer_switch", False)
+
+
+_TONE_AND_MODE = (
+    "<rx><cmd><surround>Multi Ch Stereo  </surround></cmd>"
+    "<cmd><status>1</status><adjust>1</adjust><basslevel>+2dB</basslevel>"
+    "<treblelevel>-1dB</treblelevel></cmd></rx>"
+)
+_AUDYSSEY = (
+    '<rx><cmd><list><param name="multeq">1</param><param name="dynamiceq">0</param>'
+    '<param name="dynamicvol">2</param></list></cmd></rx>'
+)
+
+
+def _answers(path: str, body: str) -> str | None:
+    return _AUDYSSEY if path.endswith("AppCommand0300.xml") else _TONE_AND_MODE
+
+
+async def test_without_telnet_the_sound_state_is_read_over_http(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, freezer: FrozenDateTimeFactory
+) -> None:
+    """Sound mode, tone and Audyssey over AppCommand(0300).xml until telnet is back."""
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = False
+    assert telnet._on_availability is not None
+    telnet._on_availability(False)
+    post = AsyncMock(side_effect=_answers)
+    status = {"power": True, "source": "CD", "volume_db": -40.0, "muted": False}
+    with (
+        patch.object(GoformClient, "async_get_status", AsyncMock(return_value=status)),
+        patch.object(GoformClient, "async_post", post),
+    ):
+        freezer.tick(timedelta(seconds=11))
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+    values = device.state.values
+    assert values["sound_mode_display"] == "Multi Ch Stereo"
+    assert (values["tone_control"], values["bass"], values["treble"]) == (True, 2.0, -1.0)
+    assert (values["multeq"], values["dynamic_eq"], values["dynamic_volume"]) == (
+        "FLAT",
+        False,
+        "MED",
+    )
+    assert device.http_values == {
+        "sound_mode_display", "tone_control", "bass", "treble",
+        "multeq", "dynamic_eq", "dynamic_volume",
+    }
+    telnet.connected = True
+    telnet._on_availability(True)
+    assert device.http_values == frozenset()
+
+
+@pytest.mark.parametrize(("level", "posts"), [(None, 0), (220, 1)])
+async def test_older_receivers_are_asked_only_what_their_level_has(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, level: int | None, posts: int
+) -> None:
+    """No AppCommand.xml before level 0210, no AppCommand0300.xml before 0300."""
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = False
+    post = AsyncMock(side_effect=_answers)
+    identity = replace(device.discovery.device, comm_api_version=level)
+    with (
+        patch.object(device.discovery, "device", identity),
+        patch.object(GoformClient, "async_get_status", AsyncMock(return_value={"power": True})),
+        patch.object(GoformClient, "async_post", post),
+    ):
+        await device.async_poll()
+    assert post.await_count == posts

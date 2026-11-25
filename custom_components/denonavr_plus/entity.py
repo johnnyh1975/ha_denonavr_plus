@@ -179,8 +179,24 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
         )
         return None if name is UNDEFINED else name
 
+    #: The profile control an entity shows, if any (select, switch, number):
+    #: available without telnet once its value was read over HTTP.
+    _http_control: str | None = None
+
     @property
     def available(self) -> bool:
-        """Entities are available only while the telnet link is up."""
+        """Available while the telnet link is up.
 
-        return super().available and self.coordinator.available
+        While it is down, also a control whose value was read over HTTP
+        (avr/appcommand.py): sound mode, tone and Audyssey settings.
+        """
+
+        if not super().available:
+            return False
+        if self.coordinator.available:
+            return True
+        return (
+            self._http_control is not None
+            and self._device.http_reachable
+            and self._http_control in self._device.http_values
+        )

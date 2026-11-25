@@ -113,6 +113,7 @@ class DenonAvrSwitch(DenonAvrEntity, SwitchEntity):
         sub_device = control_sub_device(spec)
         super().__init__(coordinator, f"switch_{spec.id}", sub_device=sub_device)
         self._spec = spec
+        self._http_control = spec.id
         self._attr_translation_key = spec.id
         self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
 

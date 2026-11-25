@@ -182,3 +182,24 @@ async def test_a_command_over_http_is_url_encoded(
     assert await client.async_send_command("MV 50")
 
     assert str(aioclient_mock.mock_calls[-1][1]).endswith("formiPhoneAppDirect.xml?MV%2050")
+
+
+async def test_an_app_command_is_posted_as_xml(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    url = re.compile(r"^http://192\.0\.2\.10:8080/goform/AppCommand\.xml$")
+    aioclient_mock.post(url, text="<rx></rx>")
+    client = GoformClient(async_get_clientsession(hass), HOST)
+    assert await client.async_post("/goform/AppCommand.xml", "<tx></tx>") == "<rx></rx>"
+    _method, _url, data, headers = aioclient_mock.mock_calls[0]
+    assert data == b"<tx></tx>"
+    assert headers["Content-Type"].startswith("text/xml")
+
+
+@pytest.mark.parametrize("answer", [{"status": 403}, {"exc": ClientError()}])
+async def test_an_app_command_not_answered_gives_nothing(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, answer: dict[str, object]
+) -> None:
+    aioclient_mock.post(re.compile(r"AppCommand0300\.xml$"), **answer)  # type: ignore[arg-type]
+    client = GoformClient(async_get_clientsession(hass), HOST)
+    assert await client.async_post("/goform/AppCommand0300.xml", "<tx></tx>") is None

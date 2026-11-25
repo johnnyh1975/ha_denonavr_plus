@@ -13,3 +13,9 @@ the others from port 80.
 The `*-formMainZone_MainZoneXml.xml` files are the main zone pages of the
 2010–2012 receivers (AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810)
 and the M-CR603 system, from the same test data, unchanged.
+
+The `*-AppCommand-update-tonecontrol*.xml` and `*-AppCommand-update-soundmode*.xml`
+files are the answers to `GetToneControl` and `GetSurroundModeStatus` over
+`AppCommand.xml` (AVR-X4100W with tone control on, AVC-X3700H with it not
+available, AVC-X3700H and AVR-X4300H sound modes), from the same test data,
+unchanged.

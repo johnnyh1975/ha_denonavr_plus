@@ -36,7 +36,15 @@ from .models import (
 from .generation import generation_of, legacy_device_info
 from .parser import TelnetParser, parse_device_info, parse_main_zone, parse_upnp_description
 from .profile import OLDER, ControlSpec, ProtocolProfile, load_profile, profile_for_receiver
-from . import capability_check, command_test, graphic_eq, refusals, signal_info, video_config
+from . import (
+    appcommand,
+    capability_check,
+    command_test,
+    graphic_eq,
+    refusals,
+    signal_info,
+    video_config,
+)
 from .video_config import VideoConfigController
 from .const import (
     CHECK_REPLY_FIRST,
@@ -184,6 +192,9 @@ class DenonAvrDevice:
         # Sources a zone other than the main zone did not switch to, per zone,
         # until Home Assistant restarts (Zone 2 plays no HDMI on many models).
         self._refused_sources: dict[str, set[str]] = {}
+        # Values read over AppCommand.xml while telnet is down; their entities
+        # stay available then. Cleared when telnet is back.
+        self._http_values: set[str] = set()
         self._update_handle: asyncio.TimerHandle | None = None
         # Strong references to fire and forget tasks (delayed queries, OPSML
         # refreshes). Without these, asyncio only keeps a weak reference and the
@@ -981,7 +992,38 @@ class DenonAvrDevice:
         if not self._telnet.connected:
             self._apply_http_status(self._main_zone_id(), status)
             await self._poll_additional_zones()
+            await self._async_read_app_commands()
             self._schedule_update()
+
+    @property
+    def http_values(self) -> frozenset[str]:
+        """The values read over HTTP while telnet is down (avr/appcommand.py)."""
+
+        return frozenset(self._http_values)
+
+    async def _async_read_app_commands(self) -> None:
+        """Read the sound mode, tone and Audyssey over AppCommand(0300).xml.
+
+        Only while telnet is down, and only on receivers whose level has the
+        page; a receiver that does not answer is simply not read.
+        """
+
+        level = self._discovery.device.comm_api_version
+        if level is None or level < appcommand.STATUS_FROM:
+            return
+        values = appcommand.parse_status(
+            await self._goform.async_post(appcommand.STATUS_PATH, appcommand.STATUS_REQUEST)
+        )
+        if level >= appcommand.SETUP_FROM:
+            values.update(
+                appcommand.parse_audyssey(
+                    await self._goform.async_post(
+                        appcommand.SETUP_PATH, appcommand.AUDYSSEY_REQUEST
+                    )
+                )
+            )
+        self._state.values.update(values)
+        self._http_values.update(values)
 
     @property
     def signal_supported(self) -> bool:
@@ -1176,6 +1218,9 @@ class DenonAvrDevice:
         """React to the telnet link going up or down."""
 
         self._available = available
+        if available:
+            # Telnet reports everything again.
+            self._http_values.clear()
         self._schedule_update()
 
     async def _resynchronise(self) -> None:
@@ -1295,6 +1340,7 @@ class DenonAvrDevice:
         if status is not None:
             self._apply_http_status(self._main_zone_id(), status)
         await self._poll_additional_zones()
+        await self._async_read_app_commands()
         self._schedule_update()
 
     def _apply_http_status(self, zone_id: str, status: dict[str, object]) -> None:

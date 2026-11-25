@@ -16,7 +16,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.const import DOMAIN
 
-from .test_init import HOST, receiver_network  # noqa: F401 -- fixture
+from .test_init import HOST, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["receiver_network"]
 
@@ -121,3 +121,32 @@ def test_every_platform_declares_parallel_updates() -> None:
     for platform in PLATFORMS:
         module = importlib.import_module(f"custom_components.denonavr_plus.{platform.value}")
         assert isinstance(getattr(module, "PARALLEL_UPDATES", None), int), platform
+
+
+async def test_settings_read_over_http_stay_available_without_telnet(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Dynamic EQ was read over AppCommand0300.xml; Dynamic Compression was not."""
+    from unittest.mock import AsyncMock, patch
+
+    from homeassistant.const import STATE_UNAVAILABLE
+
+    from custom_components.denonavr_plus.avr.transport import GoformClient
+
+    from .common import entity_id
+    from .test_init import FakeTelnet
+
+    audyssey = '<rx><cmd><list><param name="dynamiceq">1</param></list></cmd></rx>'
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = False
+    assert telnet._on_availability is not None
+    telnet._on_availability(False)
+    with (
+        patch.object(GoformClient, "async_get_status", AsyncMock(return_value={"power": True})),
+        patch.object(GoformClient, "async_post", AsyncMock(return_value=audyssey)),
+    ):
+        await loaded_entry.runtime_data.async_refresh()
+        await hass.async_block_till_done()
+    assert hass.states.get(entity_id(hass, loaded_entry, "switch_dynamic_eq")).state == "on"
+    compression = entity_id(hass, loaded_entry, "select_dynamic_compression")
+    assert hass.states.get(compression).state == STATE_UNAVAILABLE

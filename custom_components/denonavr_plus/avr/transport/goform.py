@@ -132,6 +132,27 @@ class GoformClient:
 
         return await self._get(f"{_COMMAND_PATH}?{quote(command, safe='')}") is not None
 
+    async def async_post(self, path: str, body: str) -> str | None:
+        """POST an XML request (AppCommand.xml) and return the answer, or None."""
+
+        url = f"{self._base}{path}"
+        try:
+            timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
+            async with self._session.post(
+                url,
+                data=body.encode(),
+                headers={"Content-Type": 'text/xml; charset="utf-8"'},
+                timeout=timeout,
+                allow_redirects=False,
+            ) as response:
+                if response.status != 200:
+                    _LOGGER.debug("POST %s returned HTTP %s", url, response.status)
+                    return None
+                return await response.text()
+        except (aiohttp.ClientError, TimeoutError) as err:
+            _LOGGER.debug("POST %s failed: %s", url, err)
+            return None
+
     async def _get(self, path: str) -> str | None:
         """Perform a GET against the goform base and return the body text."""
 

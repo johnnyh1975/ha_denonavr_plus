@@ -64,7 +64,7 @@ last column says how this integration reaches the same function today.
 
 | Function | Commands | Parameters | This integration |
 |---|---|---|---|
-| Audyssey | `GetAudyssey`, `SetAudyssey`, `GetAudysseyEQCurveType` | `multeq`, `dynamiceq`, `dynamicvol`, `reflevoffset`, `audysseylfc`, `containamount`, `surroundlevelcompensation`; curve list `multeqlist` | Telnet; the Dynamic EQ surround level compensation is not offered |
+| Audyssey | `GetAudyssey`, `SetAudyssey`, `GetAudysseyEQCurveType` | `multeq`, `dynamiceq`, `dynamicvol`, `reflevoffset`, `audysseylfc`, `containamount`, `surroundlevelcompensation`; curve list `multeqlist` | Telnet; MultEQ, Dynamic EQ and Dynamic Volume read here while telnet is down; the Dynamic EQ surround level compensation is not offered |
 | Surround parameters | `GetSurroundParameter`, `SetSurroundParameter`, `GetIMAXList`, `GetDynaCompList` | `cinemaeq`, `loudness`, `dialogcontrol`, `dtsneux`, `cspread`, `spvirtual`, `spsel`, `effectlev`, `delaytime`, `lfe`, `dyncomp`, `panorama`, `dimension`, `centerwidth`, `centerimage`, `roomsize`, `chexpander`, `auro3dpre`, `auro3dstr`, `auro3dmode`, `imax`, `imaxaud`, `imaxhpf`, `imaxlpf`, `imaxswm`, `imaxswo`, `sw` | Telnet; the channel expander is not offered |
 | Signal information | `GetInputSignal`, `GetActiveSpeaker`, `GetAudioInfo`, `GetVideoInfo`, `GetAudyssyInfo`, `GetDiracLiveInfo` | `inputsigall` and `inputsig<a–e><1–4>`, `activespall` and `activesp<a–e><1–4>`, `inputmode`, `output`, `signal`, `sound`, `fs`, `videooutput`, `hdmisigin`, `hdmisigout`, `eqname`, `eqvalue`, `filter`, `basscontrol` | `/ajax/info` on receivers from 2016; nothing for 2014–2015 receivers |
 | Dialog level | `GetDialogLevel`, `SetDialogLevel` | `status`, `adjust`, `level` | Telnet `PSCLV` (`PSDIL` until 2015) |
@@ -193,9 +193,16 @@ these functions ([what it reads](#what-this-integration-uses)).
 - `formMainZone_MainZoneXmlStatusLite.xml` and the zone pages: the poll
   while telnet is down, every 10 seconds.
 - `formiPhoneAppDirect.xml`: commands while telnet is down.
+- `AppCommand.xml` (`GetSurroundModeStatus`, `GetToneControl`, from level
+  0210) and `AppCommand0300.xml` (`GetAudyssey` for MultEQ, Dynamic EQ and
+  Dynamic Volume, from level 0300): read with the poll while telnet is down,
+  so these settings stay available. The request and answer formats are the
+  `denonavr` library's; the tone and sound mode answers are recorded there,
+  the Audyssey answer is not. The restorer is not read (no answer format
+  known).
 - The UPnP descriptions for firmware and serial number.
 
-It sends no `AppCommand` requests; telnet carries state and commands, with
-push updates the HTTP interface does not have. `AppCommand0300.xml` is the
-way to the signal information of 2014–2015 receivers, which have no setup
-config API.
+While telnet is up it sends no `AppCommand` requests; telnet carries state
+and commands, with push updates the HTTP interface does not have.
+`AppCommand0300.xml` is the way to the signal information of 2014–2015
+receivers, which have no setup config API.

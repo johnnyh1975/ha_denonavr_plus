@@ -108,6 +108,7 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
             coordinator, f"number_{spec.id}", sub_device=control_sub_device(spec)
         )
         self._spec = spec
+        self._http_control = spec.id
         self._attr_translation_key = spec.id
         self._attr_entity_registry_enabled_default = control_enabled_by_default(spec)
 

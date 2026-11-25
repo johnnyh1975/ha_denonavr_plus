@@ -190,6 +190,7 @@ def receiver_network() -> Any:
             GoformClient, "async_get_device_info", AsyncMock(return_value=deviceinfo(RECORDING))
         ),
         patch.object(GoformClient, "async_get_status", AsyncMock(return_value=None)),
+        patch.object(GoformClient, "async_post", AsyncMock(return_value=None)),
         patch.object(UpnpClient, "async_get_description", AsyncMock(return_value=None)),
         patch.object(WebConfigClient, "async_get", AsyncMock(return_value=None)),
         patch.object(DenonAvrDevice, "async_await_ready", _await_ready_without_waiting),
