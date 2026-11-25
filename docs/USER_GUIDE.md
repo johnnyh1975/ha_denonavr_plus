@@ -423,6 +423,9 @@ mode, zones). Which of them to choose, and what Sendspin means here, is in
 the [reference](REFERENCE.md#with-music-assistant-and-the-heos-integration).
 Three settings make them one:
 
+![The receiver's media player on the network input, showing what Music Assistant plays](images/guide/more-info-music-assistant.png)
+
+
 1. **Music Assistant, Player controls** of the receiver's player: power by
    the zone's **Network Music** switch, volume by the zone's media player of
    this integration. Music Assistant turns the zone on and to the network
