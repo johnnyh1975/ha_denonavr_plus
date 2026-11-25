@@ -261,6 +261,8 @@ ANSWERED_REPLIES = [
     ("SSTTRLEV 47", "tactile_transducer_level", -3.0),
     ("SSTTRLPF 080", "tactile_transducer_lpf", "080"),
     ("PSSP:FH", "effect_speaker_selection", "FH"),
+    # As an AVR-X2000 answered (tests/fixtures/capability_check/AVR-X2000.json).
+    ("Z2HDA THR", "zone2_hdmi_audio", "THR"),
 ]
 
 

@@ -769,6 +769,17 @@
       "labels": ["Off", "2 h", "4 h", "8 h"],
       "doc": "Zone 2 auto standby (Z2STBY 2H/4H/8H/OFF), from the 2015 X-series document. Answered by an AVR-X2600H; the AVR-X2000 does not answer it."
     },
+    "zone2_hdmi_audio": {
+      "group": "zone",
+      "subdevice": "zone2",
+      "scope": "answered",
+      "kind": "enum",
+      "query": "Z2HDA?",
+      "prefix": "Z2HDA ",
+      "values": ["THR", "PCM"],
+      "labels": ["Through", "PCM"],
+      "doc": "Zone 2 HDMI audio: passed through or as PCM (Z2HDA THR/PCM), from the 2015 X-series document (AVR-X3200W, AVR-X4200W). An AVR-X2000 answers Z2HDA THR; an AVR-X2600H does not answer. A receiver that does not answer probably plays no HDMI input in Zone 2, so its HDMI inputs start deselected when Zone 2's inputs are asked for. Shown only when the receiver answers the query at setup."
+    },
     "zone2_quick_select": {
       "group": "zone",
       "subdevice": "zone2",

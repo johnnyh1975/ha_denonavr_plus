@@ -864,6 +864,13 @@
           "8_h": "8 Std."
         }
       },
+      "zone2_hdmi_audio": {
+        "name": "HDMI-Audio",
+        "state": {
+          "through": "Durchleiten",
+          "pcm": "PCM"
+        }
+      },
       "zone2_quick_select": {
         "name": "Quick Select",
         "state": {
@@ -1270,6 +1277,23 @@
             "title": "Automationen geprüft?",
             "description": "Diese Automationen und Skripte nutzen etwas der offiziellen Integration, das hier anders geht. Links vom Pfeil steht, was sie nutzen, rechts, was es ersetzt (– heißt: nicht mehr nötig oder kein Ersatz). Geändert wurde nichts.\n\n{findings}\n\nBestätige, sobald du sie angepasst hast; dann verschwindet die Liste."
           }
+        }
+      }
+    },
+    "zone2_sources": {
+      "title": "Welche Eingänge kann Zone 2 des {model} spielen?",
+      "fix_flow": {
+        "step": {
+          "choose": {
+            "title": "Eingänge für Zone 2",
+            "description": "Kleinere Receiver spielen in Zone 2 keinen HDMI-Eingang. Wähle die Eingänge, die Zone 2 spielen kann; die anderen verschwinden aus ihrer Eingangsliste. Eingänge mit HDMI sind abgewählt, wenn der Receiver für Zone 2 kein HDMI meldet. Die Liste lässt sich später in den Optionen unter Quellen ändern.",
+            "data": {
+              "sources": "Eingänge der Zone 2"
+            }
+          }
+        },
+        "abort": {
+          "not_loaded": "Die Integration ist gerade nicht geladen; versuche es erneut, sobald der Receiver verbunden ist."
         }
       }
     }

@@ -864,6 +864,13 @@
           "8_h": "8 godz."
         }
       },
+      "zone2_hdmi_audio": {
+        "name": "Dźwięk HDMI",
+        "state": {
+          "through": "Bez zmian",
+          "pcm": "PCM"
+        }
+      },
       "zone2_quick_select": {
         "name": "Quick Select",
         "state": {
@@ -1270,6 +1277,23 @@
             "title": "Automatyzacje sprawdzone?",
             "description": "Te automatyzacje i skrypty używają czegoś z oficjalnej integracji, co tutaj działa inaczej. Po lewej stronie strzałki to, czego używają, po prawej to, co to zastępuje (– oznacza: już niepotrzebne lub brak zamiennika). Nic nie zostało zmienione.\n\n{findings}\n\nPotwierdź, gdy je zmienisz; lista zniknie."
           }
+        }
+      }
+    },
+    "zone2_sources": {
+      "title": "Które wejścia może odtwarzać strefa 2 urządzenia {model}?",
+      "fix_flow": {
+        "step": {
+          "choose": {
+            "title": "Wejścia strefy 2",
+            "description": "Mniejsze amplitunery nie odtwarzają wejść HDMI w strefie 2. Wybierz wejścia, które strefa 2 może odtwarzać; pozostałe znikną z jej listy. Wejścia HDMI są odznaczone, gdy amplituner nie zgłasza HDMI dla strefy 2. Listę można później zmienić w opcjach, w sekcji Źródła.",
+            "data": {
+              "sources": "Wejścia strefy 2"
+            }
+          }
+        },
+        "abort": {
+          "not_loaded": "Integracja nie jest teraz załadowana; spróbuj ponownie, gdy amplituner będzie połączony."
         }
       }
     }

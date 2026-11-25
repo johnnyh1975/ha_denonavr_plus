@@ -22,7 +22,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.typing import ConfigType
 
-from . import choices, command_test, entity_groups, move
+from . import choices, command_test, entity_groups, move, zone_sources
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import (
@@ -104,6 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         # Started from the stored data, the entry reloads once the receiver
         # answers; its generation is read then.
         coordinator.capabilities.async_update_issues(coordinator.device.discovery.device)
+        zone_sources.async_update_issue(hass, entry)
     if entry.options.get(move.OPT_MOVE_PENDING):
         # Taking another integration's entry over, chosen when the receiver
         # was added; the reload after it runs what else is pending. It starts
@@ -221,6 +222,8 @@ async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) 
         entity_groups.async_apply(
             hass, entry, coordinator.device.discovery.configured_channels
         )
+        # Zone 2's inputs chosen in the options, or Zone 2 hidden: no question.
+        zone_sources.async_update_issue(hass, entry)
     if (
         _shown_zones(entry, coordinator) != coordinator.shown_zones
         or connection_options(entry) != coordinator.connection

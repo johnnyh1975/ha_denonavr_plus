@@ -66,7 +66,7 @@ changes what Home Assistant shows and does.
 **Zones**: which additional zones (zone 2, zone 3) get entities. Each such zone
 is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume and
 source sensor, and the zone's sleep timer, front left and right level, quick
-select and auto standby where the receiver answers them, so you can put it in the room where it
+select, auto standby and HDMI audio (through or PCM) where the receiver answers them, so you can put it in the room where it
 plays. A zone that is
 switched off loses its device and entities; switching it on again brings them
 back. **Main zone off puts the receiver in standby**: turning the main zone off
@@ -75,7 +75,10 @@ no other zone keeps playing; without it, only the main zone turns off.
 
 **Sources** (needs the receiver connected, it reads its sources): per zone,
 which sources the media player offers, then a name for each in Home
-Assistant. The names and hidden inputs set on the receiver are already taken
+Assistant. For Zone 2 this is asked once after setup, as a repair, with the
+inputs that carry HDMI as delivered (CBL/SAT, DVD, Blu-ray, Game, Media
+Player, AUX1, AUX2, 8K) deselected when the receiver does not answer `Z2HDA?`
+(Zone 2 HDMI audio): smaller receivers play no HDMI input in Zone 2. The names and hidden inputs set on the receiver are already taken
 over; this narrows down and renames on top. Selecting all keeps sources the
 receiver gains later. Renamed sources can still be selected by their receiver
 name, so older automations keep working. **Quick selects and favorites in the

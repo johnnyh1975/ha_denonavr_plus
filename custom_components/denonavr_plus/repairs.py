@@ -1,4 +1,5 @@
-"""Repair flows: test a model not checked before, take another integration over."""
+"""Repair flows: test a model not checked before, take another integration over,
+choose the inputs Zone 2 plays."""
 
 from __future__ import annotations
 
@@ -9,7 +10,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from . import move
+from . import move, zone_sources
 from .coordinator import DenonAvrConfigEntry
 from .receiver_test import ReceiverTestSteps
 
@@ -51,9 +52,11 @@ class MoveRepairFlow(ConfirmRepairFlow):
 async def async_create_fix_flow(
     hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None
 ) -> RepairsFlow:
-    """The receiver test, taking another integration over, or a list to confirm."""
+    """The receiver test, taking another integration over, Zone 2's inputs, or a list to confirm."""
 
     data = data or {}
+    if issue_id.startswith(zone_sources.ISSUE):
+        return zone_sources.ZoneSourcesRepairFlow(str(data["entry_id"]))
     if issue_id.startswith(move.ISSUE_AVAILABLE):
         return MoveRepairFlow(str(data["entry_id"]), str(data["old_entry_id"]))
     if issue_id.startswith(move.ISSUE_CHECK):

@@ -864,6 +864,13 @@
           "8_h": "8 h"
         }
       },
+      "zone2_hdmi_audio": {
+        "name": "Áudio HDMI",
+        "state": {
+          "through": "Direto",
+          "pcm": "PCM"
+        }
+      },
       "zone2_quick_select": {
         "name": "Quick Select",
         "state": {
@@ -1270,6 +1277,23 @@
             "title": "Automatizações verificadas?",
             "description": "Estas automatizações e scripts usam algo da integração oficial que aqui funciona de outra forma. À esquerda da seta o que usam, à direita o que o substitui (– significa: já não é necessário, ou sem substituto). Nada foi alterado.\n\n{findings}\n\nConfirme quando as tiver alterado; a lista desaparece."
           }
+        }
+      }
+    },
+    "zone2_sources": {
+      "title": "Que entradas pode a Zona 2 de {model} reproduzir?",
+      "fix_flow": {
+        "step": {
+          "choose": {
+            "title": "Entradas da Zona 2",
+            "description": "Os recetores mais pequenos não reproduzem entradas HDMI na Zona 2. Escolha as entradas que a Zona 2 pode reproduzir; as outras saem da sua lista. As entradas HDMI começam desmarcadas quando o recetor não indica HDMI para a Zona 2. A lista pode ser alterada depois nas opções, em Fontes.",
+            "data": {
+              "sources": "Entradas da Zona 2"
+            }
+          }
+        },
+        "abort": {
+          "not_loaded": "A integração não está carregada agora; tente novamente quando o recetor estiver ligado."
         }
       }
     }

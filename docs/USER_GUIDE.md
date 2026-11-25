@@ -203,9 +203,11 @@ receiver are taken over already.
 >
 > **Zone 2:** smaller receivers play no HDMI input in Zone 2 (an
 > AVR-X2600H stays silent), only analog inputs, the tuner and network
-> sources. When Zone 2 does not switch to an input, Home Assistant says so
-> and takes that input out of the Zone 2 list here, where you can put it back.
-> Which inputs are HDMI depends on how they are assigned on the receiver.
+> sources. After setup a repair asks once which inputs Zone 2 can play, with
+> the HDMI inputs deselected when the receiver reports no HDMI for Zone 2.
+> When Zone 2 does not switch to an input, Home Assistant says so and takes
+> that input out of the Zone 2 list here, where you can put it back. Which
+> inputs are HDMI depends on how they are assigned on the receiver.
 
 ### Entities
 

@@ -864,6 +864,13 @@
           "8_h": "8 uur"
         }
       },
+      "zone2_hdmi_audio": {
+        "name": "HDMI-audio",
+        "state": {
+          "through": "Doorgeven",
+          "pcm": "PCM"
+        }
+      },
       "zone2_quick_select": {
         "name": "Snelkeuze",
         "state": {
@@ -1270,6 +1277,23 @@
             "title": "Automatiseringen gecontroleerd?",
             "description": "Deze automatiseringen en scripts gebruiken iets van de officiële integratie dat hier anders werkt. Links van de pijl wat ze gebruiken, rechts wat het vervangt (– betekent: niet meer nodig, of geen vervanging). Er is niets gewijzigd.\n\n{findings}\n\nBevestig zodra je ze hebt aangepast; de lijst verdwijnt."
           }
+        }
+      }
+    },
+    "zone2_sources": {
+      "title": "Welke ingangen kan zone 2 van {model} afspelen?",
+      "fix_flow": {
+        "step": {
+          "choose": {
+            "title": "Ingangen van zone 2",
+            "description": "Kleinere receivers spelen in zone 2 geen HDMI-ingang af. Kies de ingangen die zone 2 kan afspelen; de andere verdwijnen uit de lijst. HDMI-ingangen staan uit als de receiver geen HDMI voor zone 2 meldt. De lijst kan later in de opties onder Bronnen worden gewijzigd.",
+            "data": {
+              "sources": "Ingangen van zone 2"
+            }
+          }
+        },
+        "abort": {
+          "not_loaded": "De integratie is nu niet geladen; probeer het opnieuw zodra de receiver verbonden is."
         }
       }
     }
