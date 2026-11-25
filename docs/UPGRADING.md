@@ -14,6 +14,9 @@ nothing from you are not listed. What changed in each version is in the
   under Configure → Sound modes keeps the capitals.
 - **New setups** start with the firmware binary sensor and the tuner preset
   and frequency disabled. An existing setup keeps its entities as they are.
+- **Zone 2 and the network input**: on a receiver that lists the network
+  input as *NETWORK*, Zone 2 used to take it out of its list after a refused
+  switch. If it is missing there, put it back under Configure → Sources.
 
 ## From 1.0.x
 
