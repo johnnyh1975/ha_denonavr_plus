@@ -152,21 +152,26 @@ def enum_options(
     receiver's order; the keys are the labels as slugs, translated on screen.
     Without labels for every value the wire tokens stand in.
 
-    `published` are the option names the receiver lists for the control. When
-    it lists fewer than the profile and each of them is one of the profile's
-    labels, only those are offered (an AVR-X2600H has no Manual for MultEq).
-    Anything else, and the profile's options stay as they are.
+    `published` are the option names the receiver lists for the control in
+    Deviceinfo.xml (`listed_as` gives the receiver's names where they differ
+    from the labels). When each of them is one of the profile's, only those
+    are offered: an AVR-X2600H has no Manual for MultEq, an AVR-X4300H no
+    Bypass for Video Mode. Otherwise the profile's options stay, except the
+    `listed_only` values, which only a receiver that lists them gets.
     """
 
     values = list(spec.values)
     labels = spec.get("labels") or []
     if len(labels) != len(values):
         labels = [humanize(value) for value in values]
-    elif published and len(published) < len(labels):
-        offered = {_comparable(name) for name in published}
-        if offered <= {_comparable(label) for label in labels}:
-            kept = [i for i, label in enumerate(labels) if _comparable(label) in offered]
-            values = [values[i] for i in kept]
-            labels = [labels[i] for i in kept]
+    names = [_comparable(name) for name in (spec.get("listed_as") or labels)]
+    offered = {_comparable(name) for name in published or ()}
+    if offered and len(names) == len(values) and offered <= set(names):
+        kept = [i for i, name in enumerate(names) if name in offered]
+    else:
+        only_listed = set(spec.get("listed_only") or ())
+        kept = [i for i, value in enumerate(values) if value not in only_listed]
+    values = [values[i] for i in kept]
+    labels = [labels[i] for i in kept]
     keys = [option_key(label) for label in labels]
     return keys, dict(zip(keys, values)), dict(zip(values, keys))

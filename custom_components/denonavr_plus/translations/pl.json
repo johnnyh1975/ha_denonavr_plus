@@ -507,7 +507,8 @@
         "state": {
           "auto": "Automatycznie",
           "game": "Gra",
-          "movie": "Film"
+          "movie": "Film",
+          "bypass": "Bypass"
         }
       },
       "picture_mode": {
@@ -564,7 +565,8 @@
           "1080p": "1080p",
           "1080p_24hz": "1080p:24Hz",
           "4k": "4K",
-          "4k_60_50": "4K (60/50)"
+          "4k_60_50": "4K (60/50)",
+          "8k": "8K"
         }
       },
       "input_mode": {

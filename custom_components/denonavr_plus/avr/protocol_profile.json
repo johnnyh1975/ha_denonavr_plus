@@ -946,9 +946,10 @@
       "kind": "enum",
       "query": "VSVPM ?",
       "prefix": "VSVPM",
-      "values": ["AUTO", "GAME", "MOVI"],
-      "labels": ["Auto", "Game", "Movie"],
-      "doc": "Video processing mode. Wire values verified live (AUTO/GAME/MOVI); labels come from Deviceinfo. Only changeable with an active video signal."
+      "values": ["AUTO", "GAME", "MOVI", "BYP"],
+      "labels": ["Auto", "Game", "Movie", "Bypass"],
+      "listed_only": ["BYP"],
+      "doc": "Video processing mode. Wire values verified live (AUTO/GAME/MOVI); labels come from Deviceinfo. Only changeable with an active video signal. BYP from Denon's 2020 command list (VSVPMBYP, not on every model); offered only where Deviceinfo.xml lists Bypass (AVR-X2600H, AVC-X3700H, AVC-A10H; not the AVR-X4300H)."
     },
     "picture_mode": {
       "group": "video",
@@ -1077,8 +1078,10 @@
       "kind": "enum",
       "query": "VSSCH ?",
       "prefix": "VSSCH",
-      "values": ["AUTO", "48P", "10I", "72P", "10P", "10P24", "4K", "4KF"],
-      "labels": ["Auto", "480p/576p", "1080i", "720p", "1080p", "1080p:24Hz", "4K", "4K (60/50)"],
+      "values": ["AUTO", "48P", "10I", "72P", "10P", "10P24", "4K", "4KF", "8K"],
+      "labels": ["Auto", "480p/576p", "1080i", "720p", "1080p", "1080p:24Hz", "4K", "4K (60/50)", "8K"],
+      "listed_only": ["8K"],
+      "published_from": ["ResolutionHdmi", "Resolution"],
       "doc": "HDMI output resolution (scaler). Wire tokens from the Denon control protocol (VSSCH<token>); AUTO/48P/10I/72P/10P/10P24/4K verified live read/write. Only settable when Video Conversion is on and the IP scaler is on HDMI (the receiver otherwise rejects it); this is the ResolutionHDMI field the web Output Settings page gates the same way. 'VSSC' (analog) is a separate, hidden path and is not exposed."
     },
     "input_mode": {
@@ -1090,6 +1093,7 @@
       "prefix": "SD",
       "values": ["NO", "AUTO", "HDMI", "DIGITAL", "ANALOG", "7.1IN", "ARC", "EARC"],
       "labels": ["None", "Auto", "HDMI", "Digital", "Analog", "7.1CH In", "ARC", "eARC"],
+      "listed_as": ["No Input", "Auto", "HDMI", "Digital", "Analog", "7.1CH IN", "ARC", "eARC"],
       "doc": "Audio input mode for the current source (how audio is received). This is the eARC/ARC selector for the TV Audio source. EARC verified live (the source stayed locked to the active eARC signal, so the other values could not be cycle-verified); the rest are the documented Denon SD tokens. Order matches the Deviceinfo Input Mode list."
     },
     "channel_level": {

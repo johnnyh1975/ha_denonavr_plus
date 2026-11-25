@@ -286,3 +286,39 @@ async def test_setup_api_selects_write_the_chosen_value(
         ("video", 3, "<PassThroughSource><Source>2</Source></PassThroughSource>"),
         ("speakers", 2, "<AmpAssign><AssignMode>1</AssignMode></AmpAssign>"),
     ]
+
+
+async def test_the_resolution_follows_the_receivers_list(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """An AVC-X3700H lists its HDMI resolutions as Resolution, with 8K and
+    without 1080p:24Hz and 4K (60/50)."""
+    from unittest.mock import AsyncMock, patch
+
+    from homeassistant.const import CONF_HOST
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.denonavr_plus.avr.transport import GoformClient
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+
+    from .conftest import deviceinfo
+
+    with patch.object(
+        GoformClient,
+        "async_get_device_info",
+        AsyncMock(return_value=deviceinfo("AVC-X3700H-Deviceinfo-8080.xml")),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN, data={CONF_HOST: "192.0.2.10"}, minor_version=CONFIG_MINOR_VERSION
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    labels = entry.runtime_data.device.discovery.option_labels
+    assert "8K" in labels["Resolution"]
+    from custom_components.denonavr_plus.helpers import enum_options
+
+    spec = entry.runtime_data.device.profile.control("resolution_hdmi")
+    assert spec is not None
+    keys = enum_options(spec, labels["Resolution"])[0]
+    assert keys == ["auto", "480p_576p", "1080i", "720p", "1080p", "4k", "8k"]

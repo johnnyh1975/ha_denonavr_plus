@@ -422,6 +422,11 @@ class DenonAvrDevice:
             for spec in self._profile.controls.values()
             if spec.kind == "enum" and spec.feature
         }
+        # Option lists published under another name (Resolution on an AVC-X3700H).
+        for spec in self._profile.controls.values():
+            for feature in spec.get("published_from") or ():
+                feature_names.add(feature)
+                enum_features.add(feature)
         if is_without_deviceinfo(xml_text):
             discovered = await self._async_legacy_discovery()
         else:

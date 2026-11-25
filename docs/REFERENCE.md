@@ -168,8 +168,10 @@ takes it, and when the receiver moves, those that were in its room move along. A
 sub‑device you put in another room stays there, and the zone devices (Zone 2,
 Zone 3) keep a room of their own. The lists below are grouped by
 entity type; each entity lands on the sub‑device its setting belongs to.
-Select options follow what the receiver lists where it lists fewer than the
-protocol knows (an AVR‑X2600H offers no Manual for MultEQ).
+Select options follow what the receiver lists in its device description:
+an AVR‑X2600H offers no Manual for MultEQ, Video Mode Bypass and the 8K
+resolution appear only on receivers that list them (AVR‑X2600H, AVC‑X3700H,
+AVC‑A10H), and Input Mode shows eARC only where the receiver has it.
 
 - **Media player** per zone (main + zone 2 where present): power, volume, mute,
   source selection, and (main zone) sound mode. On the main zone, network sources

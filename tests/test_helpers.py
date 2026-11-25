@@ -127,3 +127,29 @@ def test_zone_2_settings_go_with_zone_2() -> None:
     assert not helpers.control_zone_shown(spec, {"zones": []})
     other = ControlSpec("bass", {"kind": "level", "subdevice": "audio"})
     assert helpers.control_zone_shown(other, {"zones": []})
+
+
+def test_a_value_only_some_receivers_have() -> None:
+    """Video Mode Bypass (VSVPMBYP): the AVR-X2600H and AVC-X3700H list it,
+    the AVR-X4300H does not; a receiver that lists nothing does not get it."""
+    from custom_components.denonavr_plus.avr.profile import load_profile
+
+    spec = load_profile().control("video_mode")
+    assert spec is not None
+    assert helpers.enum_options(spec, ["Auto", "Game", "Movie", "Bypass"])[0] == [
+        "auto", "game", "movie", "bypass",
+    ]
+    assert helpers.enum_options(spec, ["Auto", "Game", "Movie"])[0] == ["auto", "game", "movie"]
+    assert helpers.enum_options(spec, None)[0] == ["auto", "game", "movie"]
+
+
+def test_the_receivers_own_names_for_the_options() -> None:
+    """Input Mode: an AVC-8500H lists no eARC, under its own names (No Input)."""
+    from custom_components.denonavr_plus.avr.profile import load_profile
+
+    spec = load_profile().control("input_mode")
+    assert spec is not None
+    keys = helpers.enum_options(
+        spec, ["No Input", "Auto", "HDMI", "Digital", "Analog", "7.1CH IN", "ARC"]
+    )[0]
+    assert "earc" not in keys and "none" in keys
