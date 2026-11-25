@@ -34,6 +34,7 @@ from typing import TYPE_CHECKING, Any
 
 from .capability_check import reply_prefix
 from .errors import CommandNotSent
+from .refusals import MAIN_ZONE_GROUPS
 
 if TYPE_CHECKING:
     from .device import DenonAvrDevice
@@ -114,10 +115,6 @@ PREFERRED = {
     "input_mode": "AUTO",
 }
 
-#: Control groups that act on the main zone's sound or picture.
-_MAIN_ZONE_GROUPS = frozenset(
-    {"volume", "tone", "audio", "audyssey", "surround", "speaker", "video", "source"}
-)
 
 #: Queries that answer for a control whose own query does not.
 _CONFIRM_QUERY = {"all_zone_stereo": "MS?"}
@@ -342,7 +339,7 @@ def _control_probe(device: DenonAvrDevice, spec: ControlSpec) -> Probe:
         await device.async_set_control(spec.id, value)
 
     condition: Callable[[], str | None] = lambda: None
-    if spec.group in _MAIN_ZONE_GROUPS:
+    if spec.group in MAIN_ZONE_GROUPS:
         condition = _main_zone_on(device)
     requires = tuple(
         (control_id, value)

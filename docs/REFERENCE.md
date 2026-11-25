@@ -571,11 +571,27 @@ Symptoms and what to do about them: [user guide, troubleshooting](USER_GUIDE.md#
 Which receivers work, and what differs by generation and brand:
 [Compatibility](COMPATIBILITY.md).
 
-- Some parameters only apply to certain signals or sound modes (for example
-  Dynamic Compression needs a Dolby/DTS bitstream, Video Mode needs an active
-  video signal, Equalizer settings can not be altered when MultEQ is not Off).
-  The receiver rejects changes that do not apply to the current
-  context; this is expected Denon behavior, not an integration bug.
+- Some settings only apply to certain signals, sound modes or other
+  settings, and a receiver in standby takes none. Where that is known, the
+  integration waits for the receiver to confirm the new value (up to 1.5 s,
+  then it asks once more) and otherwise reports why it kept the old one:
+
+  | Setting | Taken only |
+  |---|---|
+  | Any setting of the main zone's sound or picture | with the main zone on |
+  | Dynamic Compression, Loudness Management, LFE level | while a Dolby or DTS signal plays |
+  | Dialog Control | while DTS:X plays |
+  | Effect level | in a DSP sound mode |
+  | Subwoofer off | in Direct, Pure Direct or Stereo |
+  | Front speakers A/B | with the amp assignment set to Front B |
+  | HDMI resolution | with video conversion on and the i/p scaler on HDMI |
+  | Graphic EQ | with MultEQ off |
+  | Bass, Treble | with Tone Control on and Dynamic EQ off |
+  | Tone Control | with Dynamic EQ off |
+  | Contrast, Brightness, Saturation, Enhancer, Noise Reduction | in the Custom picture mode |
+
+  Over HTTP (telnet down) nothing comes back to confirm by; Video Mode, which
+  needs an active video signal, is not confirmed either.
 - Speaker distances and crossovers are supported over telnet (read/write). Other
   advanced one time setup settings that the receiver exposes only through its web
   UI's configuration API (full speaker layout, HDMI Control/CEC, per input

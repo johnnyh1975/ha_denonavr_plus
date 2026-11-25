@@ -36,7 +36,7 @@ from .models import (
 from .generation import generation_of, legacy_device_info
 from .parser import TelnetParser, parse_device_info, parse_main_zone, parse_upnp_description
 from .profile import OLDER, ControlSpec, ProtocolProfile, load_profile, profile_for_receiver
-from . import capability_check, command_test, graphic_eq, signal_info, video_config
+from . import capability_check, command_test, graphic_eq, refusals, signal_info, video_config
 from .video_config import VideoConfigController
 from .const import (
     CHECK_REPLY_FIRST,
@@ -45,7 +45,7 @@ from .const import (
     REPLY_COLLECT_QUIET,
     REPLY_WAIT_OLDER,
 )
-from .errors import CommandNotSent, SourceNotTaken
+from .errors import CommandNotSent, SettingNotTaken, SourceNotTaken
 from .transport.upnp import OLDER_DESCRIPTION_PATH, OLDER_PORT
 from .transport.webconfig import HTTP_PORT as HTTP_SETUP_PORT
 from .transport import (
@@ -94,6 +94,9 @@ FOLLOW_MAIN = "SOURCE"
 TUNER_SWITCH_WAIT = 3.0
 #: How long a zone other than the main zone has to confirm a new source.
 ZONE_SOURCE_WAIT = 2.0
+#: How long a setting the receiver may refuse has to come back, first as the
+#: echo of the command, then as the answer to its query (avr/refusals.py).
+CONFIRM_WAIT = 1.5
 
 # After a command sent over HTTP (telnet down) nothing is pushed back, so the
 # zone status is read again once the receiver has had a moment to apply it.
@@ -1954,6 +1957,45 @@ class DenonAvrDevice:
         if argument is None:
             return
         await self._send(f"{spec.prefix}{argument}")
+
+    async def async_set_control_confirmed(self, control_id: str, value: object) -> None:
+        """Set a control; raise SettingNotTaken when the receiver keeps the old value.
+
+        Confirmed only where the receiver may refuse (avr/refusals.py): a
+        main-zone setting in standby and the settings it takes only in a
+        context. The echo is awaited for CONFIRM_WAIT, then the value is asked
+        for once. Over HTTP (telnet down) nothing comes back to confirm by,
+        and a value the receiver already has is only sent.
+        """
+
+        spec = self._profile.control(control_id)
+        reason = None
+        if spec is not None:
+            reason = refusals.refusal_reason(
+                control_id, spec.group, self._state.zone("main").power
+            )
+        if (
+            spec is None
+            or reason is None
+            or not self._telnet.connected
+            or command_test.same(self._state.values.get(control_id), value)
+        ):
+            await self.async_set_control(control_id, value)
+            return
+        argument = self._encode_control_value(spec, value)
+        if argument is None:
+            return
+        wanted = _reply_or_error(spec.prefix)
+        command = f"{spec.prefix}{argument}"
+        await self.async_collect(wanted, lambda: self._send(command), CONFIRM_WAIT)
+        if command_test.same(self._state.values.get(control_id), value):
+            return
+        if spec.query:
+            query = spec.query
+            await self.async_collect(wanted, lambda: self._send(query), CONFIRM_WAIT)
+            if command_test.same(self._state.values.get(control_id), value):
+                return
+        raise SettingNotTaken(control_id, reason)
 
     async def async_set_channel_trim(self, code: str, db: float) -> None:
         """Set a per channel volume trim in dB via the CV command."""

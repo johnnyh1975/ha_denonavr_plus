@@ -36,6 +36,7 @@ async def test_setting_a_level_sends_its_command(
     assert spec is not None
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
+    telnet.echo = True
     await hass.services.async_call(
         "number",
         "set_value",

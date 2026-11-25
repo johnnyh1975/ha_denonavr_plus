@@ -61,6 +61,8 @@ class FakeTelnet:
         self.response_time: float | None = 0.042
         self.queued = 0
         self.log: list[str] = []
+        # Answer each command with itself, as a receiver that takes it does.
+        self.echo = False
         FakeTelnet.instances.append(self)
 
     async def async_start(self) -> None:
@@ -75,6 +77,8 @@ class FakeTelnet:
 
     async def async_send(self, command: str) -> None:
         self.sent.append(command)
+        if self.echo and not command.endswith("?"):
+            self.push(command)
 
     def push(self, *lines: str) -> None:
         for line in lines:

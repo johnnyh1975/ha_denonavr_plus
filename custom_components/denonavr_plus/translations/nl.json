@@ -1139,6 +1139,39 @@
     },
     "volume_ramp_zone_off": {
       "message": "{entity} staat uit of meldt geen volume: een volumehelling heeft de zone aan nodig."
+    },
+    "setting_not_taken_standby": {
+      "message": "{model} staat stand-by en heeft {setting} niet gewijzigd. Zet de receiver eerst aan."
+    },
+    "setting_not_taken_dolby_dts": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over terwijl een Dolby- of DTS-signaal speelt."
+    },
+    "setting_not_taken_dts_x": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over terwijl DTS:X speelt."
+    },
+    "setting_not_taken_dsp_mode": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over in een DSP-geluidsmodus, zoals Rock Arena of Jazz Club."
+    },
+    "setting_not_taken_two_channel": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij zet de subwoofer alleen uit in Direct, Pure Direct of Stereo."
+    },
+    "setting_not_taken_front_b": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over met de versterkertoewijzing op Front B."
+    },
+    "setting_not_taken_scaler": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over met videoconversie aan en de i/p-scaler op HDMI."
+    },
+    "setting_not_taken_multeq_off": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over met MultEQ uit."
+    },
+    "setting_not_taken_tone_control": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over met toonregeling aan en Dynamic EQ uit."
+    },
+    "setting_not_taken_dynamic_eq_off": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over met Dynamic EQ uit."
+    },
+    "setting_not_taken_custom_picture": {
+      "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over in de beeldmodus Aangepast."
     }
   },
   "issues": {

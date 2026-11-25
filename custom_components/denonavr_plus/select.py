@@ -154,7 +154,7 @@ class DenonAvrSelect(DenonAvrEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         value = self._key_to_value.get(option)
         if value is not None:
-            await self.coordinator.device.async_set_control(self._spec.id, value)
+            await self.coordinator.device.async_set_control_confirmed(self._spec.id, value)
 
 
 class DenonAvrSoundModeGroupSelect(DenonAvrEntity, SelectEntity):

@@ -1139,6 +1139,39 @@
     },
     "volume_ramp_zone_off": {
       "message": "{entity} is off or reports no volume: a volume ramp needs the zone on."
+    },
+    "setting_not_taken_standby": {
+      "message": "{model} is in standby and kept {setting} as it was. Switch the receiver on first."
+    },
+    "setting_not_taken_dolby_dts": {
+      "message": "{model} kept {setting} as it was: it takes it only while a Dolby or DTS signal plays."
+    },
+    "setting_not_taken_dts_x": {
+      "message": "{model} kept {setting} as it was: it takes it only while DTS:X plays."
+    },
+    "setting_not_taken_dsp_mode": {
+      "message": "{model} kept {setting} as it was: it takes it only in a DSP sound mode, such as Rock Arena or Jazz Club."
+    },
+    "setting_not_taken_two_channel": {
+      "message": "{model} kept {setting} as it was: it switches the subwoofer off only in Direct, Pure Direct or Stereo."
+    },
+    "setting_not_taken_front_b": {
+      "message": "{model} kept {setting} as it was: it takes it only with the amp assignment set to Front B."
+    },
+    "setting_not_taken_scaler": {
+      "message": "{model} kept {setting} as it was: it takes it only with video conversion on and the i/p scaler on HDMI."
+    },
+    "setting_not_taken_multeq_off": {
+      "message": "{model} kept {setting} as it was: it takes it only with MultEQ off."
+    },
+    "setting_not_taken_tone_control": {
+      "message": "{model} kept {setting} as it was: it takes it only with Tone Control on and Dynamic EQ off."
+    },
+    "setting_not_taken_dynamic_eq_off": {
+      "message": "{model} kept {setting} as it was: it takes it only with Dynamic EQ off."
+    },
+    "setting_not_taken_custom_picture": {
+      "message": "{model} kept {setting} as it was: it takes it only in the Custom picture mode."
     }
   },
   "issues": {

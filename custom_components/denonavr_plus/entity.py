@@ -22,7 +22,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import choices
 from .avr.models import ZoneDescriptor
-from .avr.errors import CommandNotSent, SetupWriteError, SourceNotTaken
+from .avr.errors import CommandNotSent, SettingNotTaken, SetupWriteError, SourceNotTaken
 from .const import DOMAIN
 from .coordinator import DenonAvrCoordinator
 
@@ -85,6 +85,18 @@ def receiver_action[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _Func
                 translation_placeholders={
                     "model": model,
                     "source": choices.source_display(discovery, self._entry_options, err.source),
+                },
+            ) from err
+        except SettingNotTaken as err:
+            # The receiver kept the old value; say why it takes it only in a
+            # context (avr/refusals.py), named as the user sees the entity.
+            state = self.hass.states.get(self.entity_id) if self.entity_id else None
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=f"setting_not_taken_{err.reason}",
+                translation_placeholders={
+                    "model": model,
+                    "setting": state.name if state is not None else err.control_id,
                 },
             ) from err
 

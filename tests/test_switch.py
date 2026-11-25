@@ -43,6 +43,30 @@ async def test_turning_a_switch_on_and_off_sends_its_command(
         assert any(line == f"{spec.prefix}{value}" for line in telnet.sent), telnet.sent
 
 
+async def test_a_switch_the_receiver_keeps_says_why(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+    from unittest.mock import patch
+
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("ZMOFF", "PSDYNEQ OFF")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    switch = entity_id(hass, loaded_entry, "switch_dynamic_eq")
+    name = hass.states.get(switch).name
+    with (
+        patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05),
+        pytest.raises(HomeAssistantError) as err,
+    ):
+        await hass.services.async_call("switch", "turn_on", {"entity_id": switch}, blocking=True)
+    assert err.value.translation_key == "setting_not_taken_standby"
+    assert err.value.translation_placeholders["setting"] == name
+
+
 async def test_a_switch_the_receiver_has_not_reported_shows_off(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

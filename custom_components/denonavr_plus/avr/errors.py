@@ -36,3 +36,16 @@ class SourceNotTaken(Exception):
         super().__init__(f"{zone_id}: {source}")
         self.zone_id = zone_id
         self.source = source
+
+
+class SettingNotTaken(Exception):
+    """The receiver kept a setting at its old value.
+
+    `control_id` names the setting, `reason` why the receiver takes it only
+    in a context (avr/refusals.py), such as "standby" or "dolby_dts".
+    """
+
+    def __init__(self, control_id: str, reason: str) -> None:
+        super().__init__(f"{control_id}: {reason}")
+        self.control_id = control_id
+        self.reason = reason

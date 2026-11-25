@@ -128,11 +128,11 @@ class DenonAvrSwitch(DenonAvrEntity, SwitchEntity):
 
     @receiver_action
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await self.coordinator.device.async_set_control(self._spec.id, True)
+        await self.coordinator.device.async_set_control_confirmed(self._spec.id, True)
 
     @receiver_action
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await self.coordinator.device.async_set_control(self._spec.id, False)
+        await self.coordinator.device.async_set_control_confirmed(self._spec.id, False)
 
 
 class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):

@@ -1139,6 +1139,39 @@
     },
     "volume_ramp_zone_off": {
       "message": "{entity} jest wyłączony lub nie podaje głośności: płynna zmiana wymaga włączonej strefy."
+    },
+    "setting_not_taken_standby": {
+      "message": "{model} jest w trybie czuwania i nie zmienił ustawienia {setting}. Najpierw włącz amplituner."
+    },
+    "setting_not_taken_dolby_dts": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko podczas odtwarzania sygnału Dolby lub DTS."
+    },
+    "setting_not_taken_dts_x": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko podczas odtwarzania DTS:X."
+    },
+    "setting_not_taken_dsp_mode": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko w trybie dźwięku DSP, takim jak Rock Arena lub Jazz Club."
+    },
+    "setting_not_taken_two_channel": {
+      "message": "{model} nie zmienił ustawienia {setting}: wyłącza subwoofer tylko w trybach Direct, Pure Direct lub Stereo."
+    },
+    "setting_not_taken_front_b": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko z przypisaniem wzmacniacza Front B."
+    },
+    "setting_not_taken_scaler": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko z włączoną konwersją wideo i skalerem i/p na HDMI."
+    },
+    "setting_not_taken_multeq_off": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko z wyłączonym MultEQ."
+    },
+    "setting_not_taken_tone_control": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko z włączoną regulacją barwy i wyłączonym Dynamic EQ."
+    },
+    "setting_not_taken_dynamic_eq_off": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko z wyłączonym Dynamic EQ."
+    },
+    "setting_not_taken_custom_picture": {
+      "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko w trybie obrazu Własny."
     }
   },
   "issues": {

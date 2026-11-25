@@ -143,7 +143,7 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
 
     @receiver_action
     async def async_set_native_value(self, value: float) -> None:
-        await self.coordinator.device.async_set_control(self._spec.id, value)
+        await self.coordinator.device.async_set_control_confirmed(self._spec.id, value)
 
 
 class DenonAvrChannelTrim(DenonAvrEntity, NumberEntity):

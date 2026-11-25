@@ -18,7 +18,11 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.denonavr_plus.avr import capability_check
-from custom_components.denonavr_plus.avr.errors import CommandNotSent, SourceNotTaken
+from custom_components.denonavr_plus.avr.errors import (
+    CommandNotSent,
+    SettingNotTaken,
+    SourceNotTaken,
+)
 from custom_components.denonavr_plus.avr.transport import GoformClient
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
@@ -393,6 +397,7 @@ async def test_an_older_receiver_gets_its_own_picture_scale(
     assert (state.attributes["min"], state.attributes["max"]) == (0, 12)
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
+    telnet.echo = True
     await hass.services.async_call(
         "number", "set_value", {"entity_id": brightness, "value": 7}, blocking=True
     )
@@ -438,6 +443,7 @@ async def test_a_2014_receiver_on_port_80_keeps_the_newer_picture_scale(
     assert (state.attributes["min"], state.attributes["max"]) == (-50, 50)
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
+    telnet.echo = True
     await hass.services.async_call(
         "number", "set_value", {"entity_id": brightness, "value": 7}, blocking=True
     )
@@ -915,3 +921,53 @@ async def test_a_receiver_without_deviceinfo_is_set_up_from_its_main_zone(
     telnet.sent.clear()
     await device.async_set_control("restorer", "MODE1")
     assert "PSRSTR MODE1" in telnet.sent
+
+
+async def test_a_setting_the_receiver_keeps_is_reported_with_its_reason(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The echo confirms a setting; without one, its query answers the old value."""
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("ZMON", "PSSWR ON", "PSDYNEQ ON")
+    with patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05):
+        telnet.echo = True
+        telnet.sent.clear()
+        await device.async_set_control_confirmed("subwoofer_switch", False)
+        assert telnet.sent == ["PSSWR OFF"]
+
+        # Outside Direct and Stereo the receiver keeps the subwoofer on.
+        telnet.echo = False
+        telnet.push("PSSWR ON")
+        telnet.sent.clear()
+        with pytest.raises(SettingNotTaken) as err:
+            await device.async_set_control_confirmed("subwoofer_switch", False)
+        assert (err.value.control_id, err.value.reason) == ("subwoofer_switch", "two_channel")
+        assert telnet.sent == ["PSSWR OFF", "PSSWR ?"]
+
+        # In standby any main-zone setting may be kept.
+        telnet.push("ZMOFF")
+        with pytest.raises(SettingNotTaken) as err:
+            await device.async_set_control_confirmed("dynamic_eq", False)
+        assert err.value.reason == "standby"
+
+        # Taken anywhere, or the value it already has: only sent.
+        telnet.push("ZMON")
+        telnet.sent.clear()
+        await device.async_set_control_confirmed("dynamic_eq", False)
+        await device.async_set_control_confirmed("subwoofer_switch", True)
+        await device.async_set_control_confirmed("no_such_control", True)
+        assert telnet.sent == ["PSDYNEQ OFF", "PSSWR ON"]
+
+
+async def test_a_setting_over_http_is_not_confirmed(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """With telnet down nothing comes back to confirm by: sent, not waited for."""
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("ZMOFF", "PSSWR ON")
+    telnet.connected = False
+    with patch.object(type(device), "async_set_control", AsyncMock()) as send:
+        await device.async_set_control_confirmed("subwoofer_switch", False)
+    send.assert_awaited_once_with("subwoofer_switch", False)
