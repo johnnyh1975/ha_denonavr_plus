@@ -569,7 +569,38 @@ class DenonAvrDevice:
             "sources": [asdict(source) for source in discovery.sources],
             "answered": sorted(discovery.answered),
             "known_answers": self.known_answers.as_dict() if self.known_answers else None,
+            # What the resync brings and the entities are built from, so the
+            # next start need not wait for it (preload_discovery).
+            "configured_channels": sorted(discovery.configured_channels),
+            "quick_select_names": {str(number): name for number, name in discovery.quick_select_names.items()},
         }
+
+    def preload_discovery(self, snapshot: dict[str, Any] | None) -> bool:
+        """Take what the last start learned over telnet, for the same model.
+
+        The speaker configuration, the quick select names and the sources
+        come with the resync, several seconds after connecting; the entities
+        are built from them. Taken from the last start, the setup only waits
+        for the receiver's first answer; the resync then brings the current
+        values, and the snapshot is saved again. Returns whether it applied.
+        """
+
+        if not snapshot or not snapshot.get("configured_channels"):
+            return False
+        device = snapshot.get("device") or {}
+        if device.get("model_name") != self._discovery.device.model_name:
+            return False
+        discovery = self._discovery
+        discovery.configured_channels = set(snapshot["configured_channels"])
+        discovery.quick_select_names = {
+            int(number): str(name)
+            for number, name in (snapshot.get("quick_select_names") or {}).items()
+        }
+        if not discovery.sources:
+            discovery.sources = [
+                SourceDescriptor(**source) for source in snapshot.get("sources", [])
+            ]
+        return True
 
     def restore_discovery(self, snapshot: dict[str, Any]) -> None:
         """Fill the discovery from a snapshot, for a start without the receiver.
@@ -958,7 +989,7 @@ class DenonAvrDevice:
         except TimeoutError:
             _LOGGER.debug("%s did not switch to the tuner in time", self._host)
 
-    async def async_await_ready(self, timeout: float = 8.0) -> None:
+    async def async_await_ready(self, timeout: float = 8.0, *, preloaded: bool = False) -> None:
         """Wait, best effort, until the initial resync has populated state.
 
         This lets the platforms build the right entities at setup time. We wait
@@ -972,14 +1003,14 @@ class DenonAvrDevice:
         started = loop.time()
         deadline = started + timeout
         while loop.time() < deadline:
-            if (
-                self._state.system_power is not None
-                and self._state.channel_levels
-                and self._discovery.configured_channels
+            if self._state.system_power is not None and (
+                # Preloaded: the channels are known; only the first answer.
+                (preloaded and (self._discovery.channels or self._state.channel_levels))
+                or (self._state.channel_levels and self._discovery.configured_channels)
             ):
                 break
             await asyncio.sleep(0.1)
-        self.setup_timings["ready"] = self._ms_since(started)
+        self.setup_timings["ready" if not preloaded else "ready_preloaded"] = self._ms_since(started)
         # If the telnet introspection produced no sources, fall back to the
         # Deviceinfo source list so the media player still has a source list.
         if not self._discovery.sources and self._fallback_sources:

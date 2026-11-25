@@ -540,6 +540,13 @@ receiver, so turning on works then too. The other entities stay unavailable unti
 the receiver answers; then the integration sets itself up in full by itself. A
 receiver that has never been reached since it was added has to be on for setup.
 
+When the receiver answers, a start after the first one also uses what the
+last start learned over telnet (speaker configuration, quick select names,
+inputs), so the setup waits only for the receiver's first answer instead of
+its whole status, which takes several seconds; the current values follow
+within a few seconds. The diagnostics show how long each part took
+(`setup_timings_ms`).
+
 ## Blueprints and an example dashboard
 
 How to build on them: [user guide, sections 4 and 6](USER_GUIDE.md#4-everyday-use).

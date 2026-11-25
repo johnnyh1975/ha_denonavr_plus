@@ -171,10 +171,12 @@ class FakeHeos:
 _ORIGINAL_AWAIT_READY = DenonAvrDevice.async_await_ready
 
 
-async def _await_ready_without_waiting(self: DenonAvrDevice, timeout: float = 8.0) -> None:
+async def _await_ready_without_waiting(
+    self: DenonAvrDevice, timeout: float = 8.0, *, preloaded: bool = False
+) -> None:
     # The real method waits up to 8 s for the first resync; the fakes answer
     # nothing, so skip the wait but keep the fallback logic it runs.
-    await _ORIGINAL_AWAIT_READY(self, timeout=0)
+    await _ORIGINAL_AWAIT_READY(self, timeout=0, preloaded=preloaded)
 
 
 @pytest.fixture

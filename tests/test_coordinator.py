@@ -420,3 +420,45 @@ async def test_control_by_apps_switched_off_is_a_repair(
     await asyncio.sleep(0.15)
     await hass.async_block_till_done()
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_a_later_start_takes_the_speakers_from_the_last_one(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """The setup waits for the first answer only; the resync saves the snapshot again."""
+    key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("SSSPCFRO SMA", "SSSPCCEN LAR", "SSSPCSWF 1SP", "SSSPC END")
+    telnet.push("SSQSNZMAQS1 TV", "SSQSNZMA END")
+    await _settle(hass)
+    configured = sorted(loaded_entry.runtime_data.device.discovery.configured_channels)
+    assert configured
+    # Saved as the last start would have.
+    hass_storage[key]["data"] = loaded_entry.runtime_data.device.discovery_snapshot()
+
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    device = loaded_entry.runtime_data.device
+    assert sorted(device.discovery.configured_channels) == configured
+    assert device.discovery.quick_select_names == {1: "TV"}
+    assert "ready_preloaded" in device.setup_timings
+    assert hass_storage[key]["data"]["configured_channels"] == configured
+
+
+def test_the_last_start_counts_only_for_the_same_model() -> None:
+    from custom_components.denonavr_plus.avr.models import DeviceInfo
+
+    device = DenonAvrDevice(AsyncMock(), "192.0.2.10")
+    device.discovery.device = DeviceInfo(model_name="AVR-X2600H")
+    snapshot = {
+        "device": {"model_name": "AVR-X2000"},
+        "configured_channels": ["FL"],
+        "sources": [{"code": "CD", "name": "CD"}],
+    }
+    assert not device.preload_discovery(snapshot)
+    assert not device.preload_discovery(None)
+    assert not device.preload_discovery({"device": {"model_name": "AVR-X2600H"}})
+    snapshot["device"] = {"model_name": "AVR-X2600H"}
+    assert device.preload_discovery(snapshot)
+    assert device.discovery.configured_channels == {"FL"}
+    assert [source.code for source in device.discovery.sources] == ["CD"]

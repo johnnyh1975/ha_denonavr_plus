@@ -148,12 +148,31 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # A model-dependent control answered once stays: one late reply at a
         # start (or a receiver in standby) must not drop its entity.
         self.device.discovery.answered |= set((snapshot or {}).get("answered", []))
+        preloaded = self.device.preload_discovery(snapshot)
         await self.device.async_start()
+        if preloaded:
+            # What the entities are built from is known from the last start:
+            # wait for the receiver's first answer only; the resync goes on.
+            await self.device.async_await_ready(preloaded=True)
+            assert self.config_entry is not None
+            self.config_entry.async_create_background_task(
+                self.hass, self._async_save_when_ready(), "denonavr_plus discovery snapshot"
+            )
+            return
         # Give the initial resync a moment so per channel entities can be built.
         await self.device.async_await_ready()
         # Saved after the wait, which fills the sources from Deviceinfo when
         # the telnet introspection brought none.
         await self._snapshot.async_save(self.device.discovery_snapshot())
+
+    async def _async_save_when_ready(self) -> None:
+        """Save the discovery once the resync has brought it, for the next start."""
+
+        await self.device.async_await_ready()
+        try:
+            await self._snapshot.async_save(self.device.discovery_snapshot())
+        except Exception as err:  # noqa: BLE001 - a background task must not raise
+            _LOGGER.debug("Discovery snapshot not saved: %s", err)
 
     async def async_shutdown(self) -> None:
         """Stop the telnet transport when the entry is unloaded."""
