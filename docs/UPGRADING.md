@@ -12,6 +12,16 @@ main zone to the tuner. A condition or card that waited for them to be
 `unavailable` checks for `unknown` now. If you imported the example
 dashboard, take its tuner section again.
 
+A setting the receiver keeps at its old value now reports an error with the
+reason (for example Dynamic Compression without a Dolby or DTS signal, or any
+setting while the receiver is in standby); before, the old value came back
+silently. An automation or script stops at such an error. Where a setting is
+meant to be tried whatever the signal, add `continue_on_error: true` to that
+action.
+
+If Zone 2's input list was never chosen in the options, a repair asks once
+which inputs Zone 2 can play. Answer it, or ignore it to keep every input.
+
 ## From 0.9.3
 
 Marantz receivers from 2015 on: the select *Restorer* is no longer created.

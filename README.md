@@ -1,6 +1,6 @@
 # Denon AVR Plus
 
-[![Version](https://img.shields.io/badge/Version-0.9.4-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
+[![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen.svg)](https://github.com/johnnyh1975/ha_denonavr_plus/releases)
 [![HA Version](https://img.shields.io/badge/HA-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![Marketplace custom repository](https://img.shields.io/badge/Marketplace-custom%20repository-41BDF5.svg)](#installation)
 [![Quality Scale](https://img.shields.io/badge/Quality%20Scale-Platinum-blueviolet.svg)](https://www.home-assistant.io/docs/quality_scale/)
@@ -49,7 +49,7 @@ be installed; only one should control a receiver at a time. As of November
 | **Maintained by** | Home Assistant core maintainers, in every release | One maintainer, community project |
 | **Receivers** | Denon and Marantz network receivers, including models before 2016 | HEOS generation (2016 and later); older models with fewer settings |
 | **Connection** | HTTP poll every 10 s; telnet push optional (on for new setups) | Telnet push always; HTTP for discovery, a check and as fallback |
-| **When telnet drops** | Falls back to the HTTP poll | Media players stay usable over HTTP; a repair explains what is wrong |
+| **When telnet drops** | Falls back to the HTTP poll | Media players, sound mode, tone and Audyssey stay usable over HTTP; a repair explains what is wrong |
 | **Entities** | One media player per zone | Media players plus selects, switches, numbers, sensors, buttons and a remote, on sub-devices |
 | **Zones** | Zone 2 and 3 as media players of the receiver | Each zone its own device, for its own room; zone 2 can join the main zone |
 | **Sources** | As the receiver names them; option to show deleted ones | As the receiver names and hides them; per zone choice and renaming; quick selects and HEOS favorites in the list |
