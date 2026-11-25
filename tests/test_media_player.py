@@ -2647,3 +2647,34 @@ async def test_an_announcement_during_the_restore_still_restores(
         heos.on_update(_heos_state("stop"))
         await _eventually(lambda: len(restored) == 2)
     assert restored[1] is not None and restored[1].source == "CD"
+
+
+async def test_standby_of_the_whole_receiver_pauses_every_zones_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Main zone off = standby: Zone 2's player on another input goes quiet too."""
+    from custom_components.denonavr_plus import choices
+
+    streamer = "media_player.streamer"
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            choices.OPT_MAIN_OFF_STANDBY: True,
+            "linked_players": {
+                "DVD": {"player": _APPLE_TV, "follow": False, "full_volume": False},
+                "CD": {"player": streamer, "follow": False, "full_volume": False},
+            },
+        },
+    )
+    await hass.async_block_till_done()
+    hass.states.async_set(_APPLE_TV, "playing", {"supported_features": _APPLE_TV_FEATURES})
+    hass.states.async_set(streamer, "playing", {"supported_features": _APPLE_TV_FEATURES})
+    await _push(hass, "PWON", "ZMON", "SIDVD", "Z2ON", "Z2CD")
+    paused = async_mock_service(hass, "media_player", "media_pause")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call("media_player", "turn_off", {"entity_id": main}, blocking=True)
+    assert "PWSTANDBY" in telnet.sent
+    assert sorted(call.data["entity_id"] for call in paused) == sorted([_APPLE_TV, streamer])

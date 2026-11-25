@@ -67,7 +67,7 @@ be installed; only one should control a receiver at a time. As of November
 | **Video and HDMI** | — | Video mode, HDMI output and audio, HDMI setup (CEC, ARC), picture adjustment, signal sensors |
 | **Graphic EQ** | — | Per channel and band, staged and applied at once |
 | **Now playing** | Title, artist and cover of network sources | Over HEOS: cover, position, repeat, shuffle, queue, favorites and HEOS music in the media browser; text to speech and announcements |
-| **Devices on the inputs** | — | A linked media player per input (an Apple TV, a streamer): its title, cover and buttons on the receiver's player; switch to its input when it starts, keep it at full volume |
+| **Devices on the inputs** | — | A linked media player per input (an Apple TV, a streamer): its title, cover and buttons on the receiver's player; switch to its input when it starts, keep it at full volume, pause it when the zone is switched off; voice search finds its media (Music Assistant's library) |
 | **Tuner** | — | Preset select and FM frequency |
 | **Actions** | Raw HTTP command, Dynamic EQ, Audyssey refresh | Raw command, volume ramp, snapshot and restore, tuner preset, HEOS queue; remote with the menu keys; device trigger; two blueprints |
 | **Setup** | Discovery or address | Discovery or address; follows a new address by itself; reconfigure |

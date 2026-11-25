@@ -996,28 +996,39 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             await self._device.async_set_system_power(False)
         else:
             await self._device.async_set_power(self._zone.id, False)
-        if left is not None:
-            await self._async_pause_left(left)
+        for state in left:
+            await self._async_pause_left(state)
 
-    def _linked_left_playing(self, whole: bool) -> State | None:
-        """The linked player that would play on unheard once this zone is off.
+    def _linked_left_playing(self, whole: bool) -> list[State]:
+        """The linked players that would play on unheard once this zone is off.
 
-        Not when another zone stays on with the same input, nor with the
-        option off.
+        The player of this zone's input, not while another zone stays on
+        with it; with the whole receiver going to standby, those of every
+        zone that is on. None with the option off.
         """
 
         if not self._entry_options.get(linked_players.OPT_PAUSE_ON_OFF, True):
-            return None
-        entity_id = self._input_link
-        state = self.hass.states.get(entity_id) if entity_id is not None else None
-        if not linked_players.is_busy(state):
-            return None
-        if not whole:
-            source = self._source_code
-            for zone_id, zone in self.coordinator.data.zones.items():
-                if zone_id != self._zone.id and zone.power and self._device.zone_source(zone_id) == source:
-                    return None
-        return state
+            return []
+        on_wire = linked_players.links_on_wire(self._entry_options, self._device)
+        sources = {
+            zone_id: self._device.zone_source(zone_id)
+            for zone_id, zone in self.coordinator.data.zones.items()
+            if zone.power
+        }
+        own = sources.get(self._zone.id)
+        if whole:
+            heard_on: set[str | None] = set()
+            leaving = set(sources.values())
+        else:
+            heard_on = {source for zone_id, source in sources.items() if zone_id != self._zone.id}
+            leaving = {own}
+        left: list[State] = []
+        for source in leaving - heard_on:
+            link = on_wire.get(source) if source is not None else None
+            state = self.hass.states.get(link.entity_id) if link is not None else None
+            if state is not None and linked_players.is_busy(state) and state not in left:
+                left.append(state)
+        return left
 
     async def _async_pause_left(self, state: State) -> None:
         """Pause (or stop) it; a player that refuses does not fail the turn off."""
