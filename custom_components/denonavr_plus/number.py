@@ -317,7 +317,8 @@ _AM_FROM = 50000
 class DenonAvrTunerFrequency(DenonAvrEntity, NumberEntity):
     """The FM frequency in MHz, to read and to tune directly.
 
-    Available while a zone plays the tuner on FM.
+    Unknown while no zone plays the tuner on FM; tuning then switches the
+    main zone to the tuner first.
     """
 
     _attr_device_class = NumberDeviceClass.FREQUENCY
@@ -337,16 +338,9 @@ class DenonAvrTunerFrequency(DenonAvrEntity, NumberEntity):
         return value if isinstance(value, int) and 0 < value < _AM_FROM else None
 
     @property
-    def available(self) -> bool:
-        return (
-            super().available
-            and self.coordinator.device.tuner_zone is not None
-            and self._frequency is not None
-        )
-
-    @property
     def native_value(self) -> float | None:
-        frequency = self._frequency
+        # Unknown while no zone plays the tuner, or it plays AM.
+        frequency = self._frequency if self.coordinator.device.tuner_zone is not None else None
         return None if frequency is None else frequency / 100
 
     @receiver_action

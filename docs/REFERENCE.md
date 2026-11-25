@@ -294,9 +294,10 @@ AVC‑A10H), and Input Mode shows eARC only where the receiver has it.
   still plays the network, so it never ends a film. It is on while the zone
   plays the network.
 - **Tuner**: the preset (a select, 01–56 or A1–G8) and the FM frequency in
-  MHz (a number, to tune directly). Both are available while a zone that is on
-  plays the tuner; the receiver takes tuner commands only then. Recalling and
-  tuning have not been tried on a receiver yet.
+  MHz (a number, to tune directly). While no zone plays the tuner both are
+  unknown; choosing a preset or a frequency then turns the main zone on and
+  switches it to the tuner first, as the receiver takes tuner commands only
+  then. Recalling and tuning have not been tried on a receiver yet.
 
 ### Enabled and disabled entities
 

@@ -469,8 +469,8 @@ class DenonAvrQuickSelect(DenonAvrEntity, SelectEntity):
 class DenonAvrTunerPreset(DenonAvrEntity, SelectEntity):
     """The tuner preset: 01-56, or A1-G8 on older receivers.
 
-    Available while a zone plays the tuner: the receiver takes preset
-    commands only then. The receiver reports no preset names.
+    Unknown while no zone plays the tuner; choosing a preset then switches
+    the main zone to the tuner first. The receiver reports no preset names.
     """
 
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
@@ -478,15 +478,13 @@ class DenonAvrTunerPreset(DenonAvrEntity, SelectEntity):
         self._attr_translation_key = "tuner_preset"
 
     @property
-    def available(self) -> bool:
-        return super().available and self.coordinator.device.tuner_zone is not None
-
-    @property
     def options(self) -> list[str]:
         return self.coordinator.device.tuner_preset_codes
 
     @property
     def current_option(self) -> str | None:
+        if self.coordinator.device.tuner_zone is None:
+            return None
         preset = self.coordinator.data.values.get("tuner_preset")
         return str(preset) if preset in self.options else None
 

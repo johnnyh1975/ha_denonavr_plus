@@ -138,11 +138,12 @@ def test_every_fixed_option_has_a_name_in_every_language() -> None:
 async def test_the_tuner_preset_is_offered_while_the_tuner_plays(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    from homeassistant.const import STATE_UNAVAILABLE
+    from homeassistant.const import STATE_UNKNOWN
 
     select = entity_id(hass, loaded_entry, "select_tuner_preset")
     await _push(hass, "PWON", "ZMON", "SICD")
-    assert hass.states.get(select).state == STATE_UNAVAILABLE
+    # Off the tuner it is unknown, not unavailable: it can still be chosen.
+    assert hass.states.get(select).state == STATE_UNKNOWN
     await _push(hass, "SITUNER", "TPAN07")
     state = hass.states.get(select)
     assert state is not None and state.state == "07"
@@ -153,6 +154,26 @@ async def test_the_tuner_preset_is_offered_while_the_tuner_plays(
         "select", "select_option", {"entity_id": select, "option": "12"}, blocking=True
     )
     assert telnet.sent == ["TPAN12"]
+
+
+async def test_a_tuner_preset_switches_to_the_tuner_first(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    select = entity_id(hass, loaded_entry, "select_tuner_preset")
+    await _push(hass, "PWON", "ZMON", "SICD")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+
+    async def choose() -> None:
+        await hass.services.async_call(
+            "select", "select_option", {"entity_id": select, "option": "12"}, blocking=True
+        )
+
+    task = asyncio.ensure_future(choose())
+    await asyncio.sleep(0.05)
+    telnet.push("SITUNER")
+    await task
+    assert telnet.sent == ["SITUNER", "TPAN12"]
 
 
 # The speaker and /ajax selects, on a receiver that answers ----------------------

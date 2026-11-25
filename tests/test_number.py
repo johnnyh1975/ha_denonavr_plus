@@ -89,7 +89,7 @@ async def test_the_tuner_frequency_reads_and_tunes(
 ) -> None:
     import asyncio
 
-    from homeassistant.const import STATE_UNAVAILABLE
+    from homeassistant.const import STATE_UNKNOWN
 
     number = entity_id(hass, loaded_entry, "number_tuner_frequency")
     telnet = FakeTelnet.instances[-1]
@@ -105,12 +105,25 @@ async def test_the_tuner_frequency_reads_and_tunes(
     )
     assert telnet.sent == ["TFAN010440"]
 
-    # AM is no MHz value, and off the tuner there is nothing to tune.
+    # AM is no MHz value, and off the tuner the frequency is unknown.
     telnet.push("TFAN105000")
     await asyncio.sleep(0.15)
     await hass.async_block_till_done()
-    assert hass.states.get(number).state == STATE_UNAVAILABLE
+    assert hass.states.get(number).state == STATE_UNKNOWN
     telnet.push("TFAN009290", "SICD")
     await asyncio.sleep(0.15)
     await hass.async_block_till_done()
-    assert hass.states.get(number).state == STATE_UNAVAILABLE
+    assert hass.states.get(number).state == STATE_UNKNOWN
+    # Tuning from another input switches the main zone to the tuner first.
+    telnet.sent.clear()
+
+    async def tune() -> None:
+        await hass.services.async_call(
+            "number", "set_value", {"entity_id": number, "value": 99.0}, blocking=True
+        )
+
+    task = asyncio.ensure_future(tune())
+    await asyncio.sleep(0.05)
+    telnet.push("SITUNER")
+    await task
+    assert telnet.sent == ["SITUNER", "TFAN009900"]

@@ -851,8 +851,14 @@ class DenonAvrDevice:
         return None
 
     async def async_tune(self, frequency: int) -> None:
-        """Tune to a frequency in the protocol's unit (FM: MHz x 100)."""
+        """Tune to a frequency in the protocol's unit (FM: MHz x 100).
 
+        With no zone on the tuner, the main zone is switched to it first: the
+        receiver takes tuner commands only while the tuner plays.
+        """
+
+        if self.tuner_zone is None:
+            await self._async_to_tuner("main")
         await self._send(f"TFAN{frequency:06d}")
 
     async def async_store_tuner_preset(self, code: str) -> None:
@@ -877,20 +883,29 @@ class DenonAvrDevice:
         The receiver takes preset commands only while the tuner is the source.
         """
 
-        grammar = self._profile.netaudio
-        presets = grammar.get("tuner_presets", {})
-        tuners = grammar.get("tuner_sources", [])
-        if not (presets and tuners) or code not in self.tuner_preset_codes:
+        presets = self._profile.netaudio.get("tuner_presets", {})
+        if not presets or code not in self.tuner_preset_codes:
             raise ValueError(f"no tuner preset {code!r}")
-        if not self.is_tuner(self.zone_source(zone_id)):
-            await self.async_select_source(zone_id, tuners[0])
-            try:
-                async with asyncio.timeout(TUNER_SWITCH_WAIT):
-                    while not self.is_tuner(self.zone_source(zone_id)):
-                        await asyncio.sleep(0.1)
-            except TimeoutError:
-                _LOGGER.debug("%s did not switch to the tuner in time", self._host)
+        await self._async_to_tuner(zone_id)
         await self._send(f"{presets['prefix']}{code}")
+
+    async def _async_to_tuner(self, zone_id: str) -> None:
+        """Turn the zone on and switch it to the tuner, unless it plays it already."""
+
+        tuners = self._profile.netaudio.get("tuner_sources", [])
+        if not tuners:
+            raise ValueError("no tuner")
+        if self.is_tuner(self.zone_source(zone_id)) and self._state.zone(zone_id).power:
+            return
+        if not self._state.zone(zone_id).power:
+            await self.async_set_power(zone_id, True)
+        await self.async_select_source(zone_id, tuners[0])
+        try:
+            async with asyncio.timeout(TUNER_SWITCH_WAIT):
+                while not self.is_tuner(self.zone_source(zone_id)):
+                    await asyncio.sleep(0.1)
+        except TimeoutError:
+            _LOGGER.debug("%s did not switch to the tuner in time", self._host)
 
     async def async_await_ready(self, timeout: float = 8.0) -> None:
         """Wait, best effort, until the initial resync has populated state.

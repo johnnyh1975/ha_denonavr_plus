@@ -149,8 +149,9 @@ What makes it work well, and what to keep when you build your own:
   fit as buttons.
 - **The volume in dB** next to the player's percent: it is the number the
   receiver's display shows.
-- **The tuner only while it plays.** Its entities are unavailable otherwise;
-  the example hides the section then, so it shows no warnings.
+- **The tuner only while it plays.** Its preset and frequency are unknown
+  otherwise; the example hides the section then. Choosing a preset switches
+  the receiver to the tuner.
 - **Zone 2 in its own section**, with the room it plays in.
 
 Voice works too: "play TV on the living room receiver" finds quick

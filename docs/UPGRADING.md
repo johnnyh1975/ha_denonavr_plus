@@ -4,6 +4,14 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 0.9.4
+
+The tuner preset and frequency are now *unknown* instead of *unavailable*
+while no zone plays the tuner; choosing a preset or a frequency switches the
+main zone to the tuner. A condition or card that waited for them to be
+`unavailable` checks for `unknown` now. If you imported the example
+dashboard, take its tuner section again.
+
 ## From 0.9.3
 
 Marantz receivers from 2015 on: the select *Restorer* is no longer created.
