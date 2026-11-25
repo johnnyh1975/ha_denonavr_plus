@@ -12,17 +12,6 @@ class SetupWriteError(Exception):
     """
 
 
-class UnsupportedReceiver(ConnectionError):
-    """The receiver answers, but is of a generation this integration cannot set up.
-
-    Receivers from 2010 to 2012 answer /goform/Deviceinfo.xml on port 80 with
-    an error page ("Form Deviceinfo.xml is not defined"): without that file
-    the integration knows neither their port nor their functions
-    (docs/protocol/models/before-2013.md). A ConnectionError, so callers
-    that only know that one keep retrying as before.
-    """
-
-
 class CommandNotSent(Exception):
     """A raw command (the send_command action) could not be sent.
 

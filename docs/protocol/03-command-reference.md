@@ -63,13 +63,13 @@ the other.
 
 | Topic | Older documents | Newer documents | Impact here |
 |---|---|---|---|
-| Master volume minimum | 2011: `MV99` = minimum, `MV00` = −80 dB, `MV995` = −80.5 dB | 2012 onward (also 2014, 2015): `MV00` = minimum, `MV005` = −79.5 dB | The codec reads `99` as +19 dB. Matters for pre-2012 models only; AVR-X2000 To test at volume minimum |
+| Master volume minimum | 2011: `MV99` = minimum, `MV00` = −80 dB, `MV995` = −80.5 dB | 2012 onward (also 2014, 2015): `MV00` = minimum, `MV005` = −79.5 dB | `99` and `995` are read as the minimum on every receiver (the scale ends at 98 from 2012 on); AVR-X2000 To test at volume minimum |
 | Volume minimum, wording | The 2012 and 2013 documents state "99" in their notes and "00" in their tables | 2014 and 2015: "00" throughout | Follow the tables and the 2015 document |
 | `CV?` reply | Up to 2013: every channel of the layout, unused ones as `50` | 2014 onward: configured speakers only, then `CVEND` | Do not rely on `CVEND` for the AVR-X2000 |
 | Picture adjust (`PVCN`, `PVST`, `PVHUE`) | AVR-X2000 (2013): two digits, 44–56, `50` = 0 | 2014 onward: three digits, `000`–`100`, `050` = 0; `PVHUE` listed but unavailable on every model | The integration writes two digits for receivers before 2014 (`CommApiVers` below 0250, or none) and three from 2014 on; To test on the AVR-X2000 |
 | Picture `PVBR` | 00–12 | `000`–`100`, `050` = 0 | as above |
-| Dynamic Volume | 2011: `NGT`, `EVE`, `DAY` | 2012 onward: `OFF`, `LIT`, `MED`, `HEV` | Profile has the newer set |
-| Audio Restorer | 2011–2013 (2112CI, 1713, 2113CI): `MODE1`–`MODE3`, `OFF` | AVR-X2000 and 2015: `LOW`, `MED`, `HI`, `OFF` (2015 maps LOW = MODE3, MED = MODE2, HI = MODE1) | Profile fits the AVR-X2000 |
+| Dynamic Volume | 2011: `NGT`, `EVE`, `DAY` | 2012 onward: `OFF`, `LIT`, `MED`, `HEV` | Profile: the 2011 set for receivers without `Deviceinfo.xml` (variant `2011`), the newer set otherwise |
+| Audio Restorer | 2011–2013 (2112CI, 1713, 2113CI): `MODE1`–`MODE3`, `OFF` | AVR-X2000 and 2015: `LOW`, `MED`, `HI`, `OFF` (2015 maps LOW = MODE3, MED = MODE2, HI = MODE1) | Profile: `MODE1`–`MODE3` before 2014 outside the AVR-X and AVR-E series (variant `before_x`), `HI`, `MED`, `LOW` otherwise; the AVR-X2000 answers `PSRSTR LOW`. The AVR-1713 and AVR-3313 list MODE1 as High and MODE3 as Low in `Deviceinfo.xml` |
 | Tuner preset numbers | 2011 and AVR-X2000 v03: `A1`–`G8` | 2113CI v04 (May 2013, "corrected"), 2014 and 2015: `01`–`56` | `A1`–`G8` before 2014 (`CommApiVers` below 0250, or none), `01`–`56` from 2014 on; AVR-X2000 To test |
 | All Zone Stereo state | AVR-X2000: set with `MNZST ON/OFF`, state only from the `MSALL ZONE STEREO` event | 2014 onward: `MNZST?` query (2014 reply column inconsistent) | The integration queries `MNZST?` as the 2014 and 2020 documents write it; AVR-X2000 To test |
 | Sound modes | Pro Logic II/IIx/IIz, Neo:6 combinations, no `MSAUTO` command | Atmos, DTS:X, Neural:X, Dolby Surround, `MSAUTO`; PL II and Neo:6 gone | Mode list is read from the receiver (`OPSML`), which the AVR-X2000 probably lacks (To test) |

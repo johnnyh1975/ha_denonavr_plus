@@ -50,5 +50,18 @@ def test_an_interface_level_not_seen_yet_is_not_described() -> None:
 def test_the_goform_port_follows_the_level() -> None:
     """Port 8080 from level 0301 on, as avr/transport/goform.py detects it."""
     assert {g.key: g.port for g in GENERATIONS} == {
-        "2013": 80, "2014": 80, "2014_2016": 80, "2016": 8080,
+        "2010_2012": 80, "2013": 80, "2014": 80, "2014_2016": 80, "2016": 8080,
     }
+
+
+def test_a_receiver_without_deviceinfo() -> None:
+    """2010-2012: identity from the UPnP description, an AV receiver unless a system."""
+    from custom_components.denonavr_plus.avr.generation import legacy_device_info
+
+    receiver = legacy_device_info("*AV7005", "Marantz", "SN0000000000")
+    assert receiver.model_name == "AV7005"
+    generation = generation_of(receiver)
+    assert generation is not None and generation.key == "2010_2012"
+    system = legacy_device_info("M-CR603", "Marantz", None)
+    assert generation_of(system) is None
+    assert legacy_device_info(None, None, None).model_name is None

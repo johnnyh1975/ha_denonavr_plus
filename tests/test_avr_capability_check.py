@@ -74,3 +74,21 @@ def test_what_identifies_the_receiver_is_replaced() -> None:
         "SSINFIP6 2001:db8::1",
         "NSE1 Now playing on Denon AVR",
     ]
+
+
+def test_the_check_asks_every_query_of_every_generation() -> None:
+    """The profile's queries, with those of every variant (older, 2013,
+    before_x, 2011, marantz), so the check covers every generation."""
+    from custom_components.denonavr_plus.avr.profile import load_profile
+
+    asked = {command for command, _ in capability_check.QUERIES}
+    queries: set[str] = set()
+    raw = load_profile()._raw  # noqa: SLF001 - every variant, not one applied
+    for section in ("controls", "introspection"):
+        for entry in raw.get(section, {}).values():
+            if not isinstance(entry, dict):
+                continue
+            for item in (entry, *(v for v in entry.values() if isinstance(v, dict))):
+                if item.get("query"):
+                    queries.add(item["query"])
+    assert queries - asked == set()

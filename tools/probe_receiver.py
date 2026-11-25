@@ -116,6 +116,7 @@ CATALOGUE: list[Query] = [
     _q("Z2SLP?", "Power and zones", "Zone 2 sleep timer"),
     _q("Z2STBY?", "Power and zones", "Zone 2 auto standby"),
     _q("Z2QUICK ?", "Power and zones", "Zone 2 quick select"),
+    _q("Z2SMART ?", "Power and zones", "Zone 2 smart select (Marantz)"),
     _q("Z3?", "Power and zones", "Zone 3 power, source, volume", wait=1.2),
     _q("Z3MU?", "Power and zones", "Zone 3 mute"),
     _q("Z3CV?", "Power and zones", "Zone 3 channel levels", wait=1.0),

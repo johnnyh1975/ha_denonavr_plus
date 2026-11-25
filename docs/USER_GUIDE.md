@@ -70,9 +70,8 @@ services → Discovered**; select **Add** there. Otherwise add it by hand:
    whether to test it after setup. Leave the toggle on: the test only reads
    at first and puts back everything it changes (see
    [Test a receiver model](#7-test-a-receiver-model)). Every Denon or
-   Marantz AV receiver from 2013 on skips this step
-   ([Compatibility](COMPATIBILITY.md)). A receiver from 2010–2012 cannot be
-   added: setup says so.
+   Marantz AV receiver from 2010 on skips this step
+   ([Compatibility](COMPATIBILITY.md)).
 
 4. Put the devices in their rooms. The receiver comes with **sub-devices**
    for its setup menus (Audio, Video, Picture, Speakers, Graphic EQ) and one

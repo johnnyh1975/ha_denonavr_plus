@@ -25,7 +25,7 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClien
 
 from custom_components.denonavr_plus import config_flow, move, receiver_test
 from custom_components.denonavr_plus.avr import DenonAvrDevice
-from custom_components.denonavr_plus.avr.errors import CommandNotSent, UnsupportedReceiver
+from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
@@ -782,10 +782,21 @@ async def test_a_system_is_offered_the_tests(hass: HomeAssistant) -> None:
     assert result["step_id"] == "unknown_model"
 
 
-async def test_a_receiver_before_2013_is_not_set_up(
+LEGACY_DESCRIPTION = (
+    '<root xmlns="urn:schemas-upnp-org:device-1-0"><device>'
+    "<manufacturer>Denon</manufacturer><modelName>*AVR-1912</modelName>"
+    "<serialNumber>SN0000000000</serialNumber></device></root>"
+)
+
+
+async def test_a_receiver_before_2013_is_set_up(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
 ) -> None:
-    """An AVR-1912 has no Deviceinfo.xml: a clear reason, not "cannot connect"."""
+    """An AVR-1912 has no Deviceinfo.xml: identity from its UPnP description.
+
+    The error page and the main zone document are recordings of the denonavr
+    library; the serial number is the unique id, as there is no MAC.
+    """
     aioclient_mock.get(
         re.compile(r"^http://192\.0\.2\.10:8080/goform/Deviceinfo\.xml$"), exc=ClientError()
     )
@@ -793,40 +804,48 @@ async def test_a_receiver_before_2013_is_not_set_up(
         re.compile(r"^http://192\.0\.2\.10/goform/Deviceinfo\.xml$"),
         text=deviceinfo("AVR-1912-Deviceinfo.xml"),
     )
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10/goform/formMainZone_MainZoneXml\.xml$"),
+        text=deviceinfo("AVR-1912-formMainZone_MainZoneXml.xml"),
+    )
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10:8080/description\.xml$"), text=LEGACY_DESCRIPTION
+    )
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: HOST}
     )
-    assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {"base": "unsupported_receiver"}
+    # A described generation: no test is offered.
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["title"] == "AVR-1912"
+    assert result["data"] == {CONF_HOST: HOST, CONF_PORT: 80}
+    assert result["result"].unique_id == "SN0000000000"
+    assert result["result"].options == {}
 
 
-@pytest.mark.parametrize("source", [config_entries.SOURCE_SSDP, config_entries.SOURCE_DHCP])
-async def test_a_found_receiver_before_2013_is_not_offered(
-    hass: HomeAssistant, source: str
+async def test_an_error_page_without_main_zone_is_no_receiver(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
 ) -> None:
-    data = _ssdp() if source == config_entries.SOURCE_SSDP else _dhcp(HOST)
-    failing = AsyncMock(side_effect=UnsupportedReceiver("no Deviceinfo.xml"))
-    with patch.object(DenonAvrDevice, "async_fetch_identity", failing):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": source}, data=data
-        )
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "unsupported_receiver"
-
-
-async def test_reconfigure_to_a_receiver_before_2013(hass: HomeAssistant) -> None:
-    entry = MockConfigEntry(domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, unique_id=MAC, data={CONF_HOST: "192.0.2.99"})
-    entry.add_to_hass(hass)
-    result = await entry.start_reconfigure_flow(hass)
-    failing = AsyncMock(side_effect=UnsupportedReceiver("no Deviceinfo.xml"))
-    with patch.object(DenonAvrDevice, "async_fetch_identity", failing):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_HOST: HOST}
-        )
-    assert result["errors"] == {"base": "unsupported_receiver"}
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10:8080/goform/Deviceinfo\.xml$"), exc=ClientError()
+    )
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10/goform/Deviceinfo\.xml$"),
+        text=deviceinfo("AVR-1912-Deviceinfo.xml"),
+    )
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10/goform/formMainZone_MainZoneXml\.xml$"),
+        status=404,
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: HOST}
+    )
+    assert result["errors"] == {"base": "cannot_connect"}
 
 
 async def test_a_known_model_is_added_without_the_tests(hass: HomeAssistant) -> None:

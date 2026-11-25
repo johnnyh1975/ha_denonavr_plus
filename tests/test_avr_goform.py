@@ -57,16 +57,30 @@ async def test_waking_2016_receiver_is_not_stored_on_80(
 
 
 @pytest.mark.parametrize("recording", ["AVR-1912-Deviceinfo.xml", "AVR-3311CI-Deviceinfo.xml"])
-async def test_a_receiver_without_deviceinfo_is_unsupported(
+async def test_a_receiver_without_deviceinfo_is_on_port_80(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, recording: str
 ) -> None:
     """2010-2012 receivers answer port 80 with an error page instead of Deviceinfo.xml."""
-    from custom_components.denonavr_plus.avr.errors import UnsupportedReceiver
+    from custom_components.denonavr_plus.avr.transport.goform import is_without_deviceinfo
 
     aioclient_mock.get(URL_8080, exc=ClientError())
     aioclient_mock.get(URL_80, text=deviceinfo(recording))
-    with pytest.raises(UnsupportedReceiver):
-        await async_detect_port(async_get_clientsession(hass), HOST)
+    port, text = await async_detect_port(async_get_clientsession(hass), HOST)
+    assert port == 80
+    assert is_without_deviceinfo(text)
+    assert not is_without_deviceinfo(deviceinfo("AVR-X2000-Deviceinfo.xml"))
+    assert not is_without_deviceinfo(None)
+
+
+async def test_the_main_zone_document(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(
+        re.compile(r"^http://192\.0\.2\.10/goform/formMainZone_MainZoneXml\.xml$"),
+        text="<item/>",
+    )
+    client = GoformClient(async_get_clientsession(hass), HOST, 80)
+    assert await client.async_get_main_zone() == "<item/>"
 
 
 async def test_port_80_redirect_to_https_is_not_followed(

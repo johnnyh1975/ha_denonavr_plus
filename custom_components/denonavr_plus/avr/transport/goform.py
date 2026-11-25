@@ -29,7 +29,6 @@ from urllib.parse import quote
 import aiohttp
 
 from ..const import HTTP_TIMEOUT
-from ..errors import UnsupportedReceiver
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,6 +43,15 @@ _COMMAPI_RE = re.compile(r"<CommApiVers>\s*(\d+)\s*</CommApiVers>")
 # The answer of a 2010-2012 receiver, which has no Deviceinfo.xml (recorded
 # AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810, M-CR603).
 _NO_DEVICEINFO = "Deviceinfo.xml is not defined"
+# Their main zone document: inputs, names, sound modes (as the denonavr
+# library reads them for its receiver type "avr").
+_MAIN_ZONE_PATH = "/goform/formMainZone_MainZoneXml.xml"
+
+
+def is_without_deviceinfo(text: str | None) -> bool:
+    """Whether a Deviceinfo answer is the error page of a 2010-2012 receiver."""
+
+    return bool(text) and _NO_DEVICEINFO in str(text)
 
 
 def _comm_api_version(text: str) -> int | None:
@@ -60,8 +68,9 @@ async def async_detect_port(
     ConnectionError when no port gives an answer that fits: port 80 only
     counts for a receiver that reports an older CommApiVers (or none), so a
     newer receiver whose port 8080 is not up yet is retried later instead.
-    Raises UnsupportedReceiver when port 80 says it has no Deviceinfo.xml
-    (receivers from 2010 to 2012).
+    A receiver from 2010 to 2012 answers port 80 with an error page instead
+    of Deviceinfo.xml: port 80 and that page are returned
+    (is_without_deviceinfo), and the caller reads the main zone document.
     """
 
     text = await GoformClient(session, host, DEFAULT_PORT).async_get_device_info()
@@ -77,8 +86,8 @@ async def async_detect_port(
             host,
             version,
         )
-    elif text and _NO_DEVICEINFO in text:
-        raise UnsupportedReceiver(f"{host} has no Deviceinfo.xml (2010-2012 generation)")
+    elif text and is_without_deviceinfo(text):
+        return LEGACY_PORT, text
     raise ConnectionError(f"No Deviceinfo response from {host}")
 
 
@@ -96,6 +105,11 @@ class GoformClient:
         """Fetch the raw Deviceinfo XML, or None on failure."""
 
         return await self._get(_DEVICEINFO_PATH)
+
+    async def async_get_main_zone(self) -> str | None:
+        """Fetch the main zone document of a receiver without Deviceinfo.xml."""
+
+        return await self._get(_MAIN_ZONE_PATH)
 
     async def async_get_status(self, path: str) -> dict[str, object] | None:
         """Fetch and parse the StatusLite snapshot at the given path.

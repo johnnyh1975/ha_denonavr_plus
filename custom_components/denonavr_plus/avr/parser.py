@@ -19,9 +19,10 @@ from dataclasses import replace
 import logging
 import re
 import xml.etree.ElementTree as ET
+from collections.abc import Mapping
 from typing import Any
 
-from .codec import decode_centered, decode_half_step
+from .codec import decode_centered, decode_half_step, decode_volume
 from .models import (
     AvrState,
     ChannelDescriptor,
@@ -51,6 +52,7 @@ def _format_mac(raw: str | None) -> str | None:
 # version and build revision are captured for diagnostics.
 _UPNP_TAGS: dict[str, str] = {
     "manufacturer": "manufacturer",
+    "modelName": "model_name",
     "serialNumber": "serial_number",
     "firmware_version": "firmware_version",
     "modelNumber": "network_module_version",
@@ -242,6 +244,46 @@ def parse_device_info(
             if not any(s.code == leaf for s in discovery.sources):
                 discovery.sources.append(SourceDescriptor(code=leaf, name=leaf))
 
+    return discovery
+
+
+def parse_main_zone(xml_text: str, listed_sound_modes: Mapping[str, str]) -> Discovery:
+    """Parse the main zone document of a receiver without Deviceinfo.xml.
+
+    Receivers from 2010 to 2012 describe their inputs only here, the way the
+    denonavr library reads them (receiver type "avr"): the input codes
+    (InputFuncList, the SI token), the user's names (RenameSource, padded
+    with spaces) and whether each is in use (SourceDelete, USE or DEL), in
+    the same order. Sound modes come from SurroundLists, whose `index` is
+    the MS token; they are returned as the listed sound mode names of the
+    profile (listed_sound_modes), like the function names of Deviceinfo.xml.
+    Zones and the identity are not in this document.
+    """
+
+    discovery = Discovery()
+    discovery.zones.append(ZoneDescriptor(id="main", index=1, name=None, is_main=True))
+    try:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError as err:
+        _LOGGER.warning("Could not parse the main zone XML: %s", err)
+        return discovery
+
+    def values(tag: str) -> list[str]:
+        return [(node.text or "").strip() for node in root.findall(f"./{tag}/value")]
+
+    names = values("RenameSource")
+    used = values("SourceDelete")
+    for index, code in enumerate(values("InputFuncList")):
+        # SOURCE is "follow the main zone", for the other zones only.
+        if not code or code == "SOURCE" or any(s.code == code for s in discovery.sources):
+            continue
+        name = names[index] if index < len(names) and names[index] else code
+        visible = not (index < len(used) and used[index] == "DEL")
+        discovery.sources.append(SourceDescriptor(code=code, name=name, visible=visible))
+    wires = {
+        (node.get("index") or "").strip() for node in root.findall("./SurroundLists/value")
+    } - {""}
+    discovery.features = {name for name, wire in listed_sound_modes.items() if wire in wires}
     return discovery
 
 
@@ -503,7 +545,7 @@ class TelnetParser:
         return True
 
     def _set_volume(self, zone_id: str, remainder: str, state: AvrState) -> bool:
-        value = decode_half_step(remainder)
+        value = decode_volume(remainder)
         if value is None:
             return False
         state.zone(zone_id).volume_raw = value
@@ -675,7 +717,7 @@ class TelnetParser:
             zone.muted = remainder[2:] == "ON"
             return True
         if remainder.isdigit():
-            value = decode_half_step(remainder)
+            value = decode_volume(remainder)
             if value is not None:
                 zone.volume_raw = value
                 return True

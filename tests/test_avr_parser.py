@@ -513,3 +513,57 @@ def test_a_sound_mode_listed_twice_is_offered_once() -> None:
     for line in ("OPSML 010Stereo", "OPSML 020Stereo", "OPSML 031Virtual", "OPSML END"):
         parser.feed(line, state)
     assert discovery.current_sound_modes == ["Stereo", "Virtual"]
+
+
+# ── Receivers without Deviceinfo.xml (2010-2012) ──────────────────────────────
+
+
+def test_the_main_zone_document_gives_inputs_names_and_sound_modes() -> None:
+    """Recorded AVR-1912 (denonavr library): codes, the user's names, in use or not."""
+    from custom_components.denonavr_plus.avr.parser import parse_main_zone
+
+    profile = load_profile()
+    found = parse_main_zone(
+        deviceinfo("AVR-1912-formMainZone_MainZoneXml.xml"), profile.listed_sound_modes
+    )
+    sources = {source.code: (source.name, source.visible) for source in found.sources}
+    assert "SOURCE" not in sources
+    assert sources["DVD"] == ("Chrome", True)
+    assert sources["TUNER"] == ("TUNER", True)
+    assert sources["CD"] == ("CD", False)
+    assert sources["GAME"] == ("GAME1", False)
+    # MCH STEREO is the wire token of the listed name MULTI CH STEREO.
+    assert {"DOLBY DIGITAL", "PURE DIRECT", "MULTI CH STEREO", "MATRIX"} <= found.features
+    assert [zone.id for zone in found.zones] == ["main"]
+
+
+@pytest.mark.parametrize(
+    "recording",
+    ["AVR-2312CI", "AVR-3311CI", "AVR-3312", "AVR-4810", "M-CR603"],
+)
+def test_every_recorded_main_zone_document_parses(recording: str) -> None:
+    from custom_components.denonavr_plus.avr.parser import parse_main_zone
+
+    found = parse_main_zone(
+        deviceinfo(f"{recording}-formMainZone_MainZoneXml.xml"),
+        load_profile().listed_sound_modes,
+    )
+    codes = [source.code for source in found.sources]
+    assert codes and len(codes) == len(set(codes))
+    assert "SOURCE" not in codes
+
+
+def test_a_broken_main_zone_document_gives_the_main_zone_only() -> None:
+    from custom_components.denonavr_plus.avr.parser import parse_main_zone
+
+    found = parse_main_zone("<broken", {})
+    assert not found.sources and [zone.id for zone in found.zones] == ["main"]
+
+
+def test_a_2011_receiver_reports_volume_99_as_the_minimum() -> None:
+    parser = TelnetParser(load_profile(), Discovery())
+    state = AvrState()
+    assert parser.feed("MV99", state)
+    assert state.zone("main").volume_raw == 0.0
+    assert parser.feed("Z299", state)
+    assert state.zone("zone2").volume_raw == 0.0

@@ -35,7 +35,7 @@
       },
       "unknown_model": {
         "title": "Typ amplitunera jeszcze nieopisany",
-        "description": "{model} nie jest amplitunerem AV firmy Denon lub Marantz z 2013 roku lub nowszym albo zgłasza wersję interfejsu, której ta integracja jeszcze nie zna. Konfiguracja jest kontynuowana; niektórych ustawień może brakować lub mogą być odczytane błędnie.\n\nTest amplitunera uruchomi się po jego połączeniu: sprawdza funkcje i testuje polecenia po cichu. Wyniki trafiają do pliku diagnostycznego, który możesz dołączyć do wstępnie wypełnionego zgłoszenia na GitHubie. Nic nie jest wysyłane samo.",
+        "description": "{model} nie jest amplitunerem AV firmy Denon lub Marantz z 2010 roku lub nowszym albo zgłasza wersję interfejsu, której ta integracja jeszcze nie zna. Konfiguracja jest kontynuowana; niektórych ustawień może brakować lub mogą być odczytane błędnie.\n\nTest amplitunera uruchomi się po jego połączeniu: sprawdza funkcje i testuje polecenia po cichu. Wyniki trafiają do pliku diagnostycznego, który możesz dołączyć do wstępnie wypełnionego zgłoszenia na GitHubie. Nic nie jest wysyłane samo.",
         "data": {
           "test": "Testuj amplituner po konfiguracji"
         },
@@ -58,8 +58,7 @@
     },
     "error": {
       "cannot_connect": "Nie można połączyć się z amplitunerem. Sprawdź adres IP oraz czy amplituner jest włączony i podłączony do sieci.",
-      "no_receivers_found": "W sieci nie znaleziono żadnego nieskonfigurowanego amplitunera. Wprowadź jego adres IP.",
-      "unsupported_receiver": "Ten amplituner pochodzi z lat 2010–2012 i nie ma opisu urządzenia (Deviceinfo.xml), więc Denon AVR Plus nie może go skonfigurować. Oficjalna integracja Denon AVR Network Receivers obsługuje te starsze amplitunery."
+      "no_receivers_found": "W sieci nie znaleziono żadnego nieskonfigurowanego amplitunera. Wprowadź jego adres IP."
     },
     "abort": {
       "already_configured": "Ten amplituner jest już skonfigurowany.",
@@ -68,8 +67,7 @@
       "cannot_connect": "Amplituner nie odpowiedział pod tym adresem.",
       "already_in_progress": "Ten amplituner jest już konfigurowany.",
       "not_denon_marantz": "Znalezione urządzenie nie jest urządzeniem Denon ani Marantz.",
-      "not_a_receiver": "Znalezione urządzenie to głośnik HEOS, a nie amplituner.",
-      "unsupported_receiver": "Ten amplituner pochodzi z lat 2010–2012 i nie ma opisu urządzenia (Deviceinfo.xml), więc Denon AVR Plus nie może go skonfigurować. Oficjalna integracja Denon AVR Network Receivers obsługuje te starsze amplitunery."
+      "not_a_receiver": "Znalezione urządzenie to głośnik HEOS, a nie amplituner."
     }
   },
   "options": {
@@ -401,7 +399,10 @@
           "off": "Wyłączone",
           "light": "Lekki",
           "medium": "Średni",
-          "heavy": "Mocny"
+          "heavy": "Mocny",
+          "midnight": "Północ",
+          "evening": "Wieczór",
+          "day": "Dzień"
         }
       },
       "reference_level_offset": {

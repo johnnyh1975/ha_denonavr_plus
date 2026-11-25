@@ -35,7 +35,7 @@
       },
       "unknown_model": {
         "title": "Type d'ampli-tuner pas encore décrit",
-        "description": "Le {model} n'est pas un ampli-tuner AV Denon ou Marantz de 2013 ou plus récent, ou il indique une version d'interface que cette intégration ne connaît pas encore. La configuration continue ; certains réglages peuvent manquer ou être mal lus.\n\nLe test du récepteur s'exécute une fois celui-ci connecté : il vérifie les fonctions et teste les commandes discrètement. Ses résultats vont dans le fichier de diagnostic, que vous pouvez joindre à un ticket prérempli sur GitHub. Rien n'est envoyé de lui-même.",
+        "description": "Le {model} n'est pas un ampli-tuner AV Denon ou Marantz de 2010 ou plus récent, ou il indique une version d'interface que cette intégration ne connaît pas encore. La configuration continue ; certains réglages peuvent manquer ou être mal lus.\n\nLe test du récepteur s'exécute une fois celui-ci connecté : il vérifie les fonctions et teste les commandes discrètement. Ses résultats vont dans le fichier de diagnostic, que vous pouvez joindre à un ticket prérempli sur GitHub. Rien n'est envoyé de lui-même.",
         "data": {
           "test": "Tester le récepteur après la configuration"
         },
@@ -58,8 +58,7 @@
     },
     "error": {
       "cannot_connect": "Impossible de joindre l'ampli-tuner. Vérifiez l'adresse IP et que l'ampli-tuner est allumé et connecté au réseau.",
-      "no_receivers_found": "Aucun ampli-tuner non configuré n'a été trouvé sur le réseau. Saisissez son adresse IP.",
-      "unsupported_receiver": "Cet ampli-tuner date de 2010–2012 et n'a pas de description de l'appareil (Deviceinfo.xml) ; Denon AVR Plus ne peut donc pas le configurer. L'intégration officielle Denon AVR Network Receivers prend en charge ces anciens ampli-tuners."
+      "no_receivers_found": "Aucun ampli-tuner non configuré n'a été trouvé sur le réseau. Saisissez son adresse IP."
     },
     "abort": {
       "already_configured": "Cet ampli-tuner est déjà configuré.",
@@ -68,8 +67,7 @@
       "cannot_connect": "L'ampli-tuner n'a pas répondu à cette adresse.",
       "already_in_progress": "Cet ampli-tuner est déjà en cours de configuration.",
       "not_denon_marantz": "L'appareil détecté n'est pas un appareil Denon ou Marantz.",
-      "not_a_receiver": "L'appareil détecté est une enceinte HEOS, pas un ampli-tuner.",
-      "unsupported_receiver": "Cet ampli-tuner date de 2010–2012 et n'a pas de description de l'appareil (Deviceinfo.xml) ; Denon AVR Plus ne peut donc pas le configurer. L'intégration officielle Denon AVR Network Receivers prend en charge ces anciens ampli-tuners."
+      "not_a_receiver": "L'appareil détecté est une enceinte HEOS, pas un ampli-tuner."
     }
   },
   "options": {
@@ -401,7 +399,10 @@
           "off": "Désactivé",
           "light": "Léger",
           "medium": "Moyen",
-          "heavy": "Fort"
+          "heavy": "Fort",
+          "midnight": "Minuit",
+          "evening": "Soir",
+          "day": "Jour"
         }
       },
       "reference_level_offset": {

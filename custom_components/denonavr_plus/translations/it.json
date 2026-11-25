@@ -35,7 +35,7 @@
       },
       "unknown_model": {
         "title": "Tipo di sintoamplificatore non ancora descritto",
-        "description": "Il {model} non è un sintoamplificatore AV Denon o Marantz dal 2013 in poi, oppure indica una versione dell'interfaccia che questa integrazione non conosce ancora. La configurazione prosegue; alcune impostazioni potrebbero mancare o essere lette in modo errato.\n\nLa prova del ricevitore parte quando è connesso: verifica le funzioni e prova i comandi in silenzio. I risultati finiscono nel file di diagnostica, che puoi allegare a una segnalazione precompilata su GitHub. Nulla viene inviato da solo.",
+        "description": "Il {model} non è un sintoamplificatore AV Denon o Marantz dal 2010 in poi, oppure indica una versione dell'interfaccia che questa integrazione non conosce ancora. La configurazione prosegue; alcune impostazioni potrebbero mancare o essere lette in modo errato.\n\nLa prova del ricevitore parte quando è connesso: verifica le funzioni e prova i comandi in silenzio. I risultati finiscono nel file di diagnostica, che puoi allegare a una segnalazione precompilata su GitHub. Nulla viene inviato da solo.",
         "data": {
           "test": "Prova il ricevitore dopo la configurazione"
         },
@@ -58,8 +58,7 @@
     },
     "error": {
       "cannot_connect": "Impossibile raggiungere il sintoamplificatore. Controlla l'indirizzo IP e che il sintoamplificatore sia acceso e collegato alla rete.",
-      "no_receivers_found": "In rete non è stato trovato alcun sintoamplificatore non ancora configurato. Inserisci il suo indirizzo IP.",
-      "unsupported_receiver": "Questo sintoamplificatore è del 2010–2012 e non ha una descrizione del dispositivo (Deviceinfo.xml), quindi Denon AVR Plus non può configurarlo. L'integrazione ufficiale Denon AVR Network Receivers supporta questi sintoamplificatori meno recenti."
+      "no_receivers_found": "In rete non è stato trovato alcun sintoamplificatore non ancora configurato. Inserisci il suo indirizzo IP."
     },
     "abort": {
       "already_configured": "Questo sintoamplificatore è già configurato.",
@@ -68,8 +67,7 @@
       "cannot_connect": "Il sintoamplificatore non ha risposto a quell'indirizzo.",
       "already_in_progress": "Questo sintoamplificatore è già in fase di configurazione.",
       "not_denon_marantz": "Il dispositivo rilevato non è un dispositivo Denon o Marantz.",
-      "not_a_receiver": "Il dispositivo rilevato è un diffusore HEOS, non un sintoamplificatore.",
-      "unsupported_receiver": "Questo sintoamplificatore è del 2010–2012 e non ha una descrizione del dispositivo (Deviceinfo.xml), quindi Denon AVR Plus non può configurarlo. L'integrazione ufficiale Denon AVR Network Receivers supporta questi sintoamplificatori meno recenti."
+      "not_a_receiver": "Il dispositivo rilevato è un diffusore HEOS, non un sintoamplificatore."
     }
   },
   "options": {
@@ -401,7 +399,10 @@
           "off": "Disattivato",
           "light": "Leggero",
           "medium": "Medio",
-          "heavy": "Forte"
+          "heavy": "Forte",
+          "midnight": "Mezzanotte",
+          "evening": "Sera",
+          "day": "Giorno"
         }
       },
       "reference_level_offset": {

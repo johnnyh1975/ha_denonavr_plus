@@ -101,6 +101,7 @@ async def test_the_capability_check_asks_every_query(
     }
     assert result["queries"]["MV?"]["lines"] == ["MV50", "MVMAX 80"]
     assert result["model"] == device.discovery.device.model_name
+    assert result["generation"] == "2016"
     assert progress == [0.25, 0.5, 0.75, 1.0]
 
 
@@ -811,3 +812,83 @@ async def test_a_marantz_gets_no_restorer_for_its_m_dax(
     spec = device.profile.control("restorer")
     assert spec is not None
     assert not device.discovery.has_control(spec.scope, spec.feature, spec.id)
+
+
+#: A 2011 receiver without Deviceinfo.xml, as its document (AVR-1912/2112CI,
+#: v7.4.0) gives the answers; it has no zone 3.
+LEGACY_ANSWERS = {
+    "Z2?": ["Z2ON", "Z2SOURCE", "Z250"],
+    "PW?": ["PWON"],
+    "PSRSTR ?": ["PSRSTR MODE2"],
+    "PSDYNVOL ?": ["PSDYNVOL EVE"],
+    "PSDYNEQ ?": ["PSDYNEQ ON"],
+}
+LEGACY_PROBES: list[dict[str, Any]] = []
+
+
+async def _legacy_answering(
+    host: str, queries: list[str], on_line: Any, is_complete: Any, **kwargs: Any
+) -> None:
+    LEGACY_PROBES.append({**kwargs, "queries": queries})
+    for query in queries:
+        for line in LEGACY_ANSWERS.get(query, []):
+            on_line(line)
+
+
+async def test_a_receiver_without_deviceinfo_is_set_up_from_its_main_zone(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """AVR-1912 (2011): main zone document recorded by the denonavr library."""
+    from homeassistant.const import CONF_PORT
+
+    from custom_components.denonavr_plus.avr.transport import UpnpClient
+
+    from .conftest import deviceinfo
+
+    description = (
+        '<root xmlns="urn:schemas-upnp-org:device-1-0"><device>'
+        "<manufacturer>Denon</manufacturer><modelName>*AVR-1912</modelName>"
+        "<serialNumber>SN0000000000</serialNumber></device></root>"
+    )
+    with (
+        patch("custom_components.denonavr_plus.avr.device.async_probe", _legacy_answering),
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVR-1912-Deviceinfo.xml")),
+        ),
+        patch.object(
+            GoformClient,
+            "async_get_main_zone",
+            AsyncMock(return_value=deviceinfo("AVR-1912-formMainZone_MainZoneXml.xml")),
+        ),
+        patch.object(UpnpClient, "async_get_description", AsyncMock(return_value=description)),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_HOST: "192.0.2.12", CONF_PORT: 80},
+            unique_id="SN0000000000",
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    device = entry.runtime_data.device
+    discovery = device.discovery
+    assert discovery.device.model_name == "AVR-1912"
+    assert discovery.device.serial_number == "SN0000000000"
+    # Zone 2 answered, zone 3 did not.
+    assert [zone.id for zone in discovery.zones] == ["main", "zone2"]
+    assert LEGACY_PROBES[0]["queries"] == ["Z2?", "Z3?"]
+    # Inputs from the main zone document, with the user's names.
+    names = {source.code: source.name for source in discovery.sources}
+    assert names["DVD"] == "Chrome"
+    # The 2011 encodings: restorer MODE1-3, Dynamic Volume NGT/EVE/DAY.
+    assert {"restorer", "dynamic_volume", "dynamic_eq"} <= discovery.answered
+    assert device.state.values["restorer"] == "MODE2"
+    assert device.state.values["dynamic_volume"] == "EVE"
+    assert "MULTI CH STEREO" in device.fallback_sound_modes
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await device.async_set_control("restorer", "MODE1")
+    assert "PSRSTR MODE1" in telnet.sent

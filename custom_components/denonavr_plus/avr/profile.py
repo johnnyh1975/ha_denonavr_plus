@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, cast
@@ -273,6 +274,15 @@ COMM_API_2014: int = 250
 MARANTZ = "marantz"
 BRAND_MARANTZ: int = 1
 COMM_API_SMART_SELECT: int = 300
+#: Before 2014, receivers outside the AVR-X and AVR-E series follow the
+#: documents of 2011 to 2013 (AVR-1912/2112CI, AVR-1713, AVR-2113CI): the
+#: restorer as MODE1-MODE3. The AVR-X2000/E400 document and an AVR-X2000
+#: (PSRSTR LOW) use LOW, MED, HI.
+BEFORE_X = "before_x"
+_X_SERIES = re.compile(r"^AVR-[XE]\d")
+#: Receivers without Deviceinfo.xml (2010-2012) on top: the 2011 encodings
+#: of the AVR-1912/2112CI document (Dynamic Volume NGT, EVE, DAY).
+NO_DEVICEINFO = "2011"
 
 
 def profile_for_receiver(
@@ -280,6 +290,7 @@ def profile_for_receiver(
     http_port: int | None,
     comm_api_version: int | None,
     brand_code: int | None = None,
+    model_name: str | None = None,
 ) -> ProtocolProfile:
     """The profile with the variants that fit the receiver's generation and brand."""
 
@@ -288,6 +299,10 @@ def profile_for_receiver(
         result = profile_variant(result, OLDER)
         if comm_api_version is None or comm_api_version < COMM_API_2014:
             result = profile_variant(result, BEFORE_2014)
+            if not _X_SERIES.match(model_name or ""):
+                result = profile_variant(result, BEFORE_X)
+            if comm_api_version is None:
+                result = profile_variant(result, NO_DEVICEINFO)
     if (
         brand_code == BRAND_MARANTZ
         and comm_api_version is not None

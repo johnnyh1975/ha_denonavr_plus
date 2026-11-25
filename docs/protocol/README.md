@@ -28,7 +28,7 @@ receiver. A setting that appears in the receiver's menu proves nothing.
 | [Manufacturer apps](12-manufacturer-apps.md) | What Denon's, Marantz's and the HEOS app use: interfaces, receiver detection, telnet tokens, the UPnP service ACT |
 | [Capability matrix](models/capability-matrix.md) | The central model comparison |
 | [AVR-X2000](models/AVR-X2000.md) · [AVR-X2600H](models/AVR-X2600H.md) | Model pages |
-| [Receivers before 2013](models/before-2013.md) | 2010–2012 receivers without `Deviceinfo.xml`: zones, inputs, sound modes from the older app's data |
+| [Receivers before 2013](models/before-2013.md) | 2010–2012 receivers without `Deviceinfo.xml`: how this integration sets them up, and zones, inputs, sound modes from the older app's data |
 | [References](references.md) | All sources, with what each one is trusted for |
 
 For the full token list with implementation coverage, see the
@@ -101,9 +101,13 @@ AVR-X2600H").
    `Deviceinfo.xml`, and they differ by model: audio delay up to 200 or
    500 ms, Video Mode Bypass on two of the recorded units only, eARC
    missing on two ([details](11-http-control.md#deviceinfoxml)).
-10. **Receivers from 2010–2012 have no `Deviceinfo.xml`**; what is known
-   about them comes from their documents and the older app's data
-   ([before 2013](models/before-2013.md)).
+10. **Receivers from 2010–2012 have no `Deviceinfo.xml`**; this
+   integration reads them from the UPnP description and the main zone page,
+   as the official integration does. What else is known comes from their
+   documents and the older app's data ([before 2013](models/before-2013.md)).
+11. **The restorer encoding depends on the series**: before 2014 the models
+   outside the AVR-X and AVR-E series use `MODE1`–`MODE3`, the AVR-X2000
+   `LOW`/`MED`/`HI` ([command reference](03-command-reference.md#differences-between-protocol-versions)).
 
 ## Not here
 

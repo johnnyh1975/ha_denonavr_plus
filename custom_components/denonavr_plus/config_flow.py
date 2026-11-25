@@ -41,7 +41,6 @@ from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
 
 from .avr import DenonAvrDevice
-from .avr.errors import UnsupportedReceiver
 from .avr.profile import load_profile
 from .const import (
     CONF_HOST,
@@ -134,7 +133,10 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._move: list[str] = []
 
     async def _async_identify(self, host: str) -> tuple[str | None, str]:
-        """Fetch the receiver's MAC and model name. Raises ConnectionError.
+        """Fetch the receiver's unique key and model name. Raises ConnectionError.
+
+        The key is the MAC address; a receiver from 2010 to 2012 reports
+        none (it has no Deviceinfo.xml), so its serial number stands in.
 
         Also learns the goform port (8080, or 80 on older receivers), which
         _entry_data stores with the address.
@@ -148,7 +150,7 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._port = device.http_port
         self._mac, self._serial = identity.mac_address, identity.serial_number
         self._described = described(identity)
-        return identity.mac_address, identity.model_name or "Denon AVR"
+        return identity.mac_address or identity.serial_number, identity.model_name or "Denon AVR"
 
     def _entry_data(self, host: str) -> dict[str, Any]:
         """The entry data: the address, and the goform port once it is known."""
@@ -210,9 +212,6 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
 
         try:
             mac, name = await self._async_identify(host)
-        except UnsupportedReceiver:
-            errors["base"] = "unsupported_receiver"
-            return None
         except ConnectionError:
             errors["base"] = "cannot_connect"
             return None
@@ -355,8 +354,6 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         cast(dict[str, Any], self.context)[CONF_HOST] = host
         try:
             mac, name = await self._async_identify(host)
-        except UnsupportedReceiver:
-            return self.async_abort(reason="unsupported_receiver")
         except ConnectionError:
             return self.async_abort(reason="cannot_connect")
         if mac:
@@ -383,8 +380,6 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
         self._abort_if_unique_id_configured(updates={CONF_HOST: host})
         try:
             mac, name = await self._async_identify(host)
-        except UnsupportedReceiver:
-            return self.async_abort(reason="unsupported_receiver")
         except ConnectionError:
             return self.async_abort(reason="cannot_connect")
         if mac:
@@ -419,8 +414,6 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
             host = user_input[CONF_HOST].strip()
             try:
                 mac, _name = await self._async_identify(host)
-            except UnsupportedReceiver:
-                errors["base"] = "unsupported_receiver"
             except ConnectionError:
                 errors["base"] = "cannot_connect"
             else:

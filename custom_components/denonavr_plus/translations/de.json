@@ -35,7 +35,7 @@
       },
       "unknown_model": {
         "title": "Receiver-Typ noch nicht beschrieben",
-        "description": "Der {model} ist kein AV-Receiver von Denon oder Marantz ab 2013 oder meldet eine Schnittstellen-Version, die diese Integration noch nicht kennt. Die Einrichtung geht weiter; einzelne Einstellungen können fehlen oder falsch gelesen werden.\n\nDie Receiver-Prüfung läuft, sobald der Receiver verbunden ist: Sie prüft die Fähigkeiten und testet Befehle leise. Die Ergebnisse stehen in der Diagnose-Datei, die du an ein vorausgefülltes Issue auf GitHub hängen kannst. Von selbst wird nichts gesendet.",
+        "description": "Der {model} ist kein AV-Receiver von Denon oder Marantz ab 2010 oder meldet eine Schnittstellen-Version, die diese Integration noch nicht kennt. Die Einrichtung geht weiter; einzelne Einstellungen können fehlen oder falsch gelesen werden.\n\nDie Receiver-Prüfung läuft, sobald der Receiver verbunden ist: Sie prüft die Fähigkeiten und testet Befehle leise. Die Ergebnisse stehen in der Diagnose-Datei, die du an ein vorausgefülltes Issue auf GitHub hängen kannst. Von selbst wird nichts gesendet.",
         "data": {
           "test": "Receiver nach der Einrichtung prüfen"
         },
@@ -58,8 +58,7 @@
     },
     "error": {
       "cannot_connect": "Der Receiver ist nicht erreichbar. Prüfe die IP-Adresse und ob der Receiver eingeschaltet und im Netzwerk ist.",
-      "no_receivers_found": "Im Netzwerk wurde kein Receiver gefunden, der noch nicht eingerichtet ist. Gib seine IP-Adresse ein.",
-      "unsupported_receiver": "Dieser Receiver stammt aus den Jahren 2010–2012 und hat keine Gerätebeschreibung (Deviceinfo.xml), daher kann Denon AVR Plus ihn nicht einrichten. Die offizielle Integration Denon AVR Network Receivers unterstützt diese älteren Receiver."
+      "no_receivers_found": "Im Netzwerk wurde kein Receiver gefunden, der noch nicht eingerichtet ist. Gib seine IP-Adresse ein."
     },
     "abort": {
       "already_configured": "Dieser Receiver ist bereits eingerichtet.",
@@ -68,8 +67,7 @@
       "cannot_connect": "Der Receiver hat unter dieser Adresse nicht geantwortet.",
       "already_in_progress": "Dieser Receiver wird bereits eingerichtet.",
       "not_denon_marantz": "Das gefundene Gerät ist kein Denon- oder Marantz-Gerät.",
-      "not_a_receiver": "Das gefundene Gerät ist ein HEOS-Lautsprecher, kein Receiver.",
-      "unsupported_receiver": "Dieser Receiver stammt aus den Jahren 2010–2012 und hat keine Gerätebeschreibung (Deviceinfo.xml), daher kann Denon AVR Plus ihn nicht einrichten. Die offizielle Integration Denon AVR Network Receivers unterstützt diese älteren Receiver."
+      "not_a_receiver": "Das gefundene Gerät ist ein HEOS-Lautsprecher, kein Receiver."
     }
   },
   "options": {
@@ -401,7 +399,10 @@
           "off": "Aus",
           "light": "Leicht",
           "medium": "Mittel",
-          "heavy": "Stark"
+          "heavy": "Stark",
+          "midnight": "Mitternacht",
+          "evening": "Abend",
+          "day": "Tag"
         }
       },
       "reference_level_offset": {

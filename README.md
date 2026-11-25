@@ -79,7 +79,7 @@ and back without losing entity IDs or history.
 
 ## Supported receivers
 
-Denon and Marantz AV receivers from 2013 on. The integration reads each
+Denon and Marantz AV receivers from 2010 on. The integration reads each
 receiver's generation, brand and functions from the receiver itself, so it
 needs no list of models.
 
@@ -88,7 +88,7 @@ needs no list of models.
 | 2016 on, with HEOS | Denon AVR-X…00H, AVR-S…H, AVC; Marantz SR…12 and newer, NR…08 and newer, AV, Cinema | Everything; tested on AVR-X3600H and AVR-X2600H |
 | 2014–2016, without HEOS | Denon AVR-X…100W to X…300W, AVR-S…W; Marantz SR…09 to SR…11, NR…05 to NR1607 | Everything except HEOS and the setup web interface |
 | 2013 | Denon AVR-X…000, AVR-E…00; Marantz SR…08, NR…04 | As 2014–2016; tested on AVR-X2000 |
-| 2010–2012 | Denon AVR-1912, AVR-3311CI; Marantz SR6006, SR7005 … | No: these receivers have no device description |
+| 2010–2012 | Denon AVR-1912, AVR-3311CI; Marantz SR6006, SR7005 … | As 2013, read like the official integration does; not tested on a receiver yet |
 
 Details, what differs per generation and Marantz's differences:
 [Compatibility](docs/COMPATIBILITY.md). Testing a receiver is optional;

@@ -30,6 +30,20 @@ def decode_half_step(token: str) -> float | None:
     return float(int(token))
 
 
+def decode_volume(token: str) -> float | None:
+    """Decode a master or zone volume; '99' and '995' are the minimum.
+
+    The 2011 document (AVR-1912/2112CI) gives MV99 as the minimum and MV995
+    as -80.5 dB, below MV00 (-80 dB). From 2012 the scale ends at 98, so 99
+    is never a loud volume: it is read as the bottom of the scale (0).
+    """
+
+    token = token.strip()
+    if token.startswith("99"):
+        return 0.0 if token.isdigit() else None
+    return decode_half_step(token)
+
+
 def encode_half_step(value: float) -> str:
     """Encode a value to the Denon half step representation.
 

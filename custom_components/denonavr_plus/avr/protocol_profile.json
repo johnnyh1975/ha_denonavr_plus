@@ -587,6 +587,7 @@
       "prefix": "PSDYNVOL ",
       "values": ["OFF", "LIT", "MED", "HEV"],
       "labels": ["Off", "Light", "Medium", "Heavy"],
+      "2011": {"values": ["NGT", "EVE", "DAY"], "labels": ["Midnight", "Evening", "Day"], "doc": "AVR-1912/2112CI document (2011): PSDYNVOL NGT, EVE, DAY, no off; the AVR-1713 and AVR-2113CI documents already use OFF, LIT, MED, HEV. For the receivers without Deviceinfo.xml."},
       "doc": "Dynamic Volume."
     },
     "reference_level_offset": {
@@ -642,6 +643,7 @@
       "prefix": "PSRSTR ",
       "values": ["HI", "MED", "LOW", "OFF"],
       "labels": ["High", "Medium", "Low", "Off"],
+      "before_x": {"values": ["MODE1", "MODE2", "MODE3", "OFF"], "doc": "Before 2014, outside the AVR-X and AVR-E series: PSRSTR MODE1, MODE2, MODE3, OFF in the AVR-1912/2112CI (2011), AVR-1713 and AVR-2113CI documents. The receivers' own Deviceinfo.xml lists MODE1 as High, MODE2 as Middle and MODE3 as Low (recorded AVR-1713, AVR-3313), as Denon's 2015 document pairs them (HI = MODE1, LOW = MODE3)."},
       "marantz": {"scope": "answered", "doc": "Marantz receivers from level 0300 name M-DAX Restorer in Deviceinfo.xml (FuncName Restorer, DispName M-DAX: recorded SR6011, SR6012, NR1609, AV7703). Marantz's 2019 document has no PSRSTR, only PSMDAX, and the manufacturer's apps send M-DAX as PSMDAX to every Marantz receiver above level 100 (AV7005 and SR7005 excepted). So the Restorer gate is M-DAX there; the control is kept only for a receiver that answers PSRSTR ?."},
       "doc": "Restorer (compressed audio restoration). Denon FY21 command list: PSRSTR OFF, LOW, MED, HI and PSRSTR ?; answered by an AVR-X2000 and an AVR-X2600H."
     },

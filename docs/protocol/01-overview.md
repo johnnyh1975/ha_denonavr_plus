@@ -37,10 +37,10 @@ same steps. What each level offers over HTTP is on the
 | 0300 (2014 to 2016, receivers without HEOS) | AVR-X2100W, AVR-X4100W, SR6011; the stereo receiver DRA-N4 | full setup through `AppCommand0300.xml` on the AV receivers; 19 functions on the DRA-N4 | port 80 |
 | 0301 (2016 on) | AVR-X4500H, AVC-X3700H, AVC-X8500H, AVC-A10H, NR1609, SR6012, AV7703 | full setup | port 8080 |
 
-The app no longer supports receivers without a level, and this
-integration cannot set them up, because it reads port and functions from
-`Deviceinfo.xml`; setup recognises their error page and says so. What
-works on each level is in [Compatibility](../COMPATIBILITY.md). Below 0300 a receiver
+The app no longer supports receivers without a level. This integration
+reads port and functions from `Deviceinfo.xml`; for receivers without it,
+it reads the UPnP description and the main zone page instead ([before 2013](models/before-2013.md)). What works on
+each level is in [Compatibility](../COMPATIBILITY.md). Below 0300 a receiver
 names few of its functions in `Deviceinfo.xml`, which is why the AVR-X2000
 lists far fewer than its telnet protocol has.
 

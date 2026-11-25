@@ -35,7 +35,7 @@
       },
       "unknown_model": {
         "title": "Tipo de receptor aún no descrito",
-        "description": "El {model} no es un receptor AV de Denon o Marantz de 2013 en adelante, o indica una versión de interfaz que esta integración aún no conoce. La configuración continúa; algunos ajustes pueden faltar o leerse mal.\n\nLa prueba del receptor se ejecuta cuando esté conectado: comprueba las funciones y prueba comandos en silencio. Sus resultados van al archivo de diagnóstico, que puedes adjuntar a una incidencia prerrellenada en GitHub. No se envía nada por sí solo.",
+        "description": "El {model} no es un receptor AV de Denon o Marantz de 2010 en adelante, o indica una versión de interfaz que esta integración aún no conoce. La configuración continúa; algunos ajustes pueden faltar o leerse mal.\n\nLa prueba del receptor se ejecuta cuando esté conectado: comprueba las funciones y prueba comandos en silencio. Sus resultados van al archivo de diagnóstico, que puedes adjuntar a una incidencia prerrellenada en GitHub. No se envía nada por sí solo.",
         "data": {
           "test": "Probar el receptor tras la configuración"
         },
@@ -58,8 +58,7 @@
     },
     "error": {
       "cannot_connect": "No se puede acceder al receptor. Comprueba la dirección IP y que el receptor esté encendido y conectado a la red.",
-      "no_receivers_found": "No se encontró en la red ningún receptor sin configurar. Introduce su dirección IP.",
-      "unsupported_receiver": "Este receptor es de 2010–2012 y no tiene descripción del dispositivo (Deviceinfo.xml), por lo que Denon AVR Plus no puede configurarlo. La integración oficial Denon AVR Network Receivers admite estos receptores antiguos."
+      "no_receivers_found": "No se encontró en la red ningún receptor sin configurar. Introduce su dirección IP."
     },
     "abort": {
       "already_configured": "Este receptor ya está configurado.",
@@ -68,8 +67,7 @@
       "cannot_connect": "El receptor no respondió en esa dirección.",
       "already_in_progress": "Este receptor ya se está configurando.",
       "not_denon_marantz": "El dispositivo encontrado no es un equipo Denon o Marantz.",
-      "not_a_receiver": "El dispositivo encontrado es un altavoz HEOS, no un receptor.",
-      "unsupported_receiver": "Este receptor es de 2010–2012 y no tiene descripción del dispositivo (Deviceinfo.xml), por lo que Denon AVR Plus no puede configurarlo. La integración oficial Denon AVR Network Receivers admite estos receptores antiguos."
+      "not_a_receiver": "El dispositivo encontrado es un altavoz HEOS, no un receptor."
     }
   },
   "options": {
@@ -401,7 +399,10 @@
           "off": "Desactivado",
           "light": "Ligero",
           "medium": "Medio",
-          "heavy": "Fuerte"
+          "heavy": "Fuerte",
+          "midnight": "Medianoche",
+          "evening": "Noche",
+          "day": "Día"
         }
       },
       "reference_level_offset": {

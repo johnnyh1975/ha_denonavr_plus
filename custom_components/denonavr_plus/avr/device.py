@@ -33,7 +33,8 @@ from .models import (
     ZoneDescriptor,
     ZoneSnapshot,
 )
-from .parser import TelnetParser, parse_device_info, parse_upnp_description
+from .generation import generation_of, legacy_device_info
+from .parser import TelnetParser, parse_device_info, parse_main_zone, parse_upnp_description
 from .profile import OLDER, ControlSpec, ProtocolProfile, load_profile, profile_for_receiver
 from . import capability_check, command_test, graphic_eq, signal_info, video_config
 from .video_config import VideoConfigController
@@ -57,6 +58,7 @@ from .transport import (
     async_detect_port,
     async_probe,
     is_query,
+    is_without_deviceinfo,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,6 +67,9 @@ _LOGGER = logging.getLogger(__name__)
 #: may be incomplete, so only those of a receiver that is on are kept.
 POWER_QUERY = "PW?"
 CHANNEL_TRIMS_QUERY = "CV?"
+#: Asked of a receiver without Deviceinfo.xml (2010-2012) for its zones: a
+#: zone that exists answers its power, source and volume.
+LEGACY_ZONE_QUERIES = ("Z2?", "Z3?")
 #: The profile variant of receivers on port 80 (AVR-X2000 and its time).
 #: How often the now playing list and the tuner are asked while they play.
 MEDIA_POLL_INTERVAL = 5.0
@@ -303,7 +308,64 @@ class DenonAvrDevice:
         full discovery performs. Raises ConnectionError when unreachable.
         """
 
-        return parse_device_info(await self._async_device_info()).device
+        text = await self._async_device_info()
+        if is_without_deviceinfo(text):
+            return await self._async_legacy_identity()
+        return parse_device_info(text).device
+
+    async def _async_legacy_identity(self) -> DeviceInfo:
+        """The identity of a receiver without Deviceinfo.xml (2010-2012).
+
+        Model, manufacturer and serial number come from the UPnP description
+        on port 8080, as the denonavr library reads them for these receivers.
+        Its main zone document must answer, or it is no receiver this
+        integration can control. Raises ConnectionError otherwise.
+        """
+
+        if await self._goform.async_get_main_zone() is None:
+            raise ConnectionError(f"No main zone document from {self._host}")
+        xml_text = await UpnpClient(
+            self._session, self._host, port=OLDER_PORT, path=OLDER_DESCRIPTION_PATH
+        ).async_get_description()
+        found = parse_upnp_description(xml_text) if xml_text else {}
+        return legacy_device_info(
+            found.get("model_name"), found.get("manufacturer"), found.get("serial_number")
+        )
+
+    async def _async_legacy_discovery(self) -> Discovery:
+        """Discovery of a receiver without Deviceinfo.xml (2010-2012).
+
+        Inputs, their names and sound modes from the main zone document; the
+        zones from the answers to Z2? and Z3? over telnet. Every setting is
+        then gated by its telnet answer, as on the AVR-X2000.
+        """
+
+        main_zone = await self._goform.async_get_main_zone()
+        if main_zone is None:
+            raise ConnectionError(f"No main zone document from {self._host}")
+        discovered = parse_main_zone(main_zone, self._profile.listed_sound_modes)
+        discovered.device = await self._async_legacy_identity()
+        answered: set[str] = set()
+
+        def feed(line: str) -> None:
+            answered.update(zone for zone in ("Z2", "Z3") if line.startswith(zone))
+
+        await async_probe(
+            self._host,
+            list(LEGACY_ZONE_QUERIES),
+            feed,
+            lambda: answered == {"Z2", "Z3"},
+            deadline=1.5,
+            reply_wait=REPLY_WAIT_OLDER,
+        )
+        for index in (2, 3):
+            if f"Z{index}" not in answered:
+                break
+            discovered.zones.append(
+                ZoneDescriptor(id=f"zone{index}", index=index, name=f"Zone {index}")
+            )
+        discovered.device.zone_count = len(discovered.zones)
+        return discovered
 
     @property
     def http_port(self) -> int | None:
@@ -345,12 +407,15 @@ class DenonAvrDevice:
             for spec in self._profile.controls.values()
             if spec.kind == "enum" and spec.feature
         }
-        discovered = parse_device_info(
-            xml_text,
-            feature_names,
-            enum_features,
-            receiver_type=self._profile.receiver_type,
-        )
+        if is_without_deviceinfo(xml_text):
+            discovered = await self._async_legacy_discovery()
+        else:
+            discovered = parse_device_info(
+                xml_text,
+                feature_names,
+                enum_features,
+                receiver_type=self._profile.receiver_type,
+            )
         if not self._profile.variants:
             # Older receivers encode some values differently, and Marantz
             # names a few commands its own way; the profile's variants say
@@ -361,6 +426,7 @@ class DenonAvrDevice:
                 self._http_port,
                 discovered.device.comm_api_version,
                 discovered.device.brand_code,
+                discovered.device.model_name,
             )
             if fitted is not self._profile:
                 self._profile = fitted
@@ -1294,6 +1360,8 @@ class DenonAvrDevice:
             "model": device.model_name,
             "firmware": device.firmware_version,
             "hardware_type": device.hardware_type,
+            # The generation decides which of the queries apply (docs/COMPATIBILITY.md).
+            "generation": None if (generation := generation_of(device)) is None else generation.key,
             "queries": results,
         }
 

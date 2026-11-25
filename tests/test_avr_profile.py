@@ -237,3 +237,41 @@ def test_marantz_receivers_get_smart_select() -> None:
     assert restorer is not None and restorer.scope == "answered"
     denon_restorer = denon.control("restorer")
     assert denon_restorer is not None and denon_restorer.scope == "feature"
+
+
+@pytest.mark.parametrize(
+    ("model", "level", "values"),
+    [
+        # Documents of AVR-1713 and AVR-2113CI; Deviceinfo.xml of the AVR-1713.
+        ("AVR-1713", 210, ["MODE1", "MODE2", "MODE3", "OFF"]),
+        ("AVR-3313", 210, ["MODE1", "MODE2", "MODE3", "OFF"]),
+        # AVR-X2000/E400 document; the AVR-X2000 answers PSRSTR LOW.
+        ("AVR-X2000", 210, ["HI", "MED", "LOW", "OFF"]),
+        ("AVR-E400", 210, ["HI", "MED", "LOW", "OFF"]),
+        ("AVR-X1100W", 250, ["HI", "MED", "LOW", "OFF"]),
+        # AVR-1912/2112CI document (2011), no Deviceinfo.xml.
+        ("AVR-1912", None, ["MODE1", "MODE2", "MODE3", "OFF"]),
+    ],
+)
+def test_the_restorer_follows_the_series(
+    model: str, level: int | None, values: list[str]
+) -> None:
+    from custom_components.denonavr_plus.avr.profile import profile_for_receiver
+
+    profile = profile_for_receiver(load_profile(), 80, level, 0, model)
+    restorer = profile.control("restorer")
+    assert restorer is not None
+    assert restorer.values == values
+    assert restorer.get("labels") == ["High", "Medium", "Low", "Off"]
+
+
+def test_dynamic_volume_of_2011() -> None:
+    """AVR-1912/2112CI document: NGT, EVE, DAY; from 2012 OFF, LIT, MED, HEV."""
+    from custom_components.denonavr_plus.avr.profile import profile_for_receiver
+
+    legacy = profile_for_receiver(load_profile(), 80, None, None, "AVR-1912").control(
+        "dynamic_volume"
+    )
+    assert legacy is not None and legacy.values == ["NGT", "EVE", "DAY"]
+    newer = profile_for_receiver(load_profile(), 80, 210, 0, "AVR-1713").control("dynamic_volume")
+    assert newer is not None and newer.values == ["OFF", "LIT", "MED", "HEV"]

@@ -16,7 +16,7 @@ and parser) or Home Assistant.
 
 from __future__ import annotations
 
-from .goform import DEFAULT_PORT, GoformClient, async_detect_port
+from .goform import DEFAULT_PORT, GoformClient, async_detect_port, is_without_deviceinfo
 from .heos import HeosClient
 from .telnet import TelnetClient, async_probe, is_query
 from .upnp import UpnpClient
@@ -32,4 +32,5 @@ __all__ = [
     "async_detect_port",
     "async_probe",
     "is_query",
+    "is_without_deviceinfo",
 ]

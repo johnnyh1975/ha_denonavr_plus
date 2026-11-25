@@ -3,9 +3,10 @@
 Denon and Marantz network receivers of 2010 to 2012 (the manufacturer's
 model years FY10 to FY12) do not describe themselves: recorded AVR-1912,
 AVR-2312CI, AVR-3311CI, AVR-3312 and AVR-4810 answer `Deviceinfo.xml` with
-an error page (`tests/fixtures/denonavr/`). This integration finds the HTTP
-port and the receiver's functions in that file, so it cannot set these
-receivers up today; setup recognises the error page and says so.
+an error page (`tests/fixtures/denonavr/`). This integration recognises
+the error page and then reads them the way the official integration does
+(the `denonavr` library, receiver type "avr"), see
+[How this integration sets them up](#how-this-integration-sets-them-up).
 
 What is known about them comes from their protocol documents (AVR-1912 and
 AVR-2112CI v7.4.0, see [References](../references.md); the recorded
@@ -146,11 +147,31 @@ AVR-1912, 2112, 2312, 3312, SR6006, SR5006 and NR1602; the AVR-1912/2112CI
 document lists the commands (page 40). The app holds the commands but never
 enables them, so no app sends them.
 
-## What support would need
+## How this integration sets them up
 
-A static description per model from these data (zones, inputs per zone,
-sound modes, Quick Select count, restorer or M-DAX, tuner type per region),
-setup without `Deviceinfo.xml` (by `description.xml` or telnet), and the
-2011 encodings of their protocol documents (volume minimum `99`, Dynamic
-Volume `NGT`/`EVE`/`DAY`, restorer `MODE1`–`3`). None of the recorded
-receivers of this generation is in use by a tester of this integration.
+- **Port and identity**: port 80; model, manufacturer and serial number from
+  the UPnP description `description.xml` on port 8080, where the `denonavr`
+  library reads them for these receivers (**Sourced**). The serial number
+  is the entry's id, as there is no MAC address. A `*` before the model name
+  is removed.
+- **Inputs and sound modes**: from `/goform/formMainZone_MainZoneXml.xml`:
+  `InputFuncList` holds the input tokens, `RenameSource` the names the user
+  gave them, `SourceDelete` `USE` or `DEL`, all in the same order;
+  `SurroundLists` holds the sound modes, its `index` being the `MS` token
+  (`MCH STEREO`). The AVR-3311CI and AVR-4810 list no sound modes there.
+  Recorded for the AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312 and AVR-4810
+  (`tests/fixtures/denonavr/*-formMainZone_MainZoneXml.xml`).
+- **Zones**: a zone exists when it answers `Z2?` or `Z3?` over telnet.
+- **Settings**: every setting is offered only when the receiver answers its
+  query when it is added, as on the 2013 receivers.
+- **Encodings** of the 2011 document (AVR-1912/2112CI): volume minimum `MV99`
+  (and `MV995` −80.5 dB), Dynamic Volume `NGT`, `EVE`, `DAY`, restorer
+  `MODE1`–`MODE3`, tuner presets `A1`–`G8`. For the 2010 models
+  (AVR-3311CI, AVR-4810) no document is at hand; the same encodings are
+  assumed.
+- Systems of these years (DNP-720, RCD-N7, M-CR603, NA7004) count as no
+  AV receiver: setup offers the receiver test for them.
+
+None of these receivers has been tested with this integration yet; the
+receiver test (Configure → Test the receiver) shows what a given model
+answers.
