@@ -37,6 +37,10 @@ MAC = "aa:bb:cc:dd:ee:ff"
 MODEL = "AVR-X3600H"  # a model in KNOWN_MODELS; unknown ones are tested apart
 
 
+MANIFEST_VERSION = json.loads(
+    (Path(__file__).parents[1] / "custom_components/denonavr_plus/manifest.json").read_text()
+)["version"]
+
 @pytest.fixture(autouse=True)
 async def no_setup(
     request: pytest.FixtureRequest, hass: HomeAssistant
@@ -959,7 +963,9 @@ async def test_the_receiver_test_runs_its_parts_in_sequence(
     ) == expected
     # Named as their entities are, with the device where the name says little.
     assert placeholders["not_restored_list"] == "Dimmer, Zone 2: Front Left Level"
-    assert "template=device_support.yml" in placeholders["url"]
+    # A receiver report in Discussions, with this integration's version.
+    assert "/discussions/new?category=receiver-reports" in placeholders["url"]
+    assert "version=" + MANIFEST_VERSION in placeholders["url"]
     result = await hass.config_entries.options.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY
     # Changes no option; both parts are kept for the diagnostics.

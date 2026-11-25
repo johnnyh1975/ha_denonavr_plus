@@ -321,8 +321,9 @@ Reading the result:
 - If the title says **Check the receiver** instead of *Everything put back*,
   it lists the settings to set back by hand.
 
-> **Recommended:** attach the diagnostics file to the prefilled GitHub issue
-> the result links to. Read it before you send it; addresses, MAC and serial
+> **Recommended:** attach the diagnostics file to the receiver report the
+> result links to (in GitHub Discussions, with model, firmware and version
+> filled in where GitHub takes them over). Read it before you send it; addresses, MAC and serial
 > number are replaced. That is how a model becomes *checked*.
 
 ## 8. Move over from another Denon integration

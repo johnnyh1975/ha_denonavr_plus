@@ -284,11 +284,11 @@
       },
       "tests_done": {
         "title": "Alles teruggezet",
-        "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
+        "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [een vooraf ingevuld receiververslag op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
       },
       "tests_done_check": {
         "title": "Controleer de receiver",
-        "description": "Niet alle instellingen kwamen terug: {not_restored_list}. Zet ze op de receiver terug zoals ze waren.\n\n{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
+        "description": "Niet alle instellingen kwamen terug: {not_restored_list}. Zet ze op de receiver terug zoals ze waren.\n\n{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [een vooraf ingevuld receiververslag op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
       },
       "move_back": {
         "title": "Verhuizing ongedaan maken",
@@ -1236,11 +1236,11 @@
           },
           "tests_done": {
             "title": "Alles teruggezet",
-            "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
+            "description": "{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [een vooraf ingevuld receiververslag op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
           },
           "tests_done_check": {
             "title": "Controleer de receiver",
-            "description": "Niet alle instellingen kwamen terug: {not_restored_list}. Zet ze op de receiver terug zoals ze waren.\n\n{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [deze vooraf ingevulde issue op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
+            "description": "Niet alle instellingen kwamen terug: {not_restored_list}. Zet ze op de receiver terug zoals ze waren.\n\n{model}:\n\n- Beantwoorde vragen: {answered} van {total}\n- Bevestigde commando's: {confirmed}\n- Voorwaarde ontbrak: {precondition}\n- Zonder effect: {no_effect}\n- Overgeslagen: {skipped}\n- Niet uitgevoerd, de receiver antwoordde niet meer: {interrupted}\n\nVoeg het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden) toe aan [een vooraf ingevuld receiververslag op GitHub]({url}). Lees het eerst; adressen zijn al vervangen."
           }
         },
         "progress": {

@@ -284,11 +284,11 @@
       },
       "tests_done": {
         "title": "Everything put back",
-        "description": "{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [this prefilled issue on GitHub]({url}). Read it first; addresses are already replaced."
+        "description": "{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [a prefilled receiver report on GitHub]({url}). Read it first; addresses are already replaced."
       },
       "tests_done_check": {
         "title": "Check the receiver",
-        "description": "Not every setting came back: {not_restored_list}. Set these on the receiver as they were.\n\n{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [this prefilled issue on GitHub]({url}). Read it first; addresses are already replaced."
+        "description": "Not every setting came back: {not_restored_list}. Set these on the receiver as they were.\n\n{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [a prefilled receiver report on GitHub]({url}). Read it first; addresses are already replaced."
       },
       "move_back": {
         "title": "Undo the move",
@@ -1236,11 +1236,11 @@
           },
           "tests_done": {
             "title": "Everything put back",
-            "description": "{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [this prefilled issue on GitHub]({url}). Read it first; addresses are already replaced."
+            "description": "{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [a prefilled receiver report on GitHub]({url}). Read it first; addresses are already replaced."
           },
           "tests_done_check": {
             "title": "Check the receiver",
-            "description": "Not every setting came back: {not_restored_list}. Set these on the receiver as they were.\n\n{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [this prefilled issue on GitHub]({url}). Read it first; addresses are already replaced."
+            "description": "Not every setting came back: {not_restored_list}. Set these on the receiver as they were.\n\n{model}:\n\n- Questions answered: {answered} of {total}\n- Commands confirmed: {confirmed}\n- Precondition missing: {precondition}\n- No effect: {no_effect}\n- Skipped: {skipped}\n- Not run, the receiver stopped answering: {interrupted}\n\nAttach the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics) to [a prefilled receiver report on GitHub]({url}). Read it first; addresses are already replaced."
           }
         },
         "progress": {

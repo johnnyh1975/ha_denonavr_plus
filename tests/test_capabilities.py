@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, patch
 from urllib.parse import parse_qs, urlparse
@@ -36,6 +37,21 @@ RESULT: dict[str, Any] = {
 
 def _issue(hass: HomeAssistant, entry: MockConfigEntry, kind: str) -> ir.IssueEntry | None:
     return ir.async_get(hass).async_get_issue(DOMAIN, f"{kind}_{entry.entry_id}")
+
+
+def test_the_receiver_report_link_is_prefilled() -> None:
+    url = urlparse(capabilities.report_url("AVR-X2600H", "3.139.175", "1.1.0"))
+    query = parse_qs(url.query)
+    assert url.path == "/johnnyh1975/ha_denonavr_plus/discussions/new"
+    assert query["category"] == ["receiver-reports"]
+    assert query["title"] == ["[Receiver] AVR-X2600H"]
+    # The field ids of .github/DISCUSSION_TEMPLATE/receiver-reports.yml.
+    assert (query["model"], query["firmware"], query["version"]) == (
+        ["AVR-X2600H"], ["3.139.175"], ["1.1.0"]
+    )
+    form = (Path(__file__).parents[1] / ".github/DISCUSSION_TEMPLATE/receiver-reports.yml").read_text()
+    for field in ("model", "firmware", "version"):
+        assert f"id: {field}" in form
 
 
 def test_the_issue_link_is_prefilled() -> None:

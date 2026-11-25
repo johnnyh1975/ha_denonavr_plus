@@ -284,11 +284,11 @@
       },
       "tests_done": {
         "title": "Alles zurückgestellt",
-        "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
+        "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [eine vorausgefüllte Receiver-Meldung auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
       },
       "tests_done_check": {
         "title": "Am Receiver prüfen",
-        "description": "Nicht alle Einstellungen kamen zurück: {not_restored_list}. Stell sie am Receiver wieder so ein, wie sie waren.\n\n{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
+        "description": "Nicht alle Einstellungen kamen zurück: {not_restored_list}. Stell sie am Receiver wieder so ein, wie sie waren.\n\n{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [eine vorausgefüllte Receiver-Meldung auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
       },
       "move_back": {
         "title": "Umzug rückgängig machen",
@@ -1236,11 +1236,11 @@
           },
           "tests_done": {
             "title": "Alles zurückgestellt",
-            "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
+            "description": "{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [eine vorausgefüllte Receiver-Meldung auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
           },
           "tests_done_check": {
             "title": "Am Receiver prüfen",
-            "description": "Nicht alle Einstellungen kamen zurück: {not_restored_list}. Stell sie am Receiver wieder so ein, wie sie waren.\n\n{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [dieses vorausgefüllte Issue auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
+            "description": "Nicht alle Einstellungen kamen zurück: {not_restored_list}. Stell sie am Receiver wieder so ein, wie sie waren.\n\n{model}:\n\n- Beantwortete Fragen: {answered} von {total}\n- Bestätigte Befehle: {confirmed}\n- Voraussetzung fehlte: {precondition}\n- Ohne Wirkung: {no_effect}\n- Übersprungen: {skipped}\n- Nicht gelaufen, der Receiver antwortete nicht mehr: {interrupted}\n\nHänge die Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen) an [eine vorausgefüllte Receiver-Meldung auf GitHub]({url}). Lies sie vorher; Adressen sind bereits ersetzt."
           }
         },
         "progress": {

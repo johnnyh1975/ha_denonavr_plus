@@ -27,11 +27,12 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import translation
+from homeassistant.loader import async_get_integration
 
 from .avr.capability_check import QUERIES
 from .avr.command_test import AUDIBLE, QUIET, summary
 from .avr.errors import CommandNotSent
-from .capabilities import issue_url
+from .capabilities import report_url
 from .capabilities import summary as check_summary
 from .const import DOMAIN
 from .entity import SUB_DEVICE_NAMES
@@ -83,6 +84,8 @@ class ReceiverTestSteps:
     _test_results: dict[str, dict[str, Any]]
     _test_current: str = ""
     _test_names: dict[str, str] | None = None
+    #: This integration's version, for the receiver report.
+    _version: str | None = None
 
     def _check_entry(self) -> DenonAvrConfigEntry | None:
         raise NotImplementedError
@@ -155,6 +158,7 @@ class ReceiverTestSteps:
 
         if user_input is not None:
             return cast(FlowResult, self._check_finished())
+        self._version = (await async_get_integration(self.hass, DOMAIN)).version
         placeholders = self._summary(await self._setting_names())
         step_id = "tests_done_check" if placeholders["not_restored"] != "0" else "tests_done"
         return self.async_show_form(  # type: ignore[attr-defined, no-any-return]
@@ -197,7 +201,7 @@ class ReceiverTestSteps:
             "interrupted": str(interrupted),
             "not_restored": str(len(not_restored)),
             "not_restored_list": ", ".join(not_restored) or "-",
-            "url": issue_url(check.get("model"), check.get("firmware")),
+            "url": report_url(check.get("model"), check.get("firmware"), self._version),
         }
 
     async def _names(self) -> dict[str, str]:

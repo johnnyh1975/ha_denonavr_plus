@@ -57,8 +57,10 @@ stops the test and puts back what it changed. The result page is titled
 **Everything put back**, or **Check the receiver** with the settings that did
 not come back. It counts the questions answered and the commands confirmed,
 with a missing precondition, without effect, or skipped, and links to a
-prefilled issue on GitHub; attach the diagnostics file there (addresses are
-replaced). Nothing is sent anywhere by itself.
+receiver report in Discussions with model, firmware and version filled in;
+attach the diagnostics file there (addresses are replaced). GitHub documents
+filling in forms from the link for issues only, so for discussions the fields
+may come up empty. Nothing is sent anywhere by itself.
 
 The test is optional. Only for a device that is not a described AV receiver
 (a system, or an interface level not seen yet;
@@ -97,8 +99,7 @@ per command is *confirmed* (echo and answer agree), *query_only* (no echo, but
 the receiver reports the new value), *echo_only*, *no_effect*, *rejected*,
 *no_value* (the receiver did not report the setting), *skipped* or
 *interrupted*, with whether the old value came back. It goes into the
-diagnostics file; attach it to the device-support issue as for the capability
-check. Leave the receiver alone while it runs (a few minutes): a change made
+diagnostics file; attach it to the receiver report the result links to. Leave the receiver alone while it runs (a few minutes): a change made
 on it at the same time can read as a failure.
 
 The diagnostics file also shows how now playing and playback reach the

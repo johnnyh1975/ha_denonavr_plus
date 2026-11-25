@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -20,6 +22,10 @@ from custom_components.denonavr_plus.const import DOMAIN
 
 from .test_capabilities import RESULT
 from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
+
+MANIFEST_VERSION = json.loads(
+    (Path(__file__).parents[1] / "custom_components/denonavr_plus/manifest.json").read_text()
+)["version"]
 
 __all__ = ["loaded_entry", "receiver_network"]
 
@@ -68,7 +74,9 @@ async def test_the_repair_runs_the_check_and_points_to_github(
     placeholders = result["description_placeholders"]
     assert placeholders["answered"] == "1" and placeholders["total"] == "2"
     assert placeholders["confirmed"] == "1"
-    assert "template=device_support.yml" in placeholders["url"]
+    # A receiver report in Discussions, with this integration's version.
+    assert "/discussions/new?category=receiver-reports" in placeholders["url"]
+    assert "version=" + MANIFEST_VERSION in placeholders["url"]
     result = await manager.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY
 

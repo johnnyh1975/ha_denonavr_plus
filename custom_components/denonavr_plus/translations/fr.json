@@ -284,11 +284,11 @@
       },
       "tests_done": {
         "title": "Tout est rétabli",
-        "description": "{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
+        "description": "{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [un rapport de récepteur prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
       },
       "tests_done_check": {
         "title": "Vérifiez le récepteur",
-        "description": "Tous les réglages ne sont pas revenus : {not_restored_list}. Remettez-les sur le récepteur comme ils étaient.\n\n{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
+        "description": "Tous les réglages ne sont pas revenus : {not_restored_list}. Remettez-les sur le récepteur comme ils étaient.\n\n{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [un rapport de récepteur prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
       },
       "move_back": {
         "title": "Annuler le transfert",
@@ -1236,11 +1236,11 @@
           },
           "tests_done": {
             "title": "Tout est rétabli",
-            "description": "{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
+            "description": "{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [un rapport de récepteur prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
           },
           "tests_done_check": {
             "title": "Vérifiez le récepteur",
-            "description": "Tous les réglages ne sont pas revenus : {not_restored_list}. Remettez-les sur le récepteur comme ils étaient.\n\n{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [ce ticket prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
+            "description": "Tous les réglages ne sont pas revenus : {not_restored_list}. Remettez-les sur le récepteur comme ils étaient.\n\n{model}:\n\n- Questions répondues : {answered} sur {total}\n- Commandes confirmées : {confirmed}\n- Condition manquante : {precondition}\n- Sans effet : {no_effect}\n- Ignorées : {skipped}\n- Non exécutées, le récepteur ne répondait plus : {interrupted}\n\nJoignez le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics) à [un rapport de récepteur prérempli sur GitHub]({url}). Lisez-le d'abord ; les adresses sont déjà remplacées."
           }
         },
         "progress": {

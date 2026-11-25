@@ -53,6 +53,28 @@ def described(device: DeviceInfo) -> bool:
     return generation_of(device) is not None or known_model(device.model_name)
 
 
+_NEW_DISCUSSION = "https://github.com/johnnyh1975/ha_denonavr_plus/discussions/new"
+
+
+def report_url(model: str | None, firmware: str | None, version: str | None) -> str:
+    """A receiver report in Discussions, with model, firmware and version filled in.
+
+    The parameters are those of an issue form, by the field ids of
+    .github/DISCUSSION_TEMPLATE/receiver-reports.yml. GitHub documents them
+    for issues, not for discussions; where it ignores them, the empty form
+    opens.
+    """
+
+    query = {
+        "category": "receiver-reports",
+        "title": f"[Receiver] {model or ''}".strip(),
+        "model": model or "",
+        "firmware": firmware or "",
+        "version": version or "",
+    }
+    return f"{_NEW_DISCUSSION}?{urlencode(query)}"
+
+
 def issue_url(model: str | None, firmware: str | None) -> str:
     """A device-support issue on GitHub with model and firmware filled in."""
 
