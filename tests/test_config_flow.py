@@ -1312,3 +1312,40 @@ def entity_id_of_main(hass: HomeAssistant, entry: MockConfigEntry) -> str:
         for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
         if item.unique_id.endswith("_media_player_main")
     )
+
+
+async def test_a_rename_during_the_playback_dialog_is_kept(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Saving writes the inputs edited in the dialog, not an old copy of the rest."""
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "linked_players": {"CD": {"player": "media_player.streamer"}},
+        },
+    )
+    result = await _options_step(hass, loaded_entry, "playback")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"input": "DVD", "signal_state": False}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"player": "media_player.apple_tv", "follow": False, "full_volume": False}
+    )
+    # The streamer is renamed meanwhile (linked_players.py rewrites the options).
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "linked_players": {
+                "CD": {"player": "media_player.kitchen", "follow": False, "full_volume": False}
+            },
+        },
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "playback_save"}
+    )
+    assert loaded_entry.options["linked_players"] == {
+        "CD": {"player": "media_player.kitchen", "follow": False, "full_volume": False},
+        "DVD": {"player": "media_player.apple_tv", "follow": False, "full_volume": False},
+    }

@@ -87,6 +87,10 @@ FOLLOW_COOLDOWN = 5.0
 FULL_LEVEL = 0.999
 #: The zone whose input follows a player.
 FOLLOW_ZONE = "main"
+#: How long a follow may take to reach its input (power on, settle, switch).
+FOLLOW_SETTLE = 30.0
+#: The main zone's input before the receiver has reported it.
+UNKNOWN = "?"
 
 #: The states a player is busy in; a pause stops it, else a stop.
 _BUSY = (MediaPlayerState.PLAYING, MediaPlayerState.BUFFERING)
@@ -168,8 +172,9 @@ class LinkedPlayers:
         self._full_volume_active: frozenset[str] = frozenset()
         # The main zone's input while it is on, to see it change.
         self._main_input: str | None = None
-        # The context of a follow, for the pauses that come of it.
-        self._follow_context: Context | None = None
+        # A follow on its way: its input, the player's context (for the
+        # pauses that come of it) and when it began.
+        self._follow_target: tuple[str, Context, float] | None = None
 
     # Setup -----------------------------------------------------------------
 
@@ -413,21 +418,28 @@ class LinkedPlayers:
     # Following a player ------------------------------------------------------
 
     def _zone_playing(self, code: str) -> bool:
-        """Whether a shown zone is on and plays the input (Zone 2 on the main
-        zone's source plays the main zone's input)."""
+        """Whether a zone is on and plays the input (Zone 2 on the main zone's
+        source plays the main zone's input). Zones hidden in Home Assistant
+        count too: the receiver still plays them."""
 
         coordinator = self._entry.runtime_data
         data = coordinator.data
         return any(
-            data.zone(zone).power and coordinator.device.zone_source(zone) == code
-            for zone in coordinator.shown_zones
+            zone.power and coordinator.device.zone_source(zone_id) == code
+            for zone_id, zone in data.zones.items()
         )
 
     def _current_main_input(self) -> str | None:
+        """The main zone's input while it is on; None while off, UNKNOWN before
+        the receiver has said (a start or reload)."""
+
         coordinator = self._entry.runtime_data
-        if not coordinator.data.zone(FOLLOW_ZONE).power:
+        power = coordinator.data.zone(FOLLOW_ZONE).power
+        if power is None:
+            return UNKNOWN
+        if not power:
             return None
-        return coordinator.device.zone_source(FOLLOW_ZONE)
+        return coordinator.device.zone_source(FOLLOW_ZONE) or UNKNOWN
 
     # Only the player that is heard keeps playing --------------------------
 
@@ -436,16 +448,37 @@ class LinkedPlayers:
         """The main zone went to another input (by a follow, by hand, by remote).
 
         While the receiver follows a player, the other linked players whose
-        input no zone plays are paused: they would play into nothing (as the
-        Rotel integration does).
+        input no zone plays are paused: they would play into nothing. As in
+        the Rotel integration, only when the new input has a linked player
+        itself: switching to the TV, the tuner or the network (an
+        announcement) pauses nothing. Not either on the way to a follow's
+        input (the zone first turns on with its old input), when the main
+        zone only turns on, or when the receiver first reports after a start
+        or a reload.
         """
 
-        current = self._current_main_input()
-        if current == self._main_input:
+        previous, current = self._main_input, self._current_main_input()
+        if current == previous:
             return
         self._main_input = current
-        context, self._follow_context = self._follow_context, None
-        if current is None or not any(link.follow for link in self._links.values()):
+        if self._follow_target is not None:
+            code, context, since = self._follow_target
+            if current == code:
+                self._follow_target = None
+                self._pause_unheard(context)
+                return
+            if time.monotonic() - since < FOLLOW_SETTLE:
+                return
+            # The receiver did not take the input: let the context go.
+            self._follow_target = None
+        if previous in (None, UNKNOWN) or current in (None, UNKNOWN):
+            return
+        if current in self._links:
+            self._pause_unheard(None)
+
+    @callback
+    def _pause_unheard(self, context: Context | None) -> None:
+        if not any(link.follow for link in self._links.values()):
             return
         heard = {
             link.entity_id for code, link in self._links.items() if self._zone_playing(code)
@@ -506,9 +539,9 @@ class LinkedPlayers:
         left = coordinator.device.zone_source(FOLLOW_ZONE) if main.power else None
         name = choices.source_display(coordinator.device.discovery, dict(self._entry.options), code)
         _LOGGER.debug("Following the player of %s", name)
-        self._follow_context = context
+        self._follow_target = (code, context, time.monotonic())
         if not await self._async_call(target, SERVICE_SELECT_SOURCE, {ATTR_INPUT_SOURCE: name}, context):
-            self._follow_context = None
+            self._follow_target = None
             return
         options = dict(self._entry.options)
         link = self._links.get(code)

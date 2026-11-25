@@ -5,7 +5,8 @@ Dolby Surround upmixing a Dolby Digital signal, "Multi Ch Stereo" plays
 stereo on every speaker. Home Assistant shows a short name instead: the
 upmixer where the mode has one, the Dolby format spelled out, the two
 multichannel modes in the user's language. A name in capitals (older
-receivers) is written as words, abbreviations such as DTS kept. Every other
+receivers) of plain words is written as words, abbreviations such as DTS
+kept; one with a sign or a digit is an MS token and stays. Every other
 name stays as the receiver gives it. The receiver's name stays valid for choosing a mode, and
 the options can switch the readable names off or rename a mode.
 
@@ -47,7 +48,12 @@ _DOLBY = {
 }
 _DOLBY_AUDIO = "Dolby Audio - "
 #: Words that stay in capitals when an all-capitals name is written normally.
-_ACRONYMS = {"DTS", "PCM", "LPCM", "DSD", "IMAX", "THX", "HD", "ES", "MA", "AAC", "MPEG", "DSP", "DD", "DD+"}
+_ACRONYMS = {
+    "DTS", "PCM", "LPCM", "DSD", "IMAX", "THX", "HD", "ES", "MA", "AAC", "MPEG", "DSP",
+    "DD", "EX", "DSX", "MSTR", "PLII", "PLIIX", "PLIIZ", "NEO", "CH", "D", "X",
+}
+#: Words with a capital inside.
+_SPELLED = {"TRUEHD": "TrueHD"}
 #: All-capitals names (older receivers, the tokens of MS) of the two multichannel modes.
 _CAPS_STEREO = {"MCH STEREO", "MULTI CH STEREO"}
 _CAPS_INPUT = "MULTI CH IN"
@@ -56,9 +62,8 @@ _CAPS_INPUT = "MULTI CH IN"
 def _written(text: str) -> str:
     """An all-capitals name as words: "PURE DIRECT" -> "Pure Direct", "DTS:X" stays."""
 
-    # Only plain words: "DTS:X", "AURO-3D", "7CH" and abbreviations stay.
     return " ".join(
-        word.capitalize() if word.isalpha() and word not in _ACRONYMS else word
+        _SPELLED.get(word) or (word if word in _ACRONYMS else word.capitalize())
         for word in text.split(" ")
     )
 
@@ -89,7 +94,10 @@ def readable(name: str, words: Mapping[str, str] = WORDS) -> str:
         if text == _CAPS_INPUT or text.startswith(_CAPS_INPUT + " "):
             word = words.get(MULTICHANNEL_INPUT, WORDS[MULTICHANNEL_INPUT])
             return word + _written(text[len(_CAPS_INPUT) :])
-        return _written(text)
+        if all(word.isalpha() for word in text.split(" ")):
+            return _written(text)
+        # A sign or a digit ("M CH IN+DOLBY EX", "DTS:X", "7CH STEREO"):
+        # an MS token rather than a name, left as the receiver writes it.
     return name
 
 

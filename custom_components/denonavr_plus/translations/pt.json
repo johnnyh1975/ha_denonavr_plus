@@ -253,7 +253,7 @@
         },
         "data_description": {
           "player": "O título, a capa, a posição e o estado aparecem em cada zona que toca esta entrada; reproduzir, pausa, saltar e avançar vão para ele.",
-          "follow": "Quando o leitor começa, a zona principal liga-se se necessário e muda para aqui. Os leitores associados que nenhuma zona toca são então pausados, também após uma mudança à mão ou pelo comando. Um leitor que comece nos 5 segundos seguintes a uma mudança é pausado em vez disso.",
+          "follow": "Quando o leitor começa, a zona principal liga-se se necessário e muda para aqui. Os leitores associados que nenhuma zona toca são então pausados, também quando a zona principal muda à mão ou pelo comando para outra entrada com leitor associado. Um leitor que comece nos 5 segundos seguintes a uma mudança é pausado em vez disso.",
           "full_volume": "O volume é ajustado no recetor: enquanto uma zona ligada toca esta entrada, o leitor é posto no volume máximo e sem silêncio, e de novo sempre que o seu volume muda. Não para um dispositivo com altifalantes próprios, como um televisor: tocaria aí no volume máximo."
         }
       },

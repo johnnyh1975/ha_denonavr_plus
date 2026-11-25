@@ -226,8 +226,9 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
             return list(discovery.current_sound_modes)
         code = self.coordinator.data.values.get("sound_mode_genre")
         group = discovery.sound_mode_groups.get(str(code), []) if code else []
-        # A receiver without these lists (AVR-X2000): every mode it has, as
-        # the media player offers them, rather than an empty selection.
+        # A receiver with sound mode groups but without these lists (the
+        # AVR-X2100W and X4100W recordings): every mode it has, as the media
+        # player offers them, rather than an empty selection.
         return (
             list(group)
             or list(discovery.all_sound_modes)
@@ -257,7 +258,13 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        current = self.coordinator.data.values.get("sound_mode_display")
+        values = self.coordinator.data.values
+        current = values.get("sound_mode_display")
+        if not current and (mode := values.get("sound_mode")):
+            # A receiver without its own lists reports the token only, as
+            # the media player reads it.
+            device = self.coordinator.device
+            current = device.fallback_sound_mode_name(str(mode)) or mode
         return self._names().get(str(current)) if current else None
 
     async def async_handle_select_option(self, option: str) -> None:  # type: ignore[misc]

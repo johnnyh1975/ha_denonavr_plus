@@ -253,7 +253,7 @@
         },
         "data_description": {
           "player": "Son titre, sa pochette, sa position et son état apparaissent sur chaque zone qui joue cette entrée ; lecture, pause, saut et avance rapide lui sont envoyés.",
-          "follow": "Quand le lecteur démarre, la zone principale s'allume si besoin et passe ici. Les lecteurs liés qu'aucune zone ne joue sont alors mis en pause, aussi après un changement à la main ou par la télécommande. Un lecteur qui démarre dans les 5 secondes suivant un changement est mis en pause à la place.",
+          "follow": "Quand le lecteur démarre, la zone principale s'allume si besoin et passe ici. Les lecteurs liés qu'aucune zone ne joue sont alors mis en pause, aussi quand la zone principale passe à la main ou par la télécommande sur une autre entrée avec un lecteur lié. Un lecteur qui démarre dans les 5 secondes suivant un changement est mis en pause à la place.",
           "full_volume": "Le volume se règle sur le récepteur : tant qu'une zone allumée joue cette entrée, le lecteur est mis au volume maximal et sans sourdine, puis à nouveau dès que son volume change. Pas pour un appareil avec ses propres haut-parleurs, comme un téléviseur : il y jouerait au volume maximal."
         }
       },

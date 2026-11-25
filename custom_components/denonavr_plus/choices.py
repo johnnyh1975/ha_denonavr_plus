@@ -139,11 +139,26 @@ def shown_sound_modes(
     is shown (sound_mode_names).
     """
 
-    every = list(dict.fromkeys([*modes, *([current] if current else [])]))
+    # The current mode as a token the list does not hold ("MCH STEREO" for
+    # "Multi Ch Stereo", before the receiver says its name): the listed
+    # mode it reads as, not a second mode that would clash with it.
+    alias = (
+        next((mode for mode in modes if readable(mode) == readable(current)), None)
+        if readable is not None and current and current not in modes
+        else None
+    )
+    every = list(dict.fromkeys([*modes, *([current] if current and alias is None else [])]))
     names = sound_mode_names(options, every, readable)
     chosen = options.get(OPT_SOUND_MODES)
     if chosen:
         modes = [mode for mode in modes if mode in chosen]
+    if alias is not None:
+        if alias not in modes:
+            modes = [*modes, alias]
+        shown = {mode: names[mode] for mode in dict.fromkeys(modes)}
+        # Looked up by the token; the list shows the name once.
+        shown[str(current)] = names[alias]
+        return shown
     if current and current not in modes:
         modes = [*modes, current]
     return {mode: names[mode] for mode in dict.fromkeys(modes)}
@@ -154,7 +169,7 @@ def sound_mode_list(
 ) -> list[str]:
     """The names of the sound modes the main zone's list offers."""
 
-    return list(shown_sound_modes(options, modes, current, readable).values())
+    return list(dict.fromkeys(shown_sound_modes(options, modes, current, readable).values()))
 
 
 def match_mode(value: str, names: dict[str, str]) -> str | None:

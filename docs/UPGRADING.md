@@ -7,8 +7,8 @@ nothing from you are not listed. What changed in each version is in the
 ## From 1.1.x
 
 - **Sound mode names in capitals** (AVR-X2000 and other receivers before
-  2016) show as words: *Pure Direct* where it said *PURE DIRECT*,
-  *Multichannel stereo* where it said *MULTI CH STEREO*. Choosing by the
+  2016) show as words when they are words only: *Pure Direct* where it said
+  *PURE DIRECT*, *Multichannel stereo* where it said *MULTI CH STEREO*. Choosing by the
   receiver's name still works; a condition or template that compares
   `sound_mode` with the capitals needs the new name. **Readable names** off
   under Configure → Sound modes keeps the capitals.

@@ -670,7 +670,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         # the receiver's own order, plus any current-context extras (e.g. Auto)
         # and the active mode. Not sorted, to keep a sensible order. The set is
         # signal dependent: the receiver only lists modes valid for the signal.
-        shown = list(self._shown_sound_modes().values())
+        shown = list(dict.fromkeys(self._shown_sound_modes().values()))
         return shown or None
 
     def _shown_sound_modes(self) -> dict[str, str]:
@@ -1272,6 +1272,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             state = self.hass.states.get(entity_id)
             player = str(state.name) if state is not None else entity_id
             source = choices.source_display(self._device.discovery, self._entry_options, code)
+            if source not in (self.source_list or []):
+                # An input this zone does not offer (Zone 2 and HDMI).
+                continue
             # The input too, as playing from here switches to it.
             title = player if player.casefold() == source.casefold() else f"{player} ({source})"
             folders.append(self._folder(f"{_LINKED}{code}|", title, None))
@@ -1287,16 +1290,17 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             else None
         )
         if entity is None:
-            raise BrowseError(
-                translation_domain=DOMAIN,
-                translation_key="linked_player_gone",
-                translation_placeholders={
-                    "input": choices.source_display(
-                        self._device.discovery, self._entry_options, code
-                    )
-                },
-            )
+            raise self._linked_gone(BrowseError, code)
         return entity
+
+    def _linked_gone(self, kind: type[HomeAssistantError], code: str) -> HomeAssistantError:
+        return kind(
+            translation_domain=DOMAIN,
+            translation_key="linked_player_gone",
+            translation_placeholders={
+                "input": choices.source_display(self._device.discovery, self._entry_options, code)
+            },
+        )
 
     async def _async_browse_linked(
         self, content_id: str, content_type: MediaType | str | None
@@ -1305,9 +1309,17 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         code, _, inner = content_id[len(_LINKED):].partition("|")
         entity = self._linked_entity(code)
-        item = await entity.async_browse_media(
-            (content_type or None) if inner else None, inner or None
-        )
+        if not entity.supported_features & MediaPlayerEntityFeature.BROWSE_MEDIA:
+            raise self._linked_gone(BrowseError, code)
+        try:
+            item = await entity.async_browse_media(
+                (content_type or None) if inner else None, inner or None
+            )
+        except BrowseError:
+            raise
+        except (HomeAssistantError, NotImplementedError) as err:
+            # Shown as this player's error, not as a browser it lacks.
+            raise BrowseError(str(err) or type(err).__name__) from err
         return self._wrap_linked(code, item)
 
     def _wrap_linked(self, code: str, item: BrowseMedia) -> BrowseMedia:
@@ -1335,19 +1347,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         code, _, inner = media_id[len(_LINKED):].partition("|")
         link = linked_players.links(self._entry_options).get(code)
-        if link is None:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="linked_player_gone",
-                translation_placeholders={
-                    "input": choices.source_display(
-                        self._device.discovery, self._entry_options, code
-                    )
-                },
+        if link is None or self.hass.data[MEDIA_PLAYER_COMPONENT].get_entity(link.entity_id) is None:
+            # Before switching: Home Assistant would only log a missing entity.
+            raise self._linked_gone(ServiceValidationError, code)
+        if not self._zone_state.power or self._source_code != code:
+            # As choosing the input: turns on, and a zone that refuses it says so.
+            await self.async_select_source(
+                choices.source_display(self._device.discovery, self._entry_options, code)
             )
-        await self._ensure_on()
-        if self._source_code != code:
-            await self._device.async_select_source(self._zone.id, code)
         data: dict[str, Any] = {
             ATTR_MEDIA_CONTENT_TYPE: media_type,
             ATTR_MEDIA_CONTENT_ID: inner,

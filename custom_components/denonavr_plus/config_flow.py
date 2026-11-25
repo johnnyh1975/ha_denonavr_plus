@@ -533,6 +533,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         self._mode_names_for: list[str] = []
         self._link_input: str = ""
         self._playback: dict[str, Any] | None = None
+        self._link_edits: dict[str, Link | None] = {}
 
     # Helpers -------------------------------------------------------------
 
@@ -798,15 +799,23 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         ]
 
     def _playback_draft(self) -> dict[str, Any]:
-        """The playback options being edited: saved together when the user is done."""
+        """The playback options as they will be saved: the entry's own now, with
+        the changes made in this dialog on top.
 
+        Only the inputs edited here are taken from the dialog: a player renamed
+        meanwhile (which rewrites the options) stays renamed on the others.
+        """
+
+        options = dict(self.config_entry.options)
         if self._playback is None:
-            options = dict(self.config_entry.options)
-            self._playback = {
-                OPT_SIGNAL_STATE: bool(options.get(OPT_SIGNAL_STATE, False)),
-                OPT_LINKED_PLAYERS: linked_players.stored_links(options),
-            }
-        return self._playback
+            self._playback = {OPT_SIGNAL_STATE: bool(options.get(OPT_SIGNAL_STATE, False))}
+        links = options
+        for code, link in self._link_edits.items():
+            links = {OPT_LINKED_PLAYERS: linked_players.with_link(links, code, link)}
+        return {
+            OPT_SIGNAL_STATE: self._playback[OPT_SIGNAL_STATE],
+            OPT_LINKED_PLAYERS: linked_players.stored_links(links),
+        }
 
     async def async_step_playback(
         self, user_input: dict[str, Any] | None = None
@@ -823,7 +832,9 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         inputs = self._linkable()
         draft = self._playback_draft()
         if user_input is not None:
-            draft[OPT_SIGNAL_STATE] = bool(user_input.get(OPT_SIGNAL_STATE, False))
+            assert self._playback is not None
+            self._playback[OPT_SIGNAL_STATE] = bool(user_input.get(OPT_SIGNAL_STATE, False))
+            draft = self._playback_draft()
             code = user_input.get("input")
             if code in dict(inputs):
                 self._link_input = str(code)
@@ -875,7 +886,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 if player
                 else None
             )
-            draft[OPT_LINKED_PLAYERS] = linked_players.with_link(draft, code, link)
+            self._link_edits[code] = link
             return await self.async_step_playback_next()
         schema = vol.Schema(
             {

@@ -567,7 +567,7 @@ def main_player(hass: HomeAssistant, entry: MockConfigEntry) -> str:
 async def test_switching_by_hand_pauses_the_players_no_zone_hears(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    """With a followed player, only what a zone plays keeps playing (as Rotel)."""
+    """With a followed player, switching to another linked input pauses the rest."""
     telnet = FakeTelnet.instances[-1]
     telnet.push("PWON", "ZMON", "SIDVD")
     await _settle(hass)
@@ -575,10 +575,110 @@ async def test_switching_by_hand_pauses_the_players_no_zone_hears(
     _options(loaded_entry, DVD=_player(APPLE_TV, follow=True), CD=_player(STREAMER))
     await hass.async_block_till_done()
     pauses = async_mock_service(hass, "media_player", "media_pause")
-    # By remote to an input without a player.
-    telnet.push("SITV")
+    # By remote to the streamer's input.
+    telnet.push("SICD")
     await _settle(hass)
     assert [call.data["entity_id"] for call in pauses] == [APPLE_TV]
+
+
+async def test_an_input_without_a_player_pauses_nothing(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The TV, the tuner, or the network for an announcement (as Rotel)."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV, follow=True))
+    await hass.async_block_till_done()
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    for line in ("SITV", "SINET", "SIDVD"):
+        telnet.push(line)
+        await _settle(hass)
+    assert pauses == []
+
+
+async def test_following_from_standby_keeps_the_player_that_started(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The zone turns on with its old input first: no pause until it is there."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWSTANDBY", "ZMOFF", "SICD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "idle", {"supported_features": FEATURES})
+    hass.states.async_set(STREAMER, "playing", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV, follow=True), CD=_player(STREAMER))
+    await hass.async_block_till_done()
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    hass.states.async_set(APPLE_TV, "playing", {"supported_features": FEATURES})
+    await hass.async_block_till_done()
+    # The receiver wakes up on its old input, then takes the new one.
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
+    assert pauses == []
+    await hass.async_block_till_done(wait_background_tasks=True)
+    telnet.push("SIDVD")
+    await _settle(hass)
+    assert "SIDVD" in telnet.sent
+    assert [call.data["entity_id"] for call in pauses] == [STREAMER]
+    assert pauses[0].context.id == hass.states.get(APPLE_TV).context.id
+
+
+async def test_a_reload_or_turning_on_pauses_nothing(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    hass.states.async_set(STREAMER, "playing", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV, follow=True), CD=_player(STREAMER))
+    await hass.async_block_till_done()
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    # A reload: the receiver reports its state afresh.
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    # Off, and on again by remote: a player on the TV's own speakers plays on.
+    telnet.push("ZMOFF")
+    await _settle(hass)
+    telnet.push("ZMON", "SIDVD")
+    await _settle(hass)
+    assert pauses == []
+
+
+async def test_a_hidden_zone_2_still_hears_its_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SITV", "Z2ON", "Z2CD")
+    await _settle(hass)
+    hass.states.async_set(STREAMER, "playing", {"supported_features": FEATURES})
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "zones": ["main"],
+            "linked_players": {
+                "DVD": _player(APPLE_TV, follow=True),
+                "CD": _player(STREAMER),
+            },
+        },
+    )
+    await hass.async_block_till_done()
+    # Hiding a zone reloads the entry: a new connection reports afresh.
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SITV", "Z2ON", "Z2CD")
+    await _settle(hass)
+    assert loaded_entry.runtime_data.data.zone("zone2").power
+    pauses = async_mock_service(hass, "media_player", "media_pause")
+    telnet.push("SIDVD")
+    await _settle(hass)
+    assert pauses == []
+    # Let the receiver's follow-up queries finish.
+    await asyncio.sleep(1.2)
+    await hass.async_block_till_done()
 
 
 async def test_without_a_followed_player_every_player_keeps_playing(

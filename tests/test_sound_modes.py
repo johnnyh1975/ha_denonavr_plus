@@ -84,12 +84,29 @@ def test_a_mode_is_chosen_by_its_short_or_its_receiver_name() -> None:
         ("MULTI CH STEREO", "Multichannel stereo"),
         ("MULTI CH IN 7.1", "Multichannel input 7.1"),
         ("DTS SURROUND", "DTS Surround"),
-        # Words with punctuation or digits stay as the receiver writes them.
+        ("DOLBY TRUEHD", "Dolby TrueHD"),
+        ("DTS HD MSTR", "DTS HD MSTR"),
+        ("AUDYSSEY DSX", "Audyssey DSX"),
+        ("DOLBY D EX", "Dolby D EX"),
+        # A sign or a digit: an MS token, left as the receiver writes it.
         ("DTS:X", "DTS:X"),
         ("AURO-3D", "AURO-3D"),
-        ("7CH STEREO", "7CH Stereo"),
+        ("7CH STEREO", "7CH STEREO"),
+        ("M CH IN+DOLBY EX", "M CH IN+DOLBY EX"),
+        ("DOLBY AUDIO-DSUR", "DOLBY AUDIO-DSUR"),
     ],
 )
 def test_names_in_capitals_are_written_as_words(name: str, shown: str) -> None:
     """Older receivers (AVR-X2000) and the MS tokens give every name in capitals."""
     assert sound_modes.readable(name) == shown
+
+
+def test_a_current_token_reads_as_the_listed_mode() -> None:
+    """Before the receiver names the mode, its token is the listed mode, not a clash."""
+    readable = sound_modes.readable_with(sound_modes.WORDS)
+    shown = choices.shown_sound_modes({}, ["Multi Ch Stereo", "Stereo"], "MCH STEREO", readable)
+    assert shown["MCH STEREO"] == shown["Multi Ch Stereo"] == "Multichannel stereo"
+    assert choices.sound_mode_list({}, ["Multi Ch Stereo", "Stereo"], "MCH STEREO", readable) == [
+        "Multichannel stereo",
+        "Stereo",
+    ]

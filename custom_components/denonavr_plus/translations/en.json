@@ -253,7 +253,7 @@
         },
         "data_description": {
           "player": "Its title, artwork, position and state show on every zone that plays this input; play, pause, skip and seek go to it.",
-          "follow": "When the player starts, the main zone turns on if needed and switches here. Linked players that no zone plays are then paused, also after a switch by hand or remote. A player that starts within 5 seconds of a switch is paused instead.",
+          "follow": "When the player starts, the main zone turns on if needed and switches here. Linked players that no zone plays are then paused, also when the main zone is switched by hand or remote to another input with a linked player. A player that starts within 5 seconds of a switch is paused instead.",
           "full_volume": "The volume is set on the receiver, so while a zone that is on plays this input, the player is set to full volume and unmuted, and again whenever its volume changes. Not for a device with its own speakers, such as a television: it would play at full volume there."
         }
       },

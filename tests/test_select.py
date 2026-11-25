@@ -489,3 +489,10 @@ async def test_the_sound_mode_select_is_never_empty(
     assert state is not None
     # The recording lists no modes either: the ones its device description names.
     assert state.attributes["options"] == ["Game"]
+    # And the current mode, which the receiver reports as its token only.
+    loaded_entry.runtime_data.data.values.pop("sound_mode_display", None)
+    loaded_entry.runtime_data.data.values["sound_mode"] = "GAME"
+    loaded_entry.runtime_data.async_update_listeners()
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id(hass, loaded_entry, "select_sound_mode"))
+    assert state is not None and state.state == "Game"

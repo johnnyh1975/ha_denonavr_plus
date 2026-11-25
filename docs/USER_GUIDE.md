@@ -244,7 +244,7 @@ switches the receiver to its input.
 
 Per input, the **main zone can switch to the input when the player
 starts** (it turns on if needed, and linked players that no zone plays
-then pause) and **keep the player at full volume**, since you set the volume on
+then pause; switching by remote to another linked input does the same) and **keep the player at full volume**, since you set the volume on
 the receiver. **Playing or idle by the input signal** shows *Playing* or
 *Idle* instead of *On* on inputs without a linked player; it has not been
 tried on a receiver yet.

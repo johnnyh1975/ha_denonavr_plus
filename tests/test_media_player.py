@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 from freezegun.api import FrozenDateTimeFactory
@@ -2224,3 +2224,63 @@ async def test_a_gone_linked_player_is_a_clear_error(
             blocking=True,
         )
     assert failed.value.translation_key == "linked_player_gone"
+
+
+async def test_a_linked_player_that_is_gone_is_an_error_before_switching(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    _link(hass, loaded_entry)
+    await _push(hass, "PWON", "ZMON", "SICD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    with pytest.raises(ServiceValidationError) as failed:
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {"entity_id": main, "media_content_type": "app", "media_content_id": "linked:DVD|x"},
+            blocking=True,
+        )
+    assert failed.value.translation_key == "linked_player_gone"
+    assert telnet.sent == []
+
+
+async def test_a_failing_linked_browser_is_a_browse_error(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import DATA_COMPONENT
+
+    linked = await _browsing_player(hass)
+    _link(hass, loaded_entry)
+    await hass.async_block_till_done()
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None
+    with patch.object(type(linked), "async_browse_media", side_effect=NotImplementedError):
+        with pytest.raises(BrowseError):
+            await player.async_browse_media("", "linked:DVD|")
+    with patch.object(
+        type(linked), "async_browse_media", side_effect=HomeAssistantError("offline")
+    ):
+        with pytest.raises(BrowseError, match="offline"):
+            await player.async_browse_media("", "linked:DVD|")
+    # A player without a browser of its own.
+    linked._attr_supported_features = MediaPlayerEntityFeature.PLAY
+    with pytest.raises(BrowseError) as gone:
+        await player.async_browse_media("", "linked:DVD|")
+    assert gone.value.translation_key == "linked_player_gone"
+
+
+async def test_zone_2_gets_no_folder_for_an_input_it_does_not_offer(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import DATA_COMPONENT
+
+    await _browsing_player(hass)
+    _link(hass, loaded_entry)
+    await hass.async_block_till_done()
+    zone2 = hass.data[DATA_COMPONENT].get_entity(entity_id(hass, loaded_entry, "media_player_zone2"))
+    assert zone2 is not None
+    with patch.object(type(zone2), "source_list", new_callable=PropertyMock, return_value=["CD"]):
+        root = await zone2.async_browse_media()
+    assert not [c for c in root.children or [] if c.media_content_id.startswith("linked:")]

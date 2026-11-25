@@ -102,10 +102,12 @@ receiver's names: the upmixer where a mode has one (`Dolby Audio - DD + DSur`
 shows as Dolby Surround, `Multi In + Neural:X` as DTS Neural:X), the Dolby
 format spelled out (`Dolby Audio - DD+` as Dolby Digital Plus), and Multi Ch
 Stereo and Multi Ch In in the user's language. Names in capitals, as older
-receivers such as the AVR-X2000 give them, are written as words
-(`PURE DIRECT` as Pure Direct), abbreviations and words with digits or signs
-kept (`DTS:X`, `7CH`). Other names stay as the receiver gives them; two modes that would get the same short name keep the
-receiver's names, and a name set here wins. The names are the same in the
+receivers such as the AVR-X2000 give them, are written as words when they
+are words only (`PURE DIRECT` as Pure Direct, `DOLBY TRUEHD` as Dolby
+TrueHD), abbreviations such as DTS kept; a name with a digit or a sign
+(`DTS:X`, `7CH STEREO`, `M CH IN+DOLBY EX`) stays as it is. Other names stay
+as the receiver gives them; two modes that would get the same short name keep
+the receiver's names, and a name set here wins. The names are the same in the
 media player and the sound mode select. Both still take the receiver's names
 (in any case) to choose a mode; a name a list shows comes first. The select
 offers the modes of the current group only (every mode, when the receiver
@@ -140,9 +142,15 @@ and its tokens.
     when the zone was off, and `player`).
 
     While one input has this switched on, only what a zone plays keeps
-    playing: whenever the main zone changes input, by a follow, by hand or by
-    the remote, the linked players whose input no zone plays are paused
-    (stopped, if they cannot pause). A player that Zone 2 plays keeps playing.
+    playing: when the main zone follows a player, and when it is switched by
+    hand or by the remote to another input with a linked player, the linked
+    players whose input no zone plays are paused (stopped, if they cannot
+    pause). A player that Zone 2 plays keeps playing, also with Zone 2 hidden.
+    Nothing is paused when the main zone switches to an input without a
+    linked player (the TV, the tuner, the network for an announcement), when
+    it only turns on, or when the receiver first reports after a start or
+    reload. On a follow from standby the pause comes once the zone is on the
+    new input, not with the old input it wakes up on.
   - **Keep the player at full volume** (default off): the volume is set on the
     receiver, so while a zone that is on plays the input, the player is set to
     100 % and unmuted: when the zone switches to the input, when the option is
@@ -285,7 +293,8 @@ AVC‑A10H describes it as 0–15).
   not yet tried on a receiver); another zone hears them by joining the main
   zone. Receivers without HEOS take quick selects, sources and presets only.
   Each **linked player** with a browser of its own (an Apple TV, a Chromecast)
-  gets a folder under its name with that browser; playing from it switches
+  gets a folder with that browser, named "Player (Input)" (only the player's
+  name when both are the same), on each zone that offers the input; playing from it switches
   the zone to the player's input, then plays on the player. A zone in standby
   is turned on first, also when a source or a sound mode is picked.
 - **Voice**: "play Kino on the living room receiver" works with Assist. The

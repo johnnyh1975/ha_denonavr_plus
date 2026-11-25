@@ -253,7 +253,7 @@
         },
         "data_description": {
           "player": "Jego tytuł, okładka, pozycja i stan pojawiają się w każdej strefie grającej to wejście; odtwarzanie, pauza, przeskok i przewijanie trafiają do niego.",
-          "follow": "Gdy odtwarzacz rusza, strefa główna w razie potrzeby się włącza i przełącza tutaj. Powiązane odtwarzacze, których nie gra żadna strefa, zostają wtedy wstrzymane, także po zmianie ręcznej lub pilotem. Odtwarzacz, który ruszy w ciągu 5 sekund od zmiany, zostaje wstrzymany zamiast tego.",
+          "follow": "Gdy odtwarzacz rusza, strefa główna w razie potrzeby się włącza i przełącza tutaj. Powiązane odtwarzacze, których nie gra żadna strefa, zostają wtedy wstrzymane, także gdy strefa główna zostanie przełączona ręcznie lub pilotem na inne wejście z powiązanym odtwarzaczem. Odtwarzacz, który ruszy w ciągu 5 sekund od zmiany, zostaje wstrzymany zamiast tego.",
           "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością."
         }
       },
