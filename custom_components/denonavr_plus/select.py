@@ -253,6 +253,27 @@ class DenonAvrSoundModeSelect(DenonAvrEntity, SelectEntity):
         current = self.coordinator.data.values.get("sound_mode_display")
         return self._names().get(str(current)) if current else None
 
+    async def async_handle_select_option(self, option: str) -> None:  # type: ignore[misc]
+        """Take the receiver's name for a mode too, as the name shown for it.
+
+        The options are the readable names, and Home Assistant accepts only an
+        option from the list. A receiver's name (any case) is turned into the
+        name shown before that check, so select.select_option takes the same
+        names as media_player.select_sound_mode. Home Assistant marks this
+        service wrapper final; it is overridden only to translate the name and
+        then runs Home Assistant's own check unchanged. A test calls the
+        service with a receiver's name, so a change in Home Assistant shows.
+        """
+
+        names = self._names()
+        if option not in names.values():
+            key = choices.normalized(option)
+            for mode, name in names.items():
+                if choices.normalized(mode) == key or choices.normalized(name) == key:
+                    option = name
+                    break
+        await super().async_handle_select_option(option)
+
     @receiver_action
     async def async_select_option(self, option: str) -> None:
         mode = next((mode for mode, name in self._names().items() if name == option), option)

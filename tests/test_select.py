@@ -416,3 +416,24 @@ async def test_a_mode_has_the_same_name_in_the_select_and_the_player(
     )
     assert hass.states.get(select).attributes["options"] == ["Dolby Audio - DD + DSur"]
     assert hass.states.get(main).attributes["sound_mode"] == "Dolby Audio - DD + DSur"
+
+
+async def test_the_sound_mode_select_takes_the_receiver_s_names_too(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The receiver's name, in any case, chooses the mode shown under its short name."""
+    from homeassistant.exceptions import ServiceValidationError
+
+    select = entity_id(hass, loaded_entry, "select_sound_mode")
+    await _push(hass, "OPSML 010Stereo", "OPSML 021Dolby Audio - DD + DSur", "OPSML END")
+    telnet = FakeTelnet.instances[-1]
+    for name in ("Dolby Audio - DD + DSur", "dolby audio - dd + dsur", "DOLBY SURROUND"):
+        telnet.sent.clear()
+        await hass.services.async_call(
+            "select", "select_option", {"entity_id": select, "option": name}, blocking=True
+        )
+        assert telnet.sent and telnet.sent[0].startswith("MS"), name
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "select", "select_option", {"entity_id": select, "option": "Jazz Club"}, blocking=True
+        )

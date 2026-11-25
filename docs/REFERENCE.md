@@ -104,8 +104,8 @@ format spelled out (`Dolby Audio - DD+` as Dolby Digital Plus), and Multi Ch
 Stereo and Multi Ch In in the user's language. Other names stay as the
 receiver gives them; two modes that would get the same short name keep the
 receiver's names, and a name set here wins. The names are the same in the
-media player and the sound mode select. `media_player.select_sound_mode`
-still takes the receiver's names; the select takes the names it shows.
+media player and the sound mode select. Both still take the receiver's names
+(in any case) to choose a mode, and turn them into the name shown.
 
 **Entities** (works even when the receiver is off): a toggle per group of the
 entities that start hidden, with how many it holds: Audio, Speakers, Video and

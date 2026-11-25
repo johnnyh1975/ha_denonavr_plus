@@ -13,10 +13,9 @@ where they said *Multi Ch Stereo*. Two modes that would get the same short
 name keep the receiver's names. The sound mode select now also shows the
 names set under Configure → Sound modes.
 
-- `media_player.select_sound_mode` still takes the receiver's names.
-- `select.select_option` on the sound mode select takes only the names it
-  shows: an automation that chose a mode there by the receiver's name needs
-  the short name now.
+- Choosing a mode by the receiver's name still works, with
+  `media_player.select_sound_mode` and with `select.select_option` on the
+  sound mode select.
 - A condition or template that compares `sound_mode` or the select's state
   with the receiver's name compares with the short name now.
 
