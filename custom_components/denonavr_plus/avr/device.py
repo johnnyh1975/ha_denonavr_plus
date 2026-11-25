@@ -100,6 +100,10 @@ RECOVER_ON_WAIT = 20.0
 FOLLOW_MAIN = "SOURCE"
 #: How long a preset recall waits for the receiver to switch to the tuner.
 TUNER_SWITCH_WAIT = 3.0
+#: A zone turned on for the tuner: how long it may take to report on, and
+#: the pause before the input and the tuner command.
+TUNER_POWER_WAIT = 15.0
+TUNER_POWER_SETTLE = 1.0
 #: How long a zone other than the main zone has to confirm a new source.
 ZONE_SOURCE_WAIT = 2.0
 #: How long a setting the receiver may refuse has to come back, first as the
@@ -217,6 +221,8 @@ class DenonAvrDevice:
         # When the full sound mode list was last asked for: its END is then
         # the end of our own answer, which needs no OPSML re-query.
         self._sound_modes_asked_at: float | None = None
+        #: Own OPSMLALL queries whose END has not come yet.
+        self._sound_modes_pending = 0
         #: How long each part of the discovery took, for the diagnostics.
         self.setup_timings: dict[str, int] = {}
         self._available = False
@@ -913,6 +919,14 @@ class DenonAvrDevice:
             return
         if not self._state.zone(zone_id).power:
             await self.async_set_power(zone_id, True)
+            # A receiver waking up drops what it is sent at once.
+            try:
+                async with asyncio.timeout(TUNER_POWER_WAIT):
+                    while not self._state.zone(zone_id).power:
+                        await asyncio.sleep(0.1)
+            except TimeoutError:
+                _LOGGER.debug("%s did not report the zone on in time", self._host)
+            await asyncio.sleep(TUNER_POWER_SETTLE)
         await self.async_select_source(zone_id, tuners[0])
         try:
             async with asyncio.timeout(TUNER_SWITCH_WAIT):
@@ -1009,19 +1023,30 @@ class DenonAvrDevice:
         """
 
         level = self._discovery.device.comm_api_version
-        if level is None or level < appcommand.STATUS_FROM:
+        if self._telnet.connected or level is None or level < appcommand.STATUS_FROM:
             return
-        values = appcommand.parse_status(
-            await self._goform.async_post(appcommand.STATUS_PATH, appcommand.STATUS_REQUEST)
-        )
+        status = await self._goform.async_post(appcommand.STATUS_PATH, appcommand.STATUS_REQUEST)
+        self._apply_http_values(appcommand.STATUS_KEYS, appcommand.parse_status(status))
         if level >= appcommand.SETUP_FROM:
-            values.update(
-                appcommand.parse_audyssey(
-                    await self._goform.async_post(
-                        appcommand.SETUP_PATH, appcommand.AUDYSSEY_REQUEST
-                    )
-                )
+            audyssey = await self._goform.async_post(
+                appcommand.SETUP_PATH, appcommand.AUDYSSEY_REQUEST
             )
+            self._apply_http_values(appcommand.AUDYSSEY_KEYS, appcommand.parse_audyssey(audyssey))
+
+    def _apply_http_values(self, keys: frozenset[str], values: dict[str, object]) -> None:
+        """Take one page's values; a value it no longer reports is no longer known.
+
+        Tone control off the list (Direct, say) leaves bass and treble
+        unknown instead of showing what they were. Telnet may have come back
+        while the page was read: then telnet's values stand.
+        """
+
+        if self._telnet.connected:
+            return
+        for key in keys - values.keys():
+            if key in self._http_values:
+                self._state.values.pop(key, None)
+                self._http_values.discard(key)
         self._state.values.update(values)
         self._http_values.update(values)
 
@@ -1159,7 +1184,7 @@ class DenonAvrDevice:
         # asked for it (the resync, a refresh group) asks for OPSML as well.
         if line.startswith("OPSMLALL"):
             remainder = line[len("OPSMLALL") :].strip()
-            if remainder.startswith(self._profile.list_terminator) and not self._asked_recently():
+            if remainder.startswith(self._profile.list_terminator) and not self._own_answer_ends():
                 self._create_task(self._query_current_sound_modes())
         # Data driven refresh: any group whose trigger prefix this line matches
         # gets a coalesced re-query. This keeps state the receiver does not
@@ -1188,7 +1213,23 @@ class DenonAvrDevice:
         """Remember when the full sound mode list was asked for."""
 
         if command == self._profile.introspection_query("sound_mode_list"):
+            if not self._asked_recently():
+                self._sound_modes_pending = 0
             self._sound_modes_asked_at = asyncio.get_running_loop().time()
+            self._sound_modes_pending += 1
+
+    def _own_answer_ends(self) -> bool:
+        """Whether an OPSMLALL END closes the answer to one of our own queries.
+
+        Each own query takes one END, within SOUND_MODES_ANSWER of the last
+        one; any other END is a push (a genre switch, say).
+        """
+
+        if self._sound_modes_pending and self._asked_recently():
+            self._sound_modes_pending -= 1
+            return True
+        self._sound_modes_pending = 0
+        return False
 
     def _asked_recently(self) -> bool:
         """Whether an OPSMLALL list now ending is the answer to our own query."""
@@ -2018,7 +2059,7 @@ class DenonAvrDevice:
         reason = None
         if spec is not None:
             reason = refusals.refusal_reason(
-                control_id, spec.group, self._state.zone("main").power
+                control_id, spec.group, self._state.zone("main").power, value
             )
         if (
             spec is None

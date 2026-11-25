@@ -189,6 +189,7 @@ async def test_volume_ramp_steps_to_the_level(
     await _push(hass, "PWON", "ZMON", "MV50")
     main = entity_id(hass, loaded_entry, "media_player_main")
     telnet = FakeTelnet.instances[-1]
+    telnet.echo = True
     telnet.sent.clear()
     with patch(_RAMP_INTERVAL, 0.01):
         # 0.48 is raw 48: four half-dB steps down.
@@ -227,6 +228,49 @@ async def test_a_volume_command_stops_the_ramp(
         )
         await asyncio.sleep(0.3)
     assert telnet.sent == ["MV30"]
+
+
+@pytest.mark.parametrize("elsewhere", ["ZMOFF", "MV45"])
+async def test_the_ramp_stops_when_the_zone_changes_elsewhere(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, elsewhere: str
+) -> None:
+    """Switched off by the power switch or the remote, or the volume set by the knob."""
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={volume.OPT_OFFICIAL_SCALE: True}
+    )
+    await _push(hass, "PWON", "ZMON", "MV50")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.echo = True
+    telnet.sent.clear()
+    with patch(_RAMP_INTERVAL, 0.01):
+        # Twenty steps, a tenth of a second apart.
+        await _ramp(hass, main, 0.4, 2)
+        await _eventually(lambda: "MV495" in telnet.sent)
+        telnet.push(elsewhere)
+        sent = len(telnet.sent)
+        await asyncio.sleep(0.3)
+    assert len(telnet.sent) == sent
+
+
+async def test_an_announcement_or_a_restore_stops_the_ramp(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus.const import DOMAIN
+
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={volume.OPT_OFFICIAL_SCALE: True}
+    )
+    await _push(hass, "PWON", "ZMON", "MV50")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await hass.services.async_call(DOMAIN, "snapshot", {"entity_id": main}, blocking=True)
+    telnet = FakeTelnet.instances[-1]
+    with patch(_RAMP_INTERVAL, 0.01):
+        await _ramp(hass, main, 0.4, 2)
+        await hass.services.async_call(DOMAIN, "restore", {"entity_id": main}, blocking=True)
+        telnet.sent.clear()
+        await asyncio.sleep(0.3)
+    assert not [command for command in telnet.sent if command.startswith("MV")]
 
 
 async def test_volume_ramp_needs_the_zone_on_and_survives_a_lost_receiver(

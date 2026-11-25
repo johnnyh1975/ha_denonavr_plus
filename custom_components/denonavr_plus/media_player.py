@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 from datetime import datetime
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
@@ -1191,10 +1192,13 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         steps = max(1, round(abs(target - start) / step))
         steps = min(steps, max(1, int(duration / RAMP_MIN_INTERVAL)))
         interval = duration / steps
-        sent = start
+        sent = before = start
         try:
             for number in range(1, steps + 1):
                 await asyncio.sleep(interval)
+                if self._ramp_interrupted(sent, before):
+                    _LOGGER.debug("Zone %s volume ramp stopped; changed elsewhere", self._zone.id)
+                    return
                 raw = (
                     target
                     if number == steps
@@ -1202,10 +1206,27 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 )
                 if raw != sent:
                     await self._device.async_set_volume_raw(self._zone.id, raw)
-                    sent = raw
+                    before, sent = sent, raw
         except CommandNotSent:
             # A background task: the receiver went away; nothing to report to.
             _LOGGER.debug("Zone %s volume ramp stopped; receiver unreachable", self._zone.id)
+
+    def _ramp_interrupted(self, sent: float, before: float) -> bool:
+        """Whether the zone was switched off or its volume set by something else.
+
+        The power switch, the remote, the volume number, an announcement or
+        the receiver's knob: the reported volume is then neither the last
+        step sent nor, while its echo is still on the way (over HTTP it comes
+        with the next poll), the one before.
+        """
+
+        state = self._zone_state
+        if not state.power:
+            return True
+        reported = state.volume_raw
+        return reported is not None and not any(
+            math.isclose(reported, value, abs_tol=0.01) for value in (sent, before)
+        )
 
     # Snapshot and restore (actions) -------------------------------------------
 
@@ -1217,6 +1238,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     async def async_restore_snapshot(self) -> None:
         """Put the zone back as the last snapshot found it (denonavr_plus.restore)."""
 
+        self._cancel_volume_ramp()
         if self._snapshot is None:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -1319,6 +1341,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         it has played they are restored in the background. A second
         announcement before then keeps the first snapshot.
         """
+
+        self._cancel_volume_ramp()
 
         if self._announce_task is not None and not self._announce_task.done():
             self._announce_task.cancel()

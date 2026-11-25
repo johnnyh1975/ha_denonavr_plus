@@ -129,6 +129,9 @@ def test_zone_2_settings_go_with_zone_2() -> None:
     assert helpers.control_zone_shown(other, {"zones": []})
 
 
+@pytest.mark.assumed(
+    "VSVPMBYP comes from Denon's 2020 command list; no receiver has taken it yet"
+)
 def test_a_value_only_some_receivers_have() -> None:
     """Video Mode Bypass (VSVPMBYP): the AVR-X2600H and AVC-X3700H list it,
     the AVR-X4300H does not; a receiver that lists nothing does not get it."""

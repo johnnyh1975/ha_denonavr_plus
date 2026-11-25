@@ -768,11 +768,10 @@ async def test_the_answers_to_the_resync_start_no_new_query(
     telnet.push("OPSMLALL MOV010Stereo", "OPSMLALL END")
     await asyncio.sleep(1.2)
     assert (telnet.sent.count("OPSML ?"), telnet.sent.count("OPSMLALL ?")) == asked
-    # A pushed list later (a change of genre) still brings the OPSML query.
-    await asyncio.sleep(0)
-    with patch("custom_components.denonavr_plus.avr.device.SOUND_MODES_ANSWER", 0.0):
-        telnet.push("OPSMLALL MUS080Stereo", "OPSMLALL END")
-        await asyncio.sleep(0.05)
+    # A pushed list right after (a change of genre) still brings the OPSML
+    # query: each own query takes one END, not every END for a while.
+    telnet.push("OPSMLALL MUS080Stereo", "OPSMLALL END")
+    await asyncio.sleep(0.05)
     assert telnet.sent.count("OPSML ?") == asked[0] + 1
 
 
@@ -1040,3 +1039,39 @@ async def test_older_receivers_are_asked_only_what_their_level_has(
     ):
         await device.async_poll()
     assert post.await_count == posts
+
+
+async def test_values_read_over_http_follow_the_page_and_yield_to_telnet(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Tone control off the list leaves bass and treble unknown; telnet back wins."""
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.connected = False
+    status = AsyncMock(return_value={"power": True})
+    post = AsyncMock(side_effect=_answers)
+    with (
+        patch.object(GoformClient, "async_get_status", status),
+        patch.object(GoformClient, "async_post", post),
+    ):
+        await device.async_poll()
+        assert device.state.values["bass"] == 2.0
+        no_tone = "<rx><cmd><surround>Direct</surround></cmd><cmd><status>0</status></cmd></rx>"
+        post.side_effect = lambda path, body: (
+            _AUDYSSEY if path.endswith("AppCommand0300.xml") else no_tone
+        )
+        await device.async_poll()
+        assert "bass" not in device.state.values
+        assert "bass" not in device.http_values
+        assert device.state.values["sound_mode_display"] == "Direct"
+
+        # Telnet came back while a page was on its way: telnet's values stand.
+        telnet.push("PSBAS 47")
+
+        async def answer_late(path: str, body: str) -> str:
+            telnet.connected = True
+            return _TONE_AND_MODE
+
+        post.side_effect = answer_late
+        await device.async_poll()
+    assert device.state.values["bass"] == -3.0

@@ -176,6 +176,31 @@ async def test_a_tuner_preset_switches_to_the_tuner_first(
     assert telnet.sent == ["SITUNER", "TPAN12"]
 
 
+async def test_a_preset_from_standby_waits_for_the_zone(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Nothing but ZMON until the zone reports on: a waking receiver drops commands."""
+    from unittest.mock import patch
+
+    select = entity_id(hass, loaded_entry, "select_tuner_preset")
+    await _push(hass, "PWON", "ZMOFF", "SITUNER")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+
+    async def choose() -> None:
+        await hass.services.async_call(
+            "select", "select_option", {"entity_id": select, "option": "12"}, blocking=True
+        )
+
+    with patch("custom_components.denonavr_plus.avr.device.TUNER_POWER_SETTLE", 0):
+        task = asyncio.ensure_future(choose())
+        await asyncio.sleep(0.3)
+        assert telnet.sent == ["ZMON"]
+        telnet.push("ZMON")
+        await task
+    assert telnet.sent == ["ZMON", "SITUNER", "TPAN12"]
+
+
 # The speaker and /ajax selects, on a receiver that answers ----------------------
 
 
@@ -309,14 +334,18 @@ async def test_setup_api_selects_write_the_chosen_value(
     ]
 
 
+@pytest.mark.assumed(
+    "VSSCH8K comes from Denon's 2020 command list; no receiver has taken it yet"
+)
 async def test_the_resolution_follows_the_receivers_list(
     hass: HomeAssistant, receiver_network: Any
 ) -> None:
     """An AVC-X3700H lists its HDMI resolutions as Resolution, with 8K and
-    without 1080p:24Hz and 4K (60/50)."""
+    without 1080p:24Hz and 4K (60/50); it answers VSSCH ? as an AVR-X2600H does."""
     from unittest.mock import AsyncMock, patch
 
     from homeassistant.const import CONF_HOST
+    from homeassistant.helpers import entity_registry as er
     from pytest_homeassistant_custom_component.common import MockConfigEntry
 
     from custom_components.denonavr_plus.avr.transport import GoformClient
@@ -324,10 +353,19 @@ async def test_the_resolution_follows_the_receivers_list(
 
     from .conftest import deviceinfo
 
-    with patch.object(
-        GoformClient,
-        "async_get_device_info",
-        AsyncMock(return_value=deviceinfo("AVC-X3700H-Deviceinfo-8080.xml")),
+    async def answering(
+        host: str, queries: list[str], on_line: Any, is_complete: Any, **kwargs: Any
+    ) -> None:
+        if "VSSCH ?" in queries:
+            on_line("VSSCHAUTO")
+
+    with (
+        patch.object(
+            GoformClient,
+            "async_get_device_info",
+            AsyncMock(return_value=deviceinfo("AVC-X3700H-Deviceinfo-8080.xml")),
+        ),
+        patch("custom_components.denonavr_plus.avr.device.async_probe", answering),
     ):
         entry = MockConfigEntry(
             domain=DOMAIN, data={CONF_HOST: "192.0.2.10"}, minor_version=CONFIG_MINOR_VERSION
@@ -335,11 +373,10 @@ async def test_the_resolution_follows_the_receivers_list(
         entry.add_to_hass(hass)
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
-    labels = entry.runtime_data.device.discovery.option_labels
-    assert "8K" in labels["Resolution"]
-    from custom_components.denonavr_plus.helpers import enum_options
-
-    spec = entry.runtime_data.device.profile.control("resolution_hdmi")
-    assert spec is not None
-    keys = enum_options(spec, labels["Resolution"])[0]
-    assert keys == ["auto", "480p_576p", "1080i", "720p", "1080p", "4k", "8k"]
+        select = entity_id(hass, entry, "select_resolution_hdmi")
+        er.async_get(hass).async_update_entity(select, disabled_by=None)
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+    state = hass.states.get(select)
+    assert state is not None
+    assert state.attributes["options"] == ["auto", "480p_576p", "1080i", "720p", "1080p", "4k", "8k"]

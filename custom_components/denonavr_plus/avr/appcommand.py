@@ -42,6 +42,10 @@ AUDYSSEY_REQUEST = (
     "</list></cmd></tx>"
 )
 
+#: The value keys each request can report.
+STATUS_KEYS = frozenset({"sound_mode_display", "tone_control", "bass", "treble"})
+AUDYSSEY_KEYS = frozenset({"multeq", "dynamic_eq", "dynamic_volume"})
+
 #: The numbers AppCommand0300.xml uses, as telnet's tokens.
 _MULTEQ = {"0": "OFF", "1": "FLAT", "2": "BYP.LR", "3": "AUDYSSEY"}
 _DYNAMIC_VOLUME = {"0": "OFF", "1": "LIT", "2": "MED", "3": "HEV"}

@@ -8,7 +8,7 @@ from custom_components.denonavr_plus.avr.profile import load_profile
 
 def test_standby_comes_before_the_setting_s_own_condition() -> None:
     assert refusals.refusal_reason("subwoofer_switch", "speaker", False) == refusals.STANDBY
-    assert refusals.refusal_reason("subwoofer_switch", "speaker", True) == "two_channel"
+    assert refusals.refusal_reason("subwoofer_switch", "speaker", True, False) == "two_channel"
     # Power not known yet counts as on.
     assert refusals.refusal_reason("graphic_eq", "audyssey", None) == "multeq_off"
 
@@ -35,3 +35,8 @@ def test_every_reason_has_its_text() -> None:
     )
     for reason in refusals.ALL_REASONS:
         assert f"setting_not_taken_{reason}" in strings["exceptions"], reason
+
+
+def test_the_subwoofer_has_a_condition_only_for_switching_off() -> None:
+    assert refusals.refusal_reason("subwoofer_switch", "speaker", True, False) == "two_channel"
+    assert refusals.refusal_reason("subwoofer_switch", "speaker", True, True) is None

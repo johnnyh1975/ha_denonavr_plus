@@ -1093,7 +1093,7 @@
       "labels": ["Auto", "480p/576p", "1080i", "720p", "1080p", "1080p:24Hz", "4K", "4K (60/50)", "8K"],
       "listed_only": ["8K"],
       "published_from": ["ResolutionHdmi", "Resolution"],
-      "doc": "HDMI output resolution (scaler). Wire tokens from the Denon control protocol (VSSCH<token>); AUTO/48P/10I/72P/10P/10P24/4K verified live read/write. Only settable when Video Conversion is on and the IP scaler is on HDMI (the receiver otherwise rejects it); this is the ResolutionHDMI field the web Output Settings page gates the same way. 'VSSC' (analog) is a separate, hidden path and is not exposed."
+      "doc": "HDMI output resolution (scaler). Wire tokens from the Denon control protocol (VSSCH<token>); AUTO/48P/10I/72P/10P/10P24/4K verified live read/write. Only settable when Video Conversion is on and the IP scaler is on HDMI (the receiver otherwise rejects it); this is the ResolutionHDMI field the web Output Settings page gates the same way. 'VSSC' (analog) is a separate, hidden path and is not exposed. 8K (VSSCH8K) from Denon's 2020 command list, offered only where Deviceinfo.xml lists it (AVC-X3700H); not yet taken by a receiver."
     },
     "input_mode": {
       "group": "source",

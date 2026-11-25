@@ -110,3 +110,12 @@ async def test_the_repair_without_a_loaded_entry(
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "not_loaded"
+
+
+async def test_removing_the_entry_takes_the_question_away(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    assert _issue(hass, loaded_entry) is not None
+    await hass.config_entries.async_remove(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert _issue(hass, loaded_entry) is None

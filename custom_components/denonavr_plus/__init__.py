@@ -166,6 +166,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) ->
     await move.store(hass, entry.entry_id).async_remove()
     for issue in (move.ISSUE_AVAILABLE, move.ISSUE_CHECK):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
+    ir.async_delete_issue(hass, DOMAIN, zone_sources.issue_id(entry.entry_id))
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:

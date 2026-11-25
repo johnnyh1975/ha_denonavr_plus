@@ -47,7 +47,14 @@ REASONS: dict[str, str] = {
 ALL_REASONS = frozenset({STANDBY, *REASONS.values()})
 
 
-def refusal_reason(control_id: str, group: str | None, main_zone_on: bool | None) -> str | None:
+#: Settings whose condition holds for one value only: the subwoofer can be
+#: switched off only in two-channel modes, on anywhere.
+ONLY_FOR: dict[str, object] = {"subwoofer_switch": False}
+
+
+def refusal_reason(
+    control_id: str, group: str | None, main_zone_on: bool | None, value: object = None
+) -> str | None:
     """Why the receiver may keep the setting now, or None when it takes it anywhere.
 
     Standby comes first: in standby no condition can be met. A main zone
@@ -56,4 +63,6 @@ def refusal_reason(control_id: str, group: str | None, main_zone_on: bool | None
 
     if main_zone_on is False and group in MAIN_ZONE_GROUPS:
         return STANDBY
+    if control_id in ONLY_FOR and value != ONLY_FOR[control_id]:
+        return None
     return REASONS.get(control_id)

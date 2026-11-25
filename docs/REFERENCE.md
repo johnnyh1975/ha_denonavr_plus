@@ -174,7 +174,8 @@ entity type; each entity lands on the sub‑device its setting belongs to.
 Select options follow what the receiver lists in its device description:
 an AVR‑X2600H offers no Manual for MultEQ, Video Mode Bypass and the 8K
 resolution appear only on receivers that list them (AVR‑X2600H, AVC‑X3700H,
-AVC‑A10H), and Input Mode shows eARC only where the receiver has it.
+AVC‑A10H), and Input Mode leaves eARC out where the receiver's list does
+(AVC‑8500H, SR6011; some receivers without eARC still list it).
 
 - **Media player** per zone (main + zone 2 where present): power, volume, mute,
   source selection, and (main zone) sound mode. On the main zone, network sources
@@ -426,9 +427,9 @@ Moves a zone's volume to a level over a number of seconds, one receiver step
 (0.5 dB on most models) at a time, as for a wake-up or a fade-out. When the
 time is too short for every step, it takes larger steps, at most four a
 second. The action returns at once; the steps follow in the background. A
-new ramp, any volume command (also `volume_set`, `volume_up`, `volume_down`)
-or switching the zone off stops a running ramp; a duration of 0 sets the
-volume at once. The zone has to be on; otherwise the action reports that.
+new ramp, any change of the volume (from Home Assistant, an announcement,
+`restore` or the receiver itself) or the zone switched off, however it
+happens, stops a running ramp; a duration of 0 sets the volume at once. The zone has to be on; otherwise the action reports that.
 The level is on the same scale as `media_player.volume_set` and respects the
 zone's maximum volume from the options.
 
@@ -586,7 +587,7 @@ Which receivers work, and what differs by generation and brand:
 
   | Setting | Taken only |
   |---|---|
-  | Any setting of the main zone's sound or picture | with the main zone on |
+  | Any setting of the main zone's sound, picture or speakers (also the volume limit and scale, the speaker preset and the LFE low-pass) | with the main zone on |
   | Dynamic Compression, Loudness Management, LFE level | while a Dolby or DTS signal plays |
   | Dialog Control | while DTS:X plays |
   | Effect level | in a DSP sound mode |
