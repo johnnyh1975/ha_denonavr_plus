@@ -412,6 +412,32 @@ target:
 response_variable: queue
 ```
 
+### Volume ramp (`denonavr_plus.volume_ramp`)
+
+Moves a zone's volume to a level over a number of seconds, one receiver step
+(0.5 dB on most models) at a time, as for a wake-up or a fade-out. When the
+time is too short for every step, it takes larger steps, at most four a
+second. The action returns at once; the steps follow in the background. A
+new ramp, any volume command (also `volume_set`, `volume_up`, `volume_down`)
+or switching the zone off stops a running ramp; a duration of 0 sets the
+volume at once. The zone has to be on; otherwise the action reports that.
+The level is on the same scale as `media_player.volume_set` and respects the
+zone's maximum volume from the options.
+
+| Field | Required | Description |
+|---|---|---|
+| `volume_level` | yes | The level to end at, 0 to 1. |
+| `duration` | no | Seconds, 0 to 3600; 10 if left out. |
+
+```yaml
+action: denonavr_plus.volume_ramp
+target:
+  entity_id: media_player.avr_x2600h
+data:
+  volume_level: 0.45
+  duration: 120
+```
+
 ### Snapshot and restore (`denonavr_plus.snapshot`, `denonavr_plus.restore`)
 
 `snapshot` keeps what a zone does now (power, input, volume, mute);

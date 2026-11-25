@@ -77,6 +77,10 @@ _REPEAT_TO_HEOS = {mode: heos for heos, mode in _REPEAT_FROM_HEOS.items()}
 # (docs/protocol/02, "Timing": 1 s after PWON, 3 to 5 s for a full boot).
 TURN_ON_WAIT = 15.0
 TURN_ON_SETTLE = 1.0
+#: The shortest time between two steps of a volume ramp. The receiver takes
+#: commands faster, but each answers with MV, and a quicker ramp sounds no
+#: smoother than this.
+RAMP_MIN_INTERVAL = 0.25
 #: An announcement: how long until HEOS reports it playing, how long a stop
 #: must last to count as its end (HEOS stops briefly while it switches
 #: streams, as Music Assistant's HEOS provider learnt), and the longest it may
@@ -166,6 +170,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         self._announce_task: asyncio.Task[None] | None = None
         self._announce_snapshot: ZoneSnapshot | None = None
         self._snapshot: ZoneSnapshot | None = None
+        self._ramp_task: asyncio.Task[None] | None = None
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
         self._attr_name = None
@@ -202,10 +207,16 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 )
             )
         self.async_on_remove(self._cancel_announcement)
+        self.async_on_remove(self._cancel_volume_ramp)
 
     def _cancel_announcement(self) -> None:
         if self._announce_task is not None:
             self._announce_task.cancel()
+
+    def _cancel_volume_ramp(self) -> None:
+        if self._ramp_task is not None:
+            self._ramp_task.cancel()
+            self._ramp_task = None
 
     # State ----------------------------------------------------------------
 
@@ -658,6 +669,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_turn_off(self) -> None:
+        self._cancel_volume_ramp()
         if not self._reachable:
             # Shown as off already (only with a turn-on automation): an
             # automation that switches everything off must not fail here.
@@ -670,11 +682,13 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_set_volume_level(self, volume: float) -> None:
+        self._cancel_volume_ramp()
         raw = _volume.raw_from_level(self._device, self._zone.id, volume, self._entry_options)
         await self._device.async_set_volume_raw(self._zone.id, raw)
 
     @receiver_action
     async def async_volume_up(self) -> None:
+        self._cancel_volume_ramp()
         if await self._step_by_option(up=True):
             return
         current = self._zone_state.volume_raw
@@ -689,6 +703,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_volume_down(self) -> None:
+        self._cancel_volume_ramp()
         if await self._step_by_option(up=False):
             return
         if self._zone.is_main:
@@ -1140,6 +1155,57 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @property
     def _model(self) -> str:
         return self._device.discovery.device.model_name or "receiver"
+
+    # Volume ramp (action) ------------------------------------------------------
+
+    @receiver_action
+    async def async_volume_ramp(self, volume: float, duration: float) -> None:
+        """Move the volume to `volume` (0-1) over `duration` seconds (denonavr_plus.volume_ramp).
+
+        The steps run in the background, so the action returns at once. A new
+        ramp, a volume command or switching the zone off stops a running one;
+        a duration of 0 sets the volume at once.
+        """
+
+        self._cancel_volume_ramp()
+        target = _volume.raw_from_level(self._device, self._zone.id, volume, self._entry_options)
+        start = self._zone_state.volume_raw
+        if start is None or not self._zone_state.power:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="volume_ramp_zone_off",
+                translation_placeholders={"entity": self.entity_id or self._zone.id},
+            )
+        if duration <= 0 or start == target:
+            await self._device.async_set_volume_raw(self._zone.id, target)
+            return
+        self._ramp_task = self.hass.async_create_background_task(
+            self._ramp_volume(start, target, duration),
+            f"denonavr_plus volume ramp {self._zone.id}",
+        )
+
+    async def _ramp_volume(self, start: float, target: float, duration: float) -> None:
+        """Step from start to target, one device step at a time where time allows."""
+
+        step = self._device.volume_step
+        steps = max(1, round(abs(target - start) / step))
+        steps = min(steps, max(1, int(duration / RAMP_MIN_INTERVAL)))
+        interval = duration / steps
+        sent = start
+        try:
+            for number in range(1, steps + 1):
+                await asyncio.sleep(interval)
+                raw = (
+                    target
+                    if number == steps
+                    else round((start + (target - start) * number / steps) / step) * step
+                )
+                if raw != sent:
+                    await self._device.async_set_volume_raw(self._zone.id, raw)
+                    sent = raw
+        except CommandNotSent:
+            # A background task: the receiver went away; nothing to report to.
+            _LOGGER.debug("Zone %s volume ramp stopped; receiver unreachable", self._zone.id)
 
     # Snapshot and restore (actions) -------------------------------------------
 

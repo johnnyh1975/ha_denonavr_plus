@@ -1136,6 +1136,9 @@
     },
     "heos_main_zone": {
       "message": "Le {model} lit la musique HEOS et sa file d'attente dans la zone principale ; utilisez le lecteur de la zone principale."
+    },
+    "volume_ramp_zone_off": {
+      "message": "{entity} est éteint ou n'indique aucun volume : une rampe de volume nécessite la zone allumée."
     }
   },
   "issues": {
@@ -1278,6 +1281,20 @@
         "preset": {
           "name": "Présélection",
           "description": "De 1 à 56 (sur les anciens modèles de A1 à G8, comptées de la même façon)."
+        }
+      }
+    },
+    "volume_ramp": {
+      "name": "Rampe de volume",
+      "description": "Amène le volume à un niveau en quelques secondes, par les pas du récepteur. Une nouvelle rampe, une commande de volume ou l'arrêt de la zone l'interrompt.",
+      "fields": {
+        "volume_level": {
+          "name": "Volume",
+          "description": "Le niveau final, de 0 à 1, comme pour media_player.volume_set."
+        },
+        "duration": {
+          "name": "Durée",
+          "description": "Secondes que dure la rampe ; 0 règle le volume immédiatement."
         }
       }
     },

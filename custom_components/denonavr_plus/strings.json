@@ -1136,6 +1136,9 @@
     },
     "heos_main_zone": {
       "message": "The {model} plays HEOS music and its queue on the main zone; use the main zone's media player."
+    },
+    "volume_ramp_zone_off": {
+      "message": "{entity} is off or reports no volume: a volume ramp needs the zone on."
     }
   },
   "issues": {
@@ -1278,6 +1281,20 @@
         "preset": {
           "name": "Preset",
           "description": "1 to 56 (on older receivers A1 to G8, counted the same way)."
+        }
+      }
+    },
+    "volume_ramp": {
+      "name": "Volume ramp",
+      "description": "Moves the volume to a level over a number of seconds, in the receiver's steps. A new ramp, a volume command or switching the zone off stops it.",
+      "fields": {
+        "volume_level": {
+          "name": "Volume",
+          "description": "The level to end at, from 0 to 1, as for media_player.volume_set."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Seconds the ramp takes; 0 sets the volume at once."
         }
       }
     },

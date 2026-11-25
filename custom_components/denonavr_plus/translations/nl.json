@@ -1136,6 +1136,9 @@
     },
     "heos_main_zone": {
       "message": "De {model} speelt HEOS-muziek en de wachtrij in de hoofdzone; gebruik de mediaspeler van de hoofdzone."
+    },
+    "volume_ramp_zone_off": {
+      "message": "{entity} staat uit of meldt geen volume: een volumehelling heeft de zone aan nodig."
     }
   },
   "issues": {
@@ -1278,6 +1281,20 @@
         "preset": {
           "name": "Voorkeuze",
           "description": "1 tot 56 (op oudere receivers A1 tot G8, op dezelfde manier geteld)."
+        }
+      }
+    },
+    "volume_ramp": {
+      "name": "Volumehelling",
+      "description": "Brengt het volume in enkele seconden naar een niveau, in de stappen van de receiver. Een nieuwe helling, een volumeopdracht of het uitschakelen van de zone stopt hem.",
+      "fields": {
+        "volume_level": {
+          "name": "Volume",
+          "description": "Het eindniveau, van 0 tot 1, zoals bij media_player.volume_set."
+        },
+        "duration": {
+          "name": "Duur",
+          "description": "Seconden die de helling duurt; 0 zet het volume meteen."
         }
       }
     },

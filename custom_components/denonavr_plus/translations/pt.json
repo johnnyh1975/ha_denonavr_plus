@@ -1136,6 +1136,9 @@
     },
     "heos_main_zone": {
       "message": "O {model} reproduz a música HEOS e a sua fila na zona principal; use o leitor da zona principal."
+    },
+    "volume_ramp_zone_off": {
+      "message": "{entity} está desligado ou não indica volume: uma rampa de volume precisa da zona ligada."
     }
   },
   "issues": {
@@ -1278,6 +1281,20 @@
         "preset": {
           "name": "Predefinição",
           "description": "De 1 a 56 (em recetores mais antigos de A1 a G8, contadas da mesma forma)."
+        }
+      }
+    },
+    "volume_ramp": {
+      "name": "Rampa de volume",
+      "description": "Leva o volume a um nível em alguns segundos, nos passos do recetor. Uma nova rampa, um comando de volume ou desligar a zona interrompe-a.",
+      "fields": {
+        "volume_level": {
+          "name": "Volume",
+          "description": "O nível final, de 0 a 1, como em media_player.volume_set."
+        },
+        "duration": {
+          "name": "Duração",
+          "description": "Segundos que a rampa demora; 0 define o volume de imediato."
         }
       }
     },

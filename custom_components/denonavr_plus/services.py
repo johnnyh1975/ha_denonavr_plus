@@ -11,6 +11,9 @@ preset (TPANMEM), as yamaha_ynca's store_preset does.
 `denonavr_plus.get_queue`, `remove_from_queue` and `move_queue_item` read
 and change the HEOS queue, as the HEOS integration's actions do.
 
+`denonavr_plus.volume_ramp` moves a zone's volume to a level over a few
+seconds, in the receiver's own steps, as a wake-up or a fade-out would.
+
 `denonavr_plus.snapshot` keeps what a zone does (power, input, volume,
 mute) and `denonavr_plus.restore` puts it back, as announcements do on their
 own.
@@ -46,6 +49,11 @@ ATTR_DESTINATION = "destination"
 SERVICE_SNAPSHOT = "snapshot"
 SERVICE_RESTORE = "restore"
 ATTR_PRESET = "preset"
+SERVICE_VOLUME_RAMP = "volume_ramp"
+ATTR_VOLUME_LEVEL = "volume_level"
+ATTR_DURATION = "duration"
+#: The longest ramp, in seconds: long enough for a wake-up.
+MAX_RAMP_DURATION = 3600
 #: Presets 1-56, as the receivers count them (A1-G8 on older ones).
 TUNER_PRESETS = 56
 
@@ -56,6 +64,13 @@ MAX_COMMAND_LENGTH = MAX_MESSAGE_LENGTH - 1
 _SEND_COMMAND_SCHEMA: VolDictType = {vol.Required(ATTR_COMMAND): cv.string}
 _STORE_TUNER_PRESET_SCHEMA: VolDictType = {
     vol.Required(ATTR_PRESET): vol.All(vol.Coerce(int), vol.Range(min=1, max=TUNER_PRESETS))
+}
+
+_VOLUME_RAMP_SCHEMA: VolDictType = {
+    vol.Required(ATTR_VOLUME_LEVEL): vol.All(vol.Coerce(float), vol.Range(min=0, max=1)),
+    vol.Optional(ATTR_DURATION, default=10): vol.All(
+        vol.Coerce(float), vol.Range(min=0, max=MAX_RAMP_DURATION)
+    ),
 }
 
 
@@ -150,6 +165,12 @@ async def _async_move_queue_item(entity: DenonAvrEntity, call: ServiceCall) -> N
     )
 
 
+async def _async_volume_ramp(entity: DenonAvrEntity, call: ServiceCall) -> None:
+    await entity.async_volume_ramp(  # type: ignore[attr-defined]
+        call.data[ATTR_VOLUME_LEVEL], call.data[ATTR_DURATION]
+    )
+
+
 async def _async_snapshot(entity: DenonAvrEntity, call: ServiceCall) -> None:
     entity.take_snapshot()  # type: ignore[attr-defined]
 
@@ -178,6 +199,14 @@ def async_setup_services(hass: HomeAssistant) -> None:
         entity_domain=MEDIA_PLAYER_DOMAIN,
         schema=_STORE_TUNER_PRESET_SCHEMA,
         func=_async_store_tuner_preset,
+    )
+    service.async_register_platform_entity_service(
+        hass,
+        DOMAIN,
+        SERVICE_VOLUME_RAMP,
+        entity_domain=MEDIA_PLAYER_DOMAIN,
+        schema=_VOLUME_RAMP_SCHEMA,
+        func=_async_volume_ramp,
     )
     for name, func in ((SERVICE_SNAPSHOT, _async_snapshot), (SERVICE_RESTORE, _async_restore)):
         service.async_register_platform_entity_service(

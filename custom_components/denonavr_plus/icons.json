@@ -442,6 +442,9 @@
     "store_tuner_preset": {
       "service": "mdi:radio"
     },
+    "volume_ramp": {
+      "service": "mdi:volume-vibrate"
+    },
     "snapshot": {
       "service": "mdi:camera"
     },

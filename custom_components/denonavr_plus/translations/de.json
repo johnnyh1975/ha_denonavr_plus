@@ -1136,6 +1136,9 @@
     },
     "heos_main_zone": {
       "message": "Der {model} spielt HEOS-Musik und ihre Warteschlange in der Hauptzone; nutze den Media Player der Hauptzone."
+    },
+    "volume_ramp_zone_off": {
+      "message": "{entity} ist aus oder meldet keine Lautstärke: Eine Lautstärkerampe braucht die eingeschaltete Zone."
     }
   },
   "issues": {
@@ -1278,6 +1281,20 @@
         "preset": {
           "name": "Preset",
           "description": "1 bis 56 (bei älteren Receivern A1 bis G8, gleich gezählt)."
+        }
+      }
+    },
+    "volume_ramp": {
+      "name": "Lautstärkerampe",
+      "description": "Führt die Lautstärke in den Schritten des Receivers über einige Sekunden auf einen Pegel. Eine neue Rampe, ein Lautstärkebefehl oder das Ausschalten der Zone beendet sie.",
+      "fields": {
+        "volume_level": {
+          "name": "Lautstärke",
+          "description": "Der Pegel am Ende, von 0 bis 1, wie bei media_player.volume_set."
+        },
+        "duration": {
+          "name": "Dauer",
+          "description": "Sekunden, die die Rampe dauert; 0 setzt die Lautstärke sofort."
         }
       }
     },

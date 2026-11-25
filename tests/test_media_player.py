@@ -165,6 +165,96 @@ async def test_turn_on_applies_the_turn_on_volume(
     assert "MV45" in telnet.sent
 
 
+_RAMP_INTERVAL = "custom_components.denonavr_plus.media_player.RAMP_MIN_INTERVAL"
+
+
+async def _ramp(hass: HomeAssistant, entity: str, level: float, duration: float) -> None:
+    from custom_components.denonavr_plus.const import DOMAIN
+
+    await hass.services.async_call(
+        DOMAIN,
+        "volume_ramp",
+        {"entity_id": entity, "volume_level": level, "duration": duration},
+        blocking=True,
+    )
+
+
+async def test_volume_ramp_steps_to_the_level(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """One receiver step at a time while the time allows, fewer steps when it does not."""
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={volume.OPT_OFFICIAL_SCALE: True}
+    )
+    await _push(hass, "PWON", "ZMON", "MV50")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    with patch(_RAMP_INTERVAL, 0.01):
+        # 0.48 is raw 48: four half-dB steps down.
+        await _ramp(hass, main, 0.48, 0.1)
+        assert telnet.sent == []
+        await _eventually(lambda: "MV48" in telnet.sent)
+    assert telnet.sent == ["MV495", "MV49", "MV485", "MV48"]
+
+    await _push(hass, "MV48")
+    telnet.sent.clear()
+    # Ten dB in half a second: two steps, a quarter second apart.
+    await _ramp(hass, main, 0.58, 0.5)
+    await _eventually(lambda: "MV58" in telnet.sent)
+    assert telnet.sent == ["MV53", "MV58"]
+
+    telnet.sent.clear()
+    await _ramp(hass, main, 0.4, 0)
+    assert telnet.sent == ["MV40"]
+
+
+async def test_a_volume_command_stops_the_ramp(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={volume.OPT_OFFICIAL_SCALE: True}
+    )
+    await _push(hass, "PWON", "ZMON", "MV50")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    with patch(_RAMP_INTERVAL, 0.01):
+        # Twenty steps, a tenth of a second apart.
+        await _ramp(hass, main, 0.4, 2)
+        await hass.services.async_call(
+            "media_player", "volume_set", {"entity_id": main, "volume_level": 0.3}, blocking=True
+        )
+        await asyncio.sleep(0.3)
+    assert telnet.sent == ["MV30"]
+
+
+async def test_volume_ramp_needs_the_zone_on_and_survives_a_lost_receiver(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.exceptions import ServiceValidationError
+
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _push(hass, "PWON", "ZMOFF", "MV50")
+    with pytest.raises(ServiceValidationError) as err:
+        await _ramp(hass, main, 0.4, 5)
+    assert err.value.translation_key == "volume_ramp_zone_off"
+
+    await _push(hass, "ZMON")
+    device = loaded_entry.runtime_data.device
+    with (
+        patch(_RAMP_INTERVAL, 0.01),
+        patch.object(
+            type(device), "async_set_volume_raw", AsyncMock(side_effect=CommandNotSent("gone"))
+        ) as set_volume,
+    ):
+        await _ramp(hass, main, 0.4, 0.1)
+        await _eventually(lambda: set_volume.await_count == 1)
+        await asyncio.sleep(0.2)
+    # The first failed step ends the ramp; nothing is raised from the task.
+    assert set_volume.await_count == 1
+
+
 async def test_sources_follow_the_selection_and_names(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

@@ -1136,6 +1136,9 @@
     },
     "heos_main_zone": {
       "message": "El {model} reproduce la música HEOS y su cola en la zona principal; usa el reproductor de la zona principal."
+    },
+    "volume_ramp_zone_off": {
+      "message": "{entity} está apagado o no indica volumen: una rampa de volumen necesita la zona encendida."
     }
   },
   "issues": {
@@ -1278,6 +1281,20 @@
         "preset": {
           "name": "Presintonía",
           "description": "De 1 a 56 (en receptores antiguos de A1 a G8, contados igual)."
+        }
+      }
+    },
+    "volume_ramp": {
+      "name": "Rampa de volumen",
+      "description": "Lleva el volumen a un nivel en unos segundos, con los pasos del receptor. Una nueva rampa, una orden de volumen o apagar la zona la detiene.",
+      "fields": {
+        "volume_level": {
+          "name": "Volumen",
+          "description": "El nivel final, de 0 a 1, como en media_player.volume_set."
+        },
+        "duration": {
+          "name": "Duración",
+          "description": "Segundos que dura la rampa; 0 fija el volumen al instante."
         }
       }
     },

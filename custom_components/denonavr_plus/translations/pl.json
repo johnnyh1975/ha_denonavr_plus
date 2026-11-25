@@ -1136,6 +1136,9 @@
     },
     "heos_main_zone": {
       "message": "{model} odtwarza muzykę HEOS i jej kolejkę w strefie głównej; użyj odtwarzacza strefy głównej."
+    },
+    "volume_ramp_zone_off": {
+      "message": "{entity} jest wyłączony lub nie podaje głośności: płynna zmiana wymaga włączonej strefy."
     }
   },
   "issues": {
@@ -1278,6 +1281,20 @@
         "preset": {
           "name": "Numer",
           "description": "Od 1 do 56 (w starszych amplitunerach od A1 do G8, liczone tak samo)."
+        }
+      }
+    },
+    "volume_ramp": {
+      "name": "Płynna zmiana głośności",
+      "description": "Zmienia głośność do poziomu w ciągu kilku sekund, krokami amplitunera. Nowa zmiana, polecenie głośności lub wyłączenie strefy ją przerywa.",
+      "fields": {
+        "volume_level": {
+          "name": "Głośność",
+          "description": "Poziom końcowy, od 0 do 1, jak w media_player.volume_set."
+        },
+        "duration": {
+          "name": "Czas",
+          "description": "Ile sekund trwa zmiana; 0 ustawia głośność od razu."
         }
       }
     },
