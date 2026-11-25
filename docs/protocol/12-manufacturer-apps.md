@@ -12,7 +12,7 @@ or image of the apps is used. Findings carry the label **App**
 | App | Package | Version | Read |
 |---|---|---|---|
 | Denon AVR Remote | `com.dmholdings.DenonAVRRemote` | 3.13.4 | Java code and the native control library (with symbols) |
-| Marantz AVR Remote | `com.dmholdings.MarantzAVRRemote` | 3.13.4 | Same native library and assets as the Denon app, byte for byte |
+| Marantz AVR Remote | `com.dmholdings.MarantzAVRRemote` | 3.13.4 | Same native library and assets as the Denon app, byte for byte; ten Java files differ (package name and build variant) |
 | HEOS | `com.dnm.heos.phone` | 3.139.353 | Java code and the native libraries |
 | Denon Remote App, Marantz Remote App | `com.dmholdings.denonremoteapp`, `com.dmholdings.marantzremoteapp` | 1.1.9 | The older apps; the same app under two names, with description files for receivers from 2010–2012 ([receivers before 2013](models/before-2013.md)) |
 
@@ -49,8 +49,9 @@ the only sources. The HTTP commands are on the
   999 is a demo mode ([levels](11-http-control.md#interfaces-by-generation)).
 - **Brand** from `BrandCode` (0 Denon, 1 Marantz, 2 McIntosh, 3 D&M
   Professional), otherwise from the manufacturer prefix of the MAC address
-  (`00:05:CD` Denon, `00:06:78` Marantz). The package name plays no part:
-  the Denon app serves Marantz receivers too.
+  (`00:05:CD` Denon, `00:06:78` Marantz). Each app shows the receivers of
+  its own brand only: the Denon app those with `BrandCode` 0, the Marantz
+  app those with 1.
 - **Product category** from `ProductCategory`: 1 AV receiver, 2 system,
   7 stereo receiver (handled like an AV receiver).
 - **HEOS generation**: a receiver found over Bonjour or the HEOS SDK counts
@@ -61,6 +62,23 @@ the only sources. The HTTP commands are on the
 - **Excluded by name** (2010–2012, level 100): AVR-991, 1912, 2112, 2312,
   3311, 3312, 4311, A100, AV7005, NR1602, SR5006, SR6006, SR7005, DNP-720,
   NA7004.
+
+### Model years the current apps accept
+
+Besides the interface level, the current apps sort receivers into model
+years by name patterns (`*`, `Denon ` and `Marantz ` taken off first):
+
+| In the app | Denon | Marantz |
+|---|---|---|
+| Not supported | 2010–2011 (DNP-720, RCD-N7), AVR-991, AVR-A100, Cocoon, HEOS speakers | 2010–2011: NA-7004, M-CR603, AV…005, SR…05, SR…06, NR1602 |
+| Incompatible, pointed to the older app | 2012–2013: AVR-4520, AVR-X…000 (the AVR-X2000 among them), AVR-E…00; 2014: AVR-X5200, AVR-S…00W, AVR-X…100W | 2012–2013: AV…01, SR…07, SR…08, NR…03, NR…04; 2014: SR…09, NR…05 |
+| Supported | Every other Denon AV receiver, so from 2015 on (AVR-X…200W, AVR-S…10W, the H series, AVC) | Every other Marantz AV receiver, from 2015 on (SR…10, NR…06 and newer, AV7702 and newer, Cinema) |
+
+So the current apps are made for receivers from 2015 on. Their code still
+holds the paths for levels 0210, 0250 and 0300, but no current app uses
+them on the 2012–2014 receivers it turns away; for those models the
+`AppCommand0300.xml` commands are a finding in the code, not a path an app
+is seen to use.
 
 This integration uses the interface level the same way
 ([value encodings by generation](03-command-reference.md#differences-between-protocol-versions)),
@@ -103,9 +121,10 @@ Confirmed by the apps and already used here: `PWON`, `PWSTANDBY`, `ZM?`,
 
 ## Marantz
 
-- The current Denon and Marantz apps are one code base; the brand changes
-  names in the app (Quick Select is called Smart Select on Marantz) and
-  little else.
+- The current Denon and Marantz apps are one code base built twice. The
+  build decides which brand the app shows and changes names in the app
+  (Quick Select is called Smart Select on Marantz); commands, endpoints and
+  values are the same.
 - **Smart Select** goes over HTTP with the same command as Quick Select
   (`SetQuickSelect`). Over telnet Marantz's 2019 document gives `MSSMART1`–`5`,
   `MSSMART<n> MEMORY`, `MSSMART0` (cancel) and `MSSMART ?`, and `Z2SMART…`

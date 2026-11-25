@@ -26,8 +26,13 @@ pages and commands it has. The apps branch on the same values.
 | 0301 (2016 on) | as 0300 | as 0300 | as 0300; the [setup config API](02-network-and-protocols.md#setup-config-api-https-10443-http-11080) and HEOS come on top |
 
 The apps no longer support receivers without a level: Denon AVR Remote
-3.13.4 and even the Remote App 1.1.9 hide them (**App**). From level 0200
-the apps take the volume step from the receiver instead of a fixed 0.5 dB.
+3.13.4 and even the Remote App 1.1.9 hide them (**App**). The current apps
+also turn away the receivers of 2012 to 2014 by model name and point to
+the older app, so levels 0210, 0250 and the 2014 units of 0300 are paths in
+their code that they are not seen to use
+([model years](12-manufacturer-apps.md#model-years-the-current-apps-accept)).
+From level 0200 the apps take the volume step from the receiver instead of
+a fixed 0.5 dB.
 
 ## AppCommand.xml and AppCommand0300.xml
 

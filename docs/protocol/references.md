@@ -32,7 +32,7 @@ receiver confirms it ([manufacturer apps](12-manufacturer-apps.md)).
 | App | Version | Trusted for |
 |---|---|---|
 | Denon AVR Remote (`com.dmholdings.DenonAVRRemote`) | 3.13.4 | HTTP commands and parameter names (`AppCommand.xml`, `AppCommand0300.xml`), how the app tells interface levels, brands and product categories apart, the telnet tokens it sends, the 481 element names of `Deviceinfo.xml` |
-| Marantz AVR Remote (`com.dmholdings.MarantzAVRRemote`) | 3.13.4 | The same; native library and assets identical to the Denon app |
+| Marantz AVR Remote (`com.dmholdings.MarantzAVRRemote`) | 3.13.4 | The same; native library and assets identical to the Denon app, shows Marantz receivers only |
 | HEOS (`com.dnm.heos.phone`) | 3.139.353 | The UPnP service ACT, the Protobuf channel, the sound mode model |
 | Denon Remote App and Marantz Remote App (`com.dmholdings.denonremoteapp`, `com.dmholdings.marantzremoteapp`) | 1.1.9 | Description files of 13 receivers from 2010–2012, their input tokens and sound mode names ([before 2013](models/before-2013.md)); app data, with two visible errors |
 
