@@ -87,6 +87,7 @@
           "zones": "Zones et mise en marche",
           "sources": "Sources",
           "sound_modes": "Modes son",
+          "playback": "Lecture",
           "connection": "Connexion",
           "entities": "Entités",
           "tests_start": "Tester le récepteur",
@@ -94,7 +95,8 @@
         },
         "menu_option_descriptions": {
           "tests_start": "Trois étapes, environ six minutes ; tout est rétabli.",
-          "move_back": "Rendre les entités à l'ancienne intégration"
+          "move_back": "Rendre les entités à l'ancienne intégration",
+          "playback": "Lecteurs liés aux entrées, lecture selon le signal d'entrée"
         }
       },
       "volume": {
@@ -225,6 +227,32 @@
       "sound_mode_names": {
         "title": "Noms des modes son",
         "description": "Noms des modes son dans Home Assistant. Vide utilise le nom de l'ampli-tuner."
+      },
+      "playback": {
+        "title": "Lecture",
+        "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Choisis une entrée pour lier l'appareil qui y est branché, comme une Apple TV ou un streamer.",
+        "data": {
+          "input": "Lier un lecteur à une entrée",
+          "signal_state": "Lecture ou inactif selon le signal d'entrée"
+        },
+        "data_description": {
+          "input": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche.",
+          "signal_state": "Une zone sur une entrée sans lecteur lié affiche « Lecture » tant que l'entrée porte un signal et « Inactif » sans signal, au lieu de « Allumé ». Les sources réseau et le tuner gardent leur propre état. Pas encore essayé sur un récepteur : on ne sait pas si chaque modèle signale la fin d'un signal."
+        }
+      },
+      "linked_input": {
+        "title": "Lecteur lié",
+        "description": "Le lecteur multimédia de l'appareil sur {input}. Laisse vide pour le délier.",
+        "data": {
+          "player": "Lecteur multimédia",
+          "follow": "Passer à cette entrée quand le lecteur commence à jouer",
+          "full_volume": "Garder le lecteur au volume maximal"
+        },
+        "data_description": {
+          "player": "Son titre, sa pochette, sa position et son état apparaissent sur chaque zone qui joue cette entrée ; lecture, pause, saut et avance rapide lui sont envoyés.",
+          "follow": "Quand le lecteur commence à jouer, la zone principale s'allume si besoin et passe à cette entrée, et le lecteur lié de l'entrée quittée est mis en pause. Un second lecteur qui démarre dans les 5 secondes est mis en pause à la place, pour que deux lecteurs ne prennent pas la main à tour de rôle. Le journal montre le changement comme provoqué par le lecteur.",
+          "full_volume": "Le volume se règle sur le récepteur : le lecteur est donc mis au volume maximal et sans sourdine dès que son volume change."
+        }
       },
       "connection": {
         "title": "Connexion",
@@ -1202,6 +1230,9 @@
     },
     "setting_not_taken_custom_picture": {
       "message": "{model} n'a pas modifié {setting} : il ne l'accepte qu'en mode d'image Personnalisé."
+    },
+    "no_linked_player": {
+      "message": "Aucun lecteur lié ne joue sur l'entrée de {entity}."
     }
   },
   "issues": {
@@ -1311,6 +1342,17 @@
     "app_control_off": {
       "title": "{model} indique que le contrôle par les apps est désactivé",
       "description": "{model} répond NSARA OFF : le contrôle par l'app de télécommande est désactivé sur l'ampli-tuner. L'app AVR Remote de Denon considère alors l'ampli-tuner comme non pilotable. Home Assistant utilise la même interface réseau ; si les réglages depuis Home Assistant restent sans effet, réactivez le contrôle par les apps dans le menu de configuration de l'ampli-tuner.\n\nCette réponse n'a pas encore été vue sur un ampli-tuner. Un rapport avec le diagnostic de l'ampli-tuner aide."
+    },
+    "linked_player_missing": {
+      "title": "Lecteur multimédia lié introuvable",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Délier les lecteurs manquants",
+            "description": "{title} : ces lecteurs multimédias liés n'existent plus : {players}. Valide pour les délier ; les entrées montrent alors à nouveau les informations du récepteur. Pour lier un autre lecteur, ouvre les options sous Lecture."
+          }
+        }
+      }
     }
   },
   "selector": {

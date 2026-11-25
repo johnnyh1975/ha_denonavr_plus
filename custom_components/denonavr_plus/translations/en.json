@@ -87,6 +87,7 @@
           "zones": "Zones and power",
           "sources": "Sources",
           "sound_modes": "Sound modes",
+          "playback": "Playback",
           "connection": "Connection",
           "entities": "Entities",
           "tests_start": "Test the receiver",
@@ -94,7 +95,8 @@
         },
         "menu_option_descriptions": {
           "tests_start": "Three steps, about six minutes; everything is put back.",
-          "move_back": "Give the entities back to the old integration"
+          "move_back": "Give the entities back to the old integration",
+          "playback": "Linked players on inputs, playing by input signal"
         }
       },
       "volume": {
@@ -225,6 +227,32 @@
       "sound_mode_names": {
         "title": "Sound mode names",
         "description": "Names for the sound modes in Home Assistant. Empty uses the receiver's name."
+      },
+      "playback": {
+        "title": "Playback",
+        "description": "How the media players show what plays on an input. Pick an input to link the device connected to it, such as an Apple TV or a streamer.",
+        "data": {
+          "input": "Link a player to an input",
+          "signal_state": "Playing or idle by the input signal"
+        },
+        "data_description": {
+          "input": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow.",
+          "signal_state": "A zone on an input without a linked player shows \"Playing\" while the input carries a signal and \"Idle\" without one, instead of \"On\". Network sources and the tuner keep their own state. Not yet tried on a receiver: whether every model reports when a signal stops is unknown."
+        }
+      },
+      "linked_input": {
+        "title": "Linked player",
+        "description": "The media player of the device on {input}. Leave it empty to unlink it.",
+        "data": {
+          "player": "Media player",
+          "follow": "Switch to this input when the player starts playing",
+          "full_volume": "Keep the player at full volume"
+        },
+        "data_description": {
+          "player": "Its title, artwork, position and state show on every zone that plays this input; play, pause, skip and seek go to it.",
+          "follow": "When the player starts playing, the main zone turns on if needed and switches to this input, and the linked player of the input it leaves is paused. A second player that starts within 5 seconds is paused instead, so two players cannot take turns. The logbook shows the switch as caused by the player.",
+          "full_volume": "The volume is set on the receiver, so the player is set to full volume and unmuted whenever its volume changes."
+        }
       },
       "connection": {
         "title": "Connection",
@@ -1202,6 +1230,9 @@
     },
     "setting_not_taken_custom_picture": {
       "message": "{model} kept {setting} as it was: it takes it only in the Custom picture mode."
+    },
+    "no_linked_player": {
+      "message": "No linked player plays on the input of {entity}."
     }
   },
   "issues": {
@@ -1311,6 +1342,17 @@
     "app_control_off": {
       "title": "{model} reports control by apps switched off",
       "description": "{model} answers NSARA OFF: control by the remote app is switched off on the receiver. Denon's AVR Remote app then treats the receiver as not controllable. Home Assistant uses the same network interface; if settings from Home Assistant have no effect, switch control by apps on again in the receiver's setup menu.\n\nThis answer has not yet been seen on a receiver. A report with the receiver's diagnostics helps."
+    },
+    "linked_player_missing": {
+      "title": "Linked media player not found",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Unlink the missing players",
+            "description": "{title}: these linked media players no longer exist: {players}. Submit to unlink them; the inputs then show the receiver's own information again. To link another player instead, open the options under Playback."
+          }
+        }
+      }
     }
   },
   "selector": {

@@ -40,7 +40,7 @@ address must belong to the same receiver.
 Which settings are recommended, and why: [user guide, section 5](USER_GUIDE.md#5-tailor-it-in-the-options).
 
 **Configure** on the integration entry opens a menu: volume, zones, sources,
-sound modes, connection, entities, and **Test the receiver** (see
+sound modes, playback, connection, entities, and **Test the receiver** (see
 [user guide, section 7](USER_GUIDE.md#7-test-a-receiver-model)). Apart from that test, nothing in it changes the receiver; it
 changes what Home Assistant shows and does.
 
@@ -108,6 +108,48 @@ media player and the sound mode select. Both still take the receiver's names
 (in any case) to choose a mode; a name a list shows comes first. The select
 offers the modes of the current group only; the media player takes every
 mode the receiver has listed and its tokens.
+
+**Playback** (needs the receiver connected, it reads its inputs):
+
+- **Link a player to an input**: pick an input, then the media player of the
+  device on it, such as an Apple TV, a streamer or a Chromecast. The list
+  offers every input but the network player and the tuner, whose information
+  comes from the receiver itself; an input with a player shows it after the
+  arrow. Every zone that plays the input then shows the player's title,
+  artist, album, series, artwork, position and app, and its state (playing,
+  paused, buffering, idle). Play, pause, stop, skip, seek, shuffle and repeat
+  go to the player, as far as it has them; power, volume, mute and the input
+  stay the receiver's. The zone's `linked_player` attribute names the player.
+  A player that is unavailable leaves the zone on, with the input's own
+  information. Clearing the player unlinks the input. Per input:
+  - **Switch to this input when the player starts playing** (default off):
+    the main zone turns on if needed and switches to the input, through its
+    own action, so the turn-on volume and the volume limit apply. The linked
+    player of the input the main zone leaves is paused (stopped, if it cannot
+    pause), unless another zone still plays that input. Nothing happens while a
+    zone already plays the input, when the player comes back after being
+    unavailable, or when it is already playing as Home Assistant starts. A
+    second player that starts within 5 seconds of a switch is paused instead,
+    so two players cannot take turns. The logbook shows the switch as caused
+    by the player.
+  - **Keep the player at full volume** (default off): the volume is set on the
+    receiver, so the player is set to 100 % and unmuted when it is linked and
+    whenever its volume or mute changes. A player that refuses gets no second
+    command until its volume changes again.
+
+  A linked player that is renamed stays linked under its new entity id. One
+  that no longer exists (checked once Home Assistant has started) raises a
+  repair, **Linked media player not found**, which unlinks it; to link
+  another player instead, pick the input here again.
+- **Playing or idle by the input signal** (default off): a zone on an input
+  without a linked player shows *Playing* while the input carries a signal and
+  *Idle* without one, instead of *On*. The receiver reports the signal of the
+  main zone's input (`SSINFAISFSV`, `NON` without one); another zone uses it
+  while it plays the same input and otherwise stays *On*. Network sources and
+  the tuner keep their own state, and a linked player decides by itself,
+  since a paused streamer often keeps sending a signal. Not yet tried on a
+  receiver: whether every model reports when a signal stops is unknown. Note
+  that an HDMI source in its menu often sends a signal too.
 
 **Entities** (works even when the receiver is off): a toggle per group of the
 entities that start hidden, with how many it holds: Audio, Speakers, Video and
@@ -214,7 +256,9 @@ AVC‑A10H describes it as 0–15).
   their names; picking one recalls it.
   Play, pause and skip show only while a network source plays (on the tuner,
   skip only). Zone 2 on the main zone's source (or on a network source) shows
-  what plays there and takes play, pause and skip too.
+  what plays there and takes play, pause and skip too. An input with a
+  **linked player** (options, Playback) shows that player's title, artwork,
+  position and state, and takes its transport.
 - **Zones as a group**: joining zone 2 to the main zone (Home Assistant's
   join, or the group dialog of the media player) sets it to the main zone's
   source, so it follows every change of input. Leaving the group keeps the

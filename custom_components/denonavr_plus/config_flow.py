@@ -25,6 +25,8 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import section
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.selector import (
+    EntitySelector,
+    EntitySelectorConfig,
     BooleanSelector,
     NumberSelector,
     NumberSelectorConfig,
@@ -60,7 +62,15 @@ from .command_test import OPT_TEST_PENDING
 from .receiver_test import ReceiverTestSteps
 from .entity_groups import OPT_ENTITY_GROUPS
 from .coordinator import connection_options
-from . import choices, entity_groups, move
+from . import choices, entity_groups, linked_players, move
+from .linked_players import (
+    KEY_FOLLOW,
+    KEY_FULL_VOLUME,
+    KEY_PLAYER,
+    OPT_LINKED_PLAYERS,
+    OPT_SIGNAL_STATE,
+    Link,
+)
 from .choices import (
     OPT_MAIN_OFF_STANDBY,
     OPT_SETTINGS_TURN_ON,
@@ -513,6 +523,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
     def __init__(self) -> None:
         self._pending: dict[str, Any] = {}
         self._mode_names_for: list[str] = []
+        self._link_input: str = ""
 
     # Helpers -------------------------------------------------------------
 
@@ -532,7 +543,9 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        options = ["volume", "zones", "sources", "sound_modes", "connection", "entities"]
+        options = [
+            "volume", "zones", "sources", "sound_modes", "playback", "connection", "entities"
+        ]
         options.append("tests_start")
         if await move.async_moved(self.hass, self.config_entry.entry_id):
             options.append("move_back")
@@ -740,6 +753,138 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
             description_placeholders={
                 f"n_{group}": str(counts.get(group, 0)) for group in entity_groups.GROUPS
             },
+        )
+
+    # Playback and linked players -------------------------------------------
+
+    def _linkable(self) -> list[tuple[str, str]]:
+        """The inputs a player can be linked to, with their shown names.
+
+        Not the network player and the tuner: what they play comes from the
+        receiver itself.
+        """
+
+        coordinator = getattr(self.config_entry, "runtime_data", None)
+        device = getattr(coordinator, "device", None)
+        if device is None:
+            return []
+        network = set(device.profile.netaudio.get("sources", []))
+        options = dict(self.config_entry.options)
+        return [
+            (source.code, choices.source_display(device.discovery, options, source.code))
+            for source in device.discovery.visible_sources()
+            if source.code not in network and not device.is_tuner(source.code)
+        ]
+
+    def _player_name(self, entity_id: str) -> str:
+        state = self.hass.states.get(entity_id)
+        return str(state.name) if state is not None else entity_id
+
+    def _own_players(self) -> list[str]:
+        registry = er.async_get(self.hass)
+        return [
+            item.entity_id
+            for item in er.async_entries_for_config_entry(registry, self.config_entry.entry_id)
+            if item.domain == "media_player"
+        ]
+
+    async def async_step_playback(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """How the media players show playback: linked players, input signal.
+
+        Picking an input leads to its linked player; without one, the step
+        saves at once.
+        """
+
+        if self._discovery() is None:
+            return self.async_abort(reason="not_connected")
+        inputs = self._linkable()
+        if user_input is not None:
+            self._pending = {OPT_SIGNAL_STATE: bool(user_input.get(OPT_SIGNAL_STATE, False))}
+            code = user_input.get("input")
+            if code in dict(inputs):
+                self._link_input = str(code)
+                return await self.async_step_linked_input()
+            return self._save(self._pending)
+        current = linked_players.links(dict(self.config_entry.options))
+        fields: dict[Any, Any] = {}
+        if inputs:
+            fields[vol.Optional("input")] = SelectSelector(
+                SelectSelectorConfig(
+                    options=[
+                        SelectOptionDict(
+                            value=code,
+                            label=(
+                                f"{name} → {self._player_name(current[code].entity_id)}"
+                                if code in current
+                                else name
+                            ),
+                        )
+                        for code, name in inputs
+                    ],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            )
+        fields[
+            vol.Required(
+                OPT_SIGNAL_STATE,
+                default=bool(self.config_entry.options.get(OPT_SIGNAL_STATE, False)),
+            )
+        ] = BooleanSelector()
+        return self.async_show_form(step_id="playback", data_schema=vol.Schema(fields))
+
+    async def async_step_linked_input(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """The player linked to one input, and whether the receiver follows it."""
+
+        code = self._link_input
+        names = dict(self._linkable())
+        current = linked_players.links(dict(self.config_entry.options)).get(code)
+        if user_input is not None:
+            # The selector refuses the receiver's own players.
+            player = str(user_input.get(KEY_PLAYER) or "")
+            link = (
+                Link(
+                    player,
+                    bool(user_input.get(KEY_FOLLOW, False)),
+                    bool(user_input.get(KEY_FULL_VOLUME, False)),
+                )
+                if player
+                else None
+            )
+            return self._save(
+                {
+                    **self._pending,
+                    OPT_LINKED_PLAYERS: linked_players.with_link(
+                        dict(self.config_entry.options), code, link
+                    ),
+                }
+            )
+        schema = vol.Schema(
+            {
+                # A suggestion, not a default, so the player can be cleared.
+                vol.Optional(
+                    KEY_PLAYER,
+                    description={"suggested_value": current.entity_id if current else None},
+                ): EntitySelector(
+                    EntitySelectorConfig(
+                        domain="media_player", exclude_entities=self._own_players()
+                    )
+                ),
+                vol.Required(
+                    KEY_FOLLOW, default=current.follow if current else False
+                ): BooleanSelector(),
+                vol.Required(
+                    KEY_FULL_VOLUME, default=current.full_volume if current else False
+                ): BooleanSelector(),
+            }
+        )
+        return self.async_show_form(
+            step_id="linked_input",
+            data_schema=schema,
+            description_placeholders={"input": names.get(code, code)},
         )
 
     # Sources -----------------------------------------------------------------

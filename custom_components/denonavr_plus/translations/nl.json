@@ -87,6 +87,7 @@
           "zones": "Zones en inschakelen",
           "sources": "Bronnen",
           "sound_modes": "Geluidsmodi",
+          "playback": "Afspelen",
           "connection": "Verbinding",
           "entities": "Entiteiten",
           "tests_start": "Receiver testen",
@@ -94,7 +95,8 @@
         },
         "menu_option_descriptions": {
           "tests_start": "Drie stappen, ongeveer zes minuten; alles wordt teruggezet.",
-          "move_back": "De entiteiten teruggeven aan de oude integratie"
+          "move_back": "De entiteiten teruggeven aan de oude integratie",
+          "playback": "Gekoppelde spelers aan ingangen, afspelen volgens het ingangssignaal"
         }
       },
       "volume": {
@@ -225,6 +227,32 @@
       "sound_mode_names": {
         "title": "Namen van de geluidsmodi",
         "description": "Namen voor de geluidsmodi in Home Assistant. Leeg gebruikt de naam van de receiver."
+      },
+      "playback": {
+        "title": "Afspelen",
+        "description": "Hoe de mediaspelers tonen wat er op een ingang speelt. Kies een ingang om het daarop aangesloten apparaat te koppelen, zoals een Apple TV of een streamer.",
+        "data": {
+          "input": "Een speler aan een ingang koppelen",
+          "signal_state": "Speelt of inactief volgens het ingangssignaal"
+        },
+        "data_description": {
+          "input": "Zolang de ingang speelt, toont zijn zone titel, albumhoes, positie en status van de gekoppelde speler, en afspelen, pauzeren, overslaan en zoeken gaan naar die speler. Aan/uit, volume en ingang blijven bij de receiver. Een ingang met speler toont die na de pijl.",
+          "signal_state": "Een zone op een ingang zonder gekoppelde speler toont \"Speelt\" zolang de ingang een signaal heeft en \"Inactief\" zonder signaal, in plaats van \"Aan\". Netwerkbronnen en de tuner houden hun eigen status. Nog niet op een receiver geprobeerd: of elk model meldt wanneer een signaal stopt, is onbekend."
+        }
+      },
+      "linked_input": {
+        "title": "Gekoppelde speler",
+        "description": "De mediaspeler van het apparaat op {input}. Laat leeg om de koppeling op te heffen.",
+        "data": {
+          "player": "Mediaspeler",
+          "follow": "Naar deze ingang schakelen als de speler begint te spelen",
+          "full_volume": "De speler op vol volume houden"
+        },
+        "data_description": {
+          "player": "Titel, albumhoes, positie en status verschijnen op elke zone die deze ingang speelt; afspelen, pauzeren, overslaan en zoeken gaan naar die speler.",
+          "follow": "Begint de speler te spelen, dan gaat de hoofdzone zo nodig aan en schakelt naar deze ingang, en de gekoppelde speler van de verlaten ingang wordt gepauzeerd. Een tweede speler die binnen 5 seconden start, wordt in plaats daarvan gepauzeerd, zodat twee spelers elkaar niet afwisselen. Het logboek toont de wissel als veroorzaakt door de speler.",
+          "full_volume": "Het volume wordt op de receiver ingesteld; daarom wordt de speler op vol volume gezet en het dempen opgeheven zodra zijn volume verandert."
+        }
       },
       "connection": {
         "title": "Verbinding",
@@ -1202,6 +1230,9 @@
     },
     "setting_not_taken_custom_picture": {
       "message": "{model} heeft {setting} niet gewijzigd: hij neemt dat alleen over in de beeldmodus Aangepast."
+    },
+    "no_linked_player": {
+      "message": "Op de ingang van {entity} speelt geen gekoppelde speler."
     }
   },
   "issues": {
@@ -1311,6 +1342,17 @@
     "app_control_off": {
       "title": "{model} meldt dat besturing via apps uit staat",
       "description": "{model} antwoordt NSARA OFF: besturing via de remote-app staat uit op de receiver. De AVR Remote-app van Denon behandelt de receiver dan als niet bestuurbaar. Home Assistant gebruikt dezelfde netwerkinterface; als instellingen vanuit Home Assistant geen effect hebben, zet besturing via apps weer aan in het instellingenmenu van de receiver.\n\nDit antwoord is nog niet op een receiver gezien. Een melding met de diagnose van de receiver helpt."
+    },
+    "linked_player_missing": {
+      "title": "Gekoppelde mediaspeler niet gevonden",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Ontbrekende spelers ontkoppelen",
+            "description": "{title}: deze gekoppelde mediaspelers bestaan niet meer: {players}. Bevestig om ze te ontkoppelen; de ingangen tonen dan weer de gegevens van de receiver. Om een andere speler te koppelen, open je de opties onder Afspelen."
+          }
+        }
+      }
     }
   },
   "selector": {

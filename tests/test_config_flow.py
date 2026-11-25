@@ -529,7 +529,7 @@ async def _options_step(hass: HomeAssistant, entry: MockConfigEntry, step: str) 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.MENU
     assert result["menu_options"] == [
-        "volume", "zones", "sources", "sound_modes", "connection", "entities", "tests_start"
+        "volume", "zones", "sources", "sound_modes", "playback", "connection", "entities", "tests_start"
     ]
     return await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": step}
@@ -539,7 +539,7 @@ async def _options_step(hass: HomeAssistant, entry: MockConfigEntry, step: str) 
 async def test_sources_need_the_receiver(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, minor_version=CONFIG_MINOR_VERSION, data={CONF_HOST: "192.0.2.10"})
     entry.add_to_hass(hass)
-    for step in ("sources", "sound_modes"):
+    for step in ("sources", "sound_modes", "playback"):
         result = await _options_step(hass, entry, step)
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "not_connected"
@@ -1189,3 +1189,91 @@ async def test_a_receiver_with_one_zone_gets_the_power_settings(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert loaded_entry.options["settings_turn_on"] is True
     assert "zones" not in loaded_entry.options
+
+
+async def test_a_player_is_linked_to_an_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    hass.states.async_set("media_player.apple_tv", "idle", {"friendly_name": "Apple TV"})
+    result = await _options_step(hass, loaded_entry, "playback")
+    assert result["step_id"] == "playback"
+    inputs = next(
+        field for field in result["data_schema"].schema if str(field) == "input"
+    )
+    offered = [
+        option["value"]
+        for option in result["data_schema"].schema[inputs].config["options"]
+    ]
+    # Not the network player and the tuner: they have their own information.
+    assert "DVD" in offered and "TUNER" not in offered
+    network = loaded_entry.runtime_data.device.profile.netaudio["sources"]
+    assert not set(offered) & set(network)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"input": "DVD", "signal_state": True}
+    )
+    assert result["step_id"] == "linked_input"
+    # The receiver's own players are not offered.
+    player = next(field for field in result["data_schema"].schema if str(field) == "player")
+    own = entity_id_of_main(hass, loaded_entry)
+    assert own in result["data_schema"].schema[player].config["exclude_entities"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"player": "media_player.apple_tv", "follow": True, "full_volume": False},
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert loaded_entry.options["signal_state"] is True
+    assert loaded_entry.options["linked_players"] == {
+        "DVD": {"player": "media_player.apple_tv", "follow": True, "full_volume": False}
+    }
+
+    # The input now shows its player; clearing the player unlinks it.
+    result = await _options_step(hass, loaded_entry, "playback")
+    inputs = next(field for field in result["data_schema"].schema if str(field) == "input")
+    labels = {
+        option["value"]: option["label"]
+        for option in result["data_schema"].schema[inputs].config["options"]
+    }
+    assert labels["DVD"].endswith("→ Apple TV")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"input": "DVD", "signal_state": True}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"follow": True, "full_volume": False}
+    )
+    assert loaded_entry.options["linked_players"] == {}
+
+
+async def test_the_playback_step_saves_without_an_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    result = await _options_step(hass, loaded_entry, "playback")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"signal_state": True}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert loaded_entry.options["signal_state"] is True
+
+
+async def test_a_player_of_the_receiver_cannot_be_linked(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    result = await _options_step(hass, loaded_entry, "playback")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"input": "DVD", "signal_state": False}
+    )
+    with pytest.raises(InvalidData):
+        # The selector already refuses it.
+        await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {"player": entity_id_of_main(hass, loaded_entry), "follow": False, "full_volume": False},
+        )
+
+
+def entity_id_of_main(hass: HomeAssistant, entry: MockConfigEntry) -> str:
+    from homeassistant.helpers import entity_registry as er
+
+    return next(
+        item.entity_id
+        for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+        if item.unique_id.endswith("_media_player_main")
+    )

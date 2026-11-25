@@ -22,7 +22,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.typing import ConfigType
 
-from . import choices, command_test, entity_groups, move, zone_sources
+from . import choices, command_test, entity_groups, linked_players, move, zone_sources
 from .avr.profile import load_profile
 from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
 from .coordinator import (
@@ -94,6 +94,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     coordinator.shown_zones = _shown_zones(entry, coordinator)
     _remove_hidden_zones(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, _platforms(coordinator))
+    # Renamed and removed linked players, following one, keeping it at full volume.
+    entry.async_on_unload(linked_players.LinkedPlayers(hass, entry).async_start())
     _apply_channel_defaults(hass, entry, coordinator)
     if not coordinator.started_offline:
         entity_groups.async_apply(
@@ -168,6 +170,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) ->
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
     ir.async_delete_issue(hass, DOMAIN, zone_sources.issue_id(entry.entry_id))
     ir.async_delete_issue(hass, DOMAIN, f"app_control_off_{entry.entry_id}")
+    ir.async_delete_issue(hass, DOMAIN, linked_players.issue_id(entry.entry_id))
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:

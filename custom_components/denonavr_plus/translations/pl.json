@@ -87,6 +87,7 @@
           "zones": "Strefy i włączanie",
           "sources": "Źródła",
           "sound_modes": "Tryby dźwięku",
+          "playback": "Odtwarzanie",
           "connection": "Połączenie",
           "entities": "Encje",
           "tests_start": "Testuj amplituner",
@@ -94,7 +95,8 @@
         },
         "menu_option_descriptions": {
           "tests_start": "Trzy kroki, około sześciu minut; wszystko jest przywracane.",
-          "move_back": "Oddaj encje starej integracji"
+          "move_back": "Oddaj encje starej integracji",
+          "playback": "Odtwarzacze powiązane z wejściami, odtwarzanie według sygnału wejściowego"
         }
       },
       "volume": {
@@ -225,6 +227,32 @@
       "sound_mode_names": {
         "title": "Nazwy trybów dźwięku",
         "description": "Nazwy trybów dźwięku w Home Assistant. Puste pole oznacza nazwę z amplitunera."
+      },
+      "playback": {
+        "title": "Odtwarzanie",
+        "description": "Jak odtwarzacze multimedialne pokazują, co gra na wejściu. Wybierz wejście, aby powiązać podłączone do niego urządzenie, np. Apple TV lub streamer.",
+        "data": {
+          "input": "Powiąż odtwarzacz z wejściem",
+          "signal_state": "Odtwarzanie lub bezczynność według sygnału wejściowego"
+        },
+        "data_description": {
+          "input": "Gdy wejście gra, jego strefa pokazuje tytuł, okładkę, pozycję i stan powiązanego odtwarzacza, a odtwarzanie, pauza, przeskok i przewijanie trafiają do niego. Zasilanie, głośność i wejście pozostają przy amplitunerze. Wejście z odtwarzaczem pokazuje go za strzałką.",
+          "signal_state": "Strefa na wejściu bez powiązanego odtwarzacza pokazuje „Odtwarzanie”, gdy wejście ma sygnał, i „Bezczynny” bez sygnału, zamiast „Włączony”. Źródła sieciowe i tuner zachowują własny stan. Jeszcze niewypróbowane na amplitunerze: nie wiadomo, czy każdy model zgłasza koniec sygnału."
+        }
+      },
+      "linked_input": {
+        "title": "Powiązany odtwarzacz",
+        "description": "Odtwarzacz multimedialny urządzenia na wejściu {input}. Zostaw puste, aby usunąć powiązanie.",
+        "data": {
+          "player": "Odtwarzacz multimedialny",
+          "follow": "Przełącz na to wejście, gdy odtwarzacz zacznie grać",
+          "full_volume": "Utrzymuj odtwarzacz na pełnej głośności"
+        },
+        "data_description": {
+          "player": "Jego tytuł, okładka, pozycja i stan pojawiają się w każdej strefie grającej to wejście; odtwarzanie, pauza, przeskok i przewijanie trafiają do niego.",
+          "follow": "Gdy odtwarzacz zacznie grać, strefa główna w razie potrzeby się włącza i przełącza na to wejście, a powiązany odtwarzacz opuszczonego wejścia zostaje wstrzymany. Drugi odtwarzacz, który ruszy w ciągu 5 sekund, zostaje wstrzymany zamiast tego, aby dwa odtwarzacze nie przejmowały się nawzajem. Dziennik pokazuje przełączenie jako wywołane przez odtwarzacz.",
+          "full_volume": "Głośność ustawia się na amplitunerze, więc odtwarzacz jest ustawiany na pełną głośność i odciszany, gdy tylko zmieni się jego głośność."
+        }
       },
       "connection": {
         "title": "Połączenie",
@@ -1202,6 +1230,9 @@
     },
     "setting_not_taken_custom_picture": {
       "message": "{model} nie zmienił ustawienia {setting}: przyjmuje je tylko w trybie obrazu Własny."
+    },
+    "no_linked_player": {
+      "message": "Na wejściu {entity} nie gra żaden powiązany odtwarzacz."
     }
   },
   "issues": {
@@ -1311,6 +1342,17 @@
     "app_control_off": {
       "title": "{model} zgłasza wyłączone sterowanie przez aplikacje",
       "description": "{model} odpowiada NSARA OFF: sterowanie przez aplikację zdalną jest wyłączone w amplitunerze. Aplikacja AVR Remote firmy Denon traktuje wtedy amplituner jako niesterowalny. Home Assistant korzysta z tego samego interfejsu sieciowego; jeśli ustawienia z Home Assistant nie działają, włącz ponownie sterowanie przez aplikacje w menu konfiguracji amplitunera.\n\nTej odpowiedzi nie widziano jeszcze na amplitunerze. Zgłoszenie z diagnostyką amplitunera pomoże."
+    },
+    "linked_player_missing": {
+      "title": "Nie znaleziono powiązanego odtwarzacza",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Usuń powiązania brakujących odtwarzaczy",
+            "description": "{title}: te powiązane odtwarzacze multimedialne już nie istnieją: {players}. Zatwierdź, aby usunąć powiązania; wejścia znów pokażą informacje samego amplitunera. Aby powiązać inny odtwarzacz, otwórz opcje w sekcji Odtwarzanie."
+          }
+        }
+      }
     }
   },
   "selector": {

@@ -87,6 +87,7 @@
           "zones": "Zone e accensione",
           "sources": "Sorgenti",
           "sound_modes": "Modalità audio",
+          "playback": "Riproduzione",
           "connection": "Connessione",
           "entities": "Entità",
           "tests_start": "Prova il ricevitore",
@@ -94,7 +95,8 @@
         },
         "menu_option_descriptions": {
           "tests_start": "Tre passi, circa sei minuti; tutto viene ripristinato.",
-          "move_back": "Restituire le entità alla vecchia integrazione"
+          "move_back": "Restituire le entità alla vecchia integrazione",
+          "playback": "Lettori collegati agli ingressi, riproduzione in base al segnale"
         }
       },
       "volume": {
@@ -225,6 +227,32 @@
       "sound_mode_names": {
         "title": "Nomi delle modalità audio",
         "description": "Nomi delle modalità audio in Home Assistant. Vuoto usa il nome del sintoamplificatore."
+      },
+      "playback": {
+        "title": "Riproduzione",
+        "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Scegli un ingresso per collegare il dispositivo connesso, ad esempio una Apple TV o uno streamer.",
+        "data": {
+          "input": "Collega un lettore a un ingresso",
+          "signal_state": "In riproduzione o inattivo in base al segnale d'ingresso"
+        },
+        "data_description": {
+          "input": "Mentre l'ingresso suona, la sua zona mostra titolo, copertina, posizione e stato del lettore collegato, e riproduci, pausa, salta e avanzamento vanno a esso. Accensione, volume e ingresso restano al ricevitore. Un ingresso con lettore lo mostra dopo la freccia.",
+          "signal_state": "Una zona su un ingresso senza lettore collegato mostra «In riproduzione» finché l'ingresso porta un segnale e «Inattivo» senza, invece di «Acceso». Le sorgenti di rete e il sintonizzatore mantengono il proprio stato. Non ancora provato su un ricevitore: non si sa se ogni modello segnala la fine di un segnale."
+        }
+      },
+      "linked_input": {
+        "title": "Lettore collegato",
+        "description": "Il lettore multimediale del dispositivo su {input}. Lascialo vuoto per scollegarlo.",
+        "data": {
+          "player": "Lettore multimediale",
+          "follow": "Passa a questo ingresso quando il lettore inizia a suonare",
+          "full_volume": "Mantieni il lettore al volume massimo"
+        },
+        "data_description": {
+          "player": "Titolo, copertina, posizione e stato compaiono su ogni zona che riproduce questo ingresso; riproduci, pausa, salta e avanzamento vanno a esso.",
+          "follow": "Quando il lettore inizia a suonare, la zona principale si accende se serve e passa a questo ingresso, e il lettore collegato dell'ingresso lasciato viene messo in pausa. Un secondo lettore che parte entro 5 secondi viene invece messo in pausa, così due lettori non si alternano. Il registro mostra il cambio come causato dal lettore.",
+          "full_volume": "Il volume si regola sul ricevitore, quindi il lettore viene portato al volume massimo e riattivato ogni volta che il suo volume cambia."
+        }
       },
       "connection": {
         "title": "Connessione",
@@ -1202,6 +1230,9 @@
     },
     "setting_not_taken_custom_picture": {
       "message": "{model} non ha cambiato {setting}: lo accetta solo nella modalità immagine Personalizzata."
+    },
+    "no_linked_player": {
+      "message": "Nessun lettore collegato suona sull'ingresso di {entity}."
     }
   },
   "issues": {
@@ -1311,6 +1342,17 @@
     "app_control_off": {
       "title": "{model} indica che il controllo tramite app è disattivato",
       "description": "{model} risponde NSARA OFF: il controllo tramite l'app remota è disattivato sul sintoamplificatore. L'app AVR Remote di Denon considera allora il sintoamplificatore non controllabile. Home Assistant usa la stessa interfaccia di rete; se le impostazioni da Home Assistant non hanno effetto, riattiva il controllo tramite app nel menu di configurazione del sintoamplificatore.\n\nQuesta risposta non è ancora stata vista su un sintoamplificatore. Una segnalazione con la diagnostica aiuta."
+    },
+    "linked_player_missing": {
+      "title": "Lettore multimediale collegato non trovato",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Scollega i lettori mancanti",
+            "description": "{title}: questi lettori multimediali collegati non esistono più: {players}. Conferma per scollegarli; gli ingressi mostrano di nuovo le informazioni del ricevitore. Per collegare un altro lettore, apri le opzioni in Riproduzione."
+          }
+        }
+      }
     }
   },
   "selector": {

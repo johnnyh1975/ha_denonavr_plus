@@ -1832,3 +1832,208 @@ async def test_a_source_or_sound_mode_is_found_in_any_case(
             "media_player", "select_sound_mode", {"entity_id": main, "sound_mode": "Stero"}, blocking=True
         )
     assert err.value.translation_key == "unknown_sound_mode"
+
+
+# Linked player (linked_players.py) ----------------------------------------
+
+_APPLE_TV = "media_player.apple_tv"
+_APPLE_TV_FEATURES = 1 | 2 | 16 | 32 | 4096  # pause, seek, previous, next, play
+
+
+def _link(
+    hass: HomeAssistant, entry: MockConfigEntry, code: str = "DVD", **options: Any
+) -> None:
+    hass.config_entries.async_update_entry(
+        entry,
+        options={
+            **entry.options,
+            "linked_players": {code: {"player": _APPLE_TV, "follow": False, "full_volume": False}},
+            **options,
+        },
+    )
+
+
+async def test_a_linked_player_shows_on_the_zone_that_plays_its_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    hass.states.async_set(
+        _APPLE_TV,
+        "playing",
+        {
+            "media_title": "Severance",
+            "media_artist": "Apple TV+",
+            "media_series_title": "Severance",
+            "media_duration": 3000,
+            "media_position": 120,
+            "app_name": "TV",
+            "entity_picture": "/api/media_player_proxy/media_player.apple_tv?token=x",
+            "supported_features": _APPLE_TV_FEATURES,
+        },
+    )
+    _link(hass, loaded_entry)
+    await hass.async_block_till_done()
+    state = hass.states.get(main)
+    assert state.state == "playing"
+    assert state.attributes["media_title"] == "Severance"
+    assert state.attributes["media_artist"] == "Apple TV+"
+    assert state.attributes["media_series_title"] == "Severance"
+    assert state.attributes["media_duration"] == 3000
+    assert state.attributes["app_name"] == "TV"
+    assert state.attributes["entity_picture"].startswith("/api/media_player_proxy/media_player.apple_tv")
+    assert state.attributes["linked_player"] == _APPLE_TV
+    # The player's transport, the receiver's power, volume and source.
+    features = state.attributes["supported_features"]
+    assert features & 2 and features & 4096 and features & 4  # seek, play, volume set
+    assert not features & 1 << 15  # no shuffle: the player has none
+
+    # A change on the player shows at once.
+    hass.states.async_set(_APPLE_TV, "paused", {**hass.states.get(_APPLE_TV).attributes})
+    await hass.async_block_till_done()
+    assert hass.states.get(main).state == "paused"
+
+    # Idle: the input shows again, as without a player.
+    hass.states.async_set(_APPLE_TV, "idle", {"supported_features": _APPLE_TV_FEATURES})
+    await hass.async_block_till_done()
+    state = hass.states.get(main)
+    assert state.state == "idle"
+    assert state.attributes["media_title"] == "DVD"
+
+    # Another input: the receiver's own information.
+    await _push(hass, "SICD")
+    state = hass.states.get(main)
+    assert state.state == "on"
+    assert "linked_player" not in state.attributes
+
+
+async def test_an_unreachable_linked_player_leaves_the_zone_on(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    hass.states.async_set(_APPLE_TV, STATE_UNAVAILABLE)
+    _link(hass, loaded_entry)
+    await hass.async_block_till_done()
+    state = hass.states.get(main)
+    assert state.state == "on"
+    assert state.attributes["linked_player"] == _APPLE_TV
+
+
+async def test_transport_goes_to_the_linked_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import DATA_COMPONENT, RepeatMode
+    from pytest_homeassistant_custom_component.common import async_mock_service
+
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    hass.states.async_set(_APPLE_TV, "playing", {"supported_features": _APPLE_TV_FEATURES})
+    _link(hass, loaded_entry)
+    await hass.async_block_till_done()
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None
+    calls = {
+        service: async_mock_service(hass, "media_player", service)
+        for service in (
+            "media_play", "media_pause", "media_stop", "media_next_track",
+            "media_previous_track", "media_seek", "shuffle_set", "repeat_set",
+        )
+    }
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await player.async_media_play()
+    await player.async_media_pause()
+    await player.async_media_stop()
+    await player.async_media_next_track()
+    await player.async_media_previous_track()
+    await player.async_media_seek(42)
+    await player.async_set_shuffle(True)
+    await player.async_set_repeat(RepeatMode.ALL)
+    for service, received in calls.items():
+        assert [call.data["entity_id"] for call in received] == [_APPLE_TV], service
+    assert calls["media_seek"][0].data["seek_position"] == 42
+    assert calls["repeat_set"][0].data["repeat"] == RepeatMode.ALL
+    # Nothing went to the receiver.
+    assert telnet.sent == []
+
+
+async def test_seek_needs_a_linked_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.components.media_player import DATA_COMPONENT
+    from homeassistant.exceptions import ServiceValidationError
+
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    player = hass.data[DATA_COMPONENT].get_entity(main)
+    assert player is not None
+    with pytest.raises(ServiceValidationError) as raised:
+        await player.async_media_seek(10)
+    assert raised.value.translation_key == "no_linked_player"
+
+
+async def test_zone2_shows_the_linked_player_of_its_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "Z2ON", "Z2DVD")
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    hass.states.async_set(_APPLE_TV, "playing", {"media_title": "Severance"})
+    _link(hass, loaded_entry)
+    await hass.async_block_till_done()
+    assert hass.states.get(zone2).attributes["media_title"] == "Severance"
+
+
+@pytest.mark.assumed(
+    "that the receiver reports SSINFAISFSV NON when an input's signal stops is read "
+    "from the protocol notes, not seen on a receiver; a stopped player on an input settles it"
+)
+async def test_the_input_signal_tells_playing_from_idle(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    await _push(hass, "PWON", "ZMON", "SIDVD", "SSINFAISFSV48K", "Z2ON", "Z2CD")
+    # Off by default: the zone is simply on.
+    assert hass.states.get(main).state == "on"
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={**loaded_entry.options, "signal_state": True}
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(main).state == "playing"
+    await _push(hass, "SSINFAISFSVNON")
+    assert hass.states.get(main).state == "idle"
+    # Zone 2 plays another input, whose signal the receiver does not report.
+    assert hass.states.get(zone2).state == "on"
+    # The same input as the main zone: the main zone's signal.
+    await _push(hass, "Z2DVD")
+    assert hass.states.get(zone2).state == "idle"
+    # The tuner has no signal to go by.
+    await _push(hass, "SITUNER")
+    assert hass.states.get(main).state == "on"
+
+
+async def test_without_a_signal_report_the_zone_stays_on(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={**loaded_entry.options, "signal_state": True}
+    )
+    await _push(hass, "PWON", "ZMON", "SIDVD")
+    loaded_entry.runtime_data.data.readonly.pop("sample_rate", None)
+    loaded_entry.runtime_data.async_update_listeners()
+    await hass.async_block_till_done()
+    assert hass.states.get(main).state == "on"
+
+
+async def test_a_linked_player_decides_over_the_signal(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    await _push(hass, "PWON", "ZMON", "SIDVD", "SSINFAISFSV48K")
+    hass.states.async_set(_APPLE_TV, "paused", {"media_title": "Severance"})
+    # A paused streamer often keeps its signal.
+    _link(hass, loaded_entry, signal_state=True)
+    await hass.async_block_till_done()
+    assert hass.states.get(main).state == "paused"

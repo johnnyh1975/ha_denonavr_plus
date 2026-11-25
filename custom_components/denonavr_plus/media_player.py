@@ -17,9 +17,30 @@ from typing import Any
 
 from homeassistant.components import media_source
 from homeassistant.components.media_player import (
+    ATTR_APP_ID,
+    ATTR_APP_NAME,
+    ATTR_MEDIA_ALBUM_ARTIST,
+    ATTR_MEDIA_ALBUM_NAME,
     ATTR_MEDIA_ANNOUNCE,
+    ATTR_MEDIA_ARTIST,
+    ATTR_MEDIA_CHANNEL,
+    ATTR_MEDIA_CONTENT_ID,
+    ATTR_MEDIA_CONTENT_TYPE,
+    ATTR_MEDIA_DURATION,
     ATTR_MEDIA_ENQUEUE,
+    ATTR_MEDIA_EPISODE,
     ATTR_MEDIA_EXTRA,
+    ATTR_MEDIA_PLAYLIST,
+    ATTR_MEDIA_POSITION,
+    ATTR_MEDIA_POSITION_UPDATED_AT,
+    ATTR_MEDIA_REPEAT,
+    ATTR_MEDIA_SEASON,
+    ATTR_MEDIA_SEEK_POSITION,
+    ATTR_MEDIA_SERIES_TITLE,
+    ATTR_MEDIA_SHUFFLE,
+    ATTR_MEDIA_TITLE,
+    ATTR_MEDIA_TRACK,
+    DOMAIN as MEDIA_PLAYER,
     BrowseError,
     BrowseMedia,
     SearchMedia,
@@ -35,14 +56,36 @@ from homeassistant.components.media_player import (
 from homeassistant.components.media_player.browse_media import (
     async_process_play_media_url,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.const import (
+    ATTR_ENTITY_PICTURE,
+    ATTR_SUPPORTED_FEATURES,
+    SERVICE_MEDIA_NEXT_TRACK,
+    SERVICE_MEDIA_PAUSE,
+    SERVICE_MEDIA_PLAY,
+    SERVICE_MEDIA_PREVIOUS_TRACK,
+    SERVICE_MEDIA_SEEK,
+    SERVICE_MEDIA_STOP,
+    SERVICE_REPEAT_SET,
+    SERVICE_SHUFFLE_SET,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+)
+from homeassistant.core import (
+    CALLBACK_TYPE,
+    Event,
+    EventStateChangedData,
+    HomeAssistant,
+    State,
+    callback,
+)
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import artwork, choices, heos_media, sound_modes
+from . import artwork, choices, heos_media, linked_players, sound_modes
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent, SourceNotTaken
@@ -68,6 +111,23 @@ _TRANSPORT = (
 )
 _PLAY_MODES = MediaPlayerEntityFeature.REPEAT_SET | MediaPlayerEntityFeature.SHUFFLE_SET
 _SKIP = MediaPlayerEntityFeature.NEXT_TRACK | MediaPlayerEntityFeature.PREVIOUS_TRACK
+#: What a linked player adds while its input plays: its own transport.
+_LINKED_FEATURES = (
+    _TRANSPORT | _PLAY_MODES | MediaPlayerEntityFeature.SEEK
+)
+#: A linked player's states that the zone shows instead of plain "on".
+_LINKED_STATES = {
+    MediaPlayerState.PLAYING,
+    MediaPlayerState.PAUSED,
+    MediaPlayerState.BUFFERING,
+    MediaPlayerState.IDLE,
+}
+#: The linked player's states in which its title and artwork are shown.
+_LINKED_MEDIA_STATES = {
+    MediaPlayerState.PLAYING,
+    MediaPlayerState.PAUSED,
+    MediaPlayerState.BUFFERING,
+}
 
 # HEOS play modes and Home Assistant's repeat modes.
 _REPEAT_FROM_HEOS = {"off": RepeatMode.OFF, "on_all": RepeatMode.ALL, "on_one": RepeatMode.ONE}
@@ -173,6 +233,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         self._snapshot: ZoneSnapshot | None = None
         self._ramp_task: asyncio.Task[None] | None = None
         self._sound_mode_words: dict[str, str] = dict(sound_modes.WORDS)
+        self._linked_tracked: frozenset[str] = frozenset()
+        self._unsub_linked: CALLBACK_TYPE | None = None
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
         self._attr_name = None
@@ -210,8 +272,101 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             )
         self.async_on_remove(self._cancel_announcement)
         self.async_on_remove(self._cancel_volume_ramp)
+        self.async_on_remove(self._untrack_linked)
+        self._track_linked()
         if self._zone.is_main:
             self._sound_mode_words = await sound_modes.async_words(self.hass)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        # Options are applied through an update: the linked players may change.
+        self._track_linked()
+        super()._handle_coordinator_update()
+
+    # Linked player (linked_players.py) ------------------------------------
+
+    @callback
+    def _track_linked(self) -> None:
+        """Listen to the linked players, to show the one of the input that plays."""
+
+        players = frozenset(
+            link.entity_id for link in linked_players.links(self._entry_options).values()
+        )
+        if players == self._linked_tracked:
+            return
+        self._untrack_linked()
+        self._linked_tracked = players
+        if players:
+            self._unsub_linked = async_track_state_change_event(
+                self.hass, sorted(players), self._linked_changed
+            )
+
+    @callback
+    def _untrack_linked(self) -> None:
+        if self._unsub_linked is not None:
+            self._unsub_linked()
+            self._unsub_linked = None
+        self._linked_tracked = frozenset()
+
+    @callback
+    def _linked_changed(self, event: Event[EventStateChangedData]) -> None:
+        if event.data["entity_id"] == self._linked_entity_id:
+            self.async_write_ha_state()
+
+    @property
+    def _linked_entity_id(self) -> str | None:
+        """The player linked to the input this zone plays, while it is on."""
+
+        source = self._source_code
+        if not self._zone_state.power or source is None:
+            return None
+        link = linked_players.links(self._entry_options).get(source)
+        return link.entity_id if link is not None else None
+
+    @property
+    def _linked(self) -> State | None:
+        """The linked player's state, while it can be reached."""
+
+        entity_id = self._linked_entity_id
+        if entity_id is None or self.hass is None:
+            return None
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            return None
+        return state
+
+    @property
+    def _linked_media(self) -> State | None:
+        """The linked player's state while it has something to show."""
+
+        state = self._linked
+        return state if state is not None and state.state in _LINKED_MEDIA_STATES else None
+
+    def _linked_attr(self, name: str) -> Any:
+        state = self._linked_media
+        return state.attributes.get(name) if state is not None else None
+
+    async def _async_call_linked(self, service: str, data: dict[str, Any] | None = None) -> bool:
+        """An action on the linked player; False when there is none."""
+
+        state = self._linked
+        if state is None:
+            return False
+        await self.hass.services.async_call(
+            MEDIA_PLAYER,
+            service,
+            {**(data or {}), "entity_id": state.entity_id},
+            blocking=True,
+            context=self._context,
+        )
+        return True
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """The linked player of the input that plays, for cards and automations."""
+
+        entity_id = self._linked_entity_id
+        return {"linked_player": entity_id} if entity_id else None
 
     def _cancel_announcement(self) -> None:
         if self._announce_task is not None:
@@ -241,7 +396,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         features = self._attr_supported_features
         if len(self._players) > 1:
             features |= MediaPlayerEntityFeature.GROUPING
-        if self._network_media:
+        if (linked := self._linked) is not None:
+            # The device on the input plays: its transport, as far as it has one.
+            features |= _LINKED_FEATURES & MediaPlayerEntityFeature(
+                int(linked.attributes.get(ATTR_SUPPORTED_FEATURES, 0))
+            )
+        elif self._network_media:
             # Play, pause and skip only where they reach what plays.
             features |= self._media_features(self.coordinator)
         if self._zone.is_main and self._device.heos is not None:
@@ -253,7 +413,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 | MediaPlayerEntityFeature.MEDIA_ANNOUNCE
                 | MediaPlayerEntityFeature.CLEAR_PLAYLIST
             )
-        if self._device.is_tuner(self._source_code):
+        if linked is None and self._device.is_tuner(self._source_code):
             # Skip steps through the tuner presets.
             features |= _SKIP
         return features
@@ -332,6 +492,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             return None
         if not power:
             return MediaPlayerState.OFF
+        if (linked := self._linked) is not None:
+            # The device on the input decides: a streamer often keeps a
+            # digital signal while it is paused.
+            return (
+                MediaPlayerState(linked.state)
+                if linked.state in _LINKED_STATES
+                else MediaPlayerState.ON
+            )
         # When a network source is playing, reflect the transport state so the
         # card shows play/pause; otherwise the receiver is simply on.
         now = self._now_playing
@@ -341,7 +509,33 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 if now.state == "pause"
                 else MediaPlayerState.PLAYING
             )
+        if self._entry_options.get(linked_players.OPT_SIGNAL_STATE):
+            signal = self._input_signal
+            if signal is not None:
+                return MediaPlayerState.PLAYING if signal else MediaPlayerState.IDLE
         return MediaPlayerState.ON
+
+    @property
+    def _input_signal(self) -> bool | None:
+        """Whether the input this zone plays carries a signal; None when unknown.
+
+        The receiver reports the signal of the main zone's input (SSINFAISFSV,
+        NON without one). Another zone knows it only while it plays the same
+        input. Network sources and the tuner have no signal to go by.
+        """
+
+        source = self._source_code
+        if source is None or self._device.is_tuner(source):
+            return None
+        if source in self._device.profile.netaudio.get("sources", []):
+            return None
+        main = self.coordinator.data.zone("main")
+        if not self._zone.is_main and not (main.power and main.source == source):
+            return None
+        readonly = self.coordinator.data.readonly
+        if "sample_rate" not in readonly:
+            return None
+        return readonly["sample_rate"] is not None
 
     @property
     def volume_level(self) -> float | None:
@@ -514,6 +708,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def media_content_id(self) -> str | None:
         """The recalled tuner preset, as the browser names it."""
 
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_CONTENT_ID)
         if not self._device.is_tuner(self._source_code):
             return None
         preset = self.coordinator.data.values.get("tuner_preset")
@@ -521,6 +717,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def media_content_type(self) -> str | None:
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_CONTENT_TYPE)
         now = self._now_playing
         if now and now.active:
             # A radio station is a channel, the rest music.
@@ -529,6 +727,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def media_image_url(self) -> str | None:
+        if (picture := self._linked_attr(ATTR_ENTITY_PICTURE)) is not None:
+            # Already served through Home Assistant's own image proxy.
+            return str(picture)
         now = self._now_playing
         if now and now.active and now.image_url:
             return now.image_url
@@ -559,6 +760,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def media_title(self) -> str | None:
         """The track, the station, or else the input that plays."""
 
+        if title := self._linked_attr(ATTR_MEDIA_TITLE):
+            # A linked player without a title shows the input, as without one.
+            return str(title)
         now = self._now_playing
         if now and now.active:
             return now.title
@@ -573,6 +777,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def media_artist(self) -> str | None:
         """The artist, or else the main zone's sound mode under the input."""
 
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_ARTIST)
         now = self._now_playing
         if now and now.active:
             return now.artist
@@ -587,6 +793,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         Only for inputs: on a network source the album is the album.
         """
 
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_ALBUM_NAME)
         now = self._now_playing
         if now and now.active:
             return now.album
@@ -604,6 +812,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def media_channel(self) -> str | None:
         """The radio station: over HEOS, or the tuner's station or frequency."""
 
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_CHANNEL)
         now = self._now_playing
         if now and now.active and now.station:
             return now.station
@@ -613,11 +823,51 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     def app_name(self) -> str | None:
         """The HEOS music source it plays from (TuneIn, Spotify, a media server)."""
 
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_APP_NAME)
         now = self._now_playing
         return now.service if now and now.active else None
 
     @property
+    def media_album_artist(self) -> str | None:
+        return self._linked_attr(ATTR_MEDIA_ALBUM_ARTIST)  # type: ignore[no-any-return]
+
+    @property
+    def media_track(self) -> int | None:
+        return self._linked_attr(ATTR_MEDIA_TRACK)  # type: ignore[no-any-return]
+
+    @property
+    def media_series_title(self) -> str | None:
+        return self._linked_attr(ATTR_MEDIA_SERIES_TITLE)  # type: ignore[no-any-return]
+
+    @property
+    def media_season(self) -> str | None:
+        return self._linked_attr(ATTR_MEDIA_SEASON)  # type: ignore[no-any-return]
+
+    @property
+    def media_episode(self) -> str | None:
+        return self._linked_attr(ATTR_MEDIA_EPISODE)  # type: ignore[no-any-return]
+
+    @property
+    def media_playlist(self) -> str | None:
+        return self._linked_attr(ATTR_MEDIA_PLAYLIST)  # type: ignore[no-any-return]
+
+    @property
+    def app_id(self) -> str | None:
+        return self._linked_attr(ATTR_APP_ID)  # type: ignore[no-any-return]
+
+    @property
+    def entity_picture(self) -> str | None:
+        """The linked player's artwork as it is, already behind Home Assistant's proxy."""
+
+        if (picture := self._linked_attr(ATTR_ENTITY_PICTURE)) is not None:
+            return str(picture)
+        return super().entity_picture
+
+    @property
     def media_position(self) -> int | None:
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_POSITION)
         now = self._now_playing
         if now and now.active and now.position is not None:
             return int(now.position)
@@ -625,6 +875,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def media_duration(self) -> int | None:
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_DURATION)
         now = self._now_playing
         if now and now.active and now.duration:
             return int(now.duration)
@@ -632,6 +884,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def media_position_updated_at(self) -> datetime | None:
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_POSITION_UPDATED_AT)
         now = self._now_playing
         if now and now.active and now.position_at is not None:
             return dt_util.utc_from_timestamp(now.position_at)
@@ -639,6 +893,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def repeat(self) -> RepeatMode | None:
+        if (linked := self._linked_media) is not None:
+            value = linked.attributes.get(ATTR_MEDIA_REPEAT)
+            return RepeatMode(value) if value in tuple(RepeatMode) else None
         now = self._now_playing
         if now is None or now.repeat is None:
             return None
@@ -646,6 +903,8 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @property
     def shuffle(self) -> bool | None:
+        if (linked := self._linked_media) is not None:
+            return linked.attributes.get(ATTR_MEDIA_SHUFFLE)
         now = self._now_playing
         return now.shuffle if now is not None else None
 
@@ -860,18 +1119,26 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_media_play(self) -> None:
+        if await self._async_call_linked(SERVICE_MEDIA_PLAY):
+            return
         await self._device.async_media_play()
 
     @receiver_action
     async def async_media_pause(self) -> None:
+        if await self._async_call_linked(SERVICE_MEDIA_PAUSE):
+            return
         await self._device.async_media_pause()
 
     @receiver_action
     async def async_media_stop(self) -> None:
+        if await self._async_call_linked(SERVICE_MEDIA_STOP):
+            return
         await self._device.async_media_stop()
 
     @receiver_action
     async def async_media_next_track(self) -> None:
+        if await self._async_call_linked(SERVICE_MEDIA_NEXT_TRACK):
+            return
         if self._device.is_tuner(self._source_code):
             await self._device.async_tuner_preset_step(up=True)
             return
@@ -879,10 +1146,24 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_media_previous_track(self) -> None:
+        if await self._async_call_linked(SERVICE_MEDIA_PREVIOUS_TRACK):
+            return
         if self._device.is_tuner(self._source_code):
             await self._device.async_tuner_preset_step(up=False)
             return
         await self._device.async_media_previous()
+
+    async def async_media_seek(self, position: float) -> None:
+        """Only offered while a linked player that can seek plays."""
+
+        if not await self._async_call_linked(
+            SERVICE_MEDIA_SEEK, {ATTR_MEDIA_SEEK_POSITION: position}
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="no_linked_player",
+                translation_placeholders={"entity": self.entity_id},
+            )
 
     # Media browser and play_media (main zone) -----------------------------
 
@@ -1539,10 +1820,14 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     @receiver_action
     async def async_set_repeat(self, repeat: RepeatMode) -> None:
+        if await self._async_call_linked(SERVICE_REPEAT_SET, {ATTR_MEDIA_REPEAT: repeat}):
+            return
         await self._device.async_media_repeat(_REPEAT_TO_HEOS[repeat])
 
     @receiver_action
     async def async_set_shuffle(self, shuffle: bool) -> None:
+        if await self._async_call_linked(SERVICE_SHUFFLE_SET, {ATTR_MEDIA_SHUFFLE: shuffle}):
+            return
         await self._device.async_media_shuffle(shuffle)
 
 

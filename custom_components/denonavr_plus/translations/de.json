@@ -87,6 +87,7 @@
           "zones": "Zonen und Einschalten",
           "sources": "Quellen",
           "sound_modes": "Klangmodi",
+          "playback": "Wiedergabe",
           "connection": "Verbindung",
           "entities": "Entitäten",
           "tests_start": "Receiver prüfen",
@@ -94,7 +95,8 @@
         },
         "menu_option_descriptions": {
           "tests_start": "Drei Schritte, rund sechs Minuten; alles wird zurückgestellt.",
-          "move_back": "Die Entitäten an die alte Integration zurückgeben"
+          "move_back": "Die Entitäten an die alte Integration zurückgeben",
+          "playback": "Verknüpfte Player an Eingängen, Wiedergabe nach Eingangssignal"
         }
       },
       "volume": {
@@ -225,6 +227,32 @@
       "sound_mode_names": {
         "title": "Namen der Klangmodi",
         "description": "Namen für die Klangmodi in Home Assistant. Leer bedeutet: der Name vom Receiver."
+      },
+      "playback": {
+        "title": "Wiedergabe",
+        "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Wähle einen Eingang, um das daran angeschlossene Gerät zu verknüpfen, etwa ein Apple TV oder einen Streamer.",
+        "data": {
+          "input": "Player mit einem Eingang verknüpfen",
+          "signal_state": "Spielt oder Leerlauf nach dem Eingangssignal"
+        },
+        "data_description": {
+          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Strom, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil.",
+          "signal_state": "Eine Zone an einem Eingang ohne verknüpften Player zeigt „Spielt“, solange der Eingang ein Signal führt, und „Leerlauf“ ohne Signal, statt „An“. Netzwerkquellen und der Tuner behalten ihren eigenen Zustand. Noch auf keinem Receiver ausprobiert: Ob jedes Modell meldet, wenn ein Signal endet, ist offen."
+        }
+      },
+      "linked_input": {
+        "title": "Verknüpfter Player",
+        "description": "Der Media Player des Geräts an {input}. Leer lassen, um die Verknüpfung zu lösen.",
+        "data": {
+          "player": "Media Player",
+          "follow": "Auf diesen Eingang umschalten, wenn der Player zu spielen beginnt",
+          "full_volume": "Player auf voller Lautstärke halten"
+        },
+        "data_description": {
+          "player": "Titel, Cover, Position und Zustand erscheinen auf jeder Zone, die diesen Eingang spielt; Wiedergabe, Pause, Springen und Spulen gehen an ihn.",
+          "follow": "Beginnt der Player zu spielen, schaltet sich die Hauptzone bei Bedarf ein und wechselt auf diesen Eingang, und der verknüpfte Player des verlassenen Eingangs wird angehalten. Ein zweiter Player, der innerhalb von 5 Sekunden startet, wird stattdessen angehalten, damit sich zwei Player nicht abwechseln. Das Logbuch zeigt den Wechsel als vom Player ausgelöst.",
+          "full_volume": "Die Lautstärke wird am Receiver eingestellt; der Player wird deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, sobald sich seine Lautstärke ändert."
+        }
       },
       "connection": {
         "title": "Verbindung",
@@ -1202,6 +1230,9 @@
     },
     "setting_not_taken_custom_picture": {
       "message": "{model} hat {setting} nicht geändert: Der Receiver übernimmt das nur im Bildmodus Benutzerdefiniert."
+    },
+    "no_linked_player": {
+      "message": "Am Eingang von {entity} spielt kein verknüpfter Player."
     }
   },
   "issues": {
@@ -1311,6 +1342,17 @@
     "app_control_off": {
       "title": "{model} meldet die Steuerung per App als ausgeschaltet",
       "description": "{model} antwortet NSARA OFF: Die Steuerung per Remote-App ist am Receiver ausgeschaltet. Denons AVR Remote App behandelt den Receiver dann als nicht steuerbar. Home Assistant nutzt dieselbe Netzwerkschnittstelle; wenn Einstellungen aus Home Assistant nicht wirken, schalte die Steuerung per App im Einrichtungsmenü des Receivers wieder ein.\n\nDiese Antwort ist auf einem Receiver noch nicht gesehen worden. Eine Meldung mit der Diagnose des Receivers hilft."
+    },
+    "linked_player_missing": {
+      "title": "Verknüpfter Media Player nicht gefunden",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Fehlende Player lösen",
+            "description": "{title}: Diese verknüpften Media Player gibt es nicht mehr: {players}. Bestätige, um die Verknüpfungen zu lösen; die Eingänge zeigen dann wieder die Angaben des Receivers. Um stattdessen einen anderen Player zu verknüpfen, öffne die Optionen unter Wiedergabe."
+          }
+        }
+      }
     }
   },
   "selector": {
