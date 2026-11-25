@@ -28,8 +28,9 @@ pages and commands it has. The apps branch on the same values.
 The apps no longer support receivers without a level: Denon AVR Remote
 3.13.4 and even the Remote App 1.1.9 hide them (**App**). The current apps
 also turn away the receivers of 2012 to 2014 by model name and point to
-the older app, so levels 0210, 0250 and the 2014 units of 0300 are paths in
-their code that they are not seen to use
+the older app, so they do not use their paths for levels 0210, 0250 and
+the 2014 units of 0300; those 0300 receivers still list the signal commands
+under `StatusInfo` in their own `Deviceinfo.xml`
 ([model years](12-manufacturer-apps.md#model-years-the-current-apps-accept)).
 From level 0200 the apps take the volume step from the receiver instead of
 a fixed 0.5 dB.
@@ -64,7 +65,7 @@ last column says how this integration reaches the same function today.
 | Function | Commands | Parameters | This integration |
 |---|---|---|---|
 | Audyssey | `GetAudyssey`, `SetAudyssey`, `GetAudysseyEQCurveType` | `multeq`, `dynamiceq`, `dynamicvol`, `reflevoffset`, `audysseylfc`, `containamount`, `surroundlevelcompensation`; curve list `multeqlist` | Telnet; the Dynamic EQ surround level compensation is not offered |
-| Surround parameters | `GetSurroundParameter`, `SetSurroundParameter`, `GetIMAXList`, `GetDynaCompList` | `cinemaeq`, `loudness`, `dialogcontrol`, `dtsneux`, `cspread`, `spvirtual`, `spsel`, `effectlev`, `delaytime`, `lfe`, `dyncomp`, `drc`, `panorama`, `dimension`, `centerwidth`, `centerimage`, `roomsize`, `chexpander`, `auro3dpre`, `auro3dstr`, `auro3dmode`, `imax`, `imaxaud`, `imaxhpf`, `imaxlpf`, `imaxswm`, `imaxswo`, `sw` | Telnet; the channel expander is not offered |
+| Surround parameters | `GetSurroundParameter`, `SetSurroundParameter`, `GetIMAXList`, `GetDynaCompList` | `cinemaeq`, `loudness`, `dialogcontrol`, `dtsneux`, `cspread`, `spvirtual`, `spsel`, `effectlev`, `delaytime`, `lfe`, `dyncomp`, `panorama`, `dimension`, `centerwidth`, `centerimage`, `roomsize`, `chexpander`, `auro3dpre`, `auro3dstr`, `auro3dmode`, `imax`, `imaxaud`, `imaxhpf`, `imaxlpf`, `imaxswm`, `imaxswo`, `sw` | Telnet; the channel expander is not offered |
 | Signal information | `GetInputSignal`, `GetActiveSpeaker`, `GetAudioInfo`, `GetVideoInfo`, `GetAudyssyInfo`, `GetDiracLiveInfo` | `inputsigall` and `inputsig<a–e><1–4>`, `activespall` and `activesp<a–e><1–4>`, `inputmode`, `output`, `signal`, `sound`, `fs`, `videooutput`, `hdmisigin`, `hdmisigout`, `eqname`, `eqvalue`, `filter`, `basscontrol` | `/ajax/info` on receivers from 2016; nothing for 2014–2015 receivers |
 | Dialog level | `GetDialogLevel`, `SetDialogLevel` | `status`, `adjust`, `level` | Telnet `PSCLV` (`PSDIL` until 2015) |
 | Subwoofer level | `GetSubwooferLevel`, `SetSubwooferLevel` | `adjust`, `sw1value`–`sw4value` (up to four subwoofers) | Telnet `PSSWL`, `PSSWL2` |

@@ -146,7 +146,8 @@ Notes:
 - Plan for **one telnet (23) connection** per receiver: whether a second
   session connects and gets the events is not yet tested on any model
   ([test](protocol/09-status-diagnostics-and-discovery.md#test-concurrent-telnet-sessions)).
-  Connect one integration or program to it at a time.
+  Connect one integration or program to it at a time. The Denon and
+  Marantz AVR Remote app counts too while its tuner screen is open.
 - The HEOS (1255) and setup‑config (10443) channels are only opened when the
   receiver advertises the matching capability; both are non‑disruptive.
 - Protocol details per receiver generation, a model comparison and test

@@ -236,7 +236,8 @@ silence.
 ### Test: commands seen in Denon's app
 
 Send `MVLONGUP`, wait a second, then `MVLONGEND`, and note whether the
-volume rises and stops; the same with `MVLONGDOWN`. Send `VSVPM ?` and note
+volume rises and stops; the same with `MVLONGDOWN`. The app sends these for
+the volume of a connected amplifier only, so a receiver may ignore them. Send `VSVPM ?` and note
 whether the reply can be `VSVPMBYP`. Send `Z2CVFL 505` and note whether
 the receiver ignores it (it takes whole dB only, as with `PSBAS 505`).
 

@@ -24,7 +24,7 @@ sends with which parameters.
 
 | Interface | Denon/Marantz AVR Remote 3.13.4 | HEOS 3.139.353 | Remote App 1.1.9 |
 |---|---|---|---|
-| Telnet, port 23 | Three queries only: `ZM?`, `NSARA ?`, `NSHEA ?` | – | – |
+| Telnet, port 23 | Three queries (`ZM?`, `NSARA ?`, `NSHEA ?`), and a listening session while the tuner view is open on a HEOS-generation receiver | – | – |
 | `formiPhoneAppDirect.xml?<telnet command>` | Keys, cursor, network transport, tuner, IR forwarding | – | yes |
 | `AppCommand.xml` | Zone status, power, volume, names, favourites | – | yes |
 | `AppCommand0300.xml` | Every setup function | – | – |
@@ -54,9 +54,11 @@ the only sources. The HTTP commands are on the
   app those with 1.
 - **Product category** from `ProductCategory`: 1 AV receiver, 2 system,
   7 stereo receiver (handled like an AV receiver).
-- **HEOS generation**: a receiver found over Bonjour or the HEOS SDK counts
-  as a HEOS receiver, except the 2015 and 2016 network receivers without
-  HEOS, which the app lists by name: AVR-X1200W to X7200WA, X1300W to
+- **HEOS generation** (the apps' internal name for these receivers is
+  "LEGO-AVR"; about 30 behaviours depend on it, among them the setup paths,
+  firmware update and the telnet session of the tuner view): a receiver
+  found over Bonjour or the HEOS SDK counts as a HEOS receiver, except the
+  2015 and 2016 network receivers without HEOS, which the app lists by name: AVR-X1200W to X7200WA, X1300W to
   X3300W, S710W to S920W, NR1506, NR1606, NR1607, SR5010, SR5011, SR6010,
   SR6011, SR7010, AV7702 and AV8802.
 - **Excluded by name** (2010–2012, level 100): AVR-991, 1912, 2112, 2312,
@@ -76,9 +78,10 @@ years by name patterns (`*`, `Denon ` and `Marantz ` taken off first):
 
 So the current apps are made for receivers from 2015 on. Their code still
 holds the paths for levels 0210, 0250 and 0300, but no current app uses
-them on the 2012–2014 receivers it turns away; for those models the
-`AppCommand0300.xml` commands are a finding in the code, not a path an app
-is seen to use.
+them on the 2012–2014 receivers it turns away. The 2014 receivers of level
+0300 still list the signal commands of `AppCommand0300.xml` themselves,
+under `StatusInfo` in `Deviceinfo.xml` (recorded AVR-X2100W, AVR-X4100W,
+SR6011).
 
 This integration uses the interface level the same way
 ([value encodings by generation](03-command-reference.md#differences-between-protocol-versions)),
@@ -90,8 +93,14 @@ unless HEOS is switched off in its options.
 The Denon app opens port 23 for three queries: `ZM?` to align the power
 state, and `NSARA ?` and `NSHEA ?`. The last two ask whether control by the
 remote app or by the HEOS app is switched off on the receiver; the app
-treats a reply `NSARA OFF` or `NSHEA OFF` as switched off. Everything else
-goes over `formiPhoneAppDirect.xml`.
+treats a reply `NSARA OFF` or `NSHEA OFF` as switched off. On a
+HEOS-generation receiver it also keeps a telnet session open while its
+tuner view is shown, and only listens on it, for `OPTPN…` and
+`OPTPSTUNER…` (the preset list changed). Neither reply is in a protocol
+document here. On a receiver that takes one telnet client at a time, this
+session can push out the one of this integration
+([concurrent sessions](02-network-and-protocols.md#concurrent-sessions)).
+Everything else goes over `formiPhoneAppDirect.xml`.
 
 Tokens the apps send that no protocol document here lists; all are
 **To test**:
@@ -99,14 +108,13 @@ Tokens the apps send that no protocol document here lists; all are
 | Token | Use in the app | Note |
 |---|---|---|
 | `NSARA ?`, `NSHEA ?` | Remote app or HEOS app allowed | Would explain a receiver that ignores network commands |
-| `MVLONGUP`, `MVLONGDOWN`, `MVLONGEND` | Volume held and released | String only; the call site could not be traced |
+| `MVLONGUP`, `MVLONGDOWN`, `MVLONGEND` | Volume held and released, but only for the volume of a connected amplifier, on devices without `SetAMPControl` (next to the IR codes `IRTX1616`/`IRTX1617`) | Not shown for a receiver's own volume |
 | `SSDGO ON`, `SSDGO OFF` | Digital output on or off | Systems and stereo receivers |
 | `SSPLV` | Network display: go to the playing view | |
 | `NS92`, `NS94`, `NS9W`, `NSRND`, `NSRPT` | Pop-up OK, play/pause, iPod mode, shuffle, repeat | `NS9A`–`NS9E` are documented |
 | `TFHDUP`/`DOWN`, `TFHDMCUP`/`DOWN`, `TFSTUP`/`DOWN`, `TPSTUP`/`DOWN` | HD Radio multicast, Sirius | North American models |
-| `Z4SLP` | Sleep timer of a Zone 4 | String only; no recorded receiver has four zones |
-| `PSBAL `, `PSSDB `, `PSSDI ` | Balance, Super Dynamic Bass, Source Direct | Stereo receivers and systems; strings only |
-| `PSMDA ` | M-DAX | String only; Marantz's 2019 document gives `PSMDAX` ([below](#marantz)) |
+| `Z4SLP` | Sleep timer of a Zone 4 (put together at run time) | No recorded receiver has four zones |
+| `PSBAL `, `PSSDB `, `PSSDI ` | Balance, Super Dynamic Bass, Source Direct (put together at run time) | Stereo receivers and systems |
 | `CLK` | Show the clock | Systems |
 | `IRTX…` | Forward an IR code to a connected Denon CD or Blu-ray player or amplifier | Model-dependent codes |
 | `RCKSK0410859`, `RCRC51601520` | InstaPrevue | Models with InstaPrevue |
@@ -116,11 +124,13 @@ Tokens the apps send that no protocol document here lists; all are
 Confirmed by the apps and already used here: `PWON`, `PWSTANDBY`, `ZM?`,
 `MU`, the `MS…` sound modes, the menu keys `MNCUP`, `MNCDN`, `MNCLT`,
 `MNCRT`, `MNENT`, `MNRTN`, `MNINF`, `MNOPT`, `MNMEN ON`/`OFF`, `NSFRN`,
-`PSBAS`, `PSTRE`, `Z2SLP`, `Z3SLP`, `TFANUP`/`DOWN`, `TPANUP`/`DOWN`, and
-`MSQUICK<n>`, `Z2QUICK<n>`, `Z3QUICK<n>` (put together at run time, sent to
-receivers without the HTTP command for Quick Select). The network presets `NSP1`–`NSP3` and
-`NSP<n> MEM` that the apps hold as strings are in the AVR-1912/2112CI
-document (page 40).
+`PSBAS`, `PSTRE`, `Z2SLP`, `Z3SLP`, `TFANUP`/`DOWN`, `PSMDAX` with `HI`,
+`MID`, `LOW`, `OFF` (M-DAX; the app's `PSMDA ` is for the NA7004 network
+player only), and `MSQUICK<n>`, `Z2QUICK<n>`, `Z3QUICK<n>` (put together at
+run time, sent to receivers without the HTTP command for Quick Select).
+The network presets `NSP1`–`NSP3` and `NSP<n> MEM` are in the
+AVR-1912/2112CI document (page 40); the app holds them, but only a test
+screen it does not register reaches them, so it does not send them.
 
 ## Marantz
 
@@ -138,7 +148,8 @@ document (page 40).
 - **M-DAX** is Marantz's counterpart of the restorer, with the same steps.
   The app sends it on a path of its own, and the zone status reports
   `RestorerMode` and `MDAX` separately. Marantz's 2019 document gives
-  `PSMDAX OFF`, `LOW`, `MID`, `HI` and `PSMDAX ?` for all its models. On
+  `PSMDAX OFF`, `LOW`, `MID`, `HI` and `PSMDAX ?` for all its models, and
+  the apps send the same `PSMDAX` with `HI`, `MID`, `LOW`, `OFF`. On
   the 2010 AV7005 and SR7005 the older app sends M-DAX as the restorer.
 
 ## HEOS generation: UPnP service ACT
@@ -155,7 +166,8 @@ actions for a receiver (**App**, **To test**):
 | `GetCurrentState` | Whole state, for event subscription |
 | Others | Quick Select recall, store and names, volume limit, power, tuner, TV and remote settings, Bluetooth, LED, low latency, firmware, network |
 
-The channel lists use 19 input and 32 output positions, Dolby-enabled and
+The channel lists use 18 input and 31 output positions (each list also
+has an unknown entry), Dolby-enabled and
 top positions included. This integration gets the same information from
 `/ajax/info` on the setup config API and does not use ACT.
 
@@ -173,7 +185,8 @@ channel while telnet and `/ajax` cover the same state.
 
 ## Sound modes
 
-The HEOS app's model knows 108 sound modes, among them separate entries
+The HEOS app's model knows 107 sound modes (numbered 1 to 108, without
+101), among them separate entries
 for an input format with an upmixer (Dolby Digital Plus with Dolby
 Surround, DTS-HD with Neural:X, IMAX DTS:X with Virtual:X), MPEG-H,
 Auro-3D and the 7.1 channel input, and separate 2022 variants of the Dolby
@@ -185,9 +198,11 @@ this integration reads the modes a receiver offers (`OPSML`).
 - The code shows what an app sends, not what a receiver accepts. Value
   ranges and value lists are not in the apps; receivers publish them
   ([HTTP control](11-http-control.md#deviceinfoxml)).
-- Some tokens are strings without a traceable call site (`MVLONG…`,
-  `PSBAL`, `PSSDB`, `PSSDI`, `PSMDA`, `NSP<n> MEM`, `Z4SLP`); they may be
-  unused.
-- The apps cover about 120 telnet tokens, 70 of them IR, dock and disc
-  player codes. For the telnet command set of a model year, the protocol
-  documents stay the reference ([References](references.md)).
+- Many tokens are not plain strings in the code: the native library puts
+  them together from number constants and tables (`MSQUICK<n>`, `PSMDAX…`,
+  `MVLONG…`, `Z4SLP`, `PSBAL`). A text search misses them; each was traced
+  to the function that sends it ([telnet commands](#telnet-commands-in-the-apps)).
+- The apps hold about 120 telnet tokens as plain strings, about 70 of them
+  IR, dock and disc player codes; the tokens built at run time come on top. For the
+  telnet command set of a model year, the protocol documents stay the
+  reference ([References](references.md)).

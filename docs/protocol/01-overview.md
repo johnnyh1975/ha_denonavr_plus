@@ -34,7 +34,7 @@ same steps. What each level offers over HTTP is on the
 | 0210 (2013) | AVR-X2000, AVR-X4000, AVR-1713, AVR-3313, NR1604, SR5008 | a few (restorer, sleep, tone) | port 80 |
 | 0220 | Marantz M-CR510, M-CR610 (systems) | few | port 80 |
 | 0250 (2014 entry models) | AVR-X1100W | as 0210 | port 80 |
-| 0300 (2014 to 2016, receivers without HEOS) | AVR-X2100W, AVR-X4100W, SR6011, DRA-N4 | full setup, through `AppCommand0300.xml` | port 80 |
+| 0300 (2014 to 2016, receivers without HEOS) | AVR-X2100W, AVR-X4100W, SR6011; the stereo receiver DRA-N4 | full setup through `AppCommand0300.xml` on the AV receivers; 19 functions on the DRA-N4 | port 80 |
 | 0301 (2016 on) | AVR-X4500H, AVC-X3700H, AVC-X8500H, AVC-A10H, NR1609, SR6012, AV7703 | full setup | port 8080 |
 
 The app no longer supports receivers without a level, and this

@@ -91,7 +91,8 @@ AVR-X2600H").
    ([details](02-network-and-protocols.md#setup-config-api-https-10443-http-11080)).
 
 8. **The manufacturer's apps control the receiver over HTTP, not telnet.**
-   Denon's app opens port 23 for three queries; every setup function goes
+   Denon's app opens port 23 for three queries (and a listening session in
+   its tuner view); every setup function goes
    through `AppCommand0300.xml`, which receivers have from interface level
    0300 (2014) on. The apps confirm the generation steps by `CommApiVers`
    and name commands no document lists

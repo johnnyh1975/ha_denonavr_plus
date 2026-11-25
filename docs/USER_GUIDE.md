@@ -386,7 +386,7 @@ of its source list. What they understand depends on the names you give.
 | What you see | Likely cause | What to do |
 |---|---|---|
 | The receiver cannot be added (*cannot connect*) | It is off without network standby, or port 8080 is blocked. | Turn it on, check [network standby](#1-before-you-start), allow port 8080 from Home Assistant. |
-| Repair *"… does not accept a control connection"*; only power, volume, mute and source work, with a delay | Another integration or program holds the one telnet connection, or port 23 is blocked. | Disable the other integration (or [move over](#8-move-over-from-another-denon-integration)); allow port 23. |
+| Repair *"… does not accept a control connection"*; only power, volume, mute and source work, with a delay | Another integration or program holds the one telnet connection (the Denon or Marantz AVR Remote app too, while its tuner screen is open), or port 23 is blocked. | Disable the other integration (or [move over](#8-move-over-from-another-denon-integration)), close the app's tuner screen; allow port 23. |
 | The receiver cannot be turned on from Home Assistant | Network standby is off, so in standby it is not on the network. | Turn network standby on, or use the device trigger with infrared or HDMI-CEC. |
 | Everything is unavailable for a moment, then back | The receiver stopped answering; Denon AVR Plus opens a new connection after 10 seconds. | Nothing; if it happens often, check the network to the receiver. |
 | A setting jumps back right after you change it | The receiver ignores it for the current signal or sound mode. | Try again with a matching signal (for example Dynamic Compression with Dolby sound). |

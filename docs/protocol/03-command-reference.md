@@ -115,7 +115,7 @@ video and input-signal sensors (roadmap item 39).
 Denon's own app sends further tokens that no document here lists, among
 them `NSARA ?` and `NSHEA ?` (whether control by the remote app or the
 HEOS app is switched off) and `MVLONGUP`, `MVLONGDOWN`, `MVLONGEND`
-(volume held); the full list is on the
+(volume held, sent by the app for a connected amplifier); the full list is on the
 [manufacturer apps](12-manufacturer-apps.md#telnet-commands-in-the-apps)
 page. All are To test.
 

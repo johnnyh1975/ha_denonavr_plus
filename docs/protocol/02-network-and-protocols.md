@@ -115,10 +115,11 @@ Sources disagree, and the answer probably depends on the model:
 Until the [test](09-status-diagnostics-and-discovery.md#test-concurrent-telnet-sessions)
 has been run on both receivers, treat port 23 as single-client: only one of
 this integration, the official integration, an MQTT bridge or a script.
-The Denon 2016 AVR Remote app controls the receiver over
-`/goform/AppCommand.xml` (a 2019 network capture in the `denonavr`
-repository); whether it or the HEOS app also opens telnet is unverified, and
-the test shows it.
+The Denon and Marantz AVR Remote app controls the receiver over HTTP, but
+also opens port 23: for three queries, and on a HEOS-generation receiver
+for a session that stays open while its tuner view is shown. The HEOS app
+does not use telnet ([manufacturer apps](12-manufacturer-apps.md#telnet-commands-in-the-apps)).
+So an open tuner view in the official app is one more client to count.
 
 The `denonavr` library, and with it the official integration, sends commands
 over telnet while its telnet connection is up and falls back to HTTP
