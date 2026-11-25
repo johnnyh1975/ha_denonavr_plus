@@ -265,10 +265,14 @@ def profile_variant(profile: ProtocolProfile, variant: str) -> ProtocolProfile:
 OLDER = "older"
 BEFORE_2014 = "2013"
 COMM_API_2014: int = 250
-#: Marantz names some commands differently (Smart Select: MSSMART, Z2SMART);
-#: the receiver tells its brand in Deviceinfo.xml (BrandCode 1).
+#: Marantz names some commands differently (Smart Select: MSSMART, Z2SMART),
+#: from interface level 0300 on: those receivers name the presets Smart
+#: Select, Marantz's 2019 document gives MSSMART, and the manufacturer's apps
+#: use HTTP for them. To Marantz receivers below 0300 (NR1604, SR5008) the
+#: apps send MSQUICK<n>. The brand is BrandCode 1 in Deviceinfo.xml.
 MARANTZ = "marantz"
 BRAND_MARANTZ: int = 1
+COMM_API_SMART_SELECT: int = 300
 
 
 def profile_for_receiver(
@@ -284,7 +288,11 @@ def profile_for_receiver(
         result = profile_variant(result, OLDER)
         if comm_api_version is None or comm_api_version < COMM_API_2014:
             result = profile_variant(result, BEFORE_2014)
-    if brand_code == BRAND_MARANTZ:
+    if (
+        brand_code == BRAND_MARANTZ
+        and comm_api_version is not None
+        and comm_api_version >= COMM_API_SMART_SELECT
+    ):
         result = profile_variant(result, MARANTZ)
     return result
 

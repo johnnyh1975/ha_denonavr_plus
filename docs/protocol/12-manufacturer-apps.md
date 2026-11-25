@@ -117,7 +117,9 @@ Tokens the apps send that no protocol document here lists; all are
 Confirmed by the apps and already used here: `PWON`, `PWSTANDBY`, `ZM?`,
 `MU`, the `MS…` sound modes, the menu keys `MNCUP`, `MNCDN`, `MNCLT`,
 `MNCRT`, `MNENT`, `MNRTN`, `MNINF`, `MNOPT`, `MNMEN ON`/`OFF`, `NSFRN`,
-`PSBAS`, `PSTRE`, `Z2SLP`, `Z3SLP`, `TFANUP`/`DOWN`, `TPANUP`/`DOWN`.
+`PSBAS`, `PSTRE`, `Z2SLP`, `Z3SLP`, `TFANUP`/`DOWN`, `TPANUP`/`DOWN`, and
+`MSQUICK<n>`, `Z2QUICK<n>`, `Z3QUICK<n>` (put together at run time, sent to
+receivers without the HTTP command for Quick Select).
 
 ## Marantz
 
@@ -126,10 +128,12 @@ Confirmed by the apps and already used here: `PWON`, `PWSTANDBY`, `ZM?`,
   (Quick Select is called Smart Select on Marantz); commands, endpoints and
   values are the same.
 - **Smart Select** goes over HTTP with the same command as Quick Select
-  (`SetQuickSelect`). Over telnet Marantz's 2019 document gives `MSSMART1`–`5`,
+  (`SetQuickSelect`) where the receiver offers it; receivers without it
+  (up to 2013) get `MSQUICK<n>` over `formiPhoneAppDirect.xml`, whatever the
+  brand. No app contains `MSSMART`. Over telnet Marantz's 2019 document gives `MSSMART1`–`5`,
   `MSSMART<n> MEMORY`, `MSSMART0` (cancel) and `MSSMART ?`, and `Z2SMART…`
-  for Zone 2; this integration follows it on receivers that report
-  `BrandCode` 1 ([Quick Select and Smart Select](03-command-reference.md#quick-select-and-smart-select)).
+  for Zone 2; this integration follows it on Marantz receivers from level
+  0300 on ([Quick Select and Smart Select](03-command-reference.md#quick-select-and-smart-select)).
 - **M-DAX** is Marantz's counterpart of the restorer, with the same steps.
   The app sends it on a path of its own, and the zone status reports
   `RestorerMode` and `MDAX` separately. Marantz's 2019 document gives

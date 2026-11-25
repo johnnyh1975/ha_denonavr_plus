@@ -223,6 +223,11 @@ def test_marantz_receivers_get_smart_select() -> None:
     sr6011 = profile_for_receiver(profile, 80, 300, 1)
     assert sr6011.variant == "older" and sr6011.variants == ("older", "marantz")
     assert sr6011.introspection["quick_select"]["prefix"] == "MSSMART"
+    # Marantz below level 0300 (NR1604, SR5008): the manufacturer's apps send
+    # MSQUICK<n> to them, so they keep Quick Select.
+    nr1604 = profile_for_receiver(profile, 80, 210, 1)
+    assert nr1604.introspection["quick_select"]["prefix"] == "MSQUICK"
+    assert "marantz" not in nr1604.variants
     # Denon keeps Quick Select.
     denon = profile_for_receiver(profile, 8080, 301, 0)
     assert denon is profile

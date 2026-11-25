@@ -141,11 +141,14 @@ Denon models recall presets with `MSQUICK<n>`, Marantz models with
 NR1200) gives `MSSMART1`–`5`, `MSSMART<n> MEMORY` to store, `MSSMART0` to
 cancel, `MSSMART ?` to ask, and the same with `Z2SMART` for Zone 2 and
 `Z3SMART` for Zone 3. Denon's and Marantz's apps use one HTTP command for
-both (`SetQuickSelect`), so the difference is in telnet only. Recorded
-Marantz units from level 0300 on (SR6011, SR6012, NR1609, AV7703) name the
-presets Smart Select in `Deviceinfo.xml`. This integration sends and reads
-`MSSMART`/`Z2SMART` on receivers that report `BrandCode` 1 (Marantz) and
-`MSQUICK`/`Z2QUICK` on the others. `MSSMART` without a number is a
+both (`SetQuickSelect`) on receivers whose `Deviceinfo.xml` offers it,
+from level 0250 on; to receivers without it (up to 2013, Marantz NR1604
+and SR5008 included) they send `MSQUICK<n>`, `Z2QUICK<n>` and `Z3QUICK<n>`
+over `formiPhoneAppDirect.xml`, for either brand, and they store presets
+over HTTP only (**App**). Recorded Marantz units from level 0300 on (SR6011,
+SR6012, NR1609, AV7703) name the presets Smart Select in `Deviceinfo.xml`.
+This integration sends and reads `MSSMART`/`Z2SMART` on Marantz receivers
+(`BrandCode` 1) from level 0300 on and `MSQUICK`/`Z2QUICK` on all others. `MSSMART` without a number is a
 separate surround mode on some Marantz models. Never send a slot number beyond what the receiver
 advertises: on the Cinema 70s, `MSSMART5` on a four-slot unit left the
 receiver unstable until it was power-cycled (marantz-denon-mqtt test log).
