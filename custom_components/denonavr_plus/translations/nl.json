@@ -1062,6 +1062,18 @@
       "remote": {
         "name": "Afstandsbediening"
       }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware",
+        "state_attributes": {
+          "latest_version": {
+            "state": {
+              "newer": "Nieuwere versie"
+            }
+          }
+        }
+      }
     }
   },
   "exceptions": {

@@ -1062,6 +1062,18 @@
       "remote": {
         "name": "Mando a distancia"
       }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware",
+        "state_attributes": {
+          "latest_version": {
+            "state": {
+              "newer": "Versión más reciente"
+            }
+          }
+        }
+      }
     }
   },
   "exceptions": {

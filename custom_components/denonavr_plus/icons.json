@@ -433,6 +433,11 @@
       "firmware_update": {
         "default": "mdi:package-up"
       }
+    },
+    "update": {
+      "firmware": {
+        "default": "mdi:package-up"
+      }
     }
   },
   "services": {

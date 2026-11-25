@@ -275,6 +275,11 @@ AVC‑A10H), and Input Mode shows eARC only where the receiver has it.
 - **Binary sensors**: telnet connectivity, and on receivers with HEOS whether
   HEOS reports a **firmware update** (asked twice a day; HEOS gives no version,
   so the update is installed from the receiver's menu or the HEOS app).
+- **Firmware** (an update entity, on receivers with HEOS): the same update
+  under Settings → Updates. Its installed version is the receiver's firmware;
+  its latest version is the installed one while there is no update and
+  "Newer version" while there is one, because HEOS names none. It installs
+  nothing.
 - **Recover audio** (a button, starts disabled): standby and back on with the
   input it had, for a receiver that has lost its sound.
 - **Model-dependent controls**, created only when the receiver answers their

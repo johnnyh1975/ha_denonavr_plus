@@ -60,9 +60,9 @@ class DenonAvrFirmwareSensor(DenonAvrEntity, BinarySensorEntity):
     """Whether HEOS has a firmware update for the receiver (package 31).
 
     HEOS tells only that there is one (player/check_update), not its
-    version, and installs it from the receiver's menu or the HEOS app; a
-    binary sensor says that honestly, where an update entity would invent a
-    version. Asked every 12 hours while HEOS answers.
+    version; the receiver installs it from its menu or the HEOS app. For
+    automations; the update entity (update.py) shows the same under
+    Settings → Updates. Asked every 12 hours while HEOS answers.
     """
 
     _attr_device_class = BinarySensorDeviceClass.UPDATE

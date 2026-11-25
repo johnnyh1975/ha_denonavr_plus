@@ -1062,6 +1062,18 @@
       "remote": {
         "name": "Télécommande"
       }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware",
+        "state_attributes": {
+          "latest_version": {
+            "state": {
+              "newer": "Version plus récente"
+            }
+          }
+        }
+      }
     }
   },
   "exceptions": {

@@ -658,5 +658,10 @@
     "entity_id": "switch.avc_x3700h_audio_tone_control",
     "enabled": true,
     "category": "config"
+  },
+  "update_firmware": {
+    "entity_id": "update.avc_x3700h_firmware",
+    "enabled": true,
+    "category": "diagnostic"
   }
 }

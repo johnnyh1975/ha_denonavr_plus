@@ -63,7 +63,7 @@ be installed; only one should control a receiver at a time. As of November
 | **Tuner** | — | Preset select and FM frequency |
 | **Actions** | Raw HTTP command, Dynamic EQ, Audyssey refresh | Raw command, volume ramp, snapshot and restore, tuner preset, HEOS queue; remote with the menu keys; device trigger; two blueprints |
 | **Setup** | Discovery or address | Discovery or address; follows a new address by itself; reconfigure |
-| **Help when something is off** | Log messages, diagnostics | Repairs, diagnostics without addresses, a receiver test that puts every setting back |
+| **Help when something is off** | Log messages, diagnostics | Repairs, diagnostics without addresses, a receiver test that puts every setting back, the reason when the receiver keeps a setting, firmware updates under Settings → Updates |
 | **Languages** | Home Assistant's translations | Eight languages, English entity IDs |
 
 Not every function is equally proven: some commands come from the `denonavr`

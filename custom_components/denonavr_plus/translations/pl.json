@@ -1062,6 +1062,18 @@
       "remote": {
         "name": "Pilot"
       }
+    },
+    "update": {
+      "firmware": {
+        "name": "Oprogramowanie sprzętowe",
+        "state_attributes": {
+          "latest_version": {
+            "state": {
+              "newer": "Nowsza wersja"
+            }
+          }
+        }
+      }
     }
   },
   "exceptions": {
