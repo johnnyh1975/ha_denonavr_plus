@@ -1154,3 +1154,29 @@ async def test_a_setting_in_standby_can_turn_the_main_zone_on_first(
     ):
         await device.async_set_control_confirmed("dynamic_eq", False, turn_on=True)
     assert err.value.reason == "standby"
+
+
+def test_inputs_stored_by_their_code_get_readable_names() -> None:
+    """A snapshot from 1.2.x holds TUNER, IRADIO and the stand-in NET as NETWORK."""
+    from custom_components.denonavr_plus.avr import DenonAvrDevice
+    from custom_components.denonavr_plus.avr.models import DeviceInfo
+
+    snapshot = {
+        "device": {"model_name": "AVR-X2000"},
+        "configured_channels": ["FL", "FR"],
+        "sources": [
+            {"code": "TUNER", "name": "TUNER"},
+            {"code": "IRADIO", "name": "IRADIO"},
+            {"code": "NET", "name": "NETWORK"},
+            {"code": "MPLAY", "name": "MEDIA PLAYER"},
+        ],
+    }
+    for start in ("preload", "restore"):
+        device = DenonAvrDevice(AsyncMock(), "192.0.2.10")
+        device.discovery.device = DeviceInfo(model_name="AVR-X2000")
+        if start == "preload":
+            assert device.preload_discovery(snapshot)
+        else:
+            device.restore_discovery(snapshot)
+        names = [source.name for source in device.discovery.sources]
+        assert names == ["Tuner", "Internet Radio", "Network", "MEDIA PLAYER"], start

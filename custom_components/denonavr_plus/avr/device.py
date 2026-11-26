@@ -41,6 +41,7 @@ from .parser import (
     parse_device_info,
     parse_main_zone,
     parse_upnp_description,
+    readable_sources,
 )
 from .profile import (
     OLDER,
@@ -516,13 +517,9 @@ class DenonAvrDevice:
         # The authoritative source list comes from the telnet SSFUN/SSSOD
         # introspection (correct codes, names and visibility). Keep the Deviceinfo
         # source list only as a fallback for models without that introspection.
-        names = self._profile.source_names
-        self._fallback_sources = [
-            replace(source, name=names[source.code])
-            if source.name == source.code and source.code in names
-            else source
-            for source in discovered.sources
-        ]
+        self._fallback_sources = readable_sources(
+            discovered.sources, self._profile.source_names
+        )
         self._discovery.sources = []
         # Three independent reads, asked together so the setup waits for the
         # slowest instead of their sum: the UPnP description (firmware, serial
@@ -622,10 +619,13 @@ class DenonAvrDevice:
             }
         if not discovery.sources:
             fields = {field.name for field in dataclasses.fields(SourceDescriptor)}
-            discovery.sources = [
-                SourceDescriptor(**{key: value for key, value in source.items() if key in fields})
-                for source in snapshot.get("sources", [])
-            ]
+            discovery.sources = readable_sources(
+                [
+                    SourceDescriptor(**{key: value for key, value in source.items() if key in fields})
+                    for source in snapshot.get("sources", [])
+                ],
+                self._profile.source_names,
+            )
         return True
 
     async def async_await_resync(self, timeout: float = 60.0) -> None:
@@ -653,10 +653,13 @@ class DenonAvrDevice:
         discovery.zones = [
             ZoneDescriptor(**known(ZoneDescriptor, zone)) for zone in snapshot.get("zones", [])
         ]
-        discovery.sources = [
-            SourceDescriptor(**known(SourceDescriptor, source))
-            for source in snapshot.get("sources", [])
-        ]
+        discovery.sources = readable_sources(
+            [
+                SourceDescriptor(**known(SourceDescriptor, source))
+                for source in snapshot.get("sources", [])
+            ],
+            self._profile.source_names,
+        )
 
     async def _async_fetch_version_info(self) -> None:
         """Read firmware/serial and AIOS module versions from the UPnP document.

@@ -127,6 +127,42 @@ async def test_1_1_removes_the_volume_sensor(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
-    assert (entry.version, entry.minor_version) == (1, 2)
+    assert (entry.version, entry.minor_version) == (CONFIG_VERSION, CONFIG_MINOR_VERSION)
     assert registry.async_get(old.entity_id) is None
     assert registry.async_get(kept.entity_id) is not None
+
+
+async def test_1_2_stores_the_trims_left_on_as_the_speakers(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Before 1.3 the trims of speakers the receiver lacked were disabled once."""
+    from homeassistant.helpers import entity_registry as er
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: HOST},
+        options={"channels_initialized": True},
+        version=1,
+        minor_version=2,
+    )
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    for code, disabled in (("FL", None), ("C", None), ("SBL", er.RegistryEntryDisabler.INTEGRATION)):
+        registry.async_get_or_create(
+            "number", DOMAIN, f"aa:bb:cc:dd:ee:ff_number_channel_trim_{code}",
+            config_entry=entry, disabled_by=disabled,
+        )
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (1, 3)
+    assert entry.options["channels_configured"] == ["C", "FL"]
+
+
+async def test_1_2_without_disabled_trims_stores_nothing(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Never applied (the speakers were never known): the first time stays the first."""
+    entry = await _set_up(hass, 1, 2)
+    assert (entry.version, entry.minor_version) == (1, 3)
+    assert "channels_configured" not in entry.options

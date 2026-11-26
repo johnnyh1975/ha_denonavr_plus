@@ -150,6 +150,10 @@ async def test_an_integer_takes_the_range_the_receiver_publishes(
     assert _resolve_bounds(device, spec) == (0, 500, 1)
 
 
+@pytest.mark.assumed(
+    "-6 to +6 dB comes from the protocol documents (2011-2015); an AVR-X2000 "
+    "confirmed only that it ignores half steps. Setting -6 and +6 on it would settle it"
+)
 async def test_bass_without_a_published_range_goes_from_minus_6_to_6_db(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

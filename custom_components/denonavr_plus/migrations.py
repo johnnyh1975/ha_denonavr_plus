@@ -23,6 +23,8 @@ Version history (the entry version, not the release version):
                is replaced by a settable volume number per zone; its
                registry entry is removed. Options may hold volume settings
                per zone, absent means none.
+  1.3:         options hold the channels the trim defaults were last applied
+               for (channels_configured), next to the one-time marker.
 
 To add a step: raise CONFIG_VERSION or CONFIG_MINOR_VERSION in const.py,
 register a function under the version it starts from in STEPS, and add a
@@ -38,7 +40,13 @@ from collections.abc import Awaitable, Callable
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
-from .const import CONFIG_MINOR_VERSION, CONFIG_VERSION
+from .const import (
+    CHANNEL_TRIM_MARKER,
+    CONFIG_MINOR_VERSION,
+    CONFIG_VERSION,
+    OPT_CHANNELS_APPLIED,
+    OPT_CHANNELS_INITIALIZED,
+)
 from .coordinator import DenonAvrConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,9 +68,35 @@ async def _remove_volume_sensor(
     return (1, 2)
 
 
+async def _store_trim_channels(
+    hass: HomeAssistant, entry: DenonAvrConfigEntry
+) -> tuple[int, int]:
+    """1.2 -> 1.3: store the channels the trim defaults were applied for.
+
+    Until now the trims of speakers the receiver lacked were disabled once and
+    never again. From 1.3 the trims follow the speakers, which needs the
+    channels last applied. They were not stored; the trims left on stand for
+    them, so a speaker removed on the receiver since loses its trim at the
+    next start.
+    """
+
+    if entry.options.get(OPT_CHANNELS_INITIALIZED) and OPT_CHANNELS_APPLIED not in entry.options:
+        registry = er.async_get(hass)
+        channels = sorted(
+            item.unique_id.split(CHANNEL_TRIM_MARKER)[-1]
+            for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+            if CHANNEL_TRIM_MARKER in item.unique_id and item.disabled_by is None
+        )
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, OPT_CHANNELS_APPLIED: channels}
+        )
+    return (1, 3)
+
+
 #: The steps, by the version they start from.
 STEPS: dict[tuple[int, int], Step] = {
     (1, 1): _remove_volume_sensor,
+    (1, 2): _store_trim_channels,
 }
 
 

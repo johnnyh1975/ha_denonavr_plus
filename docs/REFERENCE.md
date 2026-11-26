@@ -448,8 +448,9 @@ listening starts enabled:
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
 - the trims of the speakers the receiver has configured. When a speaker is
   set up or removed on the receiver later, its trim follows: removed, it is
-  disabled; set up again, it comes back if the integration had disabled it.
-  Trims you enabled or disabled yourself stay as they are.
+  disabled, even if you had enabled it; set up again, it comes back if the
+  integration had disabled it. A trim you disabled yourself stays disabled,
+  and trims of speakers that did not change are not touched.
 - the volume of each zone in dB
 - the decoder and connectivity sensors
 

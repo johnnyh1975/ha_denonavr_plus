@@ -633,13 +633,10 @@ def test_a_subwoofer_answered_yes_is_set_up(model: str, expected: set[str]) -> N
 def test_a_speaker_removed_since_the_last_answer_no_longer_counts() -> None:
     """The AVR-X2000 after its owner set center, surround and subwoofer to None."""
 
-    now = [0.0]
     discovery = Discovery()
-    parser = TelnetParser(load_profile(), discovery, clock=lambda: now[0])
-    state = AvrState()
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
     for line in _capability_lines("AVR-X2000", "SSSPC ?"):
         parser.feed(line, state)
-    now[0] = 600.0
     for line in (
         "SSSPCFRO LAR",
         "SSSPCCEN NON",
@@ -653,12 +650,16 @@ def test_a_speaker_removed_since_the_last_answer_no_longer_counts() -> None:
     assert discovery.configured_channels == {"FL", "FR"}
 
     # Set up again later, the center counts again.
-    now[0] = 1200.0
     for line in ("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSWF YES", "SSSPCSBK NON", "SSSPCSBK 2SP"):
         parser.feed(line, state)
     assert discovery.configured_channels == {"FL", "FR", "C", "SW"}
 
 
+@pytest.mark.assumed(
+    "that the flagged OPSMLALL entry marks the current genre rests on one "
+    "AVR-X2600H log (MOV031 flagged, MS on Dolby Audio, SSSMG from the start "
+    "MUS); asking SSSMG ? right after a genre switch would settle it"
+)
 def test_the_current_genre_follows_the_flagged_sound_mode() -> None:
     """An AVR-X2600H (3.139.175): SSSMG at the start, later only OPSMLALL pushes."""
 
@@ -666,15 +667,26 @@ def test_the_current_genre_follows_the_flagged_sound_mode() -> None:
     parser.feed("SSSMG MUS", state)
     for line in (
         "OPSMLALL MOV010Stereo",
-        "OPSMLALL MOV021Dolby Audio - Dolby Surround",
-        "OPSMLALL MOV030DTS Neural:X",
-        "OPSMLALL MUS070Stereo",
-        "OPSMLALL MUS080Dolby Audio - Dolby Surround",
-        "OPSMLALL PUR220Pure Direct",
+        "OPSMLALL MOV020Dolby Audio - Dolby Digital",
+        "OPSMLALL MOV031Dolby Audio - DD + DSur",
+        "OPSMLALL MOV040Dolby Audio - DD + Neural:X",
+        "OPSMLALL MUS080Stereo",
+        "OPSMLALL MUS090Dolby Audio - Dolby Digital",
+        "OPSMLALL PUR250Pure Direct",
         "OPSMLALL END",
     ):
         parser.feed(line, state)
     assert state.values["sound_mode_genre"] == "MOV"
+
+
+def test_a_sound_mode_name_may_start_with_a_digit() -> None:
+    discovery = Discovery()
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
+    for line in ("OPSMLALL MUS0517ch Stereo", "OPSMLALL END", "OPSML 0517ch Stereo", "OPSML END"):
+        assert parser.feed(line, state), line
+    assert discovery.all_sound_modes == ["7ch Stereo"]
+    assert state.values["sound_mode_genre"] == "MUS"
+    assert state.values["sound_mode_display"] == "7ch Stereo"
 
 
 def test_inputs_the_receiver_does_not_name_get_readable_names() -> None:
@@ -712,10 +724,18 @@ def test_the_elapsed_time_of_a_track_is_its_position() -> None:
     assert state.now_playing.position == 216.0
     assert state.now_playing.position_at is not None
     assert state.now_playing.duration is None
-    # At a track change the line is empty for a moment, then starts at 00:00.
-    assert not parser.feed("NSE5\x00\x00  00:00 " + pad, state)
+    # The same time again (paused): the time it was read stays.
+    read_at = state.now_playing.position_at
+    assert not parser.feed("NSE5\x00   03:36 " + pad, state)
+    assert state.now_playing.position_at == read_at
+    # At a track change the line is empty for a moment: no position then.
+    assert parser.feed("NSE5\x00\x00  00:00 " + pad, state)
+    assert state.now_playing.position is None
     assert parser.feed("NSE5\x00   1:02:03 " + pad, state)
     assert state.now_playing.position == 3723.0
+    # Another title: the old position goes with the old track.
+    parser.feed("NSE1\x01Another Song" + pad, state)
+    assert state.now_playing.position is None
 
 
 @pytest.mark.assumed(
@@ -734,3 +754,34 @@ def test_a_time_on_a_menu_page_is_no_position() -> None:
     parser.feed("NSE0Internet Radio", state)
     assert not parser.feed("NSE5\x0003:36", state)
     assert state.now_playing.position is None
+
+
+
+def test_a_speaker_value_replaces_only_its_own_kind() -> None:
+    """Presence and count of a count group are separate; quick changes do not mix."""
+
+    discovery = Discovery()
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
+    for line in ("SSSPCFRO LAR", "SSSPCSBK NON", "SSSPCSBK 2SP", "SSSPCSWF NO", "SSSPCSWF YES"):
+        parser.feed(line, state)
+    assert discovery.configured_channels == {"FL", "FR", "SW"}
+    # A count line alone keeps the surround back absent.
+    parser.feed("SSSPCSBK 1SP", state)
+    assert "SB" not in discovery.configured_channels
+    # Set up as small: two speakers, the count kept.
+    parser.feed("SSSPCSBK SMA", state)
+    assert discovery.configured_channels == {"FL", "FR", "SW", "SB"}
+    parser.feed("SSSPCSBK 2SP", state)
+    assert discovery.configured_channels == {"FL", "FR", "SW", "SBL", "SBR"}
+
+
+
+def test_an_input_named_by_its_code_earlier_gets_its_readable_name() -> None:
+    """Sources from the stored snapshot of 1.2.x, then the receiver's SSSOD."""
+    from custom_components.denonavr_plus.avr.models import SourceDescriptor
+
+    discovery = Discovery()
+    discovery.sources = [SourceDescriptor(code="IRADIO", name="IRADIO")]
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
+    parser.feed("SSSODIRADIO USE", state)
+    assert discovery.sources[0].name == "Internet Radio"

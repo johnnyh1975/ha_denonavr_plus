@@ -216,8 +216,8 @@
       "channel codes, so only speakers that are actually configured get channel",
       "entities. Which groups are present is discovered from SSSPC; this map is",
       "just the fixed protocol grammar linking a group to its channels. A group",
-      "is treated as absent when any of its SSSPC lines in one answer carries an",
-      "absent token. The subwoofer is NON/1SP/2SP on receivers with two",
+      "is treated as absent when its latest presence or size value is an absent",
+      "token. The subwoofer is NON/1SP/2SP on receivers with two",
       "subwoofer outputs and YES/NO on others: an AVR-X2000 and an AVR-X2600H",
       "(3.139.175) answer 'SSSPCSWF YES', and the AVR-X2000 'SSSPCSWF NO' once",
       "its subwoofer was set to None."
@@ -245,8 +245,9 @@
       "BKD": ["BDL", "BDR"]
     },
     "count_groups": {
-      "SWF": {"single": ["SW"], "double": ["SW", "SW2"]},
-      "SBK": {"single": ["SB"], "double": ["SBL", "SBR"]}
+      "doc": "A count group reports up to two values per answer: its presence or size, and its count (count_tokens). The AVR-X2000 and AVR-X2600H answer 'SSSPCSBK NON' and then 'SSSPCSBK 2SP': no surround back, the count setting kept. Each kind replaces only its own earlier value. Every subwoofer value is a count.",
+      "SWF": {"single": ["SW"], "double": ["SW", "SW2"], "count_tokens": ["NON", "1SP", "2SP", "YES", "NO"]},
+      "SBK": {"single": ["SB"], "double": ["SBL", "SBR"], "count_tokens": ["1SP", "2SP"]}
     }
   },
   "zones": {

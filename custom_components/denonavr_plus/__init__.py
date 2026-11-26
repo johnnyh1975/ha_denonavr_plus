@@ -26,7 +26,15 @@ from homeassistant.helpers.typing import ConfigType
 
 from . import choices, command_test, entity_groups, linked_players, move, zone_sources
 from .avr.profile import load_profile
-from .const import CONF_HOST, CONF_PORT, DOMAIN, PLATFORMS
+from .const import (
+    CHANNEL_TRIM_MARKER,
+    CONF_HOST,
+    CONF_PORT,
+    DOMAIN,
+    OPT_CHANNELS_APPLIED,
+    OPT_CHANNELS_INITIALIZED,
+    PLATFORMS,
+)
 from .coordinator import (
     DenonAvrConfigEntry,
     DenonAvrCoordinator,
@@ -41,16 +49,8 @@ from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
 
-# One time marker (stored in the entry options) so the channel default disabling
-# runs only once and never overrides the user's later manual choices.
-_CHANNELS_INITIALIZED = "channels_initialized"
-# The speakers' channels the defaults were last applied for, so a speaker set
-# up or removed on the receiver later is followed.
-_CHANNELS_APPLIED = "channels_configured"
 #: Seconds the reported speakers stay the same before the channels follow.
 SPEAKERS_SETTLE = 3.0
-# Unique id fragment identifying per channel entities and how to read the code.
-_CHANNEL_MARKER = "_channel_trim_"
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -391,25 +391,21 @@ def _apply_channel_defaults(
     if not configured:
         # Speaker configuration unknown; do not disable anything (safe fallback).
         return
-    applied = entry.options.get(_CHANNELS_APPLIED)
+    applied = entry.options.get(OPT_CHANNELS_APPLIED)
     if applied is not None and set(applied) == configured:
         return
 
     registry = er.async_get(hass)
     channels = [
-        (regentry, regentry.unique_id.split(_CHANNEL_MARKER)[-1])
+        (regentry, regentry.unique_id.split(CHANNEL_TRIM_MARKER)[-1])
         for regentry in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if _CHANNEL_MARKER in regentry.unique_id
+        if CHANNEL_TRIM_MARKER in regentry.unique_id
     ]
-    previous: set[str] | None
-    if applied is not None:
-        previous = set(applied)
-    elif entry.options.get(_CHANNELS_INITIALIZED):
-        # Set up before the speakers were stored: the channels left on stand for
-        # the speakers the receiver had then.
-        previous = {code for regentry, code in channels if regentry.disabled_by is None}
-    else:
-        previous = None
+    # The channels last applied; none the first time (migrations.py stores
+    # them for entries from before they were kept).
+    previous = set(applied) if applied is not None else None
+    # Trims an entity group switched stay with the group.
+    grouped = set(entry.options.get(entity_groups.OPT_GROUP_ENABLED, []))
     for regentry, code in channels:
         removed = code not in configured and (previous is None or code in previous)
         added = previous is not None and code in configured and code not in previous
@@ -418,15 +414,19 @@ def _apply_channel_defaults(
                 regentry.entity_id,
                 disabled_by=er.RegistryEntryDisabler.INTEGRATION,
             )
-        elif added and regentry.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+        elif (
+            added
+            and regentry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+            and regentry.unique_id not in grouped
+        ):
             registry.async_update_entity(regentry.entity_id, disabled_by=None)
 
     hass.config_entries.async_update_entry(
         entry,
         options={
             **entry.options,
-            _CHANNELS_INITIALIZED: True,
-            _CHANNELS_APPLIED: sorted(configured),
+            OPT_CHANNELS_INITIALIZED: True,
+            OPT_CHANNELS_APPLIED: sorted(configured),
         },
     )
 

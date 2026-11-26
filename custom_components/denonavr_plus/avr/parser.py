@@ -20,7 +20,7 @@ import logging
 import re
 import time
 import xml.etree.ElementTree as ET
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from typing import Any
 
 from .codec import decode_centered, decode_half_step, decode_volume
@@ -54,12 +54,31 @@ def _format_mac(raw: str | None) -> str | None:
 APP_CONTROL = {"NSARA ": "remote_app_control", "NSHEA ": "heos_app_control"}
 APP_CONTROL_QUERIES = ("NSARA ?", "NSHEA ?")
 
+#: A sound mode list entry: two digits for its place, one for the selected
+#: flag, then the name, which may itself start with a digit (7ch Stereo).
+_SOUND_MODE_ENTRY = re.compile(r"^(\d{2})(\d)(.*)$")
+
 #: The elapsed time on the on-screen list (NSE5): [h:]mm:ss, maybe a percentage.
 _ELAPSED = re.compile(r"^(\d+):(\d{2})(?::(\d{2}))?(?:\s+(\d{1,3})%)?$")
 
-#: Seconds without an SSSPC line after which the next one starts a new answer.
-#: An answer takes well under a second (AVR-X2000: 0.24 s for seven lines).
-SPEAKER_ANSWER_GAP = 2.0
+
+
+def readable_sources(
+    sources: list[SourceDescriptor], names: Mapping[str, str]
+) -> list[SourceDescriptor]:
+    """The sources, those without a real name given the profile's readable one.
+
+    A source counts as unnamed when its name is its code or another bare code
+    of the table: the stand-in NET was named NETWORK, and the snapshot of an
+    earlier start holds the codes as names.
+    """
+
+    return [
+        replace(source, name=names[source.code])
+        if source.code in names and (source.name == source.code or source.name in names)
+        else source
+        for source in sources
+    ]
 
 
 # UPnP description local tag name -> the DeviceInfo attribute it fills. The AVR
@@ -371,18 +390,11 @@ _ZONE_SETTINGS = ("QUICK", "SMART", "SLP", "STBY", "HPF", "CS", "CV", "PS", "HDA
 class TelnetParser:
     """Stateful parser that applies telnet lines to a Discovery and AvrState."""
 
-    def __init__(
-        self,
-        profile: ProtocolProfile,
-        discovery: Discovery,
-        clock: Callable[[], float] = time.monotonic,
-    ) -> None:
+    def __init__(self, profile: ProtocolProfile, discovery: Discovery) -> None:
         self._profile = profile
-        self._clock = clock
-        # The groups of the SSSPC answer coming in, and when its last line came:
-        # a pause longer than SPEAKER_ANSWER_GAP starts the next answer.
-        self._speaker_answer: set[str] = set()
-        self._speaker_line_at: float | None = None
+        # Per speaker group its latest value of each kind: "size" (presence or
+        # size) and, for the count groups, "count".
+        self._speaker_values: dict[str, dict[str, str]] = {}
         self._quick_select_prefix = str(
             profile.introspection.get("quick_select", {}).get("prefix", "MSQUICK")
         )
@@ -583,6 +595,9 @@ class TelnetParser:
             return False
         updated = replace(now)
         setattr(updated, str(field_name), text or None)
+        if field_name == "title" and (text or None) != now.title:
+            # Another track: the old one's time is no longer the position.
+            updated.position = updated.duration = updated.position_at = None
         state.now_playing = updated
         return True
 
@@ -590,9 +605,15 @@ class TelnetParser:
         """The elapsed time line ('03:36', '1:02:03', '00:11 100%') of a playing track."""
 
         now = state.now_playing
-        match = _ELAPSED.match(text)
-        if not now.active or match is None:
+        if not now.active:
             return False
+        match = _ELAPSED.match(text)
+        if match is None:
+            # Blank for a moment at a track change: no position until it counts.
+            if text or now.position is None:
+                return False
+            state.now_playing = replace(now, position=None, duration=None, position_at=None)
+            return True
         first, second, third, percent = match.groups()
         # mm:ss, or h:mm:ss when the third part is there.
         parts = [int(first), int(second)] + ([int(third)] if third else [])
@@ -602,6 +623,9 @@ class TelnetParser:
         duration = now.duration
         if percent is not None and 0 < int(percent) <= 100 and position:
             duration = round(position * 100 / int(percent))
+        if now.position == float(position) and now.duration == duration:
+            # Paused, or asked again within the second: the time it was read stays.
+            return False
         state.now_playing = replace(
             now, position=float(position), duration=duration, position_at=time.time()
         )
@@ -664,13 +688,13 @@ class TelnetParser:
         if not remainder:
             return False
         genre = remainder[:3]
-        match = re.match(r"^(\d+)(.*)$", remainder[3:])
+        match = _SOUND_MODE_ENTRY.match(remainder[3:])
         if not match:
             return False
-        name = match.group(2).strip()
+        name = match.group(3).strip()
         if not name:
             return False
-        if match.group(1).endswith("1"):
+        if match.group(2) == "1":
             state.values["sound_mode_genre"] = genre
         if name not in self._opsmlall_pending:
             self._opsmlall_pending.append(name)
@@ -694,10 +718,10 @@ class TelnetParser:
             self._discovery.current_sound_modes = list(self._opsml_pending)
             self._opsml_pending = []
             return True
-        match = re.match(r"^(\d+)(.*)$", remainder)
+        match = _SOUND_MODE_ENTRY.match(remainder)
         if not match:
             return False
-        digits, name = match.group(1), match.group(2).strip()
+        flag, name = match.group(2), match.group(3).strip()
         if not name:
             return False
         # Once each: an AVR-X2600H left Stereo four times in the list.
@@ -705,7 +729,7 @@ class TelnetParser:
             self._opsml_pending.append(name)
         # The trailing digit is the "currently selected" flag; this is the mode
         # the user selected, which can differ from the resolved MS mode.
-        if digits and digits[-1] == "1":
+        if flag == "1":
             state.values["sound_mode_display"] = name
         return True
 
@@ -828,17 +852,21 @@ class TelnetParser:
     ) -> None:
         """Create or update a discovered source, keeping earlier attributes."""
 
+        names = self._profile.source_names
         for source in self._discovery.sources:
             if source.code == code:
                 if name is not None:
                     source.name = name
+                elif code in names and (source.name == code or source.name in names):
+                    # Named by its code, as an earlier start stored it.
+                    source.name = names[code]
                 if visible is not None:
                     source.visible = visible
                 return
         self._discovery.sources.append(
             SourceDescriptor(
                 code=code,
-                name=name if name is not None else self._profile.source_names.get(code, code),
+                name=name if name is not None else names.get(code, code),
                 visible=visible if visible is not None else True,
             )
         )
@@ -866,21 +894,17 @@ class TelnetParser:
         value = value.strip()
         if not group or not value:
             return False
-        # discovery.speaker_config holds every value a group reported in the
-        # latest answer (it drives the configured-channel derivation): a group
-        # can answer twice (SSSPCSBK NON, then SSSPCSBK 2SP), and a later answer
-        # replaces the earlier one, so a speaker set up or removed since counts.
-        # state.speaker_sizes keeps the latest single value per group so the
-        # size selects have a live value.
-        now = self._clock()
-        if self._speaker_line_at is None or now - self._speaker_line_at > SPEAKER_ANSWER_GAP:
-            self._speaker_answer = set()
-        self._speaker_line_at = now
-        if group in self._speaker_answer:
-            self._discovery.speaker_config.setdefault(group, set()).add(value)
-        else:
-            self._speaker_answer.add(group)
-            self._discovery.speaker_config[group] = {value}
+        # discovery.speaker_config holds a group's latest value of each kind (it
+        # drives the configured-channel derivation): a count group answers its
+        # presence and its count (SSSPCSBK NON, then SSSPCSBK 2SP), and a later
+        # value replaces only the earlier one of its kind, so a speaker set up
+        # or removed since counts. state.speaker_sizes keeps the latest single
+        # value per group so the size selects have a live value.
+        counts = self._profile.speakers.get("count_groups", {}).get(group, {})
+        kind = "count" if value in counts.get("count_tokens", ()) else "size"
+        values = self._speaker_values.setdefault(group, {})
+        values[kind] = value
+        self._discovery.speaker_config[group] = set(values.values())
         state.speaker_sizes[group] = value
         self._recompute_configured_channels()
         return True

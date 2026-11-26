@@ -487,10 +487,7 @@ async def test_channels_follow_a_speaker_set_up_or_removed_on_the_receiver(
     def state(code: str) -> er.RegistryEntryDisabler | None:
         return registry_entry(hass, loaded_entry, f"number_channel_trim_{code}").disabled_by
 
-    with (
-        patch("custom_components.denonavr_plus.avr.parser.SPEAKER_ANSWER_GAP", -1.0),
-        patch("custom_components.denonavr_plus.SPEAKERS_SETTLE", 0),
-    ):
+    with patch("custom_components.denonavr_plus.SPEAKERS_SETTLE", 0):
         telnet.push("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSUA SMA", "SSSPCSWF YES")
         await _settle(hass)
         assert [state(c) for c in ("C", "SL", "SW")] == [None, None, None]

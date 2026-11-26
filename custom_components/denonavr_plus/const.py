@@ -21,7 +21,15 @@ DOMAIN = "denonavr_plus"
 # add a step in migrations.py, whenever entry data, options, unique ids or
 # device identifiers change.
 CONFIG_VERSION = 1
-CONFIG_MINOR_VERSION = 2
+CONFIG_MINOR_VERSION = 3
+
+# Options markers for the channel trims (migrations.py and __init__.py): the
+# one-time marker that the trims of speakers the receiver lacks were disabled,
+# and the speakers' channels that was last done for.
+OPT_CHANNELS_INITIALIZED = "channels_initialized"
+OPT_CHANNELS_APPLIED = "channels_configured"
+# Unique id fragment identifying a channel trim, followed by the channel code.
+CHANNEL_TRIM_MARKER = "_channel_trim_"
 
 # CONF_HOST (the receiver address) and CONF_PORT (the goform port, 8080 or 80)
 # are imported above and re-exported here so the rest of the integration keeps a single import
