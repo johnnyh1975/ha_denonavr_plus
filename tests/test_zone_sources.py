@@ -52,7 +52,7 @@ async def test_zone_2_inputs_are_asked_once_without_hdmi(
     assert loaded_entry.options[zone_sources.OPT_ZONE2_SOURCES_ASKED] is True
     assert _issue(hass, loaded_entry) is None
     zone2 = hass.states.get(entity_id(hass, loaded_entry, "media_player_zone2"))
-    assert zone2.attributes["source_list"] == ["CD", "TUNER"]
+    assert zone2.attributes["source_list"] == ["CD", "Tuner"]
 
     # Asked once: not again after a reload.
     await hass.config_entries.async_reload(loaded_entry.entry_id)

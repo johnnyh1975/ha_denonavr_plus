@@ -466,6 +466,8 @@ class DenonAvrSubwooferCount(DenonAvrEntity, SelectEntity):
     A telnet count group in the SSSPC speaker config (SSSPCSWF NON/1SP/2SP),
     settable like a speaker size. The range is the standard 0-2 subwoofers of
     this AVR class; a flagship supporting more would extend the token map.
+    A receiver that answers YES/NO instead (AVR-X2000, AVR-X2600H) gets
+    None / 1 with those tokens.
     """
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -475,9 +477,11 @@ class DenonAvrSubwooferCount(DenonAvrEntity, SelectEntity):
         super().__init__(coordinator, "select_subwoofer_count", sub_device="speakers")
         self._attr_translation_key = "subwoofer_count"
         # Wire tokens -> labels from the profile grammar, not hardcoded here.
-        labels = coordinator.device.profile.speakers.get(
-            "subwoofer_count", {"NON": "None", "1SP": "1", "2SP": "2"}
-        )
+        speakers = coordinator.device.profile.speakers
+        labels = speakers.get("subwoofer_count", {"NON": "None", "1SP": "1", "2SP": "2"})
+        presence = speakers.get("subwoofer_presence", {})
+        if coordinator.data.speaker_sizes.get("SWF") in presence:
+            labels = presence
         self._labels = {token: option_key(label) for token, label in labels.items()}
         self._attr_options = list(self._labels.values())
         self._label_to_token = {v: k for k, v in self._labels.items()}

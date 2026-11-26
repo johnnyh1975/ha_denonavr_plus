@@ -516,7 +516,13 @@ class DenonAvrDevice:
         # The authoritative source list comes from the telnet SSFUN/SSSOD
         # introspection (correct codes, names and visibility). Keep the Deviceinfo
         # source list only as a fallback for models without that introspection.
-        self._fallback_sources = discovered.sources
+        names = self._profile.source_names
+        self._fallback_sources = [
+            replace(source, name=names[source.code])
+            if source.name == source.code and source.code in names
+            else source
+            for source in discovered.sources
+        ]
         self._discovery.sources = []
         # Three independent reads, asked together so the setup waits for the
         # slowest instead of their sum: the UPnP description (firmware, serial
@@ -722,7 +728,8 @@ class DenonAvrDevice:
             and discovery.supports("NETWORK")
             and not any(source.code == "NET" for source in discovery.sources)
         ):
-            discovery.sources.append(SourceDescriptor(code="NET", name="NETWORK"))
+            name = self._profile.source_names.get("NET", "NETWORK")
+            discovery.sources.append(SourceDescriptor(code="NET", name=name))
 
     def _answer_gated_controls(self) -> list[ControlSpec]:
         """The controls that exist on this receiver only if it answers their query."""

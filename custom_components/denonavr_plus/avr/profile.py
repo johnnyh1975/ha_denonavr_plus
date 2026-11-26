@@ -119,6 +119,10 @@ class ProtocolProfile:
             for name, value in raw.get("listed_sound_modes", {}).items()
             if name != "doc"
         }
+        # Input code -> the name shown when the receiver names it nowhere.
+        self.source_names: dict[str, str] = {
+            code: value for code, value in raw.get("source_names", {}).items() if code != "doc"
+        }
         self.introspection: dict[str, dict[str, Any]] = raw.get("introspection", {})
         # Now playing and transport over telnet for receivers without HEOS.
         self.netaudio: dict[str, Any] = raw.get("netaudio", {})

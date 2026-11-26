@@ -735,6 +735,15 @@ async def test_a_source_zone_2_does_not_take(
     assert device.zone_source("zone2") == "DVD"
 
 
+async def test_the_deviceinfo_inputs_named_by_their_code_get_readable_names(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Without SSFUN the Deviceinfo list stands in; its NETWORK and TUNER read as words."""
+    names = {s.code: s.name for s in loaded_entry.runtime_data.device.discovery.sources}
+    assert names["NETWORK"] == "Network"
+    assert names["TUNER"] == "Tuner"
+
+
 async def test_the_network_input_listed_as_network_is_sent_as_net(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

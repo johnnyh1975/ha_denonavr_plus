@@ -53,12 +53,34 @@
     "MUSIC": "MUSIC",
     "GAME": "GAME"
   },
+  "source_names": {
+    "doc": "Names for inputs the receiver lists without a name: SSFUN names the user's inputs only, SSSOD lists the network services, tuner and network input by code (an AVR-X2000: IRADIO, SERVER, LASTFM; an AVR-X2600H: TUNER, NET). The names are the receiver's own from its Deviceinfo.xml (DefaultName of the AVR-X2000 recording: Internet Radio, Media Server, Favorites, iPod/USB, Flickr) and the services' own spelling, in title case for NETWORK and TUNER. A name the receiver reports always wins.",
+    "NET": "Network",
+    "NETWORK": "Network",
+    "TUNER": "Tuner",
+    "IRADIO": "Internet Radio",
+    "SERVER": "Media Server",
+    "FAVORITES": "Favorites",
+    "USB/IPOD": "iPod/USB",
+    "USB": "USB",
+    "SPOTIFY": "Spotify",
+    "LASTFM": "Last.fm",
+    "FLICKR": "Flickr",
+    "PANDORA": "Pandora",
+    "SIRIUSXM": "SiriusXM",
+    "NAPSTER": "Napster",
+    "RHAPSODY": "Rhapsody",
+    "BT": "Bluetooth",
+    "PHONO": "Phono"
+  },
   "netaudio": {
     "doc": "Now playing and transport over telnet, for receivers without HEOS (AVR-X2000 and older). NSE asks for the on-screen list (NSE0-NSE8, UTF-8): line 0 starts with 'Now Playing' while a track plays, lines 1, 2 and 4 hold title, artist and album after one flag byte. NS9A-NS9E play, pause, stop, skip forward and back. The cover is served under art_path on the goform port. From the AVR-X2000/E400 (v03), AVR-1912/2112CI, AVR-1913/2113CI and 2015 X-series documents and the denonavr library (input.py). TFAN? and TFANNAME? give the tuner frequency (6 digits, below 050000 FM in MHz x 100, else AM in kHz x 100) and station name.",
     "sources": ["NET", "FAVORITES", "IRADIO", "SERVER", "SPOTIFY", "LASTFM", "FLICKR", "PANDORA", "SIRIUSXM", "NAPSTER", "RHAPSODY", "USB/IPOD", "USB", "IPD", "NET/USB"],
     "query": "NSE",
     "now_playing": "Now Playing",
     "lines": {"1": "title", "2": "artist", "4": "album"},
+    "position_line": "5",
+    "position_doc": "Line 5 holds the elapsed time while a track plays: '00:11 100%' in the AVR-X2000/E400 (v03) document, '   03:36 ' from an AVR-X2000 (counting up every 5 s, '00:00' at a track change). The percentage, where it comes, gives the duration.",
     "transport": {"play": "NS9A", "pause": "NS9B", "stop": "NS9C", "next": "NS9D", "previous": "NS9E"},
     "art_path": "/NetAudio/art.asp-jpg",
     "tuner_sources": ["TUNER"],
@@ -194,11 +216,17 @@
       "channel codes, so only speakers that are actually configured get channel",
       "entities. Which groups are present is discovered from SSSPC; this map is",
       "just the fixed protocol grammar linking a group to its channels. A group",
-      "is treated as absent when any of its SSSPC lines carries the absent token."
+      "is treated as absent when any of its SSSPC lines in one answer carries an",
+      "absent token. The subwoofer is NON/1SP/2SP on receivers with two",
+      "subwoofer outputs and YES/NO on others: an AVR-X2000 and an AVR-X2600H",
+      "(3.139.175) answer 'SSSPCSWF YES', and the AVR-X2000 'SSSPCSWF NO' once",
+      "its subwoofer was set to None."
     ],
     "absent_token": "NON",
+    "absent_tokens": ["NON", "NO"],
     "double_token": "2SP",
     "subwoofer_count": {"NON": "None", "1SP": "1", "2SP": "2"},
+    "subwoofer_presence": {"NO": "None", "YES": "1"},
     "sizes": {
       "doc": "Speaker size wire tokens for the regular (non-count) groups, exposed as a select. LAR=Large, SMA=Small; the absent_token (NON) means no speaker. The count groups (subwoofer, surround back) report presence/count tokens instead and are not size-selectable. Set via 'SSSPC<GROUP> <token>' (verified live: read -> set -> restore).",
       "options": {"LAR": "Large", "SMA": "Small"}
@@ -466,7 +494,10 @@
       "kind": "level",
       "query": "PSBAS ?",
       "prefix": "PSBAS ",
-      "doc": "Tone control bass. Level, 50 == 0 dB. The step comes from the receiver's published range: whole dB on an AVR-X2600H and an AVC-X3700H recording; the AVR-X2600H ignored a half step (PSBAS 505) in the command test."
+      "min": -6,
+      "max": 6,
+      "step": 1,
+      "doc": "Tone control bass. Level, 50 == 0 dB. The range comes from the receiver where it publishes one: whole dB on an AVR-X2600H and an AVC-X3700H recording; the AVR-X2600H ignored a half step (PSBAS 505) in the command test. Without one (AVR-X2000, receivers before 2016) -6 to +6 dB in whole dB, as every protocol document from 2011 to 2015 gives it (44 to 56); an AVR-X2000 ignored a half step as well."
     },
     "treble": {
       "group": "tone",
@@ -475,7 +506,10 @@
       "kind": "level",
       "query": "PSTRE ?",
       "prefix": "PSTRE ",
-      "doc": "Tone control treble. Level, 50 == 0 dB. The step comes from the receiver's published range: whole dB on an AVR-X2600H and an AVC-X3700H recording; the AVR-X2600H ignored a half step (PSTRE 505) in the command test."
+      "min": -6,
+      "max": 6,
+      "step": 1,
+      "doc": "Tone control treble. Level, 50 == 0 dB. The range comes from the receiver where it publishes one: whole dB on an AVR-X2600H and an AVC-X3700H recording; the AVR-X2600H ignored a half step (PSTRE 505) in the command test. Without one (AVR-X2000, receivers before 2016) -6 to +6 dB in whole dB, as every protocol document from 2011 to 2015 gives it (44 to 56); an AVR-X2000 ignored a half step as well."
     },
     "tone_control": {
       "group": "tone",

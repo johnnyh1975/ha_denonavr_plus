@@ -385,10 +385,12 @@ def _precondition(device: DenonAvrDevice, control_id: str) -> Callable[[], str |
 
 
 def _level_step(device: DenonAvrDevice, spec: ControlSpec) -> float:
-    """The receiver's own step for a level, where it publishes one."""
+    """The receiver's own step for a level, where it publishes one, else the profile's."""
 
     meta = device.discovery.numeric_meta.get(spec.feature or "")
-    return float(meta["step"]) if meta and meta.get("step") else 0.5
+    if meta and meta.get("step"):
+        return float(meta["step"])
+    return float(spec.get("step") or 0.5)
 
 
 def _wanted(device: DenonAvrDevice, control_id: str) -> Callable[[str], bool]:

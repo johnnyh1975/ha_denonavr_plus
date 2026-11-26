@@ -561,7 +561,7 @@ async def test_sources_are_chosen_per_zone_and_renamed(
     # Only the chosen sources are offered for renaming.
     assert [str(key) for key in result["data_schema"].schema] == ["DVD", "TUNER"]
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"DVD": "Player", "TUNER": "TUNER"}
+        result["flow_id"], {"DVD": "Player", "TUNER": "Tuner"}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert loaded_entry.options["sources"] == {"main": ["DVD", "TUNER"], "zone2": ["TUNER"]}

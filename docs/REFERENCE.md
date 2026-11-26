@@ -87,7 +87,10 @@ Assistant. For Zone 2 this is asked once after setup, as a repair, with the
 inputs that carry HDMI as delivered (CBL/SAT, DVD, Blu-ray, Game, Media
 Player, AUX1, AUX2, 8K) deselected when the receiver does not answer `Z2HDA?`
 (Zone 2 HDMI audio): smaller receivers play no HDMI input in Zone 2. The names and hidden inputs set on the receiver are already taken
-over; this narrows down and renames on top. Selecting all keeps sources the
+over; this narrows down and renames on top. Inputs the receiver lists without
+a name (the network input, the tuner, and on receivers before 2016 each
+network service) get a readable one: *Network*, *Tuner*, *Internet Radio*,
+*Media Server*, *iPod/USB* instead of NET, TUNER, IRADIO, SERVER, USB/IPOD. Selecting all keeps sources the
 receiver gains later. Renamed sources can still be selected by their receiver
 name, so older automations keep working. **Quick selects and favorites in the
 source menu** (on by default) adds the main zone's quick selects and HEOS
@@ -277,7 +280,9 @@ resolution appear only on receivers that list them (AVR‑X2600H, AVC‑X3700H,
 AVC‑A10H), and Input Mode leaves eARC out where the receiver's list does
 (AVC‑8500H, SR6011; some receivers without eARC still list it). Number
 ranges do too: levels in dB as the receiver publishes them, and Audio Delay,
-Containment Amount and Dialog Control by the values it publishes. Effect
+Containment Amount and Dialog Control by the values it publishes. Bass and
+Treble on a receiver that publishes no range (AVR‑X2000 and older) go from
+−6 to +6 dB in whole dB, as the protocol documents give them. Effect
 Level keeps 0–15, because receivers report 0 although their description
 starts at 1, and Auro-Matic Strength keeps 1–16 for the same reason (the
 AVC‑A10H describes it as 0–15).
@@ -286,8 +291,8 @@ AVC‑A10H describes it as 0–15).
   source selection, and (main zone) sound mode. On the main zone, network sources
   show **album art, track/artist/album and play/pause/next transport**, with
   position, repeat and shuffle (via HEOS). Receivers without HEOS (AVR-X2000
-  and older) show title, artist, album and cover from their on-screen list and
-  take play, pause, stop and skip over telnet. The tuner shows its station or
+  and older) show title, artist, album, cover and the elapsed time from their
+  on-screen list and take play, pause, stop and skip over telnet. The tuner shows its station or
   frequency and the recalled preset; skip steps through the presets. On any
   other input the player shows the input's name, with the sound mode and the
   signal (decoder and sample rate, such as `DOLBY TRUEHD · 48 kHz`) below it,
@@ -349,7 +354,9 @@ AVC‑A10H describes it as 0–15).
   as TuneIn) and the station of a radio (`media_channel`). A playback error
   HEOS reports shows as a repair until something plays again.
 - **Sound mode** as two coupled selects: a genre group (Movie/Music/Game/Pure)
-  and the modes within the active group (context aware, includes Auto).
+  and the modes within the active group (context aware, includes Auto). The
+  group follows the receiver when it changes there, from the list of sound
+  modes it sends with every change.
 - **Selects**: Dynamic Compression, Dynamic Volume, Reference Level Offset,
   MultEQ, Restorer (Denon; on Marantz M-DAX takes its place), ECO, Front Display dimmer, Video Mode, Picture Mode, HDMI
   Monitor Out, HDMI Audio Out (Amp/TV), HDMI Resolution, Aspect Ratio, Input Mode
@@ -357,7 +364,9 @@ AVC‑A10H describes it as 0–15).
   Scale, Volume Limit, Muting Level, a per speaker group crossover frequency (Hz)
   plus a Crossover Speaker Selection (All / Individual) that gates them against a
   single All Crossover,
-  a per speaker group size (Large/Small), Front Speaker (A/B/A+B), Amp Assign
+  a per speaker group size (Large/Small), the number of subwoofers (None/1/2,
+  or None/1 on receivers that answer yes or no, such as the AVR‑X2000 and
+  AVR‑X2600H), Front Speaker (A/B/A+B), Amp Assign
   (the amp‑assignment mode — options are read from the receiver per its amp type,
   e.g. 7.1ch + Front B / 9.1ch / Bi‑Amp / Zone2), the amp‑assign Floor Layout and
   Height Speakers (options read from the receiver), and LPF for LFE (80–250 Hz).
@@ -437,7 +446,10 @@ listening starts enabled:
 - tone (bass, treble, tone control), Dynamic EQ, Dynamic Volume, Dynamic
   Compression, MultEQ, Cinema EQ, center level and Dialog Control
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
-- the trims of the speakers the receiver has configured
+- the trims of the speakers the receiver has configured. When a speaker is
+  set up or removed on the receiver later, its trim follows: removed, it is
+  disabled; set up again, it comes back if the integration had disabled it.
+  Trims you enabled or disabled yourself stay as they are.
 - the volume of each zone in dB
 - the decoder and connectivity sensors
 

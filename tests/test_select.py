@@ -262,6 +262,35 @@ async def test_speaker_selects_show_and_set_the_receivers_values(
     assert await _choose(hass, entry, "select_subwoofer_count", "2") == ["SSSPCSWF 2SP"]
 
 
+@pytest.mark.assumed(
+    "SSSPCSWF YES/NO is confirmed as an answer (AVR-X2000, AVR-X2600H), not "
+    "as a command; switching the subwoofer on the receiver would settle it"
+)
+async def test_a_subwoofer_answered_yes_or_no_is_shown_and_set_that_way(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """The AVR-X2000 with its subwoofer set to None."""
+
+    from .setup_api import TELNET_ANSWERS
+
+    api = FakeSetupApi()
+    answer = ["SSSPCFRO LAR", "SSSPCCEN NON", "SSSPCSWF NO", "SSSPCSBK NON", "SSSPCSBK 2SP"]
+    with answering_receiver(api), patch.dict(TELNET_ANSWERS, {"SSSPC ?": answer}):
+        entry = MockConfigEntry(
+            domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        state = hass.states.get(entity_id(hass, entry, "select_subwoofer_count"))
+        assert state is not None
+        assert state.state == "none"
+        assert state.attributes["options"] == ["none", "1"]
+        assert await _choose(hass, entry, "select_subwoofer_count", "1") == ["SSSPCSWF YES"]
+        assert entry.runtime_data.device.discovery.configured_channels == {"FL", "FR"}
+        assert await hass.config_entries.async_unload(entry.entry_id)
+
+
 async def test_the_crossover_mode_decides_which_crossover_applies(
     hass: HomeAssistant, setup_api: FakeSetupApi
 ) -> None:

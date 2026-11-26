@@ -8,10 +8,11 @@ coordinator (stored as the entry runtime data) owns the device connection.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import Platform
-from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import (
     config_validation as cv,
@@ -20,6 +21,7 @@ from homeassistant.helpers import (
     issue_registry as ir,
 )
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 
 from . import choices, command_test, entity_groups, linked_players, move, zone_sources
@@ -42,6 +44,11 @@ _LOGGER = logging.getLogger(__name__)
 # One time marker (stored in the entry options) so the channel default disabling
 # runs only once and never overrides the user's later manual choices.
 _CHANNELS_INITIALIZED = "channels_initialized"
+# The speakers' channels the defaults were last applied for, so a speaker set
+# up or removed on the receiver later is followed.
+_CHANNELS_APPLIED = "channels_configured"
+#: Seconds the reported speakers stay the same before the channels follow.
+SPEAKERS_SETTLE = 3.0
 # Unique id fragment identifying per channel entities and how to read the code.
 _CHANNEL_MARKER = "_channel_trim_"
 
@@ -97,6 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     # Renamed and removed linked players, following one, keeping it at full volume.
     entry.async_on_unload(linked_players.LinkedPlayers(hass, entry).async_start())
     _apply_channel_defaults(hass, entry, coordinator)
+    entry.async_on_unload(_follow_speakers(hass, entry, coordinator))
     if not coordinator.started_offline:
         entity_groups.async_apply(
             hass, entry, coordinator.device.discovery.configured_channels
@@ -319,40 +327,107 @@ def _is_zone_device(device: dr.DeviceEntry) -> bool:
     )
 
 
+def _follow_speakers(
+    hass: HomeAssistant, entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator
+) -> CALLBACK_TYPE:
+    """Apply the channel defaults again when the receiver reports other speakers.
+
+    The speakers are asked again on a sound mode or input change, and the first
+    start may have come from the stored data. An answer comes line by line, so
+    the defaults follow only once the speakers stayed the same for
+    SPEAKERS_SETTLE seconds, not on half an answer.
+    """
+
+    seen = set(coordinator.device.discovery.configured_channels)
+    pending: CALLBACK_TYPE | None = None
+
+    @callback
+    def settled(_now: Any) -> None:
+        nonlocal pending
+        pending = None
+        _apply_channel_defaults(hass, entry, coordinator)
+
+    @callback
+    def updated() -> None:
+        nonlocal seen, pending
+        configured = coordinator.device.discovery.configured_channels
+        if configured == seen:
+            return
+        seen = set(configured)
+        if pending is not None:
+            pending()
+        pending = async_call_later(hass, SPEAKERS_SETTLE, settled)
+
+    remove = coordinator.async_add_listener(updated)
+
+    @callback
+    def stop() -> None:
+        remove()
+        if pending is not None:
+            pending()
+
+    return stop
+
+
 def _apply_channel_defaults(
     hass: HomeAssistant,
     entry: DenonAvrConfigEntry,
     coordinator: DenonAvrCoordinator,
 ) -> None:
-    """Disable per channel entities for speakers the receiver has not configured.
+    """Keep the per channel entities in step with the speakers the receiver has.
 
     Home Assistant keeps entity registry entries across a remove/re-add (keyed by
     unique id), so `entity_registry_enabled_default` cannot retroactively disable
-    already registered channels. This runs once (guarded by a stored flag) and
-    explicitly disables the non configured channels, while never touching a
-    channel again afterwards so the user's manual enable/disable choices stick.
+    already registered channels. The first time the speakers are known, the
+    channels of speakers the receiver has not set up are disabled. Later, when
+    the receiver reports other speakers (one set up or removed on the
+    receiver), only the channels whose speaker changed follow: a removed one is
+    disabled, one set up again is enabled if this integration disabled it. The
+    speakers last applied are stored in the options; channels whose speaker
+    did not change are never touched, so the user's own choices stick.
     """
 
-    if entry.options.get(_CHANNELS_INITIALIZED):
-        return
     configured = coordinator.device.discovery.configured_channels
     if not configured:
         # Speaker configuration unknown; do not disable anything (safe fallback).
         return
+    applied = entry.options.get(_CHANNELS_APPLIED)
+    if applied is not None and set(applied) == configured:
+        return
 
     registry = er.async_get(hass)
-    for regentry in er.async_entries_for_config_entry(registry, entry.entry_id):
-        if _CHANNEL_MARKER not in regentry.unique_id:
-            continue
-        code = regentry.unique_id.split(_CHANNEL_MARKER)[-1]
-        if code not in configured and regentry.disabled_by is None:
+    channels = [
+        (regentry, regentry.unique_id.split(_CHANNEL_MARKER)[-1])
+        for regentry in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if _CHANNEL_MARKER in regentry.unique_id
+    ]
+    previous: set[str] | None
+    if applied is not None:
+        previous = set(applied)
+    elif entry.options.get(_CHANNELS_INITIALIZED):
+        # Set up before the speakers were stored: the channels left on stand for
+        # the speakers the receiver had then.
+        previous = {code for regentry, code in channels if regentry.disabled_by is None}
+    else:
+        previous = None
+    for regentry, code in channels:
+        removed = code not in configured and (previous is None or code in previous)
+        added = previous is not None and code in configured and code not in previous
+        if removed and regentry.disabled_by is None:
             registry.async_update_entity(
                 regentry.entity_id,
                 disabled_by=er.RegistryEntryDisabler.INTEGRATION,
             )
+        elif added and regentry.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+            registry.async_update_entity(regentry.entity_id, disabled_by=None)
 
     hass.config_entries.async_update_entry(
-        entry, options={**entry.options, _CHANNELS_INITIALIZED: True}
+        entry,
+        options={
+            **entry.options,
+            _CHANNELS_INITIALIZED: True,
+            _CHANNELS_APPLIED: sorted(configured),
+        },
     )
 
 

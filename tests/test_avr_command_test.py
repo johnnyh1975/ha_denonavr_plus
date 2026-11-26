@@ -195,6 +195,16 @@ async def test_a_level_moves_by_the_receivers_own_step(
     assert probes["bass"].alternative(3.0) == 2.0
 
 
+async def test_a_level_without_a_published_step_moves_by_whole_db(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """An AVR-X2000 publishes no range for bass and ignored PSBAS 505."""
+    device = loaded_entry.runtime_data.device
+    device.discovery.numeric_meta.pop("Bass", None)
+    probes = {p.key: p for p in command_test.probes_for(device, [QUIET])}
+    assert probes["bass"].alternative(0.0) == 1.0
+
+
 def test_no_different_value() -> None:
     assert alternative(ControlSpec("x", {"kind": "enum", "values": ["A"]}), "A") is None
     assert alternative(ControlSpec("x", {"kind": "enum", "values": []}), "A") is None

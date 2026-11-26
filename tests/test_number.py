@@ -148,3 +148,17 @@ async def test_an_integer_takes_the_range_the_receiver_publishes(
     assert _resolve_bounds(device, spec) == (0.0, 300.0, 1.0)
     del meta["AudioDelay/Adjust"], meta["AudioDelay"]
     assert _resolve_bounds(device, spec) == (0, 500, 1)
+
+
+async def test_bass_without_a_published_range_goes_from_minus_6_to_6_db(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """An AVR-X2000 publishes no range; its protocol document gives -6 to +6 (44 to 56)."""
+    from custom_components.denonavr_plus.number import _resolve_bounds
+
+    device = loaded_entry.runtime_data.device
+    device.discovery.numeric_meta.pop("Bass", None)
+    for control in ("bass", "treble"):
+        spec = device.profile.control(control)
+        assert spec is not None
+        assert _resolve_bounds(device, spec) == (-6, 6, 1)

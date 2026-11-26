@@ -18,8 +18,9 @@ from dataclasses import replace
 
 import logging
 import re
+import time
 import xml.etree.ElementTree as ET
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from .codec import decode_centered, decode_half_step, decode_volume
@@ -52,6 +53,13 @@ def _format_mac(raw: str | None) -> str | None:
 #: treats OFF as switched off; no protocol document here lists them.
 APP_CONTROL = {"NSARA ": "remote_app_control", "NSHEA ": "heos_app_control"}
 APP_CONTROL_QUERIES = ("NSARA ?", "NSHEA ?")
+
+#: The elapsed time on the on-screen list (NSE5): [h:]mm:ss, maybe a percentage.
+_ELAPSED = re.compile(r"^(\d+):(\d{2})(?::(\d{2}))?(?:\s+(\d{1,3})%)?$")
+
+#: Seconds without an SSSPC line after which the next one starts a new answer.
+#: An answer takes well under a second (AVR-X2000: 0.24 s for seven lines).
+SPEAKER_ANSWER_GAP = 2.0
 
 
 # UPnP description local tag name -> the DeviceInfo attribute it fills. The AVR
@@ -363,8 +371,18 @@ _ZONE_SETTINGS = ("QUICK", "SMART", "SLP", "STBY", "HPF", "CS", "CV", "PS", "HDA
 class TelnetParser:
     """Stateful parser that applies telnet lines to a Discovery and AvrState."""
 
-    def __init__(self, profile: ProtocolProfile, discovery: Discovery) -> None:
+    def __init__(
+        self,
+        profile: ProtocolProfile,
+        discovery: Discovery,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
         self._profile = profile
+        self._clock = clock
+        # The groups of the SSSPC answer coming in, and when its last line came:
+        # a pause longer than SPEAKER_ANSWER_GAP starts the next answer.
+        self._speaker_answer: set[str] = set()
+        self._speaker_line_at: float | None = None
         self._quick_select_prefix = str(
             profile.introspection.get("quick_select", {}).get("prefix", "MSQUICK")
         )
@@ -558,12 +576,35 @@ class TelnetParser:
                 return True
             state.now_playing = NowPlaying(repeat=now.repeat, shuffle=now.shuffle)
             return True
+        if str(index) == str(grammar.get("position_line")):
+            return self._set_netaudio_position(text, state)
         field_name = grammar.get("lines", {}).get(str(index))
         if field_name is None:
             return False
         updated = replace(now)
         setattr(updated, str(field_name), text or None)
         state.now_playing = updated
+        return True
+
+    def _set_netaudio_position(self, text: str, state: AvrState) -> bool:
+        """The elapsed time line ('03:36', '1:02:03', '00:11 100%') of a playing track."""
+
+        now = state.now_playing
+        match = _ELAPSED.match(text)
+        if not now.active or match is None:
+            return False
+        first, second, third, percent = match.groups()
+        # mm:ss, or h:mm:ss when the third part is there.
+        parts = [int(first), int(second)] + ([int(third)] if third else [])
+        position = 0
+        for part in parts:
+            position = position * 60 + part
+        duration = now.duration
+        if percent is not None and 0 < int(percent) <= 100 and position:
+            duration = round(position * 100 / int(percent))
+        state.now_playing = replace(
+            now, position=float(position), duration=duration, position_at=time.time()
+        )
         return True
 
     def _set_system_power(self, remainder: str, state: AvrState) -> bool:
@@ -605,7 +646,10 @@ class TelnetParser:
         digit group, a one digit flag and the display name. This builds the full
         cross group set of modes and the per genre groups. The currently selected
         mode is taken from OPSML (current context), not here, because OPSMLALL
-        omits context modes such as Auto.
+        omits context modes such as Auto. The flagged entry's genre is the
+        current genre group: the receiver pushes OPSMLALL on a change but not
+        SSSMG (an AVR-X2600H flagged 'MOV031Dolby Audio - DD + DSur' while its
+        SSSMG answer from the start still said MUS).
         """
 
         remainder = remainder.strip()
@@ -626,6 +670,8 @@ class TelnetParser:
         name = match.group(2).strip()
         if not name:
             return False
+        if match.group(1).endswith("1"):
+            state.values["sound_mode_genre"] = genre
         if name not in self._opsmlall_pending:
             self._opsmlall_pending.append(name)
         modes = self._opsmlall_groups_pending.setdefault(genre, [])
@@ -763,8 +809,7 @@ class TelnetParser:
         if not remainder or remainder.startswith(self._profile.list_terminator):
             return False
         code, _, name = remainder.partition(" ")
-        name = name.rstrip() or code
-        self._upsert_source(code, name=name)
+        self._upsert_source(code, name=name.strip() or None)
         return True
 
     def _set_source_visibility(self, remainder: str) -> bool:
@@ -793,7 +838,7 @@ class TelnetParser:
         self._discovery.sources.append(
             SourceDescriptor(
                 code=code,
-                name=name if name is not None else code,
+                name=name if name is not None else self._profile.source_names.get(code, code),
                 visible=visible if visible is not None else True,
             )
         )
@@ -821,10 +866,21 @@ class TelnetParser:
         value = value.strip()
         if not group or not value:
             return False
-        # discovery.speaker_config accumulates every reported value per group (it
-        # drives the configured-channel derivation); state.speaker_sizes keeps the
-        # latest single value per group so the size selects have a live value.
-        self._discovery.speaker_config.setdefault(group, set()).add(value)
+        # discovery.speaker_config holds every value a group reported in the
+        # latest answer (it drives the configured-channel derivation): a group
+        # can answer twice (SSSPCSBK NON, then SSSPCSBK 2SP), and a later answer
+        # replaces the earlier one, so a speaker set up or removed since counts.
+        # state.speaker_sizes keeps the latest single value per group so the
+        # size selects have a live value.
+        now = self._clock()
+        if self._speaker_line_at is None or now - self._speaker_line_at > SPEAKER_ANSWER_GAP:
+            self._speaker_answer = set()
+        self._speaker_line_at = now
+        if group in self._speaker_answer:
+            self._discovery.speaker_config.setdefault(group, set()).add(value)
+        else:
+            self._speaker_answer.add(group)
+            self._discovery.speaker_config[group] = {value}
         state.speaker_sizes[group] = value
         self._recompute_configured_channels()
         return True
@@ -838,14 +894,14 @@ class TelnetParser:
         """
 
         speakers = self._profile.speakers
-        absent = speakers.get("absent_token", "NON")
+        absent = set(speakers.get("absent_tokens") or [speakers.get("absent_token", "NON")])
         double = speakers.get("double_token", "2SP")
         groups = speakers.get("groups", {})
         count_groups = speakers.get("count_groups", {})
 
         configured: set[str] = set()
         for group, values in self._discovery.speaker_config.items():
-            if absent in values:
+            if absent & values:
                 continue
             if group in count_groups:
                 key = "double" if double in values else "single"

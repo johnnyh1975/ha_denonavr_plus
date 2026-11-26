@@ -471,3 +471,71 @@ async def test_a_pending_move_whose_old_entry_is_gone(
     await hass.async_block_till_done(wait_background_tasks=True)
     assert "move_pending" not in entry.options
     assert entry.state is ConfigEntryState.LOADED
+
+
+async def test_channels_follow_a_speaker_set_up_or_removed_on_the_receiver(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The AVR-X2000 whose owner set center, surround and subwoofer to None."""
+
+    from .common import registry_entry
+
+    registry = er.async_get(hass)
+    disabled = er.RegistryEntryDisabler.INTEGRATION
+    telnet = FakeTelnet.instances[-1]
+
+    def state(code: str) -> er.RegistryEntryDisabler | None:
+        return registry_entry(hass, loaded_entry, f"number_channel_trim_{code}").disabled_by
+
+    with (
+        patch("custom_components.denonavr_plus.avr.parser.SPEAKER_ANSWER_GAP", -1.0),
+        patch("custom_components.denonavr_plus.SPEAKERS_SETTLE", 0),
+    ):
+        telnet.push("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSUA SMA", "SSSPCSWF YES")
+        await _settle(hass)
+        assert [state(c) for c in ("C", "SL", "SW")] == [None, None, None]
+        assert state("SBL") is disabled
+        # Turned on by the user although the receiver has no such speaker.
+        registry.async_update_entity(
+            registry_entry(hass, loaded_entry, "number_channel_trim_SBL").entity_id,
+            disabled_by=None,
+        )
+
+        telnet.push("SSSPCFRO LAR", "SSSPCCEN NON", "SSSPCSUA NON", "SSSPCSWF NO")
+        await _settle(hass)
+        assert [state(c) for c in ("C", "SL", "SR", "SW")] == [disabled] * 4
+        assert state("FL") is None
+        assert state("SBL") is None
+
+        telnet.push("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSUA NON", "SSSPCSWF NO")
+        await _settle(hass)
+        assert state("C") is None
+        assert state("SL") is disabled
+
+
+async def test_channels_wait_until_the_speaker_answer_is_complete(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """An answer comes line by line; half of it must not switch channels off."""
+
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    from .common import registry_entry
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("SSSPCFRO SMA")
+    await _settle(hass)
+    trim = registry_entry(hass, loaded_entry, "number_channel_trim_C")
+    assert trim.disabled_by is None
+    telnet.push("SSSPCCEN SMA", "SSSPCSUA NON")
+    await _settle(hass)
+    assert registry_entry(hass, loaded_entry, "number_channel_trim_C").disabled_by is None
+
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=4))
+    await hass.async_block_till_done()
+    assert registry_entry(hass, loaded_entry, "number_channel_trim_C").disabled_by is None
+    disabled = er.RegistryEntryDisabler.INTEGRATION
+    assert registry_entry(hass, loaded_entry, "number_channel_trim_SL").disabled_by is disabled

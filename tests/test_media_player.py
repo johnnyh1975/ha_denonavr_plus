@@ -357,7 +357,7 @@ async def test_sources_follow_the_selection_and_names(
     main = entity_id(hass, loaded_entry, "media_player_main")
     state = hass.states.get(main)
     assert state is not None
-    assert state.attributes["source_list"] == ["Player", "TUNER"]
+    assert state.attributes["source_list"] == ["Player", "Tuner"]
     assert state.attributes["source"] == "Player"
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()

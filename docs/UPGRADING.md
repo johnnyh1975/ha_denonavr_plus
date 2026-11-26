@@ -4,6 +4,20 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 1.2.x
+
+- **Inputs the receiver does not name** read as words: *Network*, *Tuner*,
+  and on receivers before 2016 *Internet Radio*, *Media Server*, *iPod/USB*
+  and so on, where the source list said NET, NETWORK, TUNER, IRADIO,
+  SERVER or USB/IPOD. Choosing a source by the old name still works; a
+  condition or template that compares `source` with the old name needs the
+  new one.
+- **Channel trims follow the speakers**: a trim whose speaker was removed on
+  the receiver since setup is now disabled (the AVR-X2000, for example, kept
+  center and surround trims after they were set to None). Trims you enabled
+  yourself for a speaker the receiver does not have are disabled once with
+  this update; enable them again if you want them.
+
 ## From 1.1.x
 
 - **Sound mode names in capitals** (AVR-X2000 and other receivers before

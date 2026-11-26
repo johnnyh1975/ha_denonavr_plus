@@ -607,3 +607,130 @@ def test_published_value_ranges_are_read(recording: str, path: str, expected: tu
     # their Deviceinfo says 1-15. Auro-Matic Strength stays 1-16 for the same
     # reason: the AVC-A10H describes 0-15, the AVR-X4300H and the 2015 document 1-16.
     assert "EffectLevel" not in paths and "AuroMatic3DStrength" not in paths
+
+
+def _capability_lines(model: str, query: str) -> list[str]:
+    path = Path(__file__).parent / "fixtures" / "capability_check" / f"{model}.json"
+    return cast(list[str], json.loads(path.read_text(encoding="utf-8"))["queries"][query]["lines"])
+
+
+@pytest.mark.parametrize(
+    ("model", "expected"),
+    [
+        # Front, center and surround small, one subwoofer answered as YES.
+        ("AVR-X2000", {"FL", "FR", "C", "SL", "SR", "SW"}),
+        ("AVR-X2600H-3.139.175", {"FL", "FR", "C", "SL", "SR", "SW"}),
+    ],
+)
+def test_a_subwoofer_answered_yes_is_set_up(model: str, expected: set[str]) -> None:
+    discovery = Discovery()
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
+    for line in _capability_lines(model, "SSSPC ?"):
+        parser.feed(line, state)
+    assert discovery.configured_channels == expected
+
+
+def test_a_speaker_removed_since_the_last_answer_no_longer_counts() -> None:
+    """The AVR-X2000 after its owner set center, surround and subwoofer to None."""
+
+    now = [0.0]
+    discovery = Discovery()
+    parser = TelnetParser(load_profile(), discovery, clock=lambda: now[0])
+    state = AvrState()
+    for line in _capability_lines("AVR-X2000", "SSSPC ?"):
+        parser.feed(line, state)
+    now[0] = 600.0
+    for line in (
+        "SSSPCFRO LAR",
+        "SSSPCCEN NON",
+        "SSSPCSUA NON",
+        "SSSPCSWF NO",
+        "SSSPCSBK NON",
+        "SSSPCSBK 2SP",
+        "SSSPCFRH NON",
+    ):
+        parser.feed(line, state)
+    assert discovery.configured_channels == {"FL", "FR"}
+
+    # Set up again later, the center counts again.
+    now[0] = 1200.0
+    for line in ("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSWF YES", "SSSPCSBK NON", "SSSPCSBK 2SP"):
+        parser.feed(line, state)
+    assert discovery.configured_channels == {"FL", "FR", "C", "SW"}
+
+
+def test_the_current_genre_follows_the_flagged_sound_mode() -> None:
+    """An AVR-X2600H (3.139.175): SSSMG at the start, later only OPSMLALL pushes."""
+
+    parser, state = TelnetParser(load_profile(), Discovery()), AvrState()
+    parser.feed("SSSMG MUS", state)
+    for line in (
+        "OPSMLALL MOV010Stereo",
+        "OPSMLALL MOV021Dolby Audio - Dolby Surround",
+        "OPSMLALL MOV030DTS Neural:X",
+        "OPSMLALL MUS070Stereo",
+        "OPSMLALL MUS080Dolby Audio - Dolby Surround",
+        "OPSMLALL PUR220Pure Direct",
+        "OPSMLALL END",
+    ):
+        parser.feed(line, state)
+    assert state.values["sound_mode_genre"] == "MOV"
+
+
+def test_inputs_the_receiver_does_not_name_get_readable_names() -> None:
+    """An AVR-X2000 names its inputs in SSFUN and lists its services in SSSOD only."""
+
+    discovery = Discovery()
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
+    for query in ("SSFUN ?", "SSSOD ?"):
+        for line in _capability_lines("AVR-X2000", query):
+            parser.feed(line, state)
+    names = {source.code: source.name for source in discovery.sources}
+    assert names["TV"] == "TV AUDIO"  # the receiver's own name stays
+    assert names["IRADIO"] == "Internet Radio"
+    assert names["SERVER"] == "Media Server"
+    assert names["USB/IPOD"] == "iPod/USB"
+    assert names["LASTFM"] == "Last.fm"
+    assert names["TUNER"] == "Tuner"
+    # A name the receiver sends later wins.
+    parser.feed("SSFUNTUNER Radio", state)
+    assert {source.code: source.name for source in discovery.sources}["TUNER"] == "Radio"
+
+
+def _older_parser() -> tuple[TelnetParser, AvrState]:
+    return TelnetParser(profile_variant(load_profile(), "older"), Discovery()), AvrState()
+
+
+def test_the_elapsed_time_of_a_track_is_its_position() -> None:
+    """An AVR-X2000 playing over AirPlay: line 5 counts up, NUL padded."""
+
+    parser, state = _older_parser()
+    pad = "\x00" * 40
+    parser.feed("NSE0Now Playing" + pad, state)
+    parser.feed("NSE1\x01Yoshi City" + pad, state)
+    assert parser.feed("NSE5\x00   03:36 " + pad, state)
+    assert state.now_playing.position == 216.0
+    assert state.now_playing.position_at is not None
+    assert state.now_playing.duration is None
+    # At a track change the line is empty for a moment, then starts at 00:00.
+    assert not parser.feed("NSE5\x00\x00  00:00 " + pad, state)
+    assert parser.feed("NSE5\x00   1:02:03 " + pad, state)
+    assert state.now_playing.position == 3723.0
+
+
+@pytest.mark.assumed(
+    "the percentage after the time is in the AVR-X2000/E400 document (v03) "
+    "only; an AVR-X2000 sent the time alone"
+)
+def test_the_percentage_after_the_time_gives_the_duration() -> None:
+    parser, state = _older_parser()
+    parser.feed("NSE0Now Playing", state)
+    parser.feed("NSE5\x0001:00 25%", state)
+    assert (state.now_playing.position, state.now_playing.duration) == (60.0, 240)
+
+
+def test_a_time_on_a_menu_page_is_no_position() -> None:
+    parser, state = _older_parser()
+    parser.feed("NSE0Internet Radio", state)
+    assert not parser.feed("NSE5\x0003:36", state)
+    assert state.now_playing.position is None
