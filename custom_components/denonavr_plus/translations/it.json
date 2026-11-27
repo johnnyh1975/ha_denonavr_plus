@@ -91,6 +91,7 @@
           "sources": "Sorgenti",
           "sound_modes": "Modalità audio",
           "playback": "Riproduzione",
+          "activities": "Attività",
           "connection": "Connessione",
           "entities": "Entità",
           "tests_start": "Prova il ricevitore",
@@ -99,7 +100,8 @@
         "menu_option_descriptions": {
           "tests_start": "Tre passi, circa sei minuti; tutto viene ripristinato.",
           "move_back": "Restituire le entità alla vecchia integrazione",
-          "playback": "Lettori collegati agli ingressi, riproduzione in base al segnale"
+          "playback": "Lettori collegati agli ingressi, riproduzione in base al segnale",
+          "activities": "Una scelta che imposta ingresso, modalità audio, volume e altro"
         }
       },
       "volume": {
@@ -339,11 +341,53 @@
         "title": "Annulla il trasferimento",
         "description": "{count} entità tornano a {titles} e quella voce viene riattivata. Denon AVR Plus viene disattivato, perché il ricevitore accetta una sola connessione; puoi poi riattivarlo o eliminarlo.",
         "submit": "Annulla"
+      },
+      "activities": {
+        "title": "Attività",
+        "description": "Un'attività prepara una zona in un colpo solo: ingresso, modalità audio, volume, uscita HDMI e chiarezza dei dialoghi. Ogni zona con attività riceve una selezione per avviarle. Finora {count} attività. Scegline una per modificarla o eliminarla, oppure lascia il campo vuoto per una nuova.",
+        "data": {
+          "activity": "Attività"
+        },
+        "data_description": {
+          "activity": "Vuoto: una nuova attività."
+        }
+      },
+      "activity": {
+        "title": "Attività",
+        "description": "La zona si accende e prende queste impostazioni nell'ordine. Servono solo nome, zona e ingresso.",
+        "data": {
+          "name": "Nome",
+          "zone": "Zona",
+          "source": "Ingresso",
+          "sound_mode": "Modalità audio",
+          "volume_db": "Volume",
+          "hdmi_output": "Uscita HDMI",
+          "clarity": "Chiarezza dei dialoghi",
+          "wake_player": "Accendi il lettore collegato",
+          "delete": "Elimina questa attività"
+        },
+        "data_description": {
+          "name": "Compare nella selezione ed è usato dall'azione di avvio attività e dai comandi vocali.",
+          "sound_mode": "Solo zona principale. Vuoto: la modalità audio resta com'è.",
+          "volume_db": "In dB sulla scala del ricevitore. Vuoto: il volume all'accensione o il volume com'è. Resta sotto il volume massimo della zona.",
+          "hdmi_output": "Solo zona principale. Vuoto: l'uscita resta com'è.",
+          "clarity": "Solo zona principale: accendere o spegnere l'interruttore della chiarezza dei dialoghi, o lasciarlo.",
+          "wake_player": "Accende il lettore multimediale collegato all'ingresso (Configura → Riproduzione), come il televisore o il box di streaming."
+        }
+      },
+      "activities_next": {
+        "title": "Altre attività?",
+        "description": "{activity} è annotata. Viene salvata insieme alle altre quando scegli Salva.",
+        "menu_options": {
+          "activities": "Un'altra attività",
+          "activities_save": "Salva"
+        }
       }
     },
     "error": {
       "turn_on_above_max": "Il volume all'accensione supera il volume massimo.",
-      "duplicate_name": "Due voci avrebbero lo stesso nome."
+      "duplicate_name": "Due voci avrebbero lo stesso nome.",
+      "activity_incomplete": "Un'attività ha bisogno di un nome, una zona e un ingresso."
     },
     "abort": {
       "not_connected": "Il sintoamplificatore non è connesso. Sorgenti e modalità audio vengono lette dal dispositivo; riprova quando è acceso.",
@@ -950,6 +994,9 @@
       },
       "tuner_preset": {
         "name": "Preselezione del sintonizzatore"
+      },
+      "start_activity": {
+        "name": "Attività"
       }
     },
     "switch": {
@@ -1036,6 +1083,9 @@
       },
       "music": {
         "name": "Musica di rete"
+      },
+      "speech_clarity": {
+        "name": "Chiarezza dei dialoghi"
       }
     },
     "number": {
@@ -1327,6 +1377,27 @@
     },
     "no_sound_nothing_found": {
       "message": "Nulla trovato: alimentazione, muto, volume, uscita audio e ingresso sembrano corretti. Controlla i cavi e il dispositivo sull'ingresso."
+    },
+    "activity_zone_missing": {
+      "message": "L'attività {activity} appartiene a una zona non mostrata. Mostra di nuovo la zona in Configura → Zone e accensione."
+    },
+    "unknown_activity": {
+      "message": "In questa zona non c'è nessuna attività chiamata {activity}. Scegline una tra: {options}."
+    },
+    "intent_no_activity": {
+      "message": "Nessuna zona ha un'attività chiamata {activity}."
+    },
+    "intent_activity_several": {
+      "message": "{activity} è un'attività di più zone: {zones}. Di' quale."
+    },
+    "intent_activity_started": {
+      "message": "Avvio di {activity}."
+    },
+    "intent_which_zone": {
+      "message": "Quale zona? {zones}."
+    },
+    "intent_no_zone": {
+      "message": "Non si tratta di nessuna zona di un ricevitore Denon o Marantz."
     }
   },
   "issues": {
@@ -1487,6 +1558,20 @@
         "multichannel_stereo": "Stereo multicanale",
         "multichannel_input": "Ingresso multicanale"
       }
+    },
+    "activity_zone": {
+      "options": {
+        "main": "Zona principale",
+        "zone2": "Zona 2",
+        "zone3": "Zona 3"
+      }
+    },
+    "activity_clarity": {
+      "options": {
+        "keep": "Lascia com'è",
+        "on": "Attiva",
+        "off": "Disattiva"
+      }
     }
   },
   "services": {
@@ -1567,6 +1652,16 @@
         "destination": {
           "name": "Destinazione",
           "description": "La posizione in cui spostarli, contando da 1."
+        }
+      }
+    },
+    "start_activity": {
+      "name": "Avvia attività",
+      "description": "Avvia una delle attività della zona (Configura → Attività): accende la zona e imposta ingresso, modalità audio, volume, uscita HDMI e chiarezza dei dialoghi.",
+      "fields": {
+        "activity": {
+          "name": "Attività",
+          "description": "Il nome dell'attività, come nelle opzioni; maiuscole e minuscole non contano."
         }
       }
     }

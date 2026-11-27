@@ -2447,3 +2447,38 @@ async def test_a_linked_search_that_breaks_leaves_the_others(
     found = await player.async_search_media(SearchMediaQuery(search_query="queen"))
     assert [item.media_content_id for item in found.result] == ["linked:NETWORK|library://artist/1"]
     assert raises.queries == ["queen"] and nothing.queries == ["queen"]
+
+
+async def test_an_activity_is_started_by_its_name(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus import activities
+
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            activities.OPT_ACTIVITIES: [
+                {"name": "Film", "zone": "main", "source": "DVD"},
+                {"name": "Kitchen", "zone": "zone2", "source": "CD"},
+            ]
+        },
+    )
+    await hass.async_block_till_done()
+    await _push(hass, "PWON", "ZMON", "SICD")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "denonavr_plus", "start_activity", {"entity_id": main, "activity": "film"}, blocking=True
+    )
+    assert telnet.sent == ["SIDVD"]
+    # Each zone starts its own activities only.
+    with pytest.raises(ServiceValidationError) as err:
+        await hass.services.async_call(
+            "denonavr_plus",
+            "start_activity",
+            {"entity_id": main, "activity": "Kitchen"},
+            blocking=True,
+        )
+    assert err.value.translation_key == "unknown_activity"
+    assert err.value.translation_placeholders["options"] == "Film"

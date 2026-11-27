@@ -669,6 +669,11 @@
     "enabled": false,
     "category": "config"
   },
+  "switch_speech_clarity": {
+    "entity_id": "switch.avc_x3700h_speech_clarity",
+    "enabled": true,
+    "category": null
+  },
   "switch_subwoofer_switch": {
     "entity_id": "switch.avc_x3700h_speakers_subwoofer_switch",
     "enabled": true,

@@ -91,6 +91,7 @@
           "sources": "Sources",
           "sound_modes": "Sound modes",
           "playback": "Playback",
+          "activities": "Activities",
           "connection": "Connection",
           "entities": "Entities",
           "tests_start": "Test the receiver",
@@ -99,7 +100,8 @@
         "menu_option_descriptions": {
           "tests_start": "Three steps, about six minutes; everything is put back.",
           "move_back": "Give the entities back to the old integration",
-          "playback": "Linked players on inputs, playing by input signal"
+          "playback": "Linked players on inputs, playing by input signal",
+          "activities": "One choice that sets input, sound mode, volume and more"
         }
       },
       "volume": {
@@ -339,11 +341,53 @@
         "title": "Undo the move",
         "description": "{count} entities go back to {titles}, and that entry is enabled again. Denon AVR Plus is disabled, because the receiver takes one connection; you can enable or delete it afterwards.",
         "submit": "Undo"
+      },
+      "activities": {
+        "title": "Activities",
+        "description": "An activity sets up a zone in one go: input, sound mode, volume, HDMI output and speech clarity. Each zone with activities gets a select to start them. {count} activities so far. Pick one to change or delete it, or leave the field empty for a new one.",
+        "data": {
+          "activity": "Activity"
+        },
+        "data_description": {
+          "activity": "Empty: a new activity."
+        }
+      },
+      "activity": {
+        "title": "Activity",
+        "description": "The zone switches on and takes these settings in order. Only name, zone and input are needed.",
+        "data": {
+          "name": "Name",
+          "zone": "Zone",
+          "source": "Input",
+          "sound_mode": "Sound mode",
+          "volume_db": "Volume",
+          "hdmi_output": "HDMI output",
+          "clarity": "Speech clarity",
+          "wake_player": "Switch on the linked player",
+          "delete": "Delete this activity"
+        },
+        "data_description": {
+          "name": "Shown in the select and used by the start activity action and voice commands.",
+          "sound_mode": "Main zone only. Empty: the sound mode stays as it is.",
+          "volume_db": "In dB on the receiver's scale. Empty: the turn-on volume or the volume as it is. Kept below the zone's maximum volume.",
+          "hdmi_output": "Main zone only. Empty: the output stays as it is.",
+          "clarity": "Main zone only: switch the speech clarity switch on or off, or leave it.",
+          "wake_player": "Switches on the media player linked to the input (Configure → Playback), such as the TV or streaming box."
+        }
+      },
+      "activities_next": {
+        "title": "More activities?",
+        "description": "{activity} is noted. It is saved together with any others when you choose Save.",
+        "menu_options": {
+          "activities": "Another activity",
+          "activities_save": "Save"
+        }
       }
     },
     "error": {
       "turn_on_above_max": "The turn-on volume is above the maximum volume.",
-      "duplicate_name": "Two entries would get the same name."
+      "duplicate_name": "Two entries would get the same name.",
+      "activity_incomplete": "An activity needs a name, a zone and an input."
     },
     "abort": {
       "not_connected": "The receiver is not connected. Its sources and sound modes are read from it; try again when it is on.",
@@ -950,6 +994,9 @@
       },
       "tuner_preset": {
         "name": "Tuner preset"
+      },
+      "start_activity": {
+        "name": "Activity"
       }
     },
     "switch": {
@@ -1036,6 +1083,9 @@
       },
       "music": {
         "name": "Network Music"
+      },
+      "speech_clarity": {
+        "name": "Speech clarity"
       }
     },
     "number": {
@@ -1327,6 +1377,27 @@
     },
     "no_sound_nothing_found": {
       "message": "Nothing found: power, mute, volume, audio output and input look right. Check the cables and the device on the input."
+    },
+    "activity_zone_missing": {
+      "message": "The activity {activity} belongs to a zone that is not shown. Show the zone again under Configure → Zones and power."
+    },
+    "unknown_activity": {
+      "message": "There is no activity called {activity} in this zone. Choose one of: {options}."
+    },
+    "intent_no_activity": {
+      "message": "No zone has an activity called {activity}."
+    },
+    "intent_activity_several": {
+      "message": "{activity} is an activity of several zones: {zones}. Say which one."
+    },
+    "intent_activity_started": {
+      "message": "Starting {activity}."
+    },
+    "intent_which_zone": {
+      "message": "Which zone? {zones}."
+    },
+    "intent_no_zone": {
+      "message": "No zone of a Denon or Marantz receiver is meant."
     }
   },
   "issues": {
@@ -1487,6 +1558,20 @@
         "multichannel_stereo": "Multichannel stereo",
         "multichannel_input": "Multichannel input"
       }
+    },
+    "activity_zone": {
+      "options": {
+        "main": "Main zone",
+        "zone2": "Zone 2",
+        "zone3": "Zone 3"
+      }
+    },
+    "activity_clarity": {
+      "options": {
+        "keep": "Leave as it is",
+        "on": "On",
+        "off": "Off"
+      }
     }
   },
   "services": {
@@ -1567,6 +1652,16 @@
         "destination": {
           "name": "Destination",
           "description": "The place to move them to, counted from 1."
+        }
+      }
+    },
+    "start_activity": {
+      "name": "Start activity",
+      "description": "Starts one of the zone's activities (Configure → Activities): switches the zone on and sets its input, sound mode, volume, HDMI output and speech clarity.",
+      "fields": {
+        "activity": {
+          "name": "Activity",
+          "description": "The name of the activity, as in the options; case does not matter."
         }
       }
     }

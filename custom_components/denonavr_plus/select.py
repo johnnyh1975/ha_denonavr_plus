@@ -11,17 +11,20 @@ from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from typing import Any, cast
 
-from . import choices, sound_modes
+from . import activities, choices, sound_modes
 from .avr import graphic_eq
 from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action
+from .const import DOMAIN
+from .entity import DenonAvrEntity, receiver_action, unique_id, zone_device
 from .helpers import (
     control_enabled_by_default,
     control_sub_device,
@@ -58,6 +61,25 @@ async def async_setup_entry(
     if discovery.sound_mode_genres:
         entities.append(DenonAvrSoundModeGroupSelect(coordinator))
         entities.append(DenonAvrSoundModeSelect(coordinator))
+    # Activities (activities.py), on each shown zone that has any.
+    options = dict(entry.options)
+    coordinator.activity_zones = activities.zones_with_activities(options)
+    with_select = [
+        zone
+        for zone in discovery.zones
+        if zone.id in coordinator.activity_zones and choices.zone_enabled(options, zone.id)
+    ]
+    entities.extend(DenonAvrActivitySelect(coordinator, zone) for zone in with_select)
+    # A zone's last activity deleted: its select goes, not "no longer provided".
+    registry = er.async_get(hass)
+    for zone in discovery.zones:
+        if zone in with_select:
+            continue
+        stale = registry.async_get_entity_id(
+            "select", DOMAIN, unique_id(coordinator.device, f"select_activity_{zone.id}")
+        )
+        if stale is not None:
+            registry.async_remove(stale)
     # Quick select presets, if the receiver reported any names.
     if discovery.quick_select_names:
         entities.append(DenonAvrQuickSelect(coordinator))
@@ -530,6 +552,50 @@ class DenonAvrQuickSelect(DenonAvrEntity, SelectEntity):
             if name == option:
                 await self.coordinator.device.async_select_quick_select(number)
                 return
+
+
+class DenonAvrActivitySelect(DenonAvrEntity, RestoreEntity, SelectEntity):
+    """Start an activity of a zone; shows the one started while it lasts.
+
+    The activity lasts while the zone is on and on the activity's input; the
+    name survives a restart of Home Assistant.
+    """
+
+    def __init__(self, coordinator: DenonAvrCoordinator, zone: Any) -> None:
+        super().__init__(coordinator, f"select_activity_{zone.id}", sub_device=zone_device(zone))
+        self._zone = zone
+        self._attr_translation_key = "start_activity"
+        self._started: str | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (last := await self.async_get_last_state()) is not None and last.state in self.options:
+            self._started = last.state
+
+    @property
+    def _activities(self) -> list[activities.Activity]:
+        entry = self.coordinator.config_entry
+        return activities.activities(dict(entry.options) if entry else {}, self._zone.id)
+
+    @property
+    def options(self) -> list[str]:
+        return [item.name for item in self._activities]
+
+    @property
+    def current_option(self) -> str | None:
+        started = next((item for item in self._activities if item.name == self._started), None)
+        zone = self.coordinator.data.zone(self._zone.id)
+        if started is None or not zone.power:
+            return None
+        wire = activities.wire_source(self.coordinator.device, started.source)
+        return started.name if zone.source == wire else None
+
+    @receiver_action
+    async def async_select_option(self, option: str) -> None:
+        activity = next(item for item in self._activities if item.name == option)
+        await activities.async_start(self.hass, self.coordinator, activity)
+        self._started = activity.name
+        self.async_write_ha_state()
 
 
 class DenonAvrTunerPreset(DenonAvrEntity, SelectEntity):

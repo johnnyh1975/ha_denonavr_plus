@@ -274,6 +274,27 @@ tried on a receiver yet.
 >   unless you link a television and keep watching on its own speakers once
 >   the receiver is off.
 
+### Activities
+
+An activity is one choice for what you do in a room, such as *Film* or
+*Music*: it switches the zone on and sets its input, and if you like the
+sound mode, the volume, the HDMI output, speech clarity and the linked
+player. Pick an activity to change or delete it, or leave the field empty
+for a new one; then add another or save. Each zone with activities gets an
+**Activity** select on its device; choosing *Film* there does it all, and it
+shows *Film* while the zone stays on that input. The action **Start
+activity** and voice commands (section 10) do the same.
+
+> **Recommended:**
+> - One activity per thing you really do, named as you would say it:
+>   *Film*, *Music*, *Radio*, *Games*.
+> - Set a volume only where it should always be the same; otherwise leave it
+>   empty and the turn-on volume applies.
+> - Switch on **Switch on the linked player** for the TV or the streaming box,
+>   so *Film* wakes it too.
+> - **Speech clarity** on for activities where dialogue matters, such as a
+>   *Late film*; the switch of the same name puts back what it changed.
+
 ### Entities
 
 A toggle per group of the entities that start hidden, with how many each
@@ -466,6 +487,60 @@ of its source list. What they understand depends on the names you give.
 | **Google Assistant** | On, off, volume, input by name ("set the input on … to Apple TV") | Any input name; keep them short and distinct. |
 | **Alexa** | On, off, volume, input | Alexa knows only a fixed set of input names, such as HDMI 1 to HDMI 10, TV, CD, Phono, Tuner, Game, Blu-ray, DVD, Media Player, Satellite and AUX 1 to AUX 7. Give inputs such names under **Sources** if Alexa should switch them. |
 | **Apple Home** (HomeKit Bridge) | On, off and the input in the Home app and by Siri; volume through the Remote in Control Center | Add each zone in **accessory mode**, one HomeKit Bridge entry per media player; in a shared bridge it shows as a plain switch. |
+
+**Activities and *Why no sound?* by voice.** An LLM agent (with the Assist
+API) can start an activity and say why a zone is silent as soon as the zone
+is exposed. The built-in Assist agent needs sentences for that: put a file
+such as this one in `config/custom_sentences/en/denonavr_plus.yaml` and
+restart Home Assistant. *Start film*, *start the music activity in the
+living room*, *why is there no sound* and *fix the sound in the kitchen*
+then work; an activity name the zone does not have is said back.
+
+```yaml
+language: "en"
+intents:
+  DenonAvrStartActivity:
+    data:
+      - sentences:
+          - "start [the] {activity} [activity] [(in|on) [the] {area}]"
+  DenonAvrWhyNoSound:
+    data:
+      - sentences:
+          - "why (is there no sound|can't I hear anything) [(in|on) [the] {area}]"
+      - sentences:
+          - "fix the sound [(in|on) [the] {area}]"
+        slots:
+          fix: true
+lists:
+  activity:
+    wildcard: true
+```
+
+In German, `config/custom_sentences/de/denonavr_plus.yaml`:
+
+```yaml
+language: "de"
+intents:
+  DenonAvrStartActivity:
+    data:
+      - sentences:
+          - "starte [die Aktivität] {activity} [(im|in der|auf dem) {area}]"
+  DenonAvrWhyNoSound:
+    data:
+      - sentences:
+          - "warum (ist kein Ton|höre ich nichts) [(im|in der) {area}]"
+      - sentences:
+          - "repariere den Ton [(im|in der) {area}]"
+        slots:
+          fix: true
+lists:
+  activity:
+    wildcard: true
+```
+
+Without an area, the zone that has the activity is meant; if several have
+it, the one in the voice satellite's area. **Speech clarity** is a switch:
+expose it and say *turn on speech clarity*.
 
 > **Recommended:** hide the inputs nobody uses and rename the rest to what you
 > say out loud (**Configure → Sources**); every assistant reads the same list.

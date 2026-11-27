@@ -21,6 +21,7 @@ from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import choices
+from .avr.device import DenonAvrDevice
 from .avr.models import ZoneDescriptor
 from .avr.errors import CommandNotSent, SettingNotTaken, SetupWriteError, SourceNotTaken
 from .const import DOMAIN
@@ -103,6 +104,21 @@ def receiver_action[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _Func
     return cast(_FuncT, wrapper)
 
 
+def _identifier(device: DenonAvrDevice) -> str:
+    """The receiver in unique ids: the MAC, as the stable identifier; then the
+    serial number (also stable), and only as a last resort the host, which
+    can change."""
+
+    info = device.discovery.device
+    return info.mac_address or info.serial_number or device.host
+
+
+def unique_id(device: DenonAvrDevice, key: str) -> str:
+    """The unique id of one of the receiver's entities."""
+
+    return f"{_identifier(device)}_{key}"
+
+
 class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
     """Base class providing device info and availability for all entities."""
 
@@ -114,14 +130,8 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
         super().__init__(coordinator)
         self._device = coordinator.device
         device_info = self._device.discovery.device
-        # Prefer the MAC as the stable identifier; then the serial number (also
-        # stable), and only as a last resort the host, which can change.
-        identifier = (
-            device_info.mac_address
-            or device_info.serial_number
-            or self._device.host
-        )
-        self._attr_unique_id = f"{identifier}_{key}"
+        identifier = _identifier(self._device)
+        self._attr_unique_id = unique_id(self._device, key)
         if sub_device:
             # A logical sub-device linked to the main receiver by its registry id
             # (via_device_id); the deprecated via_device identifier tuple is

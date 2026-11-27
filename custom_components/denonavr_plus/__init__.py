@@ -24,7 +24,7 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 
-from . import choices, command_test, entity_groups, linked_players, move, zone_sources
+from . import activities, choices, command_test, entity_groups, linked_players, move, zone_sources
 from .avr.profile import load_profile
 from .const import (
     CHANNEL_TRIM_MARKER,
@@ -240,6 +240,8 @@ async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) 
     if (
         _shown_zones(entry, coordinator) != coordinator.shown_zones
         or connection_options(entry) != coordinator.connection
+        # An activity select comes or goes with a zone's first or last activity.
+        or activities.zones_with_activities(dict(entry.options)) != coordinator.activity_zones
     ):
         hass.config_entries.async_schedule_reload(entry.entry_id)
         return

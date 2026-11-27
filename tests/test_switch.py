@@ -213,3 +213,73 @@ async def test_with_the_option_a_switch_in_standby_turns_the_receiver_on(
             blocking=True,
         )
     assert telnet.sent[:2] == ["ZMON", "PSDYNEQ ON"]
+
+
+async def test_speech_clarity_puts_back_what_it_changed(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+    from unittest.mock import patch
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "PSCLV 50", "PSDYNVOL OFF")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    switch = entity_id(hass, loaded_entry, "switch_speech_clarity")
+    assert hass.states.get(switch).state == "off"
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05):
+        await hass.services.async_call("switch", "turn_on", {"entity_id": switch}, blocking=True)
+        # Once on, again does nothing: the first values stay the ones to put back.
+        await hass.services.async_call("switch", "turn_on", {"entity_id": switch}, blocking=True)
+    assert telnet.sent == ["PSCLV 53", "PSDYNVOL MED"]
+    assert hass.states.get(switch).state == "on"
+
+    # Removed and added again (a reload, a restart) it still knows what to put back.
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(switch).state == "on"
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05):
+        await hass.services.async_call("switch", "turn_off", {"entity_id": switch}, blocking=True)
+    assert telnet.sent == ["PSCLV 50", "PSDYNVOL OFF"]
+    assert hass.states.get(switch).state == "off"
+
+
+async def test_speech_clarity_refused_halfway_puts_back_what_did_change(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+    from unittest.mock import patch
+
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    from custom_components.denonavr_plus.avr.errors import CommandNotSent
+
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "PSCLV 50", "PSDYNVOL OFF")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    device = loaded_entry.runtime_data.device
+    real = device.async_set_control
+
+    async def _refuse_dynamic_volume(control_id: str, value: Any) -> None:
+        if control_id == "dynamic_volume":
+            raise CommandNotSent("PSDYNVOL MED")
+        await real(control_id, value)
+
+    switch = entity_id(hass, loaded_entry, "switch_speech_clarity")
+    with (
+        patch.object(device, "async_set_control", _refuse_dynamic_volume),
+        patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05),
+        pytest.raises(HomeAssistantError),
+    ):
+        await hass.services.async_call("switch", "turn_on", {"entity_id": switch}, blocking=True)
+    # The center was raised: on, so that off lowers it again.
+    assert hass.states.get(switch).state == "on"
+    telnet.sent.clear()
+    with patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05):
+        await hass.services.async_call("switch", "turn_off", {"entity_id": switch}, blocking=True)
+    assert "PSCLV 50" in telnet.sent

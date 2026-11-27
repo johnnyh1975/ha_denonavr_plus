@@ -525,3 +525,47 @@ async def test_the_sound_mode_select_is_never_empty(
     await hass.async_block_till_done()
     state = hass.states.get(entity_id(hass, loaded_entry, "select_sound_mode"))
     assert state is not None and state.state == "Game"
+
+
+async def test_each_zone_with_activities_gets_a_select_to_start_them(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus import activities
+
+    with pytest.raises(AssertionError):
+        registry_entry(hass, loaded_entry, "select_activity_main")
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            activities.OPT_ACTIVITIES: [
+                {"name": "Film", "zone": "main", "source": "DVD"},
+                {"name": "Music", "zone": "main", "source": "CD"},
+            ]
+        },
+    )
+    await hass.async_block_till_done()
+    # The entry reloads for the new select; only the main zone has activities.
+    select = entity_id(hass, loaded_entry, "select_activity_main")
+    with pytest.raises(AssertionError):
+        registry_entry(hass, loaded_entry, "select_activity_zone2")
+    state = hass.states.get(select)
+    assert state.attributes["options"] == ["Film", "Music"]
+    assert state.state == "unknown"
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    telnet.sent.clear()
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": select, "option": "Film"}, blocking=True
+    )
+    assert telnet.sent == ["SIDVD"]
+    telnet.push("SIDVD")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert hass.states.get(select).state == "Film"
+    # Another input by hand ends the activity.
+    telnet.push("SICD")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    assert hass.states.get(select).state == "unknown"

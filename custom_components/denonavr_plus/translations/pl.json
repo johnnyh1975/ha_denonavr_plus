@@ -91,6 +91,7 @@
           "sources": "Źródła",
           "sound_modes": "Tryby dźwięku",
           "playback": "Odtwarzanie",
+          "activities": "Aktywności",
           "connection": "Połączenie",
           "entities": "Encje",
           "tests_start": "Testuj amplituner",
@@ -99,7 +100,8 @@
         "menu_option_descriptions": {
           "tests_start": "Trzy kroki, około sześciu minut; wszystko jest przywracane.",
           "move_back": "Oddaj encje starej integracji",
-          "playback": "Odtwarzacze powiązane z wejściami, odtwarzanie według sygnału wejściowego"
+          "playback": "Odtwarzacze powiązane z wejściami, odtwarzanie według sygnału wejściowego",
+          "activities": "Jeden wybór, który ustawia wejście, tryb dźwięku, głośność i więcej"
         }
       },
       "volume": {
@@ -339,11 +341,53 @@
         "title": "Cofnij przeniesienie",
         "description": "{count} encji wraca do {titles}, a ten wpis zostaje ponownie włączony. Denon AVR Plus zostaje wyłączony, bo amplituner przyjmuje jedno połączenie; potem możesz go włączyć lub usunąć.",
         "submit": "Cofnij"
+      },
+      "activities": {
+        "title": "Aktywności",
+        "description": "Aktywność przygotowuje strefę za jednym razem: wejście, tryb dźwięku, głośność, wyjście HDMI i wyrazistość dialogów. Każda strefa z aktywnościami dostaje wybór do ich uruchamiania. Na razie {count} aktywności. Wybierz jedną, aby ją zmienić lub usunąć, albo zostaw pole puste dla nowej.",
+        "data": {
+          "activity": "Aktywność"
+        },
+        "data_description": {
+          "activity": "Puste: nowa aktywność."
+        }
+      },
+      "activity": {
+        "title": "Aktywność",
+        "description": "Strefa włącza się i przyjmuje te ustawienia po kolei. Potrzebne są tylko nazwa, strefa i wejście.",
+        "data": {
+          "name": "Nazwa",
+          "zone": "Strefa",
+          "source": "Wejście",
+          "sound_mode": "Tryb dźwięku",
+          "volume_db": "Głośność",
+          "hdmi_output": "Wyjście HDMI",
+          "clarity": "Wyrazistość dialogów",
+          "wake_player": "Włącz powiązany odtwarzacz",
+          "delete": "Usuń tę aktywność"
+        },
+        "data_description": {
+          "name": "Widoczna w wyborze i używana przez akcję uruchomienia aktywności oraz polecenia głosowe.",
+          "sound_mode": "Tylko strefa główna. Puste: tryb dźwięku zostaje bez zmian.",
+          "volume_db": "W dB na skali amplitunera. Puste: głośność włączenia lub głośność bez zmian. Pozostaje poniżej maksymalnej głośności strefy.",
+          "hdmi_output": "Tylko strefa główna. Puste: wyjście zostaje bez zmian.",
+          "clarity": "Tylko strefa główna: włącz lub wyłącz przełącznik wyrazistości dialogów albo zostaw go.",
+          "wake_player": "Włącza odtwarzacz multimedialny powiązany z wejściem (Konfiguruj → Odtwarzanie), np. telewizor lub przystawkę do streamingu."
+        }
+      },
+      "activities_next": {
+        "title": "Więcej aktywności?",
+        "description": "{activity} zapisano wstępnie. Zostanie zapisana razem z pozostałymi, gdy wybierzesz Zapisz.",
+        "menu_options": {
+          "activities": "Kolejna aktywność",
+          "activities_save": "Zapisz"
+        }
       }
     },
     "error": {
       "turn_on_above_max": "Głośność po włączeniu jest wyższa niż maksymalna głośność.",
-      "duplicate_name": "Dwa wpisy miałyby tę samą nazwę."
+      "duplicate_name": "Dwa wpisy miałyby tę samą nazwę.",
+      "activity_incomplete": "Aktywność potrzebuje nazwy, strefy i wejścia."
     },
     "abort": {
       "not_connected": "Amplituner nie jest połączony. Jego źródła i tryby dźwięku są odczytywane z urządzenia; spróbuj ponownie, gdy będzie włączony.",
@@ -950,6 +994,9 @@
       },
       "tuner_preset": {
         "name": "Stacja zapisana w tunerze"
+      },
+      "start_activity": {
+        "name": "Aktywność"
       }
     },
     "switch": {
@@ -1036,6 +1083,9 @@
       },
       "music": {
         "name": "Muzyka sieciowa"
+      },
+      "speech_clarity": {
+        "name": "Wyrazistość dialogów"
       }
     },
     "number": {
@@ -1327,6 +1377,27 @@
     },
     "no_sound_nothing_found": {
       "message": "Nic nie znaleziono: zasilanie, wyciszenie, głośność, wyjście audio i wejście wyglądają dobrze. Sprawdź kable i urządzenie na wejściu."
+    },
+    "activity_zone_missing": {
+      "message": "Aktywność {activity} należy do strefy, która nie jest pokazywana. Pokaż strefę ponownie w Konfiguruj → Strefy i włączanie."
+    },
+    "unknown_activity": {
+      "message": "W tej strefie nie ma aktywności o nazwie {activity}. Wybierz jedną z: {options}."
+    },
+    "intent_no_activity": {
+      "message": "Żadna strefa nie ma aktywności o nazwie {activity}."
+    },
+    "intent_activity_several": {
+      "message": "{activity} to aktywność kilku stref: {zones}. Powiedz, której."
+    },
+    "intent_activity_started": {
+      "message": "Uruchamiam {activity}."
+    },
+    "intent_which_zone": {
+      "message": "Która strefa? {zones}."
+    },
+    "intent_no_zone": {
+      "message": "Nie chodzi o żadną strefę amplitunera Denon ani Marantz."
     }
   },
   "issues": {
@@ -1487,6 +1558,20 @@
         "multichannel_stereo": "Stereo wielokanałowe",
         "multichannel_input": "Wejście wielokanałowe"
       }
+    },
+    "activity_zone": {
+      "options": {
+        "main": "Strefa główna",
+        "zone2": "Strefa 2",
+        "zone3": "Strefa 3"
+      }
+    },
+    "activity_clarity": {
+      "options": {
+        "keep": "Bez zmian",
+        "on": "Włączona",
+        "off": "Wyłączona"
+      }
     }
   },
   "services": {
@@ -1567,6 +1652,16 @@
         "destination": {
           "name": "Miejsce docelowe",
           "description": "Miejsce, w które je przenieść, liczone od 1."
+        }
+      }
+    },
+    "start_activity": {
+      "name": "Uruchom aktywność",
+      "description": "Uruchamia jedną z aktywności strefy (Konfiguruj → Aktywności): włącza strefę i ustawia jej wejście, tryb dźwięku, głośność, wyjście HDMI i wyrazistość dialogów.",
+      "fields": {
+        "activity": {
+          "name": "Aktywność",
+          "description": "Nazwa aktywności jak w opcjach; wielkość liter nie ma znaczenia."
         }
       }
     }

@@ -62,7 +62,7 @@ from .command_test import OPT_TEST_PENDING
 from .receiver_test import ReceiverTestSteps
 from .entity_groups import OPT_ENTITY_GROUPS
 from .coordinator import connection_options
-from . import choices, entity_groups, linked_players, move
+from . import activities, choices, entity_groups, linked_players, move
 from .linked_players import (
     KEY_FOLLOW,
     KEY_FULL_VOLUME,
@@ -499,6 +499,9 @@ class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
 
 # The volume range offered in the options, in dB relative to the reference
 # (the raw scale 0..98 is -80..+18 dB).
+#: Fields of the activity steps that are not stored in an activity.
+KEY_ACTIVITY = "activity"
+KEY_DELETE = "delete"
 _DB_SELECTOR = NumberSelector(
     NumberSelectorConfig(
         min=-80.0, max=18.0, step=0.5, unit_of_measurement="dB", mode=NumberSelectorMode.BOX
@@ -539,6 +542,8 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         self._link_input: str = ""
         self._playback: dict[str, Any] | None = None
         self._link_edits: dict[str, Link | None] = {}
+        self._activities: list[dict[str, Any]] | None = None
+        self._activity_index: int | None = None
 
     # Helpers -------------------------------------------------------------
 
@@ -559,7 +564,14 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         options = [
-            "volume", "zones", "sources", "sound_modes", "playback", "connection", "entities"
+            "volume",
+            "zones",
+            "sources",
+            "sound_modes",
+            "playback",
+            "activities",
+            "connection",
+            "entities",
         ]
         options.append("tests_start")
         if await move.async_moved(self.hass, self.config_entry.entry_id):
@@ -997,6 +1009,183 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         """Save the linked players and the signal option edited so far."""
 
         return self._save(dict(self._playback_draft()))
+
+    # Activities (activities.py) ----------------------------------------------
+
+    def _activity_draft(self) -> list[dict[str, Any]]:
+        if self._activities is None:
+            self._activities = [
+                item.as_dict() for item in activities.activities(dict(self.config_entry.options))
+            ]
+        return self._activities
+
+    async def async_step_activities(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Pick an activity to change, or none for a new one.
+
+        Like the linked players: each activity leads to a choice between
+        another and saving, so saving is a deliberate step.
+        """
+
+        if self._discovery() is None:
+            return self.async_abort(reason="not_connected")
+        draft = self._activity_draft()
+        if user_input is not None:
+            picked = user_input.get(KEY_ACTIVITY)
+            names = [item[activities.KEY_NAME] for item in draft]
+            self._activity_index = names.index(picked) if picked in names else None
+            return await self.async_step_activity()
+        fields: dict[Any, Any] = {}
+        if draft:
+            fields[vol.Optional(KEY_ACTIVITY)] = SelectSelector(
+                SelectSelectorConfig(
+                    options=[item[activities.KEY_NAME] for item in draft],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            )
+        return self.async_show_form(
+            step_id="activities",
+            data_schema=vol.Schema(fields),
+            description_placeholders={"count": str(len(draft))},
+        )
+
+    def _activity_schema(self, current: dict[str, Any], editing: bool) -> vol.Schema:
+        discovery = self._discovery()
+        assert discovery is not None  # the steps abort without it
+        options = dict(self.config_entry.options)
+        zones = [zone for zone in _zones(self.hass, self.config_entry) if choices.zone_enabled(options, zone)]
+        sources = [
+            SelectOptionDict(value=source.code, label=choices.source_display(discovery, options, source.code))
+            for source in discovery.visible_sources()
+        ]
+        modes: list[str] = []
+        player = activities.zone_entity_id(
+            self.hass, self.config_entry.runtime_data, "media_player", "media_player_main"
+        )
+        # The main zone's list as it shows (renamed, readable); others typed.
+        state = self.hass.states.get(player) if player else None
+        if state is not None:
+            modes = list(state.attributes.get("sound_mode_list") or [])
+        fields: dict[Any, Any] = {
+            vol.Required(activities.KEY_NAME, default=current.get(activities.KEY_NAME, "")): TextSelector(),
+            vol.Required(activities.KEY_ZONE, default=current.get(activities.KEY_ZONE, zones[0])): SelectSelector(
+                SelectSelectorConfig(options=zones, translation_key="activity_zone")
+            ),
+            vol.Required(
+                activities.KEY_SOURCE,
+                default=current.get(activities.KEY_SOURCE, sources[0]["value"] if sources else ""),
+            ): SelectSelector(SelectSelectorConfig(options=sources, mode=SelectSelectorMode.DROPDOWN)),
+            vol.Optional(
+                activities.KEY_SOUND_MODE,
+                description={"suggested_value": current.get(activities.KEY_SOUND_MODE)},
+            ): SelectSelector(
+                SelectSelectorConfig(options=modes, custom_value=True, mode=SelectSelectorMode.DROPDOWN)
+            ),
+            vol.Optional(
+                activities.KEY_VOLUME,
+                description={"suggested_value": current.get(activities.KEY_VOLUME)},
+            ): _DB_SELECTOR,
+        }
+        coordinator = self.config_entry.runtime_data
+        spec = coordinator.device.profile.control(activities.HDMI_OUTPUT_CONTROL)
+        # Offered where the receiver has the HDMI output select.
+        if spec is not None and activities.zone_entity_id(
+            self.hass, coordinator, "select", f"select_{activities.HDMI_OUTPUT_CONTROL}"
+        ):
+            values = spec.values
+            labels = list(spec.get("labels") or values)
+            fields[
+                vol.Optional(
+                    activities.KEY_HDMI_OUTPUT,
+                    description={"suggested_value": current.get(activities.KEY_HDMI_OUTPUT)},
+                )
+            ] = SelectSelector(
+                SelectSelectorConfig(
+                    options=[
+                        SelectOptionDict(value=value, label=label)
+                        for value, label in zip(values, labels, strict=False)
+                    ],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            )
+        fields[
+            vol.Required(
+                activities.KEY_CLARITY,
+                default=current.get(activities.KEY_CLARITY, activities.CLARITY_KEEP),
+            )
+        ] = SelectSelector(
+            SelectSelectorConfig(
+                options=[activities.CLARITY_KEEP, activities.CLARITY_ON, activities.CLARITY_OFF],
+                translation_key="activity_clarity",
+            )
+        )
+        fields[
+            vol.Required(activities.KEY_WAKE, default=bool(current.get(activities.KEY_WAKE, False)))
+        ] = BooleanSelector()
+        if editing:
+            fields[vol.Required(KEY_DELETE, default=False)] = BooleanSelector()
+        return vol.Schema(fields)
+
+    async def async_step_activity(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """One activity: its zone, input and what else it sets."""
+
+        if self._discovery() is None:
+            return self.async_abort(reason="not_connected")
+        draft = self._activity_draft()
+        index = self._activity_index
+        current = draft[index] if index is not None else {}
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            if index is not None and user_input.get(KEY_DELETE):
+                removed = draft.pop(index)
+                self._activity_index = None
+                return await self.async_step_activities_next(name=removed[activities.KEY_NAME])
+            values = {key: value for key, value in user_input.items() if key != KEY_DELETE}
+            item = activities.parse(
+                {**values, activities.KEY_NAME: " ".join(str(values.get(activities.KEY_NAME, "")).split())}
+            )
+            if item is None:
+                errors["base"] = "activity_incomplete"
+            elif any(
+                position != index
+                and choices.normalized(other[activities.KEY_NAME]) == choices.normalized(item.name)
+                for position, other in enumerate(draft)
+            ):
+                errors["base"] = "duplicate_name"
+            else:
+                if index is None:
+                    draft.append(item.as_dict())
+                else:
+                    draft[index] = item.as_dict()
+                self._activity_index = None
+                return await self.async_step_activities_next(name=item.name)
+            current = values
+        return self.async_show_form(
+            step_id="activity",
+            data_schema=self._activity_schema(current, editing=index is not None),
+            errors=errors,
+        )
+
+    async def async_step_activities_next(
+        self, user_input: dict[str, Any] | None = None, name: str = ""
+    ) -> ConfigFlowResult:
+        """Another activity, or save: closing the dialog keeps nothing."""
+
+        return self.async_show_menu(
+            step_id="activities_next",
+            menu_options=["activities", "activities_save"],
+            description_placeholders={"activity": name},
+        )
+
+    async def async_step_activities_save(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Save the activities edited so far."""
+
+        return self._save({activities.OPT_ACTIVITIES: list(self._activity_draft())})
 
     # Sources -----------------------------------------------------------------
 

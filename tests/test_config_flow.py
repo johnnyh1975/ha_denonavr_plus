@@ -532,7 +532,7 @@ async def _options_step(hass: HomeAssistant, entry: MockConfigEntry, step: str) 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.MENU
     assert result["menu_options"] == [
-        "volume", "zones", "sources", "sound_modes", "playback", "connection", "entities", "tests_start"
+        "volume", "zones", "sources", "sound_modes", "playback", "activities", "connection", "entities", "tests_start"
     ]
     return await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": step}
@@ -1442,3 +1442,109 @@ async def test_a_player_named_like_the_input_is_suggested(
     other = registry.async_get_or_create("media_player", "music_assistant", "ma_other", suggested_object_id="ma_other")
     hass.states.async_set(other.entity_id, "idle", {"friendly_name": f"{model} (AirPlay)"})
     assert await suggested("NETWORK") is None
+
+
+def _field(result: Any, name: str) -> Any:
+    return next(field for field in result["data_schema"].schema if str(field) == name)
+
+
+async def test_activities_are_added_changed_and_deleted(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    result = await _options_step(hass, loaded_entry, "activities")
+    assert result["step_id"] == "activities"
+    # None yet: nothing to pick, straight to a new one.
+    assert result["data_schema"].schema == {}
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    assert result["step_id"] == "activity"
+    zones = result["data_schema"].schema[_field(result, "zone")].config["options"]
+    assert zones == ["main", "zone2"]
+    sources = [
+        option["value"]
+        for option in result["data_schema"].schema[_field(result, "source")].config["options"]
+    ]
+    assert "DVD" in sources
+    # The recorded receiver has the HDMI output select; no delete for a new one.
+    hdmi = result["data_schema"].schema[_field(result, "hdmi_output")].config["options"]
+    assert [option["value"] for option in hdmi] == ["AUTO", "1", "2"]
+    assert "delete" not in {str(field) for field in result["data_schema"].schema}
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "name": "  Film ",
+            "zone": "main",
+            "source": "DVD",
+            "volume_db": -30.0,
+            "clarity": "on",
+            "wake_player": False,
+        },
+    )
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "activities_next"
+    assert result["menu_options"] == ["activities", "activities_save"]
+    assert result["description_placeholders"] == {"activity": "Film"}
+    # A second one with the same name is refused.
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "activities"}
+    )
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"name": "film", "zone": "zone2", "source": "CD", "clarity": "keep", "wake_player": False},
+    )
+    assert result["errors"] == {"base": "duplicate_name"}
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"name": "   ", "zone": "zone2", "source": "CD", "clarity": "keep", "wake_player": False},
+    )
+    assert result["errors"] == {"base": "activity_incomplete"}
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"name": "Music", "zone": "zone2", "source": "CD", "clarity": "keep", "wake_player": False},
+    )
+    assert "activities" not in loaded_entry.options
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "activities_save"}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert loaded_entry.options["activities"] == [
+        {"name": "Film", "zone": "main", "source": "DVD", "volume_db": -30.0, "clarity": "on"},
+        {"name": "Music", "zone": "zone2", "source": "CD"},
+    ]
+
+    # Picking one opens it with its values; delete removes it.
+    result = await _options_step(hass, loaded_entry, "activities")
+    assert result["description_placeholders"] == {"count": "2"}
+    assert result["data_schema"].schema[_field(result, "activity")].config["options"] == [
+        "Film",
+        "Music",
+    ]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"activity": "Music"}
+    )
+    assert _field(result, "zone").default() == "zone2"
+    assert _field(result, "delete").default() is False
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "name": "Music",
+            "zone": "zone2",
+            "source": "CD",
+            "clarity": "keep",
+            "wake_player": False,
+            "delete": True,
+        },
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "activities_save"}
+    )
+    assert [item["name"] for item in loaded_entry.options["activities"]] == ["Film"]
+
+
+async def test_the_activity_steps_need_the_receiver(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    with patch.object(config_flow.DenonAvrOptionsFlow, "_discovery", return_value=None):
+        result = await _options_step(hass, loaded_entry, "activities")
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "not_connected"

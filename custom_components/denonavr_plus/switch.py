@@ -16,8 +16,9 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.restore_state import ExtraStoredData, RestoreEntity
 
-from . import choices, volume
+from . import choices, clarity, volume
 from .avr.models import ZoneDescriptor
 from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
@@ -61,7 +62,59 @@ async def async_setup_entry(
             for zone in discovery.zones
             if choices.zone_enabled(dict(entry.options), zone.id)
         )
+    if clarity.controls(coordinator.device):
+        entities.append(DenonAvrSpeechClaritySwitch(coordinator))
     async_add_entities(entities)
+
+
+class _Before(ExtraStoredData):
+    """The values speech clarity changed, kept over a restart."""
+
+    def __init__(self, before: dict[str, Any] | None) -> None:
+        self.before = before
+
+    def as_dict(self) -> dict[str, Any]:
+        return {"before": self.before}
+
+
+class DenonAvrSpeechClaritySwitch(DenonAvrEntity, RestoreEntity, SwitchEntity):
+    """Speech clarity (clarity.py): on raises speech, off puts back what it changed."""
+
+    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
+        super().__init__(coordinator, "switch_speech_clarity")
+        self._attr_translation_key = "speech_clarity"
+        self._before: dict[str, Any] | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (stored := await self.async_get_last_extra_data()) is not None:
+            before = stored.as_dict().get("before")
+            self._before = before if isinstance(before, dict) else None
+
+    @property
+    def extra_restore_state_data(self) -> ExtraStoredData:
+        return _Before(self._before)
+
+    @property
+    def is_on(self) -> bool:
+        return self._before is not None
+
+    @receiver_action
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        if self._before is not None:
+            return
+        self._before = {}
+        try:
+            await clarity.async_turn_on(self._device, self._before)
+        finally:
+            # On even after a refusal: off puts back what did change.
+            self.async_write_ha_state()
+
+    @receiver_action
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        before, self._before = self._before or {}, None
+        self.async_write_ha_state()
+        await clarity.async_turn_off(self._device, before)
 
 
 class DenonAvrMusicSwitch(DenonAvrEntity, SwitchEntity):

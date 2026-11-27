@@ -91,6 +91,7 @@
           "sources": "Fuentes",
           "sound_modes": "Modos de sonido",
           "playback": "Reproducción",
+          "activities": "Actividades",
           "connection": "Conexión",
           "entities": "Entidades",
           "tests_start": "Probar el receptor",
@@ -99,7 +100,8 @@
         "menu_option_descriptions": {
           "tests_start": "Tres pasos, unos seis minutos; todo se restablece.",
           "move_back": "Devolver las entidades a la integración antigua",
-          "playback": "Reproductores vinculados a entradas, reproducción según la señal de entrada"
+          "playback": "Reproductores vinculados a entradas, reproducción según la señal de entrada",
+          "activities": "Una elección que fija entrada, modo de sonido, volumen y más"
         }
       },
       "volume": {
@@ -339,11 +341,53 @@
         "title": "Deshacer el traslado",
         "description": "{count} entidades vuelven a {titles} y esa entrada se activa de nuevo. Denon AVR Plus se desactiva, porque el receptor acepta una sola conexión; después puedes activarlo o eliminarlo.",
         "submit": "Deshacer"
+      },
+      "activities": {
+        "title": "Actividades",
+        "description": "Una actividad prepara una zona de una vez: entrada, modo de sonido, volumen, salida HDMI y claridad de voz. Cada zona con actividades recibe una selección para iniciarlas. Hasta ahora, {count} actividades. Elige una para cambiarla o borrarla, o deja el campo vacío para una nueva.",
+        "data": {
+          "activity": "Actividad"
+        },
+        "data_description": {
+          "activity": "Vacío: una actividad nueva."
+        }
+      },
+      "activity": {
+        "title": "Actividad",
+        "description": "La zona se enciende y toma estos ajustes por orden. Solo hacen falta nombre, zona y entrada.",
+        "data": {
+          "name": "Nombre",
+          "zone": "Zona",
+          "source": "Entrada",
+          "sound_mode": "Modo de sonido",
+          "volume_db": "Volumen",
+          "hdmi_output": "Salida HDMI",
+          "clarity": "Claridad de voz",
+          "wake_player": "Encender el reproductor vinculado",
+          "delete": "Borrar esta actividad"
+        },
+        "data_description": {
+          "name": "Aparece en la selección y lo usan la acción de iniciar actividad y los comandos de voz.",
+          "sound_mode": "Solo zona principal. Vacío: el modo de sonido queda como está.",
+          "volume_db": "En dB en la escala del receptor. Vacío: el volumen de encendido o el volumen tal como está. Se mantiene por debajo del volumen máximo de la zona.",
+          "hdmi_output": "Solo zona principal. Vacío: la salida queda como está.",
+          "clarity": "Solo zona principal: encender o apagar el interruptor de claridad de voz, o dejarlo.",
+          "wake_player": "Enciende el reproductor multimedia vinculado a la entrada (Configurar → Reproducción), como el televisor o el reproductor de streaming."
+        }
+      },
+      "activities_next": {
+        "title": "¿Más actividades?",
+        "description": "{activity} queda anotada. Se guarda junto con las demás cuando eliges Guardar.",
+        "menu_options": {
+          "activities": "Otra actividad",
+          "activities_save": "Guardar"
+        }
       }
     },
     "error": {
       "turn_on_above_max": "El volumen al encender supera el volumen máximo.",
-      "duplicate_name": "Dos entradas tendrían el mismo nombre."
+      "duplicate_name": "Dos entradas tendrían el mismo nombre.",
+      "activity_incomplete": "Una actividad necesita un nombre, una zona y una entrada."
     },
     "abort": {
       "not_connected": "El receptor no está conectado. Sus fuentes y modos de sonido se leen del aparato; inténtalo de nuevo cuando esté encendido.",
@@ -950,6 +994,9 @@
       },
       "tuner_preset": {
         "name": "Presintonía del sintonizador"
+      },
+      "start_activity": {
+        "name": "Actividad"
       }
     },
     "switch": {
@@ -1036,6 +1083,9 @@
       },
       "music": {
         "name": "Música en red"
+      },
+      "speech_clarity": {
+        "name": "Claridad de voz"
       }
     },
     "number": {
@@ -1327,6 +1377,27 @@
     },
     "no_sound_nothing_found": {
       "message": "No se encontró nada: encendido, silencio, volumen, salida de audio y entrada parecen correctos. Revisa los cables y el dispositivo de la entrada."
+    },
+    "activity_zone_missing": {
+      "message": "La actividad {activity} pertenece a una zona que no se muestra. Vuelve a mostrar la zona en Configurar → Zonas y encendido."
+    },
+    "unknown_activity": {
+      "message": "No hay ninguna actividad llamada {activity} en esta zona. Elige una de: {options}."
+    },
+    "intent_no_activity": {
+      "message": "Ninguna zona tiene una actividad llamada {activity}."
+    },
+    "intent_activity_several": {
+      "message": "{activity} es una actividad de varias zonas: {zones}. Di cuál."
+    },
+    "intent_activity_started": {
+      "message": "Iniciando {activity}."
+    },
+    "intent_which_zone": {
+      "message": "¿Qué zona? {zones}."
+    },
+    "intent_no_zone": {
+      "message": "No se refiere a ninguna zona de un receptor Denon o Marantz."
     }
   },
   "issues": {
@@ -1487,6 +1558,20 @@
         "multichannel_stereo": "Estéreo multicanal",
         "multichannel_input": "Entrada multicanal"
       }
+    },
+    "activity_zone": {
+      "options": {
+        "main": "Zona principal",
+        "zone2": "Zona 2",
+        "zone3": "Zona 3"
+      }
+    },
+    "activity_clarity": {
+      "options": {
+        "keep": "Dejar como está",
+        "on": "Encendida",
+        "off": "Apagada"
+      }
     }
   },
   "services": {
@@ -1567,6 +1652,16 @@
         "destination": {
           "name": "Destino",
           "description": "La posición a la que moverlos, contando desde 1."
+        }
+      }
+    },
+    "start_activity": {
+      "name": "Iniciar actividad",
+      "description": "Inicia una de las actividades de la zona (Configurar → Actividades): enciende la zona y fija su entrada, modo de sonido, volumen, salida HDMI y claridad de voz.",
+      "fields": {
+        "activity": {
+          "name": "Actividad",
+          "description": "El nombre de la actividad, como en las opciones; da igual mayúsculas o minúsculas."
         }
       }
     }

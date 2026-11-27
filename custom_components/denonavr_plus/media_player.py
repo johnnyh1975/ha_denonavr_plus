@@ -85,7 +85,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import artwork, choices, heos_media, linked_players, no_sound, sound_modes
+from . import activities, artwork, choices, heos_media, linked_players, no_sound, sound_modes
 from .announcement import Announcement
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
@@ -1713,6 +1713,35 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         return await no_sound.async_check(
             self.hass, self.coordinator, self._zone.id, self._entry_options, fix=fix
         )
+
+    @property
+    def zone_id(self) -> str:
+        """The zone this player is (main, zone2, zone3)."""
+
+        return self._zone.id
+
+    def activity(self, name: str) -> activities.Activity | None:
+        """One of this zone's activities by its name, case and spaces ignored."""
+
+        return activities.find(self._entry_options, name, self._zone.id)
+
+    @receiver_action
+    async def async_start_activity(self, name: str) -> None:
+        """Start one of this zone's activities by its name (denonavr_plus.start_activity)."""
+
+        activity = self.activity(name)
+        if activity is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_activity",
+                translation_placeholders={
+                    "activity": name,
+                    "options": ", ".join(
+                        item.name for item in activities.activities(self._entry_options, self._zone.id)
+                    ),
+                },
+            )
+        await activities.async_start(self.hass, self.coordinator, activity)
 
     # Volume ramp (action) ------------------------------------------------------
 

@@ -537,3 +537,41 @@ async def test_channels_wait_until_the_speaker_answer_is_complete(
     assert registry_entry(hass, loaded_entry, "number_channel_trim_C").disabled_by is None
     disabled = er.RegistryEntryDisabler.INTEGRATION
     assert registry_entry(hass, loaded_entry, "number_channel_trim_SL").disabled_by is disabled
+
+
+async def test_activities_reload_only_when_a_zone_gains_or_loses_its_select(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus import activities
+
+    from .common import entity_id
+
+    def _set(*names: str) -> None:
+        hass.config_entries.async_update_entry(
+            loaded_entry,
+            options={
+                activities.OPT_ACTIVITIES: [
+                    {"name": name, "zone": "main", "source": "CD"} for name in names
+                ]
+            },
+        )
+
+    _set("Film")
+    await hass.async_block_till_done()
+    coordinator = loaded_entry.runtime_data
+    assert coordinator.activity_zones == frozenset({"main"})
+    # Another name in the same zone: the select shows it without a reload.
+    _set("Film", "Music")
+    await hass.async_block_till_done()
+    assert loaded_entry.runtime_data is coordinator
+    select = entity_id(hass, loaded_entry, "select_activity_main")
+    assert hass.states.get(select).attributes["options"] == ["Film", "Music"]
+    _set()
+    await hass.async_block_till_done()
+    assert loaded_entry.runtime_data is not coordinator
+    assert loaded_entry.runtime_data.activity_zones == frozenset()
+    # Its select goes with the last activity instead of staying "no longer provided".
+    assert hass.states.get(select) is None
+    from homeassistant.helpers import entity_registry as er
+
+    assert er.async_get(hass).async_get(select) is None

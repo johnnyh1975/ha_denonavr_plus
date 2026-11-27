@@ -91,6 +91,7 @@
           "sources": "Bronnen",
           "sound_modes": "Geluidsmodi",
           "playback": "Afspelen",
+          "activities": "Activiteiten",
           "connection": "Verbinding",
           "entities": "Entiteiten",
           "tests_start": "Receiver testen",
@@ -99,7 +100,8 @@
         "menu_option_descriptions": {
           "tests_start": "Drie stappen, ongeveer zes minuten; alles wordt teruggezet.",
           "move_back": "De entiteiten teruggeven aan de oude integratie",
-          "playback": "Gekoppelde spelers aan ingangen, afspelen volgens het ingangssignaal"
+          "playback": "Gekoppelde spelers aan ingangen, afspelen volgens het ingangssignaal",
+          "activities": "Eén keuze die ingang, geluidsmodus, volume en meer instelt"
         }
       },
       "volume": {
@@ -339,11 +341,53 @@
         "title": "Verhuizing ongedaan maken",
         "description": "{count} entiteiten gaan terug naar {titles}, en die invoer wordt weer ingeschakeld. Denon AVR Plus wordt uitgeschakeld, omdat de receiver één verbinding aanneemt; je kunt het daarna weer inschakelen of verwijderen.",
         "submit": "Ongedaan maken"
+      },
+      "activities": {
+        "title": "Activiteiten",
+        "description": "Een activiteit zet een zone in één keer klaar: ingang, geluidsmodus, volume, HDMI-uitgang en spraakhelderheid. Elke zone met activiteiten krijgt een selectie om ze te starten. Tot nu toe {count} activiteiten. Kies er een om hem te wijzigen of te verwijderen, of laat het veld leeg voor een nieuwe.",
+        "data": {
+          "activity": "Activiteit"
+        },
+        "data_description": {
+          "activity": "Leeg: een nieuwe activiteit."
+        }
+      },
+      "activity": {
+        "title": "Activiteit",
+        "description": "De zone gaat aan en neemt deze instellingen op volgorde over. Alleen naam, zone en ingang zijn nodig.",
+        "data": {
+          "name": "Naam",
+          "zone": "Zone",
+          "source": "Ingang",
+          "sound_mode": "Geluidsmodus",
+          "volume_db": "Volume",
+          "hdmi_output": "HDMI-uitgang",
+          "clarity": "Spraakhelderheid",
+          "wake_player": "Gekoppelde speler inschakelen",
+          "delete": "Deze activiteit verwijderen"
+        },
+        "data_description": {
+          "name": "Staat in de selectie en wordt gebruikt door de actie activiteit starten en door spraakopdrachten.",
+          "sound_mode": "Alleen hoofdzone. Leeg: de geluidsmodus blijft zoals hij is.",
+          "volume_db": "In dB op de schaal van de receiver. Leeg: het inschakelvolume of het volume zoals het is. Blijft onder het maximale volume van de zone.",
+          "hdmi_output": "Alleen hoofdzone. Leeg: de uitgang blijft zoals hij is.",
+          "clarity": "Alleen hoofdzone: de schakelaar spraakhelderheid aan- of uitzetten, of laten.",
+          "wake_player": "Zet de mediaspeler aan die aan de ingang gekoppeld is (Configureren → Afspelen), zoals de tv of de streamingbox."
+        }
+      },
+      "activities_next": {
+        "title": "Meer activiteiten?",
+        "description": "{activity} is genoteerd. Het wordt samen met de andere opgeslagen als je Opslaan kiest.",
+        "menu_options": {
+          "activities": "Nog een activiteit",
+          "activities_save": "Opslaan"
+        }
       }
     },
     "error": {
       "turn_on_above_max": "Het volume bij inschakelen ligt boven het maximale volume.",
-      "duplicate_name": "Twee items zouden dezelfde naam krijgen."
+      "duplicate_name": "Twee items zouden dezelfde naam krijgen.",
+      "activity_incomplete": "Een activiteit heeft een naam, een zone en een ingang nodig."
     },
     "abort": {
       "not_connected": "De receiver is niet verbonden. De bronnen en geluidsmodi worden van de receiver gelezen; probeer het opnieuw als hij aan staat.",
@@ -950,6 +994,9 @@
       },
       "tuner_preset": {
         "name": "Tunervoorkeuze"
+      },
+      "start_activity": {
+        "name": "Activiteit"
       }
     },
     "switch": {
@@ -1036,6 +1083,9 @@
       },
       "music": {
         "name": "Netwerkmuziek"
+      },
+      "speech_clarity": {
+        "name": "Spraakhelderheid"
       }
     },
     "number": {
@@ -1327,6 +1377,27 @@
     },
     "no_sound_nothing_found": {
       "message": "Niets gevonden: aan/uit, dempen, volume, geluidsuitgang en ingang zien er goed uit. Controleer de kabels en het apparaat op de ingang."
+    },
+    "activity_zone_missing": {
+      "message": "De activiteit {activity} hoort bij een zone die niet getoond wordt. Toon de zone weer onder Configureren → Zones en inschakelen."
+    },
+    "unknown_activity": {
+      "message": "Er is geen activiteit {activity} in deze zone. Kies uit: {options}."
+    },
+    "intent_no_activity": {
+      "message": "Geen enkele zone heeft een activiteit {activity}."
+    },
+    "intent_activity_several": {
+      "message": "{activity} is een activiteit van meerdere zones: {zones}. Zeg welke."
+    },
+    "intent_activity_started": {
+      "message": "{activity} wordt gestart."
+    },
+    "intent_which_zone": {
+      "message": "Welke zone? {zones}."
+    },
+    "intent_no_zone": {
+      "message": "Er wordt geen zone van een Denon- of Marantz-receiver bedoeld."
     }
   },
   "issues": {
@@ -1487,6 +1558,20 @@
         "multichannel_stereo": "Meerkanaals stereo",
         "multichannel_input": "Meerkanaals ingang"
       }
+    },
+    "activity_zone": {
+      "options": {
+        "main": "Hoofdzone",
+        "zone2": "Zone 2",
+        "zone3": "Zone 3"
+      }
+    },
+    "activity_clarity": {
+      "options": {
+        "keep": "Laten zoals het is",
+        "on": "Aan",
+        "off": "Uit"
+      }
     }
   },
   "services": {
@@ -1567,6 +1652,16 @@
         "destination": {
           "name": "Bestemming",
           "description": "De plek waar ze heen gaan, geteld vanaf 1."
+        }
+      }
+    },
+    "start_activity": {
+      "name": "Activiteit starten",
+      "description": "Start een van de activiteiten van de zone (Configureren → Activiteiten): zet de zone aan en stelt ingang, geluidsmodus, volume, HDMI-uitgang en spraakhelderheid in.",
+      "fields": {
+        "activity": {
+          "name": "Activiteit",
+          "description": "De naam van de activiteit, zoals in de opties; hoofdletters maken niet uit."
         }
       }
     }

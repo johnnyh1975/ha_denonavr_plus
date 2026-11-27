@@ -91,6 +91,7 @@
           "sources": "Quellen",
           "sound_modes": "Klangmodi",
           "playback": "Wiedergabe",
+          "activities": "Aktivitäten",
           "connection": "Verbindung",
           "entities": "Entitäten",
           "tests_start": "Receiver prüfen",
@@ -99,7 +100,8 @@
         "menu_option_descriptions": {
           "tests_start": "Drei Schritte, rund sechs Minuten; alles wird zurückgestellt.",
           "move_back": "Die Entitäten an die alte Integration zurückgeben",
-          "playback": "Verknüpfte Player an Eingängen, Wiedergabe nach Eingangssignal"
+          "playback": "Verknüpfte Player an Eingängen, Wiedergabe nach Eingangssignal",
+          "activities": "Eine Auswahl, die Eingang, Klangmodus, Lautstärke und mehr setzt"
         }
       },
       "volume": {
@@ -339,11 +341,53 @@
         "title": "Umzug rückgängig machen",
         "description": "{count} Entitäten gehen zurück an {titles}, und dieser Eintrag wird wieder eingeschaltet. Denon AVR Plus wird deaktiviert, weil der Receiver nur eine Verbindung annimmt; du kannst es danach wieder einschalten oder löschen.",
         "submit": "Rückgängig machen"
+      },
+      "activities": {
+        "title": "Aktivitäten",
+        "description": "Eine Aktivität richtet eine Zone in einem Schritt ein: Eingang, Klangmodus, Lautstärke, HDMI-Ausgang und Sprachverständlichkeit. Jede Zone mit Aktivitäten bekommt eine Auswahl, um sie zu starten. Bisher {count} Aktivitäten. Wähle eine, um sie zu ändern oder zu löschen, oder lass das Feld leer für eine neue.",
+        "data": {
+          "activity": "Aktivität"
+        },
+        "data_description": {
+          "activity": "Leer: eine neue Aktivität."
+        }
+      },
+      "activity": {
+        "title": "Aktivität",
+        "description": "Die Zone schaltet sich ein und übernimmt diese Einstellungen der Reihe nach. Nötig sind nur Name, Zone und Eingang.",
+        "data": {
+          "name": "Name",
+          "zone": "Zone",
+          "source": "Eingang",
+          "sound_mode": "Klangmodus",
+          "volume_db": "Lautstärke",
+          "hdmi_output": "HDMI-Ausgang",
+          "clarity": "Sprachverständlichkeit",
+          "wake_player": "Verknüpften Player einschalten",
+          "delete": "Diese Aktivität löschen"
+        },
+        "data_description": {
+          "name": "Erscheint in der Auswahl und gilt für die Aktion „Aktivität starten“ und für Sprachbefehle.",
+          "sound_mode": "Nur Hauptzone. Leer: der Klangmodus bleibt, wie er ist.",
+          "volume_db": "In dB auf der Skala des Receivers. Leer: die Einschaltlautstärke oder die Lautstärke, wie sie ist. Bleibt unter der Höchstlautstärke der Zone.",
+          "hdmi_output": "Nur Hauptzone. Leer: der Ausgang bleibt, wie er ist.",
+          "clarity": "Nur Hauptzone: den Schalter Sprachverständlichkeit ein- oder ausschalten oder lassen.",
+          "wake_player": "Schaltet den mit dem Eingang verknüpften Media Player ein (Konfigurieren → Wiedergabe), etwa den Fernseher oder die Streaming-Box."
+        }
+      },
+      "activities_next": {
+        "title": "Weitere Aktivitäten?",
+        "description": "{activity} ist vorgemerkt. Gespeichert wird es zusammen mit allen anderen, wenn du Speichern wählst.",
+        "menu_options": {
+          "activities": "Weitere Aktivität",
+          "activities_save": "Speichern"
+        }
       }
     },
     "error": {
       "turn_on_above_max": "Die Einschaltlautstärke liegt über der maximalen Lautstärke.",
-      "duplicate_name": "Zwei Einträge hätten denselben Namen."
+      "duplicate_name": "Zwei Einträge hätten denselben Namen.",
+      "activity_incomplete": "Eine Aktivität braucht einen Namen, eine Zone und einen Eingang."
     },
     "abort": {
       "not_connected": "Der Receiver ist nicht verbunden. Seine Quellen und Klangmodi werden von ihm gelesen; versuche es erneut, wenn er eingeschaltet ist.",
@@ -950,6 +994,9 @@
       },
       "tuner_preset": {
         "name": "Tuner-Preset"
+      },
+      "start_activity": {
+        "name": "Aktivität"
       }
     },
     "switch": {
@@ -1036,6 +1083,9 @@
       },
       "music": {
         "name": "Netzwerk-Musik"
+      },
+      "speech_clarity": {
+        "name": "Sprachverständlichkeit"
       }
     },
     "number": {
@@ -1327,6 +1377,27 @@
     },
     "no_sound_nothing_found": {
       "message": "Nichts gefunden: Strom, Stummschaltung, Lautstärke, Tonausgang und Eingang sehen richtig aus. Prüfe die Kabel und das Gerät am Eingang."
+    },
+    "activity_zone_missing": {
+      "message": "Die Aktivität {activity} gehört zu einer Zone, die nicht angezeigt wird. Zeige die Zone unter Konfigurieren → Zonen und Einschalten wieder an."
+    },
+    "unknown_activity": {
+      "message": "In dieser Zone gibt es keine Aktivität {activity}. Wähle eine von: {options}."
+    },
+    "intent_no_activity": {
+      "message": "Keine Zone hat eine Aktivität {activity}."
+    },
+    "intent_activity_several": {
+      "message": "{activity} ist eine Aktivität mehrerer Zonen: {zones}. Sag, welche."
+    },
+    "intent_activity_started": {
+      "message": "{activity} wird gestartet."
+    },
+    "intent_which_zone": {
+      "message": "Welche Zone? {zones}."
+    },
+    "intent_no_zone": {
+      "message": "Damit ist keine Zone eines Denon- oder Marantz-Receivers gemeint."
     }
   },
   "issues": {
@@ -1487,6 +1558,20 @@
         "multichannel_stereo": "Mehrkanal-Stereo",
         "multichannel_input": "Mehrkanal-Eingang"
       }
+    },
+    "activity_zone": {
+      "options": {
+        "main": "Hauptzone",
+        "zone2": "Zone 2",
+        "zone3": "Zone 3"
+      }
+    },
+    "activity_clarity": {
+      "options": {
+        "keep": "Lassen, wie es ist",
+        "on": "Ein",
+        "off": "Aus"
+      }
     }
   },
   "services": {
@@ -1567,6 +1652,16 @@
         "destination": {
           "name": "Ziel",
           "description": "Die Stelle, an die sie kommen, ab 1 gezählt."
+        }
+      }
+    },
+    "start_activity": {
+      "name": "Aktivität starten",
+      "description": "Startet eine der Aktivitäten der Zone (Konfigurieren → Aktivitäten): schaltet die Zone ein und setzt Eingang, Klangmodus, Lautstärke, HDMI-Ausgang und Sprachverständlichkeit.",
+      "fields": {
+        "activity": {
+          "name": "Aktivität",
+          "description": "Der Name der Aktivität wie in den Optionen; Groß- und Kleinschreibung spielt keine Rolle."
         }
       }
     }

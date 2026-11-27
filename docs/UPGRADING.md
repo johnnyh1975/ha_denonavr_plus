@@ -4,6 +4,18 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 1.3.x to 1.4
+
+- **Speech clarity**: a new switch on receivers with a Dialogue Enhancer,
+  Center Level Adjust or Dynamic Volume. It starts enabled and changes
+  nothing until you switch it on; disable it on the device page if you do
+  not want it.
+- **Activities** are new in the options (**Configure → Activities**). A zone
+  gets its *Activity* select only once it has an activity, so nothing
+  changes until you add one.
+- Voice: sentences for the built-in Assist agent are yours to add (user
+  guide, section 10); an LLM agent finds the new tools by itself.
+
 ## From 1.2.x to 1.3
 
 - **New entities per zone**: an *Activity* sensor (what the zone plays) and

@@ -297,6 +297,9 @@
       },
       "tuner_preset": {
         "default": "mdi:radio"
+      },
+      "start_activity": {
+        "default": "mdi:play-box-multiple"
       }
     },
     "sensor": {
@@ -454,6 +457,12 @@
         "state": {
           "off": "mdi:music-off"
         }
+      },
+      "speech_clarity": {
+        "default": "mdi:account-voice",
+        "state": {
+          "off": "mdi:account-voice-off"
+        }
       }
     },
     "binary_sensor": {
@@ -494,6 +503,9 @@
     },
     "why_no_sound": {
       "service": "mdi:help-circle-outline"
+    },
+    "start_activity": {
+      "service": "mdi:play-box-multiple"
     }
   }
 }
