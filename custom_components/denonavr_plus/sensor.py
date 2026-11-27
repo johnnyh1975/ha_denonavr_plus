@@ -7,12 +7,16 @@ the per channel calibration levels. Which sensors exist depends on the device.
 
 from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.core import HomeAssistant
+from collections.abc import Callable
+
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.core import Event, EventStateChangedData, HomeAssistant, callback
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import choices
+from . import choices, linked_players
+from .activity import ACTIVITIES, zone_activity
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .avr import signal_info
@@ -53,12 +57,12 @@ async def async_setup_entry(
     # The current sound mode as a diagnostic sensor (also on the media player).
     entities.append(DenonAvrSoundModeSensor(coordinator))
 
-    # The selected source of each zone, under the name Home Assistant shows.
-    entities.extend(
-        DenonAvrSourceSensor(coordinator, zone)
-        for zone in device.discovery.zones
-        if choices.zone_enabled(dict(entry.options), zone.id)
-    )
+    # The selected source of each zone, under the name Home Assistant shows,
+    # and what the zone plays in one word.
+    for zone in device.discovery.zones:
+        if choices.zone_enabled(dict(entry.options), zone.id):
+            entities.append(DenonAvrSourceSensor(coordinator, zone))
+            entities.append(DenonAvrActivitySensor(coordinator, zone))
 
     async_add_entities(entities)
 
@@ -140,3 +144,73 @@ class DenonAvrSourceSensor(DenonAvrEntity, SensorEntity):
             return None
         return choices.source_display(self._device.discovery, self._entry_options, code)
 
+
+
+class DenonAvrActivitySensor(DenonAvrEntity, SensorEntity):
+    """What a zone plays: off, announcement, music, radio, film, TV, game or on.
+
+    See activity.py for how it is told. Follows the linked players' state as
+    well as the receiver's.
+    """
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ACTIVITIES
+
+    def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
+        super().__init__(coordinator, f"sensor_activity_{zone.id}", sub_device=zone_device(zone))
+        self._zone = zone
+        self._attr_translation_key = "activity"
+        self._tracked: tuple[str, ...] = ()
+        self._untrack: Callable[[], None] | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._track_linked_players()
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._untrack is not None:
+            self._untrack()
+            self._untrack = None
+        await super().async_will_remove_from_hass()
+
+    def _track_linked_players(self) -> None:
+        """Follow the linked players (the options can change while running)."""
+
+        players = tuple(sorted({link.entity_id for link in linked_players.links(self._entry_options).values()}))
+        if players == self._tracked:
+            return
+        if self._untrack is not None:
+            self._untrack()
+            self._untrack = None
+        self._tracked = players
+        if players:
+            self._untrack = async_track_state_change_event(self.hass, players, self._linked_changed)
+
+    @callback
+    def _linked_changed(self, _event: Event[EventStateChangedData]) -> None:
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._track_linked_players()
+        super()._handle_coordinator_update()
+
+    @property
+    def native_value(self) -> str | None:
+        data = self.coordinator.data
+        zone = data.zone(self._zone.id)
+        source = zone.source
+        device = self._device
+        link = (
+            linked_players.links_on_wire(self._entry_options, device).get(source)
+            if source is not None
+            else None
+        )
+        now = data.now_playing
+        return zone_activity(
+            power=zone.power,
+            announcing=self._zone.id in self.coordinator.announcing,
+            source=source,
+            linked=self.hass.states.get(link.entity_id) if link is not None else None,
+            network_media_type=now.media_type if now.active else None,
+        )

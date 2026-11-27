@@ -1931,6 +1931,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             self._announce_settle()
             self._announce_settle = None
         self.coordinator.announcing.add(self._zone.id)
+        self.coordinator.async_update_listeners()
         was_playing = self._heos_state() == "play"
         try:
             await self._ensure_on()
@@ -2035,6 +2036,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             self._announce_settle = None
         self._announce_snapshot = None
         self.coordinator.announcing.discard(self._zone.id)
+        self.coordinator.async_update_listeners()
 
     @callback
     def _announcement_over(self, generation: int) -> None:
@@ -2054,6 +2056,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             self._announce_settle = None
             self._announce_snapshot = None
             self.coordinator.announcing.discard(self._zone.id)
+            self.coordinator.async_update_listeners()
 
         self._announce_settle = async_call_later(self.hass, ANNOUNCE_SETTLE, settled)
 

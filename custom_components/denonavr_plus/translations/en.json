@@ -387,6 +387,19 @@
       "source": {
         "name": "Source"
       },
+      "activity": {
+        "name": "Activity",
+        "state": {
+          "off": "Off",
+          "announcement": "Announcement",
+          "music": "Music",
+          "radio": "Radio",
+          "film": "Film",
+          "tv": "TV",
+          "game": "Game",
+          "on": "On"
+        }
+      },
       "video_input_resolution": {
         "name": "Input resolution"
       },

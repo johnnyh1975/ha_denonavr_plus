@@ -539,6 +539,16 @@
     "enabled": false,
     "category": "config"
   },
+  "sensor_activity_main": {
+    "entity_id": "sensor.avc_x3700h_activity",
+    "enabled": true,
+    "category": null
+  },
+  "sensor_activity_zone2": {
+    "entity_id": "sensor.avc_x3700h_zone_2_activity",
+    "enabled": true,
+    "category": null
+  },
   "sensor_audio_format": {
     "entity_id": "sensor.avc_x3700h_audio_format",
     "enabled": false,

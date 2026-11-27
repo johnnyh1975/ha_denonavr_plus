@@ -107,3 +107,49 @@ async def test_signal_sensors_follow_the_receiver(hass: HomeAssistant, receiver_
         await hass.async_block_till_done()
         assert hass.states.get(resolution).state == "1920x1080p 50Hz"
         await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_the_activity_follows_the_input_and_the_linked_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+
+    from custom_components.denonavr_plus.linked_players import OPT_LINKED_PLAYERS
+
+    def activity() -> str:
+        state = hass.states.get(entity_id(hass, loaded_entry, "sensor_activity_main"))
+        assert state is not None
+        return state.state
+
+    async def settle() -> None:
+        await asyncio.sleep(0.15)
+        await hass.async_block_till_done()
+
+    telnet = FakeTelnet.instances[-1]
+    assert registry_entry(hass, loaded_entry, "sensor_activity_main").disabled_by is None
+    telnet.push("ZMON", "SIGAME")
+    await settle()
+    assert activity() == "game"
+    telnet.push("ZMOFF")
+    await settle()
+    assert activity() == "off"
+
+    # A player linked to the Blu-ray input while the zone is on it.
+    hass.states.async_set("media_player.shield", "idle", {})
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={**loaded_entry.options, OPT_LINKED_PLAYERS: {"BD": {"player": "media_player.shield"}}},
+    )
+    telnet.push("ZMON", "SIBD")
+    await settle()
+    assert activity() == "film"
+    hass.states.async_set("media_player.shield", "playing", {"media_content_type": "episode"})
+    await settle()
+    assert activity() == "tv"
+
+    # An announcement on the zone.
+    loaded_entry.runtime_data.announcing.add("main")
+    loaded_entry.runtime_data.async_update_listeners()
+    await settle()
+    assert activity() == "announcement"
+    loaded_entry.runtime_data.announcing.discard("main")

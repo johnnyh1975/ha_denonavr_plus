@@ -387,6 +387,19 @@
       "source": {
         "name": "Bron"
       },
+      "activity": {
+        "name": "Activiteit",
+        "state": {
+          "off": "Uit",
+          "announcement": "Mededeling",
+          "music": "Muziek",
+          "radio": "Radio",
+          "film": "Film",
+          "tv": "Tv",
+          "game": "Game",
+          "on": "Aan"
+        }
+      },
       "video_input_resolution": {
         "name": "Ingangsresolutie"
       },

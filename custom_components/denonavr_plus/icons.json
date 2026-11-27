@@ -309,6 +309,18 @@
       "source": {
         "default": "mdi:import"
       },
+      "activity": {
+        "default": "mdi:play-box-multiple-outline",
+        "state": {
+          "off": "mdi:power-off",
+          "announcement": "mdi:bullhorn",
+          "music": "mdi:music",
+          "radio": "mdi:radio",
+          "film": "mdi:movie-open",
+          "tv": "mdi:television-classic",
+          "game": "mdi:gamepad-variant"
+        }
+      },
       "video_input_resolution": {
         "default": "mdi:video-input-hdmi"
       },

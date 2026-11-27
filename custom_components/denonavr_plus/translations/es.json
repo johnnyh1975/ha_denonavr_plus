@@ -387,6 +387,19 @@
       "source": {
         "name": "Fuente"
       },
+      "activity": {
+        "name": "Actividad",
+        "state": {
+          "off": "Apagado",
+          "announcement": "Aviso",
+          "music": "Música",
+          "radio": "Radio",
+          "film": "Película",
+          "tv": "TV",
+          "game": "Juego",
+          "on": "Encendido"
+        }
+      },
       "video_input_resolution": {
         "name": "Resolución de entrada"
       },
