@@ -12,7 +12,6 @@ import logging
 import math
 from datetime import datetime
 from collections.abc import Awaitable, Callable
-from contextlib import suppress
 from typing import Any
 
 from homeassistant.components import media_source
@@ -79,7 +78,7 @@ from homeassistant.core import (
     State,
     callback,
 )
-from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
@@ -87,6 +86,7 @@ from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import artwork, choices, heos_media, linked_players, no_sound, sound_modes
+from .announcement import Announcement
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent, SourceNotTaken
@@ -148,17 +148,6 @@ TURN_ON_SETTLE = 1.0
 #: commands faster, but each answers with MV, and a quicker ramp sounds no
 #: smoother than this.
 RAMP_MIN_INTERVAL = 0.25
-#: An announcement: how long until HEOS reports it playing, how long a stop
-#: must last to count as its end (HEOS stops briefly while it switches
-#: streams, as Music Assistant's HEOS provider learnt), and the longest it may
-#: play before the zone is put back.
-ANNOUNCE_START_WAIT = 10.0
-ANNOUNCE_POLL = 0.25
-ANNOUNCE_STOP_GRACE = 3.0
-ANNOUNCE_MAX_LENGTH = 300.0
-#: How long after the restore an announcement still counts (the receiver
-#: reports the input it went back to).
-ANNOUNCE_SETTLE = 3.0
 
 # An icon-style picture of the selected input, shown when there is no album art
 # to display. Keyed by the receiver's wire source code (what the state holds);
@@ -237,14 +226,11 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         super().__init__(coordinator, f"media_player_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
         self._players = players
-        self._announce_task: asyncio.Task[None] | None = None
-        self._announce_snapshot: ZoneSnapshot | None = None
+        self._announcement = Announcement(coordinator, zone.id)
         self._snapshot: ZoneSnapshot | None = None
         self._ramp_task: asyncio.Task[None] | None = None
         self._sound_mode_words: dict[str, str] = dict(sound_modes.WORDS)
         self._linked_tracked: frozenset[str] = frozenset()
-        self._announce_settle: CALLBACK_TYPE | None = None
-        self._announce_generation = 0
         self._unsub_linked: CALLBACK_TYPE | None = None
         # The device's own entity: the receiver for the main zone, the zone's
         # device ("AVR-X2600H Zone 2") for the others.
@@ -281,10 +267,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                     self.hass, turn_on_trigger(entry.device_id)
                 )
             )
-        self.async_on_remove(self._cancel_announcement)
         self.async_on_remove(self._cancel_volume_ramp)
         self.async_on_remove(self._untrack_linked)
-        self.async_on_remove(self._announcement_gone)
+        self.async_on_remove(self._announcement.cancel)
         self._track_linked()
         if self._zone.is_main:
             self._sound_mode_words = await sound_modes.async_words(self.hass)
@@ -406,10 +391,6 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         entity_id = self._input_link
         return {"linked_player": entity_id} if entity_id else None
-
-    def _cancel_announcement(self) -> None:
-        if self._announce_task is not None:
-            self._announce_task.cancel()
 
     def _cancel_volume_ramp(self) -> None:
         if self._ramp_task is not None:
@@ -992,7 +973,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @receiver_action
     async def async_turn_off(self) -> None:
         self._cancel_volume_ramp()
-        self._announcement_gone()
+        self._announcement.cancel()
         if not self._reachable:
             # Shown as off already (only with a turn-on automation): an
             # automation that switches everything off must not fail here.
@@ -1927,49 +1908,16 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                 translation_key="heos_unavailable",
                 translation_placeholders={"model": self._model},
             )
-        if self._announce_task is not None and not self._announce_task.done():
-            self._announce_task.cancel()
-        if self._announce_snapshot is None:
-            # Kept until the window has settled: right after a restore the
-            # receiver has not yet reported the input and volume put back.
-            self._announce_snapshot = self._device.zone_snapshot(self._zone.id)
-        # This announcement owns the window: an earlier one's end no longer closes it.
-        self._announce_generation += 1
-        generation = self._announce_generation
-        if self._announce_settle is not None:
-            self._announce_settle()
-            self._announce_settle = None
-        self.coordinator.announcing.add(self._zone.id)
-        self.coordinator.async_update_listeners()
-        was_playing = self._heos_state() == "play"
-        try:
-            await self._ensure_on()
-            raw = self._announce_volume(extra)
-            if raw is not None:
-                await self._device.async_set_volume_raw(self._zone.id, raw)
-            if self._zone_state.muted:
-                # A muted zone would swallow it; the restore mutes it again.
-                await self._device.async_set_mute(self._zone.id, False)
-            if media_source.is_media_source_id(media_id):
-                item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
-                media_id = item.url
-            await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
-        except BaseException:
-            # It did not start: put the zone back now instead of after it.
-            snapshot = self._announce_snapshot
-            try:
-                if snapshot is not None:
-                    with suppress(CommandNotSent):
-                        await self._device.async_restore(self._zone.id, snapshot)
-            finally:
-                self._announcement_over(generation)
-            raise
-        if generation != self._announce_generation:
-            # A newer announcement started meanwhile: it restores.
-            return
-        self._announce_task = self.hass.async_create_background_task(
-            self._async_restore_after_announcement(was_playing, generation),
-            f"{DOMAIN} restore after announcement",
+
+        async def play() -> None:
+            url = media_id
+            if media_source.is_media_source_id(url):
+                item = await media_source.async_resolve_media(self.hass, url, self.entity_id)
+                url = item.url
+            await self._device.async_play_url(async_process_play_media_url(self.hass, url))
+
+        await self._announcement.async_play(
+            self._ensure_on, lambda: self._announce_volume(extra), play
         )
 
     def _announce_volume(self, extra: dict[str, Any]) -> float | None:
@@ -1985,89 +1933,6 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             self._device.volume_reference + announce_db,
             self._entry_options,
         )
-
-    def _heos_state(self) -> str | None:
-        return self.coordinator.data.now_playing.state
-
-    async def _until(self, condition: Callable[[str | None], bool]) -> None:
-        while not condition(self._heos_state()):
-            await asyncio.sleep(ANNOUNCE_POLL)
-
-    async def _async_restore_after_announcement(self, was_playing: bool, generation: int) -> None:
-        """Wait for the announcement to start and to end, then restore.
-
-        Never raises but when cancelled: a newer announcement then keeps the
-        snapshot and restores it after itself.
-        """
-
-        snapshot = self._announce_snapshot
-        try:
-            async with asyncio.timeout(ANNOUNCE_START_WAIT):
-                if was_playing:
-                    # A play before the restart stop is still the previous stream.
-                    await self._until(lambda state: state != "play")
-                await self._until(lambda state: state == "play")
-        except TimeoutError:
-            _LOGGER.debug("Announcement on %s: no clear start", self._zone.id)
-        try:
-            async with asyncio.timeout(ANNOUNCE_MAX_LENGTH):
-                while self._heos_state() == "play":
-                    await self._until(lambda state: state != "play")
-                    try:
-                        # A stop counts as the end only once it lasts.
-                        async with asyncio.timeout(ANNOUNCE_STOP_GRACE):
-                            await self._until(lambda state: state == "play")
-                    except TimeoutError:
-                        break
-        except TimeoutError:
-            _LOGGER.debug("Announcement on %s: no clear end, restoring", self._zone.id)
-        if snapshot is None:
-            self._announcement_over(generation)
-            return
-        try:
-            await self._device.async_restore(self._zone.id, snapshot)
-        except CommandNotSent as err:
-            _LOGGER.debug("Restoring %s after an announcement failed: %s", self._zone.id, err)
-        self._announcement_over(generation)
-
-    @callback
-    def _announcement_gone(self) -> None:
-        """No announcement any more: the entity goes, or the zone is switched off.
-
-        Switched off, nothing is put back afterwards (a restore would switch
-        the zone on again).
-        """
-
-        self._announce_generation += 1
-        self._cancel_announcement()
-        if self._announce_settle is not None:
-            self._announce_settle()
-            self._announce_settle = None
-        self._announce_snapshot = None
-        self.coordinator.announcing.discard(self._zone.id)
-        self.coordinator.async_update_listeners()
-
-    @callback
-    def _announcement_over(self, generation: int) -> None:
-        """A moment after the restore, once the receiver has reported its input.
-
-        Only for the latest announcement: one that a newer one took over
-        leaves the window to it.
-        """
-
-        if generation != self._announce_generation:
-            return
-        if self._announce_settle is not None:
-            self._announce_settle()
-
-        @callback
-        def settled(_now: Any) -> None:
-            self._announce_settle = None
-            self._announce_snapshot = None
-            self.coordinator.announcing.discard(self._zone.id)
-            self.coordinator.async_update_listeners()
-
-        self._announce_settle = async_call_later(self.hass, ANNOUNCE_SETTLE, settled)
 
     async def _ensure_on(self) -> None:
         """Turn the zone on and wait until it reports so.
