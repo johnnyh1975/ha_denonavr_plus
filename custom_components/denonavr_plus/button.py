@@ -177,6 +177,7 @@ class DenonAvrWhyNoSound(DenonAvrEntity, ButtonEntity):
         self._zone = zone
         self._attr_translation_key = "why_no_sound"
 
+    @receiver_action
     async def async_press(self) -> None:
         result = await no_sound.async_check(
             self.hass, self.coordinator, self._zone.id, self._entry_options, fix=True

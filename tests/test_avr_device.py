@@ -1197,3 +1197,39 @@ async def test_a_receiver_with_cv_levels_only_is_ready_without_the_timeout(
     started = asyncio.get_running_loop().time()
     await device.async_await_ready(timeout=5.0, preloaded=preloaded)
     assert asyncio.get_running_loop().time() - started < 1.0
+
+
+def test_the_layout_comes_from_the_snapshot_only_when_it_fits() -> None:
+    from custom_components.denonavr_plus.avr import DenonAvrDevice
+    from custom_components.denonavr_plus.avr.device import LAYOUT_VERSION
+    from custom_components.denonavr_plus.avr.models import DeviceInfo, KnownAnswers
+
+    device = DenonAvrDevice(AsyncMock(), "192.0.2.10")
+    device.discovery.device = DeviceInfo(model_name="AVR-X2000")
+    queries = frozenset(spec.query for spec in device._answer_gated_controls() if spec.query)
+    known = KnownAnswers("AVR-X2000", None, queries, frozenset())
+    snapshot = {
+        "layout_version": LAYOUT_VERSION,
+        "device": {"model_name": "AVR-X2000"},
+        "sources": [{"code": "CD", "name": "CD"}],
+        "configured_channels": ["FL", "FR"],
+        "speaker_config": {"FRO": ["LAR"], "SWF": ["NO"]},
+        "channel_trims": {"FL": 1.0, "FR": 0.0},
+        "speaker_sizes": {"FRO": "LAR", "SWF": "NO"},
+        "quick_select_names": {"1": "Quick Select 1"},
+        "answered": ["tone_control"],
+        "signal_supported": False,
+    }
+    # Another model, or the answers not known: nothing is taken.
+    assert not device._restore_layout({**snapshot, "device": {"model_name": "AVR-X2600H"}}, [known])
+    assert not device._restore_layout(snapshot, [])
+    assert device.discovery.sources == []
+
+    assert device._restore_layout(snapshot, [known])
+    layout = device.entity_layout()
+    assert layout == device.layout_at_start
+    assert layout["channel_trims"] == ["FL", "FR"]
+    assert layout["subwoofer_presence"] is True
+    assert layout["answered"] == ["tone_control"]
+    assert layout["signal"] is False
+    assert device.discovery.configured_channels == {"FL", "FR"}

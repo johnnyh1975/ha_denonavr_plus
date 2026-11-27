@@ -153,3 +153,15 @@ async def test_the_activity_follows_the_input_and_the_linked_player(
     await settle()
     assert activity() == "announcement"
     loaded_entry.runtime_data.announcing.discard("main")
+
+
+async def test_zone_2_on_the_main_zones_input_has_its_activity(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+
+    FakeTelnet.instances[-1].push("PWON", "ZMON", "SITUNER", "Z2ON", "Z2SOURCE")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id(hass, loaded_entry, "sensor_activity_zone2"))
+    assert state is not None and state.state == "radio"

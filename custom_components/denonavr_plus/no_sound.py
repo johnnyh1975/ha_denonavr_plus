@@ -13,6 +13,7 @@ result as a notification.
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -21,6 +22,7 @@ from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.translation import async_get_translations
 
 from . import choices, linked_players
+from .avr.device import POWER_ON_SETTLE
 from .const import DOMAIN
 
 if TYPE_CHECKING:
@@ -28,8 +30,6 @@ if TYPE_CHECKING:
 
 #: Below this the zone is all but silent (the receiver's 80 is 0 dB).
 QUIET_DB = -60.0
-#: The receiver's volume steps: 80 is 0 dB.
-_ZERO_DB = 80.0
 
 #: Stands for the main zone's name until the message is told.
 _MAIN_ZONE = "\x00main_zone"
@@ -62,26 +62,29 @@ def findings(
     device = coordinator.device
     data = coordinator.data
     zone = data.zone(zone_id)
+    # Zone 2 on SOURCE plays the main zone's input.
+    effective = device.zone_source(zone_id)
     descriptor = next((item for item in device.discovery.zones if item.id == zone_id), None)
     # Named in the message's language when the finding is told (message()).
     zone_name = (descriptor.name if descriptor is not None else None) or _MAIN_ZONE
     source = zone.source
     source_name = (
-        choices.source_display(device.discovery, options, source) if source is not None else ""
+        choices.source_display(device.discovery, options, effective) if effective is not None else ""
     ) or ""
     found: list[Finding] = []
     if zone.power is False:
         found.append(Finding("zone_off", {"zone": zone_name}, FIX_POWER))
     if zone.muted:
         found.append(Finding("muted", {"zone": zone_name}, FIX_UNMUTE))
-    if zone.volume_raw is not None and zone.volume_raw - _ZERO_DB <= QUIET_DB:
-        volume = f"{zone.volume_raw - _ZERO_DB:.0f} dB" if zone.volume_raw else "—"
+    zero = device.volume_reference
+    if zone.volume_raw is not None and zone.volume_raw - zero <= QUIET_DB:
+        volume = f"{zone.volume_raw - zero:.0f} dB" if zone.volume_raw else "—"
         found.append(Finding("volume_low", {"volume": volume}))
     is_main = descriptor is None or descriptor.is_main
     main = data.zone("main")
     if not is_main and source == "SOURCE" and main.power is False:
         found.append(Finding("follows_main_off", {"zone": zone_name}))
-    if source is not None and source in device.refused_sources(zone_id):
+    if effective is not None and effective in device.refused_sources(zone_id):
         found.append(Finding("refused_input", {"zone": zone_name, "input": source_name}))
     if is_main and data.values.get("hdmi_audio_out") == "TV":
         found.append(Finding("hdmi_audio_tv", fix=FIX_HDMI_AUDIO))
@@ -91,7 +94,7 @@ def findings(
     playing = linked_players.is_busy(linked)
     if linked is not None and not playing:
         found.append(Finding("player_not_playing", {"player": str(player), "input": source_name}))
-    if zone.power and _input_signal(coordinator, zone_id, is_main, source) is False:
+    if zone.power and _input_signal(coordinator, zone_id, is_main, effective) is False:
         key = "no_signal_while_playing" if playing else "no_signal"
         found.append(Finding(key, {"input": source_name, "player": str(player)}))
     return found or [Finding("nothing_found")]
@@ -173,13 +176,16 @@ async def async_check(
 ) -> list[dict[str, Any]]:
     """Check a zone, fix what was asked, and return the findings as plain data."""
 
-    code = coordinator.data.zone(zone_id).source
+    code = coordinator.device.zone_source(zone_id)
     link = linked_players.links_on_wire(options, coordinator.device).get(code) if code else None
     linked = hass.states.get(link.entity_id) if link is not None else None
     texts = await async_texts(hass)
     result: list[dict[str, Any]] = []
     for finding in findings(coordinator, zone_id, options, linked):
         fixed = fix and await async_fix(coordinator, zone_id, finding)
+        if fixed and finding.fix == FIX_POWER:
+            # A receiver still starting up drops what comes next (AVR-X2000).
+            await asyncio.sleep(POWER_ON_SETTLE)
         result.append(
             {"check": finding.key, "message": message(texts, finding, fixed), "fixed": fixed}
         )

@@ -199,8 +199,9 @@ class DenonAvrActivitySensor(DenonAvrEntity, SensorEntity):
     def native_value(self) -> str | None:
         data = self.coordinator.data
         zone = data.zone(self._zone.id)
-        source = zone.source
         device = self._device
+        # Zone 2 on SOURCE plays the main zone's input.
+        source = device.zone_source(self._zone.id)
         link = (
             linked_players.links_on_wire(self._entry_options, device).get(source)
             if source is not None

@@ -496,7 +496,11 @@ def test_what_this_start_already_learned_is_kept() -> None:
 
 
 async def _restart_from_the_snapshot(
-    hass: HomeAssistant, entry: MockConfigEntry, hass_storage: dict[str, Any], layout: bool = True
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    hass_storage: dict[str, Any],
+    layout: bool = True,
+    **stored: Any,
 ) -> list[str]:
     """Save the discovery as a full start would, then start again; return the probes."""
     from custom_components.denonavr_plus.avr.models import KnownAnswers
@@ -513,6 +517,7 @@ async def _restart_from_the_snapshot(
     snapshot = device.discovery_snapshot()
     if not layout:
         del snapshot["layout_version"]
+    snapshot.update(stored)
     hass_storage[f"{DOMAIN}.{entry.entry_id}.discovery"]["data"] = snapshot
     probes: list[str] = []
 
@@ -589,4 +594,50 @@ async def test_a_snapshot_without_the_layout_starts_as_before(
         assert not loaded_entry.runtime_data.device.fast_start
         await asyncio.sleep(0.6)
         await hass.async_block_till_done()
-    assert hass_storage[key]["data"]["layout_version"] == 1
+    from custom_components.denonavr_plus.avr.device import LAYOUT_VERSION
+
+    assert hass_storage[key]["data"]["layout_version"] == LAYOUT_VERSION
+
+
+
+async def test_a_start_from_the_snapshot_keeps_the_signal_sensors_and_the_setup_port(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """The setup interface is read in the background: what it brought last time counts now."""
+
+    async def slow(self: Any) -> None:
+        await asyncio.sleep(30)
+
+    with (
+        patch.object(DenonAvrDevice, "_async_discover_setup_interface", slow),
+        patch.object(hass.config_entries, "async_schedule_reload"),
+    ):
+        await _restart_from_the_snapshot(
+            hass, loaded_entry, hass_storage, signal_supported=True, setup_port=11080
+        )
+        device = loaded_entry.runtime_data.device
+        assert device.fast_start
+        assert device.signal_supported
+        assert device.setup_url.endswith(":11080/")
+        sensor = hass.states.get(entity_id(hass, loaded_entry, "sensor_video_input_resolution"))
+        assert sensor is not None and sensor.state != STATE_UNAVAILABLE
+        assert await hass.config_entries.async_unload(loaded_entry.entry_id)
+
+
+async def test_a_control_answered_at_an_earlier_start_sets_up_nothing_again(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """One late reply once kept a control; the snapshot holds more than the known answers."""
+    from custom_components.denonavr_plus import coordinator as coordinator_module
+
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+    answered = sorted(loaded_entry.runtime_data.device.discovery.answered | {"headphone_eq"})
+    with (
+        patch("custom_components.denonavr_plus.avr.device.RESYNC_QUIET", 0.1),
+        patch.object(hass.config_entries, "async_schedule_reload") as reload,
+    ):
+        await _restart_from_the_snapshot(hass, loaded_entry, hass_storage, answered=answered)
+        assert "headphone_eq" in loaded_entry.runtime_data.device.discovery.answered
+        await asyncio.sleep(1.2)
+        await hass.async_block_till_done()
+    reload.assert_not_called()

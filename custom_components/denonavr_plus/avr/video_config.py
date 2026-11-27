@@ -156,18 +156,25 @@ class VideoConfigController:
 
     async def _read_menus(self) -> None:
         fields: dict[str, dict[str, Any]] = {}
+        asked = answered = 0
         for type_id, root_tag in self._grammar.get("menus", {}).items():
             # Only fetch a menu the receiver advertises, to avoid the HTTP 500 an
             # absent menu returns. When the section has no availability map
             # (self._avail empty), read every menu unconditionally.
             if self._avail and self._avail.get(root_tag, _NOT_AVAILABLE) < _GRAYOUT:
                 continue
+            asked += 1
             root = _parse(await self._webconfig.async_get(self._section, int(type_id)))
             if root is None:
                 continue
+            answered += 1
             for control in self.controls():
                 if str(control["type"]) == str(type_id):
                     self._parse_control(control, root, fields)
+        if asked and not answered:
+            # The interface did not answer at all (gone for a moment): keep
+            # what was read before, also what a start took from its snapshot.
+            return
         self._fields = fields
 
     def _parse_control(

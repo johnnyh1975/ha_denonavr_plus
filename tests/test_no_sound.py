@@ -140,3 +140,15 @@ async def test_without_a_connection_it_says_so(
     with patch.object(DenonAvrDevice, "telnet_connected", new_callable=PropertyMock, return_value=False):
         found = await _why(hass, loaded_entry)
     assert [item["check"] for item in found] == ["not_connected"]
+
+
+async def test_zone_2_on_the_main_zones_input_is_checked_on_that_input(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "MUOFF", "MV50", "SIBD", "SSINFAISFSVNON")
+    await _push(hass, "Z2ON", "Z2SOURCE", "Z2MUOFF", "Z250")
+    player = entity_id(hass, loaded_entry, "media_player_zone2")
+    response = await hass.services.async_call(
+        DOMAIN, "why_no_sound", {"entity_id": player}, blocking=True, return_response=True
+    )
+    assert [item["check"] for item in response[player]["findings"]] == ["no_signal"]  # type: ignore[index]

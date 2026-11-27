@@ -272,8 +272,9 @@ class LinkedPlayers:
         self._followed_at = 0.0
         self._followed: str | None = None
         self._full_volume_active: frozenset[str] = frozenset()
-        # Players switched with their input: the zones that play each now.
-        self._powered: dict[str, frozenset[str]] = {}
+        # Players switched with their input: the zones that play each now;
+        # None until the receiver has reported its zones once.
+        self._powered: dict[str, frozenset[str]] | None = None
         # The main zone's input while it is on, to see it change.
         self._main_input: str | None = None
         # A follow on its way: its input, the player's context (for the
@@ -292,8 +293,6 @@ class LinkedPlayers:
         ]
         self._track()
         self._refresh_full_volume()
-        # What plays at the start is no switch: nothing is woken then.
-        self._powered = self._powered_now()
         self._main_input = self._current_main_input()
 
         # Other integrations add their players while Home Assistant starts.
@@ -494,11 +493,24 @@ class LinkedPlayers:
         switched off: a zone moving to another input leaves the player on.
         """
 
+        coordinator = self._entry.runtime_data
+        if coordinator.announcing:
+            # An announcement switches zones and inputs for a moment only.
+            return
+        data = coordinator.data
+        if data.zone(FOLLOW_ZONE).power is None or any(
+            zone.power and zone.source is None for zone in data.zones.values()
+        ):
+            # Not reported yet (a start, a reload): no change to act on.
+            return
         now = self._powered_now()
-        data = self._entry.runtime_data.data
+        if self._powered is None:
+            # What plays when the receiver first reports is no switch.
+            self._powered = now
+            return
         for entity_id in now.keys() - self._powered.keys():
             state = self._hass.states.get(entity_id)
-            if state is not None and state.state == MediaPlayerState.OFF:
+            if state is not None and state.state in (MediaPlayerState.OFF, MediaPlayerState.STANDBY):
                 if _features(state) & MediaPlayerEntityFeature.TURN_ON:
                     self._call_later(entity_id, SERVICE_TURN_ON)
         for entity_id in self._powered.keys() - now.keys():

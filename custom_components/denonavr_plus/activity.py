@@ -82,6 +82,9 @@ _INPUTS = {
     "DVD": FILM,
 }
 
+#: The inputs that play from the network, where HEOS tells a station from a song.
+_NETWORK = frozenset({"NET", "NETWORK", "FAVORITES", "SERVER", "USB/IPOD", "SPOTIFY", "PANDORA"})
+
 #: Linked player states that say what the zone plays.
 _ACTIVE = (MediaPlayerState.PLAYING, MediaPlayerState.BUFFERING, MediaPlayerState.PAUSED)
 
@@ -112,7 +115,7 @@ def zone_activity(
             return kind
     if source is None:
         return ON
-    by_input = _INPUTS.get(source.upper())
-    if by_input == MUSIC and network_media_type == "station":
+    code = source.upper()
+    if code in _NETWORK and network_media_type == "station":
         return RADIO
-    return by_input or ON
+    return _INPUTS.get(code) or ON

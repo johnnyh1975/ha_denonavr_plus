@@ -55,6 +55,12 @@ class WebConfigClient:
 
         return self._port
 
+    def remember_port(self, port: object) -> None:
+        """Start from the port that answered at an earlier start (10443 or 11080)."""
+
+        if isinstance(port, int) and port in self._candidates and self._port is None:
+            self._port = port
+
     async def async_get(
         self, section: str, type_id: int, extra: dict[str, str] | None = None
     ) -> str | None:

@@ -172,7 +172,10 @@ and its tokens.
     zone that is on switches to the input, or is switched on on it, the
     player is switched on if it is off; when every zone that played it is
     switched off, the player is switched off too. A zone moving to another
-    input leaves it on. Only for players that can be switched on or off.
+    input leaves it on. Nothing is switched for what already plays when the
+    receiver first reports after a start or reload, nor during an
+    announcement. Only for players that can be switched on or off (or are in
+    standby).
   - **Keep the player at full volume** (default off): the volume is set on the
     receiver, so while a zone that is on plays the input, the player is set to
     100 % and unmuted: when the zone switches to the input, when the option is
@@ -587,8 +590,10 @@ playing, and no signal on the input (where the receiver reports one: the
 main zone's input, not the network or the tuner; with the linked player
 playing, it points to **Recover audio**). When nothing applies it says so.
 
-With `fix`, it switches the zone on, unmutes and sends HDMI audio to the
-receiver where that was the cause. The volume, the speakers and the inputs
+With `fix`, it switches the zone on (and waits a few seconds for the
+receiver to start), unmutes and sends HDMI audio to the receiver where that
+was the cause. Zone 2 following the main zone is checked on the main zone's
+input. The volume, the speakers and the inputs
 are only named: that is the listener's call.
 
 | Field | Required | Description |

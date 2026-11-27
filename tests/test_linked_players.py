@@ -859,3 +859,44 @@ async def test_a_player_is_suggested_only_when_one_fits(hass: HomeAssistant) -> 
     assert suggest("Shield", ["media_player.shield_2"]) == "media_player.shield"
     assert suggest("Blu-ray") is None  # a default name
     assert suggest("Apple TV") is None
+
+
+async def test_what_plays_when_the_receiver_first_reports_switches_nothing_on(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A reload with the zone already on the input: the resync is no switch."""
+    turned_on = async_mock_service(hass, "media_player", "turn_on")
+    hass.states.async_set(APPLE_TV, "off", {"supported_features": FEATURES | 128 | 256})
+    _options(loaded_entry, DVD=_player(APPLE_TV, power=True))
+    await _settle(hass)
+    assert await hass.config_entries.async_reload(loaded_entry.entry_id)
+    FakeTelnet.instances[-1].push("PWON", "ZMON", "SIDVD")
+    await _settle(hass)
+    assert not turned_on
+
+
+async def test_an_announcement_switches_no_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    turned_on = async_mock_service(hass, "media_player", "turn_on")
+    turned_off = async_mock_service(hass, "media_player", "turn_off")
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMOFF", "SIDVD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "off", {"supported_features": FEATURES | 128 | 256})
+    _options(loaded_entry, DVD=_player(APPLE_TV, power=True))
+    await _settle(hass)
+    coordinator = loaded_entry.runtime_data
+    coordinator.announcing.add("main")
+    telnet.push("ZMON")  # the announcement wakes the zone on its last input
+    await _settle(hass)
+    telnet.push("SINET", "ZMOFF", "SIDVD")
+    await _settle(hass)
+    coordinator.announcing.discard("main")
+    coordinator.async_update_listeners()
+    await _settle(hass)
+    assert not turned_on and not turned_off
+    # Afterwards the zone switched on by hand wakes the player as usual.
+    telnet.push("ZMON")
+    await _settle(hass)
+    assert [call.data["entity_id"] for call in turned_on] == [APPLE_TV]

@@ -128,7 +128,7 @@ RESYNC_QUIET = 1.0
 
 #: The snapshot holds everything the entities are built from; a start can
 #: then skip asking (async_discover). Raised when that content changes.
-LAYOUT_VERSION = 1
+LAYOUT_VERSION = 2
 #: How long a zone other than the main zone has to confirm a new source.
 ZONE_SOURCE_WAIT = 2.0
 #: How long a setting the receiver may refuse has to come back, first as the
@@ -536,10 +536,12 @@ class DenonAvrDevice:
             discovered.sources, self._profile.source_names
         )
         self._discovery.sources = []
+        described = False
         if snapshot and snapshot.get("layout_version") == LAYOUT_VERSION:
             # The UPnP document (a few ms) first: its firmware version decides
             # whether the answers of the last start still hold.
             await self._timed("description", self._async_fetch_version_info())
+            described = True
             if self._restore_layout(snapshot, known_answers):
                 # Started from what the last start learned; the setup interface
                 # and the receiver's own answers follow in the background
@@ -554,7 +556,7 @@ class DenonAvrDevice:
         # speaker configuration, sound modes, quick selects), which builds the
         # entities regardless of the persistent connection's later timing.
         await asyncio.gather(
-            self._timed("description", self._async_fetch_version_info()),
+            *([] if described else [self._timed("description", self._async_fetch_version_info())]),
             self._timed("setup_interface", self._async_discover_setup_interface()),
             self._timed("introspection", self._async_probe_introspection()),
         )
@@ -624,8 +626,13 @@ class DenonAvrDevice:
         discovery = self._discovery
         discovery.features = features
         discovery.answered = {spec.id for spec in specs if spec.query in known.answered}
+        # A control answered once stays (as the coordinator keeps it).
+        discovery.answered |= set(snapshot.get("answered") or [])
         self.known_answers = known
         self.preload_discovery(snapshot)
+        self._webconfig.remember_port(snapshot.get("setup_port"))
+        signal = snapshot.get("signal_supported")
+        self._signal_supported = signal if isinstance(signal, bool) else None
         discovery.speaker_config = {
             group: set(values) for group, values in (snapshot.get("speaker_config") or {}).items()
         }
@@ -665,6 +672,7 @@ class DenonAvrDevice:
             # The subwoofer select differs for a yes/no receiver.
             "subwoofer_presence": sizes.get("SWF") in presence,
             "quick_selects": sorted(discovery.quick_select_names),
+            "signal": self.signal_supported,
             "video": self._video_config.layout(),
             "speaker_setup": self._speaker_config.layout(),
         }
@@ -722,6 +730,8 @@ class DenonAvrDevice:
             "speaker_sizes": dict(self._state.speaker_sizes),
             "video_config": self._video_config.snapshot(),
             "speaker_setup": self._speaker_config.snapshot(),
+            "signal_supported": self._signal_supported,
+            "setup_port": self._webconfig.port,
         }
 
     def preload_discovery(self, snapshot: dict[str, Any] | None) -> bool:

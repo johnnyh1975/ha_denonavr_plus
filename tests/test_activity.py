@@ -73,8 +73,9 @@ def test_the_input_says_what_plays(source: str | None, expected: str) -> None:
 def test_a_heos_station_on_the_network_input_is_radio() -> None:
     assert _activity(source="NET", network_media_type="station") == "radio"
     assert _activity(source="NET", network_media_type="song") == "music"
-    # A station on a game console's input is no radio.
+    # A station on a game console's input or the CD player is no radio.
     assert _activity(source="GAME", network_media_type="station") == "game"
+    assert _activity(source="CD", network_media_type="station") == "music"
 
 
 def test_every_result_is_an_option() -> None:

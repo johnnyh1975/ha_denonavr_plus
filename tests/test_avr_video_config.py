@@ -235,3 +235,15 @@ async def test_what_was_read_comes_back_from_the_snapshot_without_asking() -> No
     assert restored.layout()  # some menus are present
     restored.restore(None)  # an older snapshot without it changes nothing
     assert restored.layout() == read.layout()
+
+
+async def test_a_setup_interface_that_does_not_answer_keeps_what_was_read() -> None:
+    """Gone for a moment after a start from the snapshot: the menus stay."""
+    api = FakeSetupApi()
+    video = _video(api)
+    await video.discover()
+    before = video.layout()
+    api.documents = {}
+    await video.discover()
+    await video.refresh()
+    assert video.layout() == before
