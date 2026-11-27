@@ -15,7 +15,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -118,6 +118,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # on every change is saved too (see _keep_snapshot).
         self._saved_snapshot: dict[str, Any] | None = None
         self._pending_snapshot: dict[str, Any] | None = None
+        # The firmware the device card shows (see _follow_firmware).
+        self._firmware_shown: str | None = None
         # The last capability check of this receiver (see capabilities.py).
         self.capabilities = CapabilityResults(hass, entry.entry_id)
         # The last command test (see command_test.py); one at a time with the check.
@@ -321,8 +323,21 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._check_link()
         self._check_playback_error()
         self._check_app_control()
+        self._follow_firmware()
         self._keep_snapshot()
         self.async_set_updated_data(self.device.state)
+
+    @callback
+    def _follow_firmware(self) -> None:
+        """Show a new firmware on the device card after the receiver updated itself."""
+
+        firmware = self.device.discovery.device.firmware_version
+        if firmware is None or firmware == self._firmware_shown or self.main_device_id is None:
+            return
+        registry = dr.async_get(self.hass)
+        if (entry := registry.async_get(self.main_device_id)) and entry.sw_version != firmware:
+            registry.async_update_device(entry.id, sw_version=firmware)
+        self._firmware_shown = firmware
 
     @callback
     def _check_app_control(self) -> None:

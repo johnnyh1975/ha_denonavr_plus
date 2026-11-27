@@ -66,8 +66,10 @@ def test_feature_gates_are_real_function_names() -> None:
 
 
 def test_refresh_groups_have_triggers_and_queries() -> None:
-    for group_id, group in load_profile().refresh_groups.items():
-        assert group.get("on"), group_id
+    profile = load_profile()
+    for group_id, group in profile.refresh_groups.items():
+        # A trigger: a line prefix, or a value whose change it follows.
+        assert group.get("on") or group.get("on_change") in profile.controls, group_id
         assert group.get("queries"), group_id
 
 

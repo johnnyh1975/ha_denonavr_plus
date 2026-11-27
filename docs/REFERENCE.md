@@ -254,7 +254,7 @@ ports. Nothing needs to be opened towards the internet.
 |------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
 | **23/tcp** | Telnet | Primary control channel and real‑time push: power, volume, mute, source, sound modes and all state updates                                                                            | **Required** |
 | **8080/tcp** | HTTP (goform) | Discovery (`Deviceinfo.xml`), the reconciliation poll (`…StatusLite.xml`) and, while telnet is down, the commands (`formiPhoneAppDirect.xml`) and the sound state (`AppCommand.xml`, `AppCommand0300.xml`). Port 80 on receivers before 2016 | **Required** |
-| **60006/tcp** | HTTP (UPnP/AIOS) | Device description read once at setup for firmware version and serial number                                                                                                          | Optional (degrades gracefully) |
+| **60006/tcp** | HTTP (UPnP/AIOS) | Device description read at setup and after a reconnect, for firmware version and serial number                                                                                                          | Optional (degrades gracefully) |
 | **1900/udp** | SSDP (multicast) | Automatic discovery of the receiver on the LAN                                                                                                                                        | Optional (auto‑discovery only) |
 | **1256/tcp** | Length‑framed JSON | Not currently used (reserved for future use)                                                                                                                                          | Unused |
 | **1255/tcp** | HEOS CLI | Now‑playing media, album art and transport (play/pause/next) for network sources                                                                                                      | Optional (degrades gracefully) |
@@ -435,7 +435,8 @@ AVC‑A10H describes it as 0–15).
   under Settings → Updates. Its installed version is the receiver's firmware;
   its latest version is the installed one while there is no update and
   "Newer version" while there is one, because HEOS names none. It installs
-  nothing.
+  nothing. After an update the receiver restarts; when the integration
+  connects again it reads the version anew, and the device page shows it.
 - **Recover audio** (a button, starts disabled): standby and back on with the
   input it had, for a receiver that has lost its sound.
 - **Model-dependent controls**, created only when the receiver answers their
@@ -446,7 +447,9 @@ AVC‑A10H describes it as 0–15).
   Auro-3D mode, Dirac Live filter slot, Tactile Transducer (on/off, level,
   low-pass filter), and on Marantz M-DAX, DAC Filter and Illumination. Their
   command formats come from the denonavr library (M-DAX from Marantz's 2019
-  command list) and have not been tried on a receiver yet.
+  command list) and have not been tried on a receiver yet. A speaker preset
+  holds the whole speaker setup; when it changes, the integration reads the
+  speaker sizes, distances, levels and crossovers again.
 - **Buttons**: save a quick select preset (one per preset the receiver reports),
   reset all channel levels, restart the network module. They start disabled.
 - **Remote**: the on-screen menu keys (see Actions).

@@ -800,6 +800,54 @@ async def test_a_repeated_signal_line_starts_no_new_query(
     assert "OPSMLALL ?" not in telnet.sent
 
 
+@pytest.mark.assumed(
+    "that a speaker preset holds the whole speaker setup comes from "
+    "LaserGuruGuy/denon_avr (AVC-X3900H); neither the AVR-X2600H nor the "
+    "AVR-X2000 answers SPPR ?, a receiver with presets would settle it"
+)
+async def test_a_new_speaker_preset_reads_the_speaker_setup_again(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Sizes, levels and crossovers belong to the preset: they change with it."""
+    telnet = FakeTelnet.instances[-1]
+    device = loaded_entry.runtime_data.device
+    with patch.object(type(device), "async_refresh_setup", AsyncMock()) as setup:
+        # The answer to the resync is no change.
+        telnet.push("SPPR 1")
+        await asyncio.sleep(0.05)
+        telnet.sent.clear()
+        assert setup.await_count == 0
+        telnet.push("SPPR 2")
+        await asyncio.sleep(1.7)  # the group's debounce
+        assert {"CV?", "SSLEV ?", "SSSPC ?", "SSCFR ?", "SSSDE ?"} <= set(telnet.sent)
+        assert setup.await_count == 1
+        # The same preset again changes nothing.
+        telnet.sent.clear()
+        telnet.push("SPPR 2")
+        await asyncio.sleep(1.7)
+        assert "SSSPC ?" not in telnet.sent
+
+
+async def test_a_reconnect_reads_the_firmware_again(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """A firmware update restarts the receiver; the link comes back with a new version."""
+    from custom_components.denonavr_plus.avr.transport import UpnpClient
+
+    telnet = FakeTelnet.instances[-1]
+    device = loaded_entry.runtime_data.device
+    description = (
+        '<root xmlns="urn:schemas-upnp-org:device-1-0"><device>'
+        "<firmware_version>9.999.1</firmware_version></device></root>"
+    )
+    with patch.object(UpnpClient, "async_get_description", AsyncMock(return_value=description)):
+        assert telnet._on_availability is not None
+        telnet._on_availability(False)
+        telnet._on_availability(True)
+        await hass.async_block_till_done()
+    assert device.discovery.device.firmware_version == "9.999.1"
+
+
 async def test_the_answers_to_the_resync_start_no_new_query(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

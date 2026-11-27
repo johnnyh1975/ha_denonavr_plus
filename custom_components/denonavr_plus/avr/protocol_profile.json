@@ -394,6 +394,13 @@
         "queries": ["CV?", "SSLEV ?", "SSSPC ?", "SSCFR ?", "SSSDE ?"],
         "on": ["MS", "SI"],
         "debounce": 1.2
+      },
+      "speaker_preset": {
+        "doc": "A speaker preset holds the whole speaker setup (layout, distances, levels, crossovers, graphic EQ; seen by LaserGuruGuy/denon_avr on an AVC-X3900H): switching it asks the speaker lines again and reads the setup interface again. Only on a change of the value, never for its first report after connecting (the resync asks for everything).",
+        "queries": ["CV?", "SSLEV ?", "SSSPC ?", "SSCFR ?", "SSSDE ?"],
+        "on_change": "speaker_preset",
+        "setup_interface": true,
+        "debounce": 1.5
       }
     }
   },

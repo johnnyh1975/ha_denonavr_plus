@@ -12,7 +12,7 @@ from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -456,6 +456,20 @@ async def test_a_later_start_takes_the_speakers_from_the_last_one(
         await hass.async_block_till_done()
     assert hass_storage[key]["data"]["quick_select_names"] == {"1": "Movie"}
     assert hass_storage[key]["data"]["configured_channels"] == configured
+
+
+async def test_the_device_card_shows_a_new_firmware(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """After a firmware update the card shows the new version, not the one from the start."""
+    coordinator = loaded_entry.runtime_data
+    assert coordinator.main_device_id is not None
+    coordinator.device.discovery.device.firmware_version = "9.999.1"
+    FakeTelnet.instances[-1].push("MV40")  # any update of the receiver
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    device = dr.async_get(hass).async_get(coordinator.main_device_id)
+    assert device is not None and device.sw_version == "9.999.1"
 
 
 async def test_a_change_while_running_is_kept_for_the_next_start(

@@ -87,6 +87,10 @@ from .transport import (
 
 _LOGGER = logging.getLogger(__name__)
 
+#: What a firmware update changes in the UPnP description (the device card
+#: and the update entity show them).
+VERSION_FIELDS = ("firmware_version", "firmware_revision", "network_module_version")
+
 #: Asked first by the setup probe: answers kept from a receiver in standby
 #: may be incomplete, so only those of a receiver that is on are kept.
 POWER_QUERY = "PW?"
@@ -254,6 +258,8 @@ class DenonAvrDevice:
         self.fast_start = False
         self.layout_at_start: dict[str, Any] | None = None
         self._available = False
+        # Set at the first connection; a later one reads the versions again.
+        self._connected_before = False
         # Whether the last HTTP reconciliation poll got an answer. Tells a
         # blocked or occupied telnet port apart from a receiver that is off.
         self._http_reachable = False
@@ -1412,6 +1418,7 @@ class DenonAvrDevice:
         for listener in tuple(self._reply_listeners):
             listener(line)
         before = self._signal_context()
+        watched = self._watched_values()
         # The first report of a trigger after connecting answers the resync,
         # which asked for everything already.
         first = self._first_report(line)
@@ -1434,6 +1441,7 @@ class DenonAvrDevice:
             remainder = line[len("OPSMLALL") :].strip()
             if remainder.startswith(self._profile.list_terminator) and not self._own_answer_ends():
                 self._create_task(self._query_current_sound_modes())
+        self._refresh_on_change(watched)
         # Data driven refresh: any group whose trigger prefix this line matches
         # gets a coalesced re-query. This keeps state the receiver does not
         # re-push on every change in sync - the signal dependent sound mode
@@ -1445,6 +1453,31 @@ class DenonAvrDevice:
             on = group.get("on")
             if on and line.startswith(tuple(on)):
                 self._schedule_refresh(group_id)
+
+    def _watched_values(self) -> dict[str, Any]:
+        """The values whose change re-reads a refresh group (its `on_change`)."""
+
+        values = self._state.values
+        return {
+            group_id: values.get(group["on_change"])
+            for group_id, group in self._refresh_groups.items()
+            if group.get("on_change")
+        }
+
+    def _refresh_on_change(self, before: dict[str, Any]) -> None:
+        """Re-read the groups whose watched value this line changed.
+
+        A first report (None before) answers the resync, which asked for
+        everything already.
+        """
+
+        for group_id, value in self._watched_values().items():
+            old = before.get(group_id)
+            if old is None or value == old:
+                continue
+            self._schedule_refresh(group_id)
+            if self._refresh_groups[group_id].get("setup_interface"):
+                self._create_task(self._refresh_setup_quietly())
 
     def _first_report(self, line: str) -> bool:
         """Whether the line is the first report of its trigger since connecting."""
@@ -1510,7 +1543,37 @@ class DenonAvrDevice:
         if available:
             # Telnet reports everything again.
             self._http_values.clear()
+            if self._connected_before:
+                # A firmware update restarts the receiver: the link comes
+                # back with a new version.
+                self._create_task(self._refresh_versions_quietly())
+            self._connected_before = True
         self._schedule_update()
+
+    async def async_refresh_versions(self) -> bool:
+        """Read the firmware versions again; True when one changed."""
+
+        xml_text = await self._upnp.async_get_description()
+        if not xml_text:
+            return False
+        parsed = parse_upnp_description(xml_text)
+        device = self._discovery.device
+        changed = False
+        for attr in VERSION_FIELDS:
+            value = parsed.get(attr)
+            if value is not None and value != getattr(device, attr):
+                setattr(device, attr, value)
+                changed = True
+        return changed
+
+    async def _refresh_versions_quietly(self) -> None:
+        """async_refresh_versions as a background task: report, never raise."""
+
+        try:
+            if await self.async_refresh_versions():
+                self._schedule_update()
+        except Exception as err:  # noqa: BLE001 - a background task must not raise
+            _LOGGER.debug("Reading the versions of %s failed: %s", self._host, err)
 
     async def _resynchronise(self) -> None:
         """Query the full state after connecting so nothing is stale."""
