@@ -60,6 +60,11 @@ def connection_options(entry: ConfigEntry) -> dict[str, Any]:
 
 _SNAPSHOT_VERSION = 1
 
+#: Seconds without a change before the snapshot is saved while running:
+#: longer than the speakers take to settle (SPEAKERS_SETTLE), so a speaker
+#: change or a resync in progress is not what is kept.
+SNAPSHOT_SAVE_DELAY = 10.0
+
 
 def snapshot_store(hass: HomeAssistant, entry_id: str) -> Store[dict[str, Any]]:
     """Where the last discovery of an entry is kept (see async_setup)."""
@@ -109,6 +114,10 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._reload_scheduled = False
         self._identify_after: datetime | None = None
         self._snapshot = snapshot_store(hass, entry.entry_id)
+        # The snapshot as last saved; set once a start has saved it, from then
+        # on every change is saved too (see _keep_snapshot).
+        self._saved_snapshot: dict[str, Any] | None = None
+        self._pending_snapshot: dict[str, Any] | None = None
         # The last capability check of this receiver (see capabilities.py).
         self.capabilities = CapabilityResults(hass, entry.entry_id)
         # The last command test (see command_test.py); one at a time with the check.
@@ -179,7 +188,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         await self.device.async_await_ready()
         # Saved after the wait, which fills the sources from Deviceinfo when
         # the telnet introspection brought none.
-        await self._snapshot.async_save(self.device.discovery_snapshot())
+        await self._async_save_snapshot()
 
     async def _async_save_when_ready(self) -> None:
         """Save the discovery once the resync has brought it, for the next start."""
@@ -189,9 +198,40 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # resync itself, so its answers are what is saved.
         await self.device.async_await_resync()
         try:
-            await self._snapshot.async_save(self.device.discovery_snapshot())
+            await self._async_save_snapshot()
         except Exception as err:  # noqa: BLE001 - a background task must not raise
             _LOGGER.debug("Discovery snapshot not saved: %s", err)
+
+    async def _async_save_snapshot(self) -> None:
+        """Save the snapshot after a start; from then on changes are kept too."""
+
+        snapshot = self.device.discovery_snapshot()
+        await self._snapshot.async_save(snapshot)
+        self._saved_snapshot = snapshot
+
+    @callback
+    def _keep_snapshot(self) -> None:
+        """Save what changed after the start, so the next one starts from it.
+
+        Only while telnet is connected; saved once nothing has changed for
+        SNAPSHOT_SAVE_DELAY, and at the latest when Home Assistant stops.
+        """
+
+        if self._saved_snapshot is None or not self.device.telnet_connected:
+            return
+        snapshot = self.device.discovery_snapshot()
+        if snapshot == (self._pending_snapshot or self._saved_snapshot):
+            return
+        self._pending_snapshot = snapshot
+        self._snapshot.async_delay_save(self._take_pending_snapshot, SNAPSHOT_SAVE_DELAY)
+
+    @callback
+    def _take_pending_snapshot(self) -> dict[str, Any]:
+        """The snapshot the delayed save writes, now kept as saved."""
+
+        snapshot = self._pending_snapshot or self._saved_snapshot or {}
+        self._saved_snapshot, self._pending_snapshot = snapshot, None
+        return snapshot
 
     async def _async_complete_fast_start(self) -> None:
         """Read what a start from the snapshot took from it; rebuild if it changed."""
@@ -200,7 +240,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         entry_id = self.config_entry.entry_id
         try:
             await self.device.async_complete_fast_start()
-            await self._snapshot.async_save(self.device.discovery_snapshot())
+            await self._async_save_snapshot()
         except Exception as err:  # noqa: BLE001 - a background task must not raise
             _LOGGER.debug("Discovery after a fast start not completed: %s", err)
             return
@@ -227,6 +267,9 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """Stop the telnet transport when the entry is unloaded."""
 
         await self.device.async_stop()
+        if self._pending_snapshot is not None:
+            # A reload starts from it; the delayed save would come too late.
+            await self._snapshot.async_save(self._take_pending_snapshot())
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id)
         # A playback error is about the session that ends here.
         ir.async_delete_issue(self.hass, DOMAIN, self._playback_issue_id)
@@ -278,6 +321,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._check_link()
         self._check_playback_error()
         self._check_app_control()
+        self._keep_snapshot()
         self.async_set_updated_data(self.device.state)
 
     @callback

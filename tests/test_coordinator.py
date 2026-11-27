@@ -21,6 +21,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.transport import GoformClient
+from custom_components.denonavr_plus.coordinator import SNAPSHOT_SAVE_DELAY
 from custom_components.denonavr_plus.const import (
     CONFIG_MINOR_VERSION,
     DOMAIN,
@@ -457,6 +458,34 @@ async def test_a_later_start_takes_the_speakers_from_the_last_one(
     assert hass_storage[key]["data"]["configured_channels"] == configured
 
 
+async def test_a_change_while_running_is_kept_for_the_next_start(
+    hass: HomeAssistant,
+    loaded_entry: MockConfigEntry,
+    hass_storage: dict[str, Any],
+) -> None:
+    """Not only what the last start read: the state before the restart."""
+    key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
+    FakeTelnet.instances[-1].push("SSQSNZMAQS1 Movie", "SSQSNZMA END")
+    await _settle(hass)
+    # Not at once: a speaker change or a resync may still be under way.
+    assert hass_storage[key]["data"]["quick_select_names"] != {"1": "Movie"}
+
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=SNAPSHOT_SAVE_DELAY + 1))
+    await hass.async_block_till_done()
+    assert hass_storage[key]["data"]["quick_select_names"] == {"1": "Movie"}
+
+
+async def test_a_change_not_yet_saved_is_saved_when_the_entry_unloads(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
+    FakeTelnet.instances[-1].push("SSQSNZMAQS1 Movie", "SSQSNZMA END")
+    await _settle(hass)
+
+    assert await hass.config_entries.async_unload(loaded_entry.entry_id)
+    assert hass_storage[key]["data"]["quick_select_names"] == {"1": "Movie"}
+
+
 def test_the_last_start_counts_only_for_the_same_model() -> None:
     from custom_components.denonavr_plus.avr.models import DeviceInfo
 
@@ -518,6 +547,8 @@ async def _restart_from_the_snapshot(
     if not layout:
         del snapshot["layout_version"]
     snapshot.update(stored)
+    # Written after the unload, which saves what changed while running.
+    assert await hass.config_entries.async_unload(entry.entry_id)
     hass_storage[f"{DOMAIN}.{entry.entry_id}.discovery"]["data"] = snapshot
     probes: list[str] = []
 
@@ -525,7 +556,7 @@ async def _restart_from_the_snapshot(
         probes.extend(queries)
 
     with patch("custom_components.denonavr_plus.avr.device.async_probe", probe):
-        assert await hass.config_entries.async_reload(entry.entry_id)
+        assert await hass.config_entries.async_setup(entry.entry_id)
     return probes
 
 
