@@ -29,6 +29,7 @@ Denon AVR Plus with the official integration.
 9. [With Music Assistant](#9-with-music-assistant)
 10. [Voice assistants and Apple Home](#10-voice-assistants-and-apple-home)
 11. [Troubleshooting](#11-troubleshooting)
+12. [Questions](#12-questions)
 
 ---
 
@@ -242,12 +243,16 @@ switches the receiver to its input.
 
 ![The Playback step: an input to link, pausing on turn off, and the signal option](images/guide/options-playback.png)
 
-![The linked player of an input, with its two switches](images/guide/options-linked-player.png)
+![The linked player of an input, with its switches](images/guide/options-linked-player.png)
 
 Per input, the **main zone can switch to the input when the player
 starts** (it turns on if needed, and linked players that no zone plays
-then pause; switching by remote to another linked input does the same) and **keep the player at full volume**, since you set the volume on
-the receiver. **Pause the linked player when the zone is switched off**
+then pause; switching by remote to another linked input does the same),
+**switch the player on and off with the input** (on when a zone switches to
+the input, off when every zone that played it is off) and **keep the player
+at full volume**, since you set the volume on the receiver. An input you
+renamed after its device gets that device's player suggested; the network
+input gets Music Assistant's player of the receiver. **Pause the linked player when the zone is switched off**
 (on by default) keeps a player from playing on to a receiver you switched
 off in Home Assistant. **Playing or idle by the input signal** shows *Playing* or
 *Idle* instead of *On* on inputs without a linked player; it has not been
@@ -260,6 +265,8 @@ tried on a receiver yet.
 > - Switch on **main zone switches to this input** for devices you start
 >   from their own remote or app, such as an Apple TV. Leave it off for a device that plays
 >   in the background, or the receiver switches when you did not want it.
+> - Switch on **switch the player on and off with the input** for a
+>   streamer or an Apple TV that should wake with the receiver.
 > - Switch on **full volume** for players with their own volume (AirPlay,
 >   Chromecast), so a lowered player does not make the receiver sound quiet.
 >   Not for a television or another device with its own speakers.
@@ -482,8 +489,44 @@ of its source list. What they understand depends on the names you give.
 | The receiver switches inputs by itself | **Main zone switches to this input when the player starts** is on for a device that plays in the background. | Switch it off for that input under **Configure → Playback**. |
 | Repair *"Linked media player not found"* | The linked player was removed or its integration is gone. | Fix it to unlink, or pick another player under **Configure → Playback**. |
 | New texts are missing or show raw keys after an update | The app keeps the old texts. | Reload the browser page or restart the companion app. |
+| No sound | Many causes: the zone off or muted, HDMI audio to the TV, speakers B, no signal from the device. | Press the zone's **Why no sound?** button: it names the cause and fixes power, mute and HDMI audio. |
 
 Still stuck? Open an issue on GitHub with your model, its firmware version
 and the diagnostics file (**⋮ → Download diagnostics** on the integration
 entry). Download it right after the problem shows: it holds the last 300
 lines sent to and received from the receiver.
+
+## 12. Questions
+
+**Can I use the Denon app, the official integration or another program at
+the same time?** The app yes, the others not reliably: receivers take one
+control connection (telnet, port 23). Denon AVR Plus holds it; another
+integration holding it shows up as a repair. The app's tuner screen holds it
+too while it is open. See [Move over](#8-move-over-from-another-denon-integration).
+
+**How does Music Assistant fit in?** Music Assistant plays to the receiver
+over HEOS, AirPlay or DLNA; Denon AVR Plus controls the receiver. Link the
+network input to Music Assistant's player of the receiver and the receiver's
+card shows and controls what Music Assistant plays. [Section 9](#9-with-music-assistant)
+says how.
+
+**Why can Zone 2 not play my Blu-ray player?** Smaller receivers play no HDMI
+input in Zone 2. The integration asks once after setup which inputs Zone 2
+can play, and drops an input the receiver refuses. Change the list under
+**Configure → Sources**.
+
+**Why do announcements not work on my receiver?** Announcements play over
+HEOS. Receivers without HEOS (the AVR-X2000 and older) have no way to play a
+stream from Home Assistant.
+
+**What is the Activity sensor for?** It says in one word what a zone plays
+(film, TV, music, radio, game), for automations: dim the light when a film
+starts, not when music plays. Link your players: their media type is the most
+reliable source.
+
+**Why did the integration set itself up again after a start?** From the
+second start on it starts from what it learned last time and asks the
+receiver in the background. When the receiver reports something new (a
+firmware update, a speaker set up), it sets itself up once more. The
+diagnostics show `fast_start` and how long the start took.
+

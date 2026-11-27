@@ -64,8 +64,8 @@ changes what Home Assistant shows and does.
     Empty: the volume as it is.
 
 **Zones and power**: which additional zones (zone 2, zone 3) get entities. Each such zone
-is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume and
-source sensor, and the zone's sleep timer, front left and right level, quick
+is a device of its own (`AVR-X2600H Zone 2`) with its media player, volume,
+source and activity sensors, a Why no sound? button, and the zone's sleep timer, front left and right level, quick
 select, auto standby and HDMI audio (through or PCM) where the receiver answers them, so you can put it in the room where it
 plays. A zone that is
 switched off loses its device and entities; switching it on again brings them
@@ -124,7 +124,13 @@ and its tokens.
   offers every input but the tuner, whose information comes from the receiver
   itself; an input with a player shows it after the arrow. The network input
   takes **Music Assistant's** player (see below); it has no full volume
-  switch. On receivers that list their network services one by one
+  switch. The receiver's own players are not offered, nor Music Assistant
+  players made of them (its *Home Assistant MediaPlayers* provider): linked
+  to the network input, play would go back and forth. With no player linked
+  yet, the step suggests one: for an input renamed after its device (*Apple
+  TV*) the one player whose name holds those words, for the network input
+  the one Music Assistant player named after the receiver. It is only a
+  suggestion; clear it to leave the input unlinked. On receivers that list their network services one by one
   (Favorites, Internet Radio, Server …) each of them counts as a network
   input. Every zone that plays the input then shows the player's title,
   artist, album, series, artwork, position and app, and its state (playing,
@@ -162,6 +168,11 @@ and its tokens.
     it only turns on, or when the receiver first reports after a start or
     reload. On a follow from standby the pause comes once the zone is on the
     new input, not with the old input it wakes up on.
+  - **Switch the player on and off with the input** (default off): when a
+    zone that is on switches to the input, or is switched on on it, the
+    player is switched on if it is off; when every zone that played it is
+    switched off, the player is switched off too. A zone moving to another
+    input leaves it on. Only for players that can be switched on or off.
   - **Keep the player at full volume** (default off): the volume is set on the
     receiver, so while a zone that is on plays the input, the player is set to
     100 % and unmuted: when the zone switches to the input, when the option is
@@ -395,6 +406,17 @@ AVC‑A10H describes it as 0–15).
 - **Sensors** (diagnostic): sample rate, decoder, audio format, input signal,
   mode info and sound mode; and per zone the selected **source**, under the
   name Home Assistant shows.
+- **Activity** per zone (a sensor, enabled): what the zone plays in one word,
+  for automations outside the receiver (dim the light for a film, keep the
+  heating up in the room in use): *off*, *announcement*, *music*, *radio*,
+  *film*, *TV*, *game* or *on*. Told from the linked player's media type
+  while it plays or pauses (a film, an episode, music), then from the input:
+  the tuner and HEOS stations are radio, the network input and its services
+  music, the game, TV and cable inputs game and TV, the disc players film.
+  These are the receiver's input codes, so a renamed input keeps its meaning.
+  Anything else is *on*.
+- **Why no sound?** per zone (a button): see the action below; the button
+  fixes what it safely can and posts what it found as a notification.
 - **Signal sensors**, on receivers with the setup interface (not the AVR-X2000):
   input and output resolution and HDR, input color space, color depth and FRL
   rate on the Video device, the input signal's channels and the active
@@ -552,6 +574,38 @@ target:
   entity_id: media_player.avr_x2600h
 response_variable: queue
 ```
+
+### Why no sound? (`denonavr_plus.why_no_sound`)
+
+Checks a zone for what may keep it silent and answers in plain words, in Home
+Assistant's language. It uses only what the integration already knows and
+asks the receiver nothing. In this order: no telnet connection (then nothing
+else can be told), the zone off, muted, a volume of −60 dB or below, Zone 2
+following a main zone that is off, an input the zone refused before, HDMI
+audio going to the TV (main zone), speakers B selected, the linked player not
+playing, and no signal on the input (where the receiver reports one: the
+main zone's input, not the network or the tuner; with the linked player
+playing, it points to **Recover audio**). When nothing applies it says so.
+
+With `fix`, it switches the zone on, unmutes and sends HDMI audio to the
+receiver where that was the cause. The volume, the speakers and the inputs
+are only named: that is the listener's call.
+
+| Field | Required | Description |
+|---|---|---|
+| `fix` | no | Put right what can safely be put right; false if left out. |
+
+```yaml
+action: denonavr_plus.why_no_sound
+target:
+  entity_id: media_player.avr_x2600h
+data:
+  fix: true
+response_variable: result
+```
+
+The response lists the findings: `check` (a key such as `muted`), `message`
+and `fixed`.
 
 ### Volume ramp (`denonavr_plus.volume_ramp`)
 
