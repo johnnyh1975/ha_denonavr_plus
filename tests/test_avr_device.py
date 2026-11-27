@@ -848,6 +848,24 @@ async def test_a_reconnect_reads_the_firmware_again(
     assert device.discovery.device.firmware_version == "9.999.1"
 
 
+@pytest.mark.assumed(
+    "the AVC-X3900H answers both ways (LaserGuruGuy's recording); that it takes "
+    "SSVCTZMALIM 60 and OPALSSET OFF is not yet tried on a receiver"
+)
+async def test_a_newer_receiver_is_written_in_its_own_spelling(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """AVC-X3900H (recorded): a two-digit volume limit and OPALSSET for auto lip sync."""
+    telnet = FakeTelnet.instances[-1]
+    device = loaded_entry.runtime_data.device
+    telnet.push("SSVCTZMALIM 70", "OPALSSET ON")
+    await asyncio.sleep(0.05)
+    telnet.sent.clear()
+    await device.async_set_control("volume_limit", "060")
+    await device.async_set_control("auto_lip_sync", False)
+    assert telnet.sent == ["SSVCTZMALIM 60", "OPALSSET OFF"]
+
+
 async def test_the_answers_to_the_resync_start_no_new_query(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

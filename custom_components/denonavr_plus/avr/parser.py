@@ -399,6 +399,10 @@ class TelnetParser:
             profile.introspection.get("quick_select", {}).get("prefix", "MSQUICK")
         )
         self._discovery = discovery
+        # How many digits the receiver itself writes a numeric enum value with,
+        # where that differs from the profile (an AVC-X3900H reports the volume
+        # limit as '70', the AVR-X3600H as '070'): control id -> digits.
+        self.digits: dict[str, int] = {}
         # Accumulators for the OPSML (current context) and OPSMLALL (all groups)
         # responses; each is swapped into discovery when its 'END' line arrives,
         # so the published lists are always a clean, complete single response.
@@ -433,6 +437,18 @@ class TelnetParser:
             ),
             key=lambda item: len(item[0]),
             reverse=True,
+        )
+        # Another spelling some receivers answer instead (AVC-X3900H: OPALSSET
+        # for auto lip sync); the one answered is also the one written.
+        self.variant_prefixes: dict[str, str] = {}
+        variants = [
+            (str(variant["prefix"]), spec)
+            for spec in profile.controls.values()
+            for variant in spec.get("variants") or ()
+            if variant.get("prefix")
+        ]
+        self._feature_matchers = sorted(
+            self._feature_matchers + variants, key=lambda item: len(item[0]), reverse=True
         )
         self._readonly_matchers = sorted(
             profile.readonly.items(),
@@ -537,6 +553,8 @@ class TelnetParser:
             return False
         if line.startswith("SSQSNZMA"):
             return self._set_quick_select_name(line[8:])
+        if line.startswith("SSQS") and line[4:5].isdigit():
+            return self._set_quick_select_block(line[4:])
         if line.startswith("SSSPC"):
             return self._set_speaker_config(line[5:], state)
         # SSSWM (subwoofer mode), MNZST (all-zone stereo) and SSVCTZMA* (volume
@@ -563,6 +581,8 @@ class TelnetParser:
                 # one of its known enum tokens, so it never swallows a sibling.
                 if control.get("exact_enum") and remainder.strip() not in control.values:
                     continue
+                if prefix != control.prefix:
+                    self.variant_prefixes[control.id] = prefix
                 return self._set_feature(control, remainder, state)
 
         return False
@@ -871,6 +891,40 @@ class TelnetParser:
             )
         )
 
+    def _known_spelling(self, spec: ControlSpec, remainder: str) -> str:
+        """The profile's value for a number the receiver writes its own way."""
+
+        values = [str(value) for value in spec.get("values") or ()]
+        if remainder in values or not remainder.isdigit():
+            return remainder
+        for value in values:
+            if value.isdigit() and int(value) == int(remainder):
+                self.digits[spec.id] = len(remainder)
+                return value
+        return remainder
+
+    def _set_quick_select_block(self, remainder: str) -> bool:
+        """A quick select as a block: 'SSQS2QSN <name>' names preset 2.
+
+        Newer receivers (AVC-X3900H) answer per preset with one line per stored
+        item (QSN name, SRC, VOL, SDM ...) and 'SSQS2 END'; only the name is
+        used.
+        """
+
+        digits = ""
+        for char in remainder:
+            if not char.isdigit():
+                break
+            digits += char
+        item = remainder[len(digits) :]
+        if not digits or not item.startswith("QSN "):
+            return bool(digits)
+        name = item[4:].strip()
+        if not name:
+            return False
+        self._discovery.quick_select_names[int(digits)] = name
+        return True
+
     def _set_quick_select_name(self, remainder: str) -> bool:
         """Parse a 'QS<n> <name>' quick select entry into the discovery model."""
 
@@ -960,7 +1014,7 @@ class TelnetParser:
                 return False
             state.values[spec.id] = remainder == on
         elif kind == "enum":
-            state.values[spec.id] = remainder
+            state.values[spec.id] = self._known_spelling(spec, remainder)
         elif kind == "level":
             value = decode_half_step(remainder)
             if value is None:

@@ -1606,6 +1606,10 @@ class DenonAvrDevice:
         # are built from) arrive as early as possible after connecting.
         for introspection in self._profile.introspection.values():
             add(introspection.get("query"))
+        if not self._discovery.quick_select_names:
+            # A receiver that names its quick selects only in blocks.
+            for query in self._profile.introspection.get("quick_select_blocks", {}).get("queries", ()):
+                add(query)
         # Core controls (main zone) are always present.
         for spec in self._profile.controls_by_scope("core"):
             add(spec.query)
@@ -1630,6 +1634,8 @@ class DenonAvrDevice:
                 add(control.query)
                 add(control.get("list_query"))
                 add(control.get("read_query"))
+                for variant in control.get("variants") or ():
+                    add(variant.get("query"))
         # Controls without a Deviceinfo name that answered at setup.
         for answered in self._profile.controls_by_scope("answered"):
             if answered.id in self._discovery.answered:
@@ -2359,7 +2365,21 @@ class DenonAvrDevice:
         argument = self._encode_control_value(spec, value)
         if argument is None:
             return
-        await self._send(f"{spec.prefix}{argument}")
+        await self._send(f"{self._write_prefix(spec)}{argument}")
+
+    def _write_prefix(self, spec: ControlSpec) -> str:
+        """The prefix to write with: the variant the receiver answered, if any."""
+
+        return self._parser.variant_prefixes.get(spec.id, spec.prefix or "")
+
+    def _read_query(self, spec: ControlSpec) -> str | None:
+        """The query to read with: that of the variant the receiver answered, if any."""
+
+        prefix = self._parser.variant_prefixes.get(spec.id)
+        for variant in spec.get("variants") or ():
+            if variant.get("prefix") == prefix:
+                return str(variant.get("query") or spec.query or "") or None
+        return spec.query
 
     async def async_set_control_confirmed(
         self, control_id: str, value: object, *, turn_on: bool = False
@@ -2400,13 +2420,13 @@ class DenonAvrDevice:
         argument = self._encode_control_value(spec, value)
         if argument is None:
             return
-        wanted = _reply_or_error(spec.prefix)
-        command = f"{spec.prefix}{argument}"
+        prefix = self._write_prefix(spec)
+        wanted = _reply_or_error(prefix)
+        command = f"{prefix}{argument}"
         await self.async_collect(wanted, lambda: self._send(command), CONFIRM_WAIT)
         if command_test.same(self._state.values.get(control_id), value):
             return
-        if spec.query:
-            query = spec.query
+        if query := self._read_query(spec):
             await self.async_collect(wanted, lambda: self._send(query), CONFIRM_WAIT)
             if command_test.same(self._state.values.get(control_id), value):
                 return
@@ -2472,6 +2492,10 @@ class DenonAvrDevice:
         if kind == "onoff":
             return str(spec.get("on", "ON") if value else spec.get("off", "OFF"))
         if kind == "enum":
+            # In the receiver's own spelling, where it has one (see the parser).
+            digits = self._parser.digits.get(spec.id)
+            if digits is not None and str(value).isdigit():
+                return str(int(str(value))).zfill(digits)
             return str(value)
         if kind == "level":
             raw = self._profile.level_reference + float(value)

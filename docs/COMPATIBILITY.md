@@ -98,8 +98,15 @@ differences the integration follows:
 | Status | Models |
 |---|---|
 | **Tested**: the receiver test ran on the receiver | AVR-X3600H, AVR-X2600H (2016 on), AVR-X2000 (2013) |
-| **Recorded**: `Deviceinfo.xml` (from 2013) or the main zone page (2010–2012) of the model is in the tests | AVR-X4500H, AVC-X3700H, AVC-X8500H, AVC-A10H, NR1609, SR6012, AV7703 (2016 on); AVR-X2100W, AVR-X4100W, SR6011 (2014–2016); AVR-X1100W (2014); AVR-X4000, AVR-1713, AVR-3313, NR1604, SR5008 (2013); AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810 (2010–2012) |
-| **Expected**: same generation, not seen yet | every other Denon or Marantz AV receiver from 2010 on |
+| **Recorded**: `Deviceinfo.xml` (from 2013) or the main zone page (2010–2012) of the model is in the tests | AVC-X3900H (2026, with all its telnet answers, recorded by [LaserGuruGuy](https://github.com/LaserGuruGuy/denon_avr)), AVR-X4500H, AVC-X3700H, AVC-X8500H, AVC-A10H, NR1609, SR6012, AV7703 (2016 on); AVR-X2100W, AVR-X4100W, SR6011 (2014–2016); AVR-X1100W (2014); AVR-X4000, AVR-1713, AVR-3313, NR1604, SR5008 (2013); AVR-1912, AVR-2312CI, AVR-3311CI, AVR-3312, AVR-4810 (2010–2012) |
+| **Expected**: same generation, not seen yet | every other Denon or Marantz AV receiver from 2010 on, including the 2026 models AVR-S980H, AVR-X2900H and Marantz CINEMA 50, 60 and 70s Series 2 |
+
+The receivers from about 2022 on (Web Control, the setup interface on port
+11080) answer some queries in a newer form: speakers as present or absent
+instead of a size, up to four subwoofers, quick selects in blocks, auto lip
+sync as `OPALS`, the volume limit in two digits. The integration reads both
+forms; what it writes in the newer form has not been tried on such a
+receiver yet.
 
 Protocol details per generation are in [docs/protocol](protocol/README.md):
 [interface levels](protocol/01-overview.md#interface-levels-commapivers),

@@ -1054,6 +1054,15 @@
       "subwoofer_level": {
         "name": "Poziom subwoofera"
       },
+      "subwoofer_2_level": {
+        "name": "Poziom subwoofera 2"
+      },
+      "subwoofer_3_level": {
+        "name": "Poziom subwoofera 3"
+      },
+      "subwoofer_4_level": {
+        "name": "Poziom subwoofera 4"
+      },
       "sleep_timer": {
         "name": "Wyłącznik czasowy"
       },

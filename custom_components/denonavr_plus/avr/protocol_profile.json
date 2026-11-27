@@ -315,6 +315,11 @@
       "prefix": "SSQSNZMA",
       "doc": "Main zone quick select preset names, one per line ('SSQSNZMAQS<n> <name>'), terminated by 'SSQSNZMA END'."
     },
+    "quick_select_blocks": {
+      "doc": "Newer receivers (AVC-X3900H, recorded by LaserGuruGuy/denon_avr) answer no SSQSNZMA ? but name each preset in a block: SSQS<n>QSN <name>, one line per stored item (SRC, VOL, SDM ...), SSQS<n> END. Asked only while no SSQSNZMA name has come; only the name is used.",
+      "queries": ["SSQS1 ?", "SSQS2 ?", "SSQS3 ?", "SSQS4 ?"],
+      "prefix": "SSQS"
+    },
     "quick_select": {
       "query": "MSQUICK ?",
       "prefix": "MSQUICK",
@@ -618,7 +623,8 @@
       "on": "ON",
       "off": "OFF",
       "doc": "Auto lip sync (automatic A/V delay). An AVR-X2600H (3.139.175) answers SSALS ? with SSALSSET ON, SSALSDSP OFF and SSALSVAL 000, and has no SSHOSALS (neither SSHOSALS ? nor a line in SSHOS ?); SSALSSET is read as the setting. Writing 'SSALSSET ON|OFF' is in no document; an AVR-X2600H took both in its command test. Receivers on port 80 report it as SSHOSALS in the HDMI setup list instead (older variant). Gated on the advertised AutoLipSync capability or an answer.",
-      "older": {"query": "SSHOS ?", "prefix": "SSHOSALS ", "doc": "AVR-X2000: SSHOSALS ON inside SSHOS ?, no answer to SSHOSALS ?; SSHOSALS OFF confirmed in its command test."}
+      "older": {"query": "SSHOS ?", "prefix": "SSHOSALS ", "doc": "AVR-X2000: SSHOSALS ON inside SSHOS ?, no answer to SSHOSALS ?; SSHOSALS OFF confirmed in its command test."},
+      "variants": [{"query": "OPALS ?", "prefix": "OPALSSET ", "doc": "AVC-X3900H (3.139.174, recorded by LaserGuruGuy/denon_avr): OPALSSET ON, OPALSDSP ON and OPALSVAL 000, also pushed with an input change; no SSALS. The answered prefix is also written (OPALSSET ON|OFF), not yet tried on a receiver."}]
     },
     "dynamic_volume": {
       "group": "audyssey",
@@ -709,6 +715,33 @@
       "query": "PSSWL ?",
       "prefix": "PSSWL ",
       "doc": "Subwoofer level, half step, 50 == 0 dB. The dB range is discovered from the receiver's SubwooferLevel block."
+    },
+    "subwoofer_2_level": {
+      "group": "speaker",
+      "subdevice": "audio",
+      "scope": "answered",
+      "kind": "level",
+      "query": "PSSWL ?",
+      "prefix": "PSSWL2 ",
+      "doc": "Level of subwoofer 2, as subwoofer 1. PSSWL ? answers it next to PSSWL when the subwoofer is set up (LaserGuruGuy/denon_avr saw 'PSSWL2 59'; the recorded AVC-X3900H reports SSLEVSW2 to SSLEVSW4). Not yet tried on a receiver by this integration."
+    },
+    "subwoofer_3_level": {
+      "group": "speaker",
+      "subdevice": "audio",
+      "scope": "answered",
+      "kind": "level",
+      "query": "PSSWL ?",
+      "prefix": "PSSWL3 ",
+      "doc": "Level of subwoofer 3, as subwoofer 1. PSSWL ? answers it next to PSSWL when the subwoofer is set up (LaserGuruGuy/denon_avr saw 'PSSWL2 59'; the recorded AVC-X3900H reports SSLEVSW2 to SSLEVSW4). Not yet tried on a receiver by this integration."
+    },
+    "subwoofer_4_level": {
+      "group": "speaker",
+      "subdevice": "audio",
+      "scope": "answered",
+      "kind": "level",
+      "query": "PSSWL ?",
+      "prefix": "PSSWL4 ",
+      "doc": "Level of subwoofer 4, as subwoofer 1. PSSWL ? answers it next to PSSWL when the subwoofer is set up (LaserGuruGuy/denon_avr saw 'PSSWL2 59'; the recorded AVC-X3900H reports SSLEVSW2 to SSLEVSW4). Not yet tried on a receiver by this integration."
     },
     "volume_scale": {
       "group": "volume",

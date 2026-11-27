@@ -105,6 +105,8 @@ AVR-X2000.
 | `SSINFAISSIG ?` | Input signal type as a raw code | this integration |
 | `SSQSNZMA ?` | Quick Select names of the main zone, one per line (`SSQSNZMAQS<n> <name>`), ending in `SSQSNZMA END` | this integration |
 | `SSHOSALS ?` | Auto lip sync, `ON`/`OFF`; silent unless a video source is active | this integration (candidate) |
+| `SSQS1 ?`, `SSQS2 ?`, `SSQS3 ?`, `SSQS4 ?` | Quick Select as a block on newer receivers (AVC-X3900H): `SSQS<n>QSN <name>`, one line per stored item (`SRC`, `VOL`, `SDM` …), `SSQS<n> END`; no answer to `SSQSNZMA ?` there | LaserGuruGuy/denon_avr (recorded AVC-X3900H) |
+| `OPALS ?` | Auto lip sync on newer receivers (AVC-X3900H): `OPALSSET ON`/`OFF` (the setting), `OPALSDSP`, `OPALSVAL`; also pushed with an input change; no `SSALS` there | LaserGuruGuy/denon_avr (recorded AVC-X3900H) |
 | `SSLFL ?` | Low-pass filter for LFE, three-digit Hz: `080`, `090`, `100`, `110`, `120`, `150`, `180`, `200`, `250` | this integration; read and written on the AVR-X3600H |
 | `SSSWM ?` | Subwoofer mode `LFE` or `L+M` (LFE + Main) | this integration; read and written on the AVR-X3600H |
 | `SSVCTZMA ?` | Main zone volume settings, one line each: `SSVCTZMADIS` scale `REL`/`ABS`, `SSVCTZMALIM` limit `OFF`/`060`/`070`/`080`, `SSVCTZMAMLV` muting level `MUT`/`040` | this integration; read and written on the AVR-X3600H |

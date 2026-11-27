@@ -1054,6 +1054,15 @@
       "subwoofer_level": {
         "name": "Nível do subwoofer"
       },
+      "subwoofer_2_level": {
+        "name": "Nível do subwoofer 2"
+      },
+      "subwoofer_3_level": {
+        "name": "Nível do subwoofer 3"
+      },
+      "subwoofer_4_level": {
+        "name": "Nível do subwoofer 4"
+      },
       "sleep_timer": {
         "name": "Temporizador de desligar"
       },

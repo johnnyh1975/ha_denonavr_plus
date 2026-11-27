@@ -75,6 +75,15 @@
       "subwoofer_level": {
         "default": "mdi:speaker"
       },
+      "subwoofer_2_level": {
+        "default": "mdi:speaker"
+      },
+      "subwoofer_3_level": {
+        "default": "mdi:speaker"
+      },
+      "subwoofer_4_level": {
+        "default": "mdi:speaker"
+      },
       "tactile_transducer_level": {
         "default": "mdi:vibrate"
       },

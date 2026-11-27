@@ -1054,6 +1054,15 @@
       "subwoofer_level": {
         "name": "Niveau du caisson de basses"
       },
+      "subwoofer_2_level": {
+        "name": "Niveau du caisson de basses 2"
+      },
+      "subwoofer_3_level": {
+        "name": "Niveau du caisson de basses 3"
+      },
+      "subwoofer_4_level": {
+        "name": "Niveau du caisson de basses 4"
+      },
       "sleep_timer": {
         "name": "Minuterie de veille"
       },

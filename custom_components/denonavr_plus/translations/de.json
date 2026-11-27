@@ -1054,6 +1054,15 @@
       "subwoofer_level": {
         "name": "Subwoofer-Pegel"
       },
+      "subwoofer_2_level": {
+        "name": "Subwoofer-2-Pegel"
+      },
+      "subwoofer_3_level": {
+        "name": "Subwoofer-3-Pegel"
+      },
+      "subwoofer_4_level": {
+        "name": "Subwoofer-4-Pegel"
+      },
       "sleep_timer": {
         "name": "Sleep-Timer"
       },

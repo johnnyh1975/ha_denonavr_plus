@@ -1054,6 +1054,15 @@
       "subwoofer_level": {
         "name": "Subwooferniveau"
       },
+      "subwoofer_2_level": {
+        "name": "Subwoofer 2-niveau"
+      },
+      "subwoofer_3_level": {
+        "name": "Subwoofer 3-niveau"
+      },
+      "subwoofer_4_level": {
+        "name": "Subwoofer 4-niveau"
+      },
       "sleep_timer": {
         "name": "Slaaptimer"
       },

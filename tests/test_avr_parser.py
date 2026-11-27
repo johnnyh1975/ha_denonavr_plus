@@ -243,6 +243,9 @@ ANSWERED_REPLIES = [
     ("TR1 ON", "trigger_1", True),
     ("TR2 OFF", "trigger_2", False),
     ("SPPR 2", "speaker_preset", "2"),
+    ("PSSWL2 59", "subwoofer_2_level", 9.0),
+    ("PSSWL3 48", "subwoofer_3_level", -2.0),
+    ("PSSWL4 515", "subwoofer_4_level", 1.5),
     ("PSDEH MED", "dialog_enhancer", "MED"),
     ("PSIMAX AUTO", "imax", "AUTO"),
     ("PSIMAXAUD MANUAL", "imax_audio", "MANUAL"),
@@ -785,3 +788,72 @@ def test_an_input_named_by_its_code_earlier_gets_its_readable_name() -> None:
     parser, state = TelnetParser(load_profile(), discovery), AvrState()
     parser.feed("SSSODIRADIO USE", state)
     assert discovery.sources[0].name == "Internet Radio"
+
+
+# ── Recordings of newer receivers (LaserGuruGuy/denon_avr) ────────────────
+
+_RECORDINGS = Path(__file__).parent / "fixtures" / "laserguruguy"
+
+
+def _replay(model: str) -> tuple[TelnetParser, AvrState, Discovery]:
+    """Every telnet line a recorded receiver sent, through the parser."""
+    folder = _RECORDINGS / model
+    profile = load_profile()
+    features = {s.feature for s in profile.controls.values() if s.feature}
+    discovery = parse_device_info(
+        (folder / "goform_Deviceinfo.xml").read_text(),
+        features,
+        receiver_type=profile.receiver_type,
+    )
+    parser, state = TelnetParser(profile, discovery), AvrState()
+    for entry in json.loads((folder / "telnet_corpus.json").read_text()):
+        parser.feed(entry["line"], state)
+    return parser, state, discovery
+
+
+def test_a_recorded_avc_x3900h_is_read_as_it_reports() -> None:
+    """AVC-X3900H (2026, 3.139.174): YES/NO speakers, four subwoofers, OPALS."""
+    parser, state, discovery = _replay("avc_x3900h")
+    assert discovery.device.model_name == "AVC-X3900H"
+    assert discovery.configured_channels == {"FL", "FR", "C", "SL", "SR", "SW"}
+    # Auto lip sync as OPALSSET (no SSALS); the answered prefix is the one written.
+    assert state.values["auto_lip_sync"] is True
+    assert parser.variant_prefixes["auto_lip_sync"] == "OPALSSET "
+    # The volume limit in two digits: the profile's value, the receiver's spelling.
+    assert state.values["volume_limit"] == "070"
+    assert parser.digits["volume_limit"] == 2
+    assert state.channel_levels["SW2"] == 9.0
+    assert state.values["input_mode"] == "EARC"
+
+
+def test_a_recorded_avr_x3600h_keeps_the_older_spellings() -> None:
+    parser, state, discovery = _replay("avr_x3600h")
+    assert discovery.quick_select_names == {
+        1: "Quick Select 1", 2: "Quick Select 2", 3: "Quick Select 3", 4: "Quick Select 4"
+    }
+    assert state.values["volume_limit"] == "060"
+    assert parser.digits == {}
+    assert "auto_lip_sync" not in parser.variant_prefixes
+
+
+@pytest.mark.assumed(
+    "the block lines come from LaserGuruGuy's tests ('SSQS2QSN Movie night', "
+    "'SSQS2SRC ON', 'SSQS2 END'), not from his recorded telnet corpus; an "
+    "AVC-X3900H answering SSQS2 ? would settle it"
+)
+def test_quick_selects_named_in_blocks() -> None:
+    discovery = Discovery()
+    parser, state = TelnetParser(load_profile(), discovery), AvrState()
+    for line in ("SSQS2QSN Movie night  ", "SSQS2SRC ON", "SSQS2 END"):
+        assert parser.feed(line, state)
+    assert discovery.quick_select_names == {2: "Movie night"}
+
+
+@pytest.mark.assumed(
+    "PSSWL2 next to PSSWL comes from LaserGuruGuy/denon_avr ('PSSWL2 59'); the "
+    "recorded AVC-X3900H answers PSSWL ? with PSSWL alone (its levels via SSLEV)"
+)
+def test_the_level_of_a_second_subwoofer() -> None:
+    parser, state = TelnetParser(load_profile(), Discovery()), AvrState()
+    assert parser.feed("PSSWL2 59", state)
+    assert state.values["subwoofer_2_level"] == 9.0

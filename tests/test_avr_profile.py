@@ -88,6 +88,11 @@ def test_every_query_is_in_the_protocol_docs() -> None:
         v["query"] for v in raw["introspection"].values()
         if isinstance(v, dict) and v.get("query")
     }
+    for v in raw["introspection"].values():
+        if isinstance(v, dict):
+            queries |= set(v.get("queries", []))
+    for control in raw["controls"].values():
+        queries |= {variant["query"] for variant in control.get("variants", [])}
     for group in raw["refresh"]["groups"].values():
         queries |= set(group.get("queries", []))
     docs = "\n".join(f.read_text() for f in sorted((root / "docs/protocol").rglob("*.md")))
