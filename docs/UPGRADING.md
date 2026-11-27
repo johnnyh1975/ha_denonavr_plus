@@ -9,11 +9,11 @@ nothing from you are not listed. What changed in each version is in the
 - **New entities per zone**: an *Activity* sensor (what the zone plays) and
   a *Why no sound?* button. Both start enabled; disable them on the device
   page if you do not want them.
-- **Faster start**: from the second start on, the entities come from the last
-  state the integration knew and the receiver is asked in the background. The first
-  start after this update still asks everything once. If the receiver
-  reports other capabilities than last time, the integration sets itself up
-  once more by itself.
+- **Faster start**: from the second start on, the entities come from the
+  last state the integration knew and the receiver is asked in the
+  background. The first start after this update still asks everything once.
+  If the receiver reports other capabilities than last time, the
+  integration sets itself up once more by itself.
 - Linked players have a new switch, **Switch the player on and off with the
   input**, off for existing links.
 
