@@ -14,8 +14,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from . import choices, no_sound
+from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action
+from .entity import DenonAvrEntity, receiver_action, zone_device
 
 
 # The graphic EQ buttons write the setup interface one at a time.
@@ -42,6 +44,11 @@ async def async_setup_entry(
     )
     entities.extend(DenonAvrCommandButton(coordinator, name) for name in device.button_commands)
     entities.append(DenonAvrRecoverAudio(coordinator))
+    entities.extend(
+        DenonAvrWhyNoSound(coordinator, zone)
+        for zone in device.discovery.zones
+        if choices.zone_enabled(dict(entry.options), zone.id)
+    )
     async_add_entities(entities)
 
 
@@ -154,3 +161,26 @@ class DenonAvrRecoverAudio(DenonAvrEntity, ButtonEntity):
     async def async_press(self) -> None:
         await self.coordinator.device.async_recover_audio()
 
+
+
+class DenonAvrWhyNoSound(DenonAvrEntity, ButtonEntity):
+    """Why is there no sound? Fixes what it safely can and posts what it found.
+
+    See no_sound.py: switching the zone on, unmuting and HDMI audio back to
+    the receiver are fixed; volume, speakers and inputs are only named.
+    """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor) -> None:
+        super().__init__(coordinator, f"button_why_no_sound_{zone.id}", sub_device=zone_device(zone))
+        self._zone = zone
+        self._attr_translation_key = "why_no_sound"
+
+    async def async_press(self) -> None:
+        result = await no_sound.async_check(
+            self.hass, self.coordinator, self._zone.id, self._entry_options, fix=True
+        )
+        entry = self.coordinator.config_entry
+        assert entry is not None
+        await no_sound.async_notify(self.hass, entry.entry_id, self._zone.id, result)

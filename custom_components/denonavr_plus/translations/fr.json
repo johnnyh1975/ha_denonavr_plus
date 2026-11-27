@@ -1128,6 +1128,9 @@
       },
       "recover_audio": {
         "name": "Rétablir le son"
+      },
+      "why_no_sound": {
+        "name": "Pourquoi pas de son ?"
       }
     },
     "remote": {
@@ -1262,6 +1265,57 @@
     },
     "linked_player_gone": {
       "message": "Le lecteur lié à {input} n'est plus lié ou n'existe plus."
+    },
+    "no_sound_title": {
+      "message": "Pourquoi pas de son ?"
+    },
+    "no_sound_main_zone": {
+      "message": "La zone principale"
+    },
+    "no_sound_not_connected": {
+      "message": "Home Assistant n'a pas de connexion avec l'ampli pour le moment et ne peut pas le vérifier."
+    },
+    "no_sound_zone_off": {
+      "message": "{zone} est éteinte."
+    },
+    "no_sound_zone_off_fixed": {
+      "message": "{zone} était éteinte ; elle est allumée maintenant."
+    },
+    "no_sound_muted": {
+      "message": "{zone} est en sourdine."
+    },
+    "no_sound_muted_fixed": {
+      "message": "{zone} était en sourdine ; le son est rétabli."
+    },
+    "no_sound_volume_low": {
+      "message": "Le volume est très bas ({volume})."
+    },
+    "no_sound_follows_main_off": {
+      "message": "{zone} diffuse ce que diffuse la zone principale, et la zone principale est éteinte."
+    },
+    "no_sound_refused_input": {
+      "message": "{zone} ne peut pas lire {input} ; l'ampli l'a déjà refusée. Choisissez une autre entrée."
+    },
+    "no_sound_hdmi_audio_tv": {
+      "message": "Le son HDMI va au téléviseur, pas aux enceintes de l'ampli."
+    },
+    "no_sound_hdmi_audio_tv_fixed": {
+      "message": "Le son HDMI allait au téléviseur ; il revient à l'ampli maintenant."
+    },
+    "no_sound_speakers_b": {
+      "message": "Les enceintes B sont sélectionnées ; si rien n'y est branché, les enceintes A restent muettes."
+    },
+    "no_sound_player_not_playing": {
+      "message": "{player} sur {input} ne lit rien."
+    },
+    "no_sound_no_signal": {
+      "message": "L'ampli ne reçoit pas de son de {input} : l'appareil est-il allumé et en lecture ?"
+    },
+    "no_sound_no_signal_while_playing": {
+      "message": "{player} lit, mais l'ampli ne reçoit pas de son de {input}. Essayez le bouton Rétablir le son, ou éteignez et rallumez l'appareil."
+    },
+    "no_sound_nothing_found": {
+      "message": "Rien trouvé : alimentation, sourdine, volume, sortie audio et entrée semblent corrects. Vérifiez les câbles et l'appareil sur l'entrée."
     }
   },
   "issues": {
@@ -1456,6 +1510,16 @@
         "duration": {
           "name": "Durée",
           "description": "Secondes que dure la rampe ; 0 règle le volume immédiatement."
+        }
+      }
+    },
+    "why_no_sound": {
+      "name": "Pourquoi pas de son ?",
+      "description": "Vérifie ce qui peut rendre une zone muette (éteinte, en sourdine, volume, son HDMI vers le téléviseur, enceintes B, pas de signal d'entrée, le lecteur associé) et répond en termes simples. Avec Corriger, allume la zone, coupe la sourdine et envoie le son HDMI à l'ampli quand c'était la cause.",
+      "fields": {
+        "fix": {
+          "name": "Corriger",
+          "description": "Corrige ce qui peut l'être sans risque : alimentation, sourdine et sortie audio HDMI. Le volume, les enceintes et les entrées sont seulement indiqués."
         }
       }
     },

@@ -86,7 +86,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import artwork, choices, heos_media, linked_players, sound_modes
+from . import artwork, choices, heos_media, linked_players, no_sound, sound_modes
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent, SourceNotTaken
@@ -1723,6 +1723,15 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     @property
     def _model(self) -> str:
         return self._device.discovery.device.model_name or "receiver"
+
+    # Why no sound? (action) ----------------------------------------------------
+
+    async def async_why_no_sound(self, fix: bool) -> list[dict[str, Any]]:
+        """What may keep this zone silent, and, with fix, what was put right."""
+
+        return await no_sound.async_check(
+            self.hass, self.coordinator, self._zone.id, self._entry_options, fix=fix
+        )
 
     # Volume ramp (action) ------------------------------------------------------
 

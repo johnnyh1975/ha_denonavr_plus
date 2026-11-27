@@ -39,6 +39,16 @@
     "enabled": false,
     "category": "diagnostic"
   },
+  "button_why_no_sound_main": {
+    "entity_id": "button.avc_x3700h_why_no_sound",
+    "enabled": true,
+    "category": "diagnostic"
+  },
+  "button_why_no_sound_zone2": {
+    "entity_id": "button.avc_x3700h_zone_2_why_no_sound",
+    "enabled": true,
+    "category": "diagnostic"
+  },
   "media_player_main": {
     "entity_id": "media_player.avc_x3700h",
     "enabled": true,

@@ -21,6 +21,9 @@
       },
       "recover_audio": {
         "default": "mdi:volume-source"
+      },
+      "why_no_sound": {
+        "default": "mdi:volume-off"
       }
     },
     "number": {
@@ -479,6 +482,9 @@
     },
     "move_queue_item": {
       "service": "mdi:swap-vertical"
+    },
+    "why_no_sound": {
+      "service": "mdi:help-circle-outline"
     }
   }
 }

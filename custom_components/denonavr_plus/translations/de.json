@@ -1128,6 +1128,9 @@
       },
       "recover_audio": {
         "name": "Ton wiederherstellen"
+      },
+      "why_no_sound": {
+        "name": "Warum kein Ton?"
       }
     },
     "remote": {
@@ -1262,6 +1265,57 @@
     },
     "linked_player_gone": {
       "message": "Der mit {input} verknüpfte Player ist nicht mehr verknüpft oder existiert nicht mehr."
+    },
+    "no_sound_title": {
+      "message": "Warum kein Ton?"
+    },
+    "no_sound_main_zone": {
+      "message": "Die Hauptzone"
+    },
+    "no_sound_not_connected": {
+      "message": "Home Assistant hat gerade keine Verbindung zum Receiver und kann ihn nicht prüfen."
+    },
+    "no_sound_zone_off": {
+      "message": "{zone} ist aus."
+    },
+    "no_sound_zone_off_fixed": {
+      "message": "{zone} war aus und ist jetzt eingeschaltet."
+    },
+    "no_sound_muted": {
+      "message": "{zone} ist stummgeschaltet."
+    },
+    "no_sound_muted_fixed": {
+      "message": "{zone} war stummgeschaltet; der Ton ist wieder an."
+    },
+    "no_sound_volume_low": {
+      "message": "Die Lautstärke ist sehr niedrig ({volume})."
+    },
+    "no_sound_follows_main_off": {
+      "message": "{zone} spielt, was die Hauptzone spielt, und die Hauptzone ist aus."
+    },
+    "no_sound_refused_input": {
+      "message": "{zone} kann {input} nicht spielen; der Receiver hat den Eingang schon abgelehnt. Wähle einen anderen Eingang."
+    },
+    "no_sound_hdmi_audio_tv": {
+      "message": "Der HDMI-Ton geht an den Fernseher, nicht an die Lautsprecher des Receivers."
+    },
+    "no_sound_hdmi_audio_tv_fixed": {
+      "message": "Der HDMI-Ton ging an den Fernseher; jetzt geht er wieder an den Receiver."
+    },
+    "no_sound_speakers_b": {
+      "message": "Lautsprecher B sind gewählt; hängt dort nichts, bleiben Lautsprecher A stumm."
+    },
+    "no_sound_player_not_playing": {
+      "message": "{player} an {input} spielt nicht."
+    },
+    "no_sound_no_signal": {
+      "message": "Der Receiver bekommt keinen Ton von {input}: Ist das Gerät an und spielt es?"
+    },
+    "no_sound_no_signal_while_playing": {
+      "message": "{player} spielt, aber der Receiver bekommt keinen Ton von {input}. Probiere die Taste „Ton wiederherstellen“ oder schalte das Gerät aus und wieder an."
+    },
+    "no_sound_nothing_found": {
+      "message": "Nichts gefunden: Strom, Stummschaltung, Lautstärke, Tonausgang und Eingang sehen richtig aus. Prüfe die Kabel und das Gerät am Eingang."
     }
   },
   "issues": {
@@ -1456,6 +1510,16 @@
         "duration": {
           "name": "Dauer",
           "description": "Sekunden, die die Rampe dauert; 0 setzt die Lautstärke sofort."
+        }
+      }
+    },
+    "why_no_sound": {
+      "name": "Warum kein Ton?",
+      "description": "Prüft eine Zone auf das, was sie stumm halten kann (aus, stumm, Lautstärke, HDMI-Ton an den Fernseher, Lautsprecher B, kein Eingangssignal, der verknüpfte Player), und antwortet in Klartext. Mit Beheben schaltet es die Zone ein, hebt die Stummschaltung auf und schickt den HDMI-Ton an den Receiver, wo das die Ursache war.",
+      "fields": {
+        "fix": {
+          "name": "Beheben",
+          "description": "Behebt, was sich gefahrlos beheben lässt: Strom, Stummschaltung und HDMI-Tonausgang. Lautstärke, Lautsprecher und Eingänge werden nur genannt."
         }
       }
     },

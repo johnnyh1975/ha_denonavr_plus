@@ -1128,6 +1128,9 @@
       },
       "recover_audio": {
         "name": "Recuperar el sonido"
+      },
+      "why_no_sound": {
+        "name": "¿Por qué no hay sonido?"
       }
     },
     "remote": {
@@ -1262,6 +1265,57 @@
     },
     "linked_player_gone": {
       "message": "El reproductor vinculado a {input} ya no está vinculado o ya no existe."
+    },
+    "no_sound_title": {
+      "message": "¿Por qué no hay sonido?"
+    },
+    "no_sound_main_zone": {
+      "message": "La zona principal"
+    },
+    "no_sound_not_connected": {
+      "message": "Home Assistant no tiene conexión con el receptor en este momento y no puede comprobarlo."
+    },
+    "no_sound_zone_off": {
+      "message": "{zone} está apagada."
+    },
+    "no_sound_zone_off_fixed": {
+      "message": "{zone} estaba apagada; ahora está encendida."
+    },
+    "no_sound_muted": {
+      "message": "{zone} está silenciada."
+    },
+    "no_sound_muted_fixed": {
+      "message": "{zone} estaba silenciada; el sonido vuelve a estar activo."
+    },
+    "no_sound_volume_low": {
+      "message": "El volumen es muy bajo ({volume})."
+    },
+    "no_sound_follows_main_off": {
+      "message": "{zone} reproduce lo mismo que la zona principal, y la zona principal está apagada."
+    },
+    "no_sound_refused_input": {
+      "message": "{zone} no puede reproducir {input}; el receptor ya lo rechazó. Elige otra entrada."
+    },
+    "no_sound_hdmi_audio_tv": {
+      "message": "El audio HDMI va al televisor, no a los altavoces del receptor."
+    },
+    "no_sound_hdmi_audio_tv_fixed": {
+      "message": "El audio HDMI iba al televisor; ahora vuelve al receptor."
+    },
+    "no_sound_speakers_b": {
+      "message": "Están seleccionados los altavoces B; si no hay nada conectado, los altavoces A quedan en silencio."
+    },
+    "no_sound_player_not_playing": {
+      "message": "{player} en {input} no está reproduciendo."
+    },
+    "no_sound_no_signal": {
+      "message": "El receptor no recibe audio de {input}: ¿está el dispositivo encendido y reproduciendo?"
+    },
+    "no_sound_no_signal_while_playing": {
+      "message": "{player} reproduce, pero el receptor no recibe audio de {input}. Prueba el botón Recuperar el sonido, o apaga y enciende el dispositivo."
+    },
+    "no_sound_nothing_found": {
+      "message": "No se encontró nada: encendido, silencio, volumen, salida de audio y entrada parecen correctos. Revisa los cables y el dispositivo de la entrada."
     }
   },
   "issues": {
@@ -1456,6 +1510,16 @@
         "duration": {
           "name": "Duración",
           "description": "Segundos que dura la rampa; 0 fija el volumen al instante."
+        }
+      }
+    },
+    "why_no_sound": {
+      "name": "¿Por qué no hay sonido?",
+      "description": "Comprueba qué puede mantener una zona en silencio (apagada, silenciada, volumen, audio HDMI al televisor, altavoces B, sin señal de entrada, el reproductor vinculado) y responde con palabras sencillas. Con Corregir enciende la zona, quita el silencio y envía el audio HDMI al receptor cuando esa era la causa.",
+      "fields": {
+        "fix": {
+          "name": "Corregir",
+          "description": "Corrige lo que se puede corregir sin riesgo: encendido, silencio y salida de audio HDMI. El volumen, los altavoces y las entradas solo se nombran."
         }
       }
     },

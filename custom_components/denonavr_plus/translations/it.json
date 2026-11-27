@@ -1128,6 +1128,9 @@
       },
       "recover_audio": {
         "name": "Ripristina l'audio"
+      },
+      "why_no_sound": {
+        "name": "Perché non c'è audio?"
       }
     },
     "remote": {
@@ -1262,6 +1265,57 @@
     },
     "linked_player_gone": {
       "message": "Il lettore collegato a {input} non è più collegato o non esiste più."
+    },
+    "no_sound_title": {
+      "message": "Perché non c'è audio?"
+    },
+    "no_sound_main_zone": {
+      "message": "La zona principale"
+    },
+    "no_sound_not_connected": {
+      "message": "Home Assistant non è collegato al ricevitore in questo momento e non può controllarlo."
+    },
+    "no_sound_zone_off": {
+      "message": "{zone} è spenta."
+    },
+    "no_sound_zone_off_fixed": {
+      "message": "{zone} era spenta; ora è accesa."
+    },
+    "no_sound_muted": {
+      "message": "{zone} è in muto."
+    },
+    "no_sound_muted_fixed": {
+      "message": "{zone} era in muto; l'audio è di nuovo attivo."
+    },
+    "no_sound_volume_low": {
+      "message": "Il volume è molto basso ({volume})."
+    },
+    "no_sound_follows_main_off": {
+      "message": "{zone} riproduce ciò che riproduce la zona principale, e la zona principale è spenta."
+    },
+    "no_sound_refused_input": {
+      "message": "{zone} non può riprodurre {input}; il ricevitore l'ha già rifiutato. Scegli un altro ingresso."
+    },
+    "no_sound_hdmi_audio_tv": {
+      "message": "L'audio HDMI va al televisore, non ai diffusori del ricevitore."
+    },
+    "no_sound_hdmi_audio_tv_fixed": {
+      "message": "L'audio HDMI andava al televisore; ora torna al ricevitore."
+    },
+    "no_sound_speakers_b": {
+      "message": "Sono selezionati i diffusori B; se non c'è nulla collegato, i diffusori A restano muti."
+    },
+    "no_sound_player_not_playing": {
+      "message": "{player} su {input} non sta riproducendo."
+    },
+    "no_sound_no_signal": {
+      "message": "Il ricevitore non riceve audio da {input}: il dispositivo è acceso e in riproduzione?"
+    },
+    "no_sound_no_signal_while_playing": {
+      "message": "{player} riproduce, ma il ricevitore non riceve audio da {input}. Prova il pulsante Ripristina l'audio, oppure spegni e riaccendi il dispositivo."
+    },
+    "no_sound_nothing_found": {
+      "message": "Nulla trovato: alimentazione, muto, volume, uscita audio e ingresso sembrano corretti. Controlla i cavi e il dispositivo sull'ingresso."
     }
   },
   "issues": {
@@ -1456,6 +1510,16 @@
         "duration": {
           "name": "Durata",
           "description": "Secondi della rampa; 0 imposta subito il volume."
+        }
+      }
+    },
+    "why_no_sound": {
+      "name": "Perché non c'è audio?",
+      "description": "Controlla cosa può tenere muta una zona (spenta, in muto, volume, audio HDMI al televisore, diffusori B, nessun segnale in ingresso, il lettore collegato) e risponde in parole semplici. Con Correggi accende la zona, toglie il muto e manda l'audio HDMI al ricevitore quando era quella la causa.",
+      "fields": {
+        "fix": {
+          "name": "Correggi",
+          "description": "Corregge ciò che si può correggere senza rischi: alimentazione, muto e uscita audio HDMI. Volume, diffusori e ingressi vengono solo indicati."
         }
       }
     },

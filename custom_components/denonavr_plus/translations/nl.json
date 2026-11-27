@@ -1128,6 +1128,9 @@
       },
       "recover_audio": {
         "name": "Geluid herstellen"
+      },
+      "why_no_sound": {
+        "name": "Waarom geen geluid?"
       }
     },
     "remote": {
@@ -1262,6 +1265,57 @@
     },
     "linked_player_gone": {
       "message": "De aan {input} gekoppelde speler is niet meer gekoppeld of bestaat niet meer."
+    },
+    "no_sound_title": {
+      "message": "Waarom geen geluid?"
+    },
+    "no_sound_main_zone": {
+      "message": "De hoofdzone"
+    },
+    "no_sound_not_connected": {
+      "message": "Home Assistant heeft nu geen verbinding met de receiver en kan hem niet controleren."
+    },
+    "no_sound_zone_off": {
+      "message": "{zone} staat uit."
+    },
+    "no_sound_zone_off_fixed": {
+      "message": "{zone} stond uit; die staat nu aan."
+    },
+    "no_sound_muted": {
+      "message": "{zone} is gedempt."
+    },
+    "no_sound_muted_fixed": {
+      "message": "{zone} was gedempt; het geluid is weer aan."
+    },
+    "no_sound_volume_low": {
+      "message": "Het volume is erg laag ({volume})."
+    },
+    "no_sound_follows_main_off": {
+      "message": "{zone} speelt wat de hoofdzone speelt, en de hoofdzone staat uit."
+    },
+    "no_sound_refused_input": {
+      "message": "{zone} kan {input} niet afspelen; de receiver weigerde die al. Kies een andere ingang."
+    },
+    "no_sound_hdmi_audio_tv": {
+      "message": "Het HDMI-geluid gaat naar de tv, niet naar de luidsprekers van de receiver."
+    },
+    "no_sound_hdmi_audio_tv_fixed": {
+      "message": "Het HDMI-geluid ging naar de tv; het gaat nu weer naar de receiver."
+    },
+    "no_sound_speakers_b": {
+      "message": "Luidsprekers B zijn gekozen; zit daar niets aan, dan blijven luidsprekers A stil."
+    },
+    "no_sound_player_not_playing": {
+      "message": "{player} op {input} speelt niet."
+    },
+    "no_sound_no_signal": {
+      "message": "De receiver krijgt geen geluid van {input}: staat het apparaat aan en speelt het?"
+    },
+    "no_sound_no_signal_while_playing": {
+      "message": "{player} speelt, maar de receiver krijgt geen geluid van {input}. Probeer de knop Geluid herstellen, of zet het apparaat uit en weer aan."
+    },
+    "no_sound_nothing_found": {
+      "message": "Niets gevonden: aan/uit, dempen, volume, geluidsuitgang en ingang zien er goed uit. Controleer de kabels en het apparaat op de ingang."
     }
   },
   "issues": {
@@ -1456,6 +1510,16 @@
         "duration": {
           "name": "Duur",
           "description": "Seconden die de helling duurt; 0 zet het volume meteen."
+        }
+      }
+    },
+    "why_no_sound": {
+      "name": "Waarom geen geluid?",
+      "description": "Controleert wat een zone stil kan houden (uit, gedempt, volume, HDMI-geluid naar de tv, luidsprekers B, geen ingangssignaal, de gekoppelde speler) en antwoordt in gewone taal. Met Herstellen zet het de zone aan, heft het dempen op en stuurt het HDMI-geluid naar de receiver als dat de oorzaak was.",
+      "fields": {
+        "fix": {
+          "name": "Herstellen",
+          "description": "Herstelt wat veilig hersteld kan worden: aan/uit, dempen en HDMI-geluidsuitgang. Volume, luidsprekers en ingangen worden alleen genoemd."
         }
       }
     },

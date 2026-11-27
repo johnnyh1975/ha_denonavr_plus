@@ -50,6 +50,8 @@ SERVICE_SNAPSHOT = "snapshot"
 SERVICE_RESTORE = "restore"
 ATTR_PRESET = "preset"
 SERVICE_VOLUME_RAMP = "volume_ramp"
+SERVICE_WHY_NO_SOUND = "why_no_sound"
+ATTR_FIX = "fix"
 ATTR_VOLUME_LEVEL = "volume_level"
 ATTR_DURATION = "duration"
 #: The longest ramp, in seconds: long enough for a wake-up.
@@ -171,6 +173,14 @@ async def _async_volume_ramp(entity: DenonAvrEntity, call: ServiceCall) -> None:
     )
 
 
+_WHY_NO_SOUND_SCHEMA: VolDictType = {vol.Optional(ATTR_FIX, default=False): cv.boolean}
+
+
+async def _async_why_no_sound(entity: DenonAvrEntity, call: ServiceCall) -> ServiceResponse:
+    found = await entity.async_why_no_sound(call.data[ATTR_FIX])  # type: ignore[attr-defined]
+    return {"findings": found}
+
+
 async def _async_snapshot(entity: DenonAvrEntity, call: ServiceCall) -> None:
     entity.take_snapshot()  # type: ignore[attr-defined]
 
@@ -207,6 +217,15 @@ def async_setup_services(hass: HomeAssistant) -> None:
         entity_domain=MEDIA_PLAYER_DOMAIN,
         schema=_VOLUME_RAMP_SCHEMA,
         func=_async_volume_ramp,
+    )
+    service.async_register_platform_entity_service(
+        hass,
+        DOMAIN,
+        SERVICE_WHY_NO_SOUND,
+        entity_domain=MEDIA_PLAYER_DOMAIN,
+        schema=_WHY_NO_SOUND_SCHEMA,
+        func=_async_why_no_sound,
+        supports_response=SupportsResponse.OPTIONAL,
     )
     for name, func in ((SERVICE_SNAPSHOT, _async_snapshot), (SERVICE_RESTORE, _async_restore)):
         service.async_register_platform_entity_service(
