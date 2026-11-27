@@ -217,3 +217,21 @@ async def test_speaker_writes_are_wrapped_in_the_menu_root() -> None:
     assert api.writes == [
         ("speakers", 2, "<AmpAssign><AssignMode>1</AssignMode></AmpAssign>")
     ]
+
+
+async def test_what_was_read_comes_back_from_the_snapshot_without_asking() -> None:
+    import json
+
+    read = _video(FakeSetupApi())
+    await read.discover()
+    snapshot = json.loads(json.dumps(read.snapshot()))  # as the store keeps it
+
+    api = FakeSetupApi()
+    restored = _video(api)
+    restored.restore(snapshot)
+    assert api.reads == []
+    assert restored.layout() == read.layout()
+    assert restored.feature_flags() == read.feature_flags()
+    assert restored.layout()  # some menus are present
+    restored.restore(None)  # an older snapshot without it changes nothing
+    assert restored.layout() == read.layout()

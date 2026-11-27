@@ -493,3 +493,100 @@ def test_what_this_start_already_learned_is_kept() -> None:
     assert device.preload_discovery(snapshot)
     assert device.discovery.configured_channels == {"FL", "FR"}
     assert device.discovery.quick_select_names == {1: "Movie night"}
+
+
+async def _restart_from_the_snapshot(
+    hass: HomeAssistant, entry: MockConfigEntry, hass_storage: dict[str, Any], layout: bool = True
+) -> list[str]:
+    """Save the discovery as a full start would, then start again; return the probes."""
+    from custom_components.denonavr_plus.avr.models import KnownAnswers
+
+    device = entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("SSSPCFRO SMA", "SSSPCCEN LAR", "SSSPCSWF YES", "SSSPC END")
+    telnet.push("SSQSNZMAQS1 TV", "SSQSNZMA END")
+    await _settle(hass)
+    # The answers of the answer-gated controls, as a start with the receiver on keeps them.
+    queries = frozenset(spec.query for spec in device._answer_gated_controls() if spec.query)
+    info = device.discovery.device
+    device.known_answers = KnownAnswers(info.model_name, info.firmware_version, queries, frozenset())
+    snapshot = device.discovery_snapshot()
+    if not layout:
+        del snapshot["layout_version"]
+    hass_storage[f"{DOMAIN}.{entry.entry_id}.discovery"]["data"] = snapshot
+    probes: list[str] = []
+
+    async def probe(host: str, queries: list[str], *args: Any, **kwargs: Any) -> None:
+        probes.extend(queries)
+
+    with patch("custom_components.denonavr_plus.avr.device.async_probe", probe):
+        assert await hass.config_entries.async_reload(entry.entry_id)
+    return probes
+
+
+async def test_a_start_from_the_snapshot_asks_and_waits_for_nothing(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """Everything the entities are built from came with the last start."""
+    from homeassistant.helpers import entity_registry as er
+
+    registry = er.async_get(hass)
+    before = {item.unique_id for item in er.async_entries_for_config_entry(registry, loaded_entry.entry_id)}
+    with patch("custom_components.denonavr_plus.avr.device.RESYNC_QUIET", 0.1):
+        probes = await _restart_from_the_snapshot(hass, loaded_entry, hass_storage)
+        device = loaded_entry.runtime_data.device
+        assert device.fast_start
+        assert probes == []
+        assert "introspection" not in device.setup_timings
+        assert device.discovery.quick_select_names == {1: "TV"}
+        assert device.state.speaker_sizes["SWF"] == "YES"
+        after = {item.unique_id for item in er.async_entries_for_config_entry(registry, loaded_entry.entry_id)}
+        # The speaker and quick select entities exist from the start now.
+        assert before < after
+        with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+            await asyncio.sleep(1.5)
+            await hass.async_block_till_done()
+        reload.assert_not_called()
+
+
+async def test_other_capabilities_after_a_start_from_the_snapshot_set_up_again_once(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """A firmware update brought a quick select; the entities are built again, once."""
+    from custom_components.denonavr_plus import coordinator as coordinator_module
+
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+    with (
+        patch("custom_components.denonavr_plus.avr.device.RESYNC_QUIET", 0.3),
+        patch.object(hass.config_entries, "async_schedule_reload") as reload,
+    ):
+        await _restart_from_the_snapshot(hass, loaded_entry, hass_storage)
+        assert loaded_entry.runtime_data.device.fast_start
+        FakeTelnet.instances[-1].push("SSQSNZMAQS2 Radio", "SSQSNZMA END")
+        await asyncio.sleep(1.5)
+        await hass.async_block_till_done()
+        reload.assert_called_once_with(loaded_entry.entry_id)
+        key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
+        assert hass_storage[key]["data"]["quick_select_names"] == {"1": "TV", "2": "Radio"}
+
+        # The same change again in this run does not set up again.
+        await _restart_from_the_snapshot(hass, loaded_entry, hass_storage)
+        FakeTelnet.instances[-1].push("SSQSNZMAQS3 Game", "SSQSNZMA END")
+        await asyncio.sleep(1.5)
+        await hass.async_block_till_done()
+        reload.assert_called_once()
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+
+
+async def test_a_snapshot_without_the_layout_starts_as_before(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """A snapshot from 1.2.x: the setup asks and waits once, then saves the layout."""
+    key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
+    with patch("custom_components.denonavr_plus.avr.device.RESYNC_QUIET", 0.1):
+        probes = await _restart_from_the_snapshot(hass, loaded_entry, hass_storage, layout=False)
+        assert probes
+        assert not loaded_entry.runtime_data.device.fast_start
+        await asyncio.sleep(0.6)
+        await hass.async_block_till_done()
+    assert hass_storage[key]["data"]["layout_version"] == 1

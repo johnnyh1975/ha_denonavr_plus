@@ -660,12 +660,19 @@ receiver, so turning on works then too. The other entities stay unavailable unti
 the receiver answers; then the integration sets itself up in full by itself. A
 receiver that has never been reached since it was added has to be on for setup.
 
-When the receiver answers, a start after the first one also uses what the
-last start learned over telnet (speaker configuration, quick select names,
-inputs), so the setup waits only for the receiver's first answer instead of
-its whole status, which takes several seconds; the current values follow
-within a few seconds. The diagnostics show how long each part took
-(`setup_timings_ms`).
+When the receiver answers, a start after the first one builds the entities
+from what the last start learned (inputs, speakers, channels, quick selects,
+the setup menus) and does not wait for the receiver: only its device
+description is read first, which takes well under a second. The rest is
+asked in the background, and the current values follow within a few
+seconds. If the receiver then reports other capabilities than last time (a
+firmware update, another speaker group, a new menu), the integration sets
+itself up once more. The first start after adding the receiver, after a
+firmware update, or while the answers of its model-dependent controls are
+not known yet (the receiver was in standby at every start so far), asks
+everything first and takes a few seconds. The diagnostics show how long
+each part took (`setup_timings_ms`) and whether the start came from the last
+one (`fast_start`).
 
 ## Event: input followed
 

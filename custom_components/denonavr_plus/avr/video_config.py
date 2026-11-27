@@ -22,6 +22,8 @@ Menu ``display`` flags mirror the setup UI: 1 = not available (hidden), 2 = gray
 
 from __future__ import annotations
 
+import copy
+
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
@@ -99,6 +101,28 @@ class VideoConfigController:
             for key, name in self._grammar.get("features", {}).items()
             if self._avail.get(key, _NOT_AVAILABLE) >= _GRAYOUT
         }
+
+    def snapshot(self) -> dict[str, Any]:
+        """What discover() read, as plain data for a start from the snapshot."""
+
+        return {"avail": dict(self._avail), "fields": copy.deepcopy(self._fields)}
+
+    def restore(self, data: dict[str, Any] | None) -> None:
+        """Take what an earlier discover() read, until the next one runs."""
+
+        if not isinstance(data, dict):
+            return
+        avail, fields = data.get("avail"), data.get("fields")
+        if isinstance(avail, dict):
+            self._avail = {str(key): int(value) for key, value in avail.items()}
+        if isinstance(fields, dict):
+            self._fields = copy.deepcopy(fields)
+
+    def layout(self) -> list[str]:
+        """The controls entities are made for: present ones and the menu flags."""
+
+        present = [control["id"] for control in self.controls() if self.present(control["id"])]
+        return sorted(present) + sorted(self.feature_flags())
 
     async def discover(self) -> None:
         """Read the availability map and the advertised menus (at connect)."""

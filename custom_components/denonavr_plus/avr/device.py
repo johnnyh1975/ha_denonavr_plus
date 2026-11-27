@@ -26,6 +26,7 @@ import aiohttp
 from .codec import encode_centered, encode_half_step
 from .models import (
     AvrState,
+    ChannelDescriptor,
     DeviceInfo,
     Discovery,
     KnownAnswers,
@@ -124,6 +125,10 @@ TUNER_POWER_SETTLE = 1.0
 POWER_ON_SETTLE = 3.0
 #: After the resync's last query: the time its answers take.
 RESYNC_QUIET = 1.0
+
+#: The snapshot holds everything the entities are built from; a start can
+#: then skip asking (async_discover). Raised when that content changes.
+LAYOUT_VERSION = 1
 #: How long a zone other than the main zone has to confirm a new source.
 ZONE_SOURCE_WAIT = 2.0
 #: How long a setting the receiver may refuse has to come back, first as the
@@ -245,6 +250,9 @@ class DenonAvrDevice:
         self._sound_modes_pending = 0
         #: How long each part of the discovery took, for the diagnostics.
         self.setup_timings: dict[str, int] = {}
+        #: Started from the snapshot (async_discover), and its entity layout.
+        self.fast_start = False
+        self.layout_at_start: dict[str, Any] | None = None
         self._available = False
         # Whether the last HTTP reconciliation poll got an answer. Tells a
         # blocked or occupied telnet port apart from a receiver that is off.
@@ -442,9 +450,16 @@ class DenonAvrDevice:
             raise ConnectionError(f"No Deviceinfo response from {self._host}")
         return text
 
-    async def async_discover(self, known_answers: Sequence[KnownAnswers] = ()) -> Discovery:
+    async def async_discover(
+        self,
+        known_answers: Sequence[KnownAnswers] = (),
+        snapshot: dict[str, Any] | None = None,
+    ) -> Discovery:
         """Fetch the Deviceinfo document and populate the discovery model.
 
+        With a snapshot of the last start that fits (same model, its answers
+        known), the rest comes from it instead of being asked, and fast_start
+        is set: the caller starts at once and runs async_complete_fast_start.
         Raises ConnectionError when the receiver cannot be reached, so the
         config flow can report a clear failure.
         """
@@ -521,6 +536,17 @@ class DenonAvrDevice:
             discovered.sources, self._profile.source_names
         )
         self._discovery.sources = []
+        if snapshot and snapshot.get("layout_version") == LAYOUT_VERSION:
+            # The UPnP document (a few ms) first: its firmware version decides
+            # whether the answers of the last start still hold.
+            await self._timed("description", self._async_fetch_version_info())
+            if self._restore_layout(snapshot, known_answers):
+                # Started from what the last start learned; the setup interface
+                # and the receiver's own answers follow in the background
+                # (async_complete_fast_start).
+                self.fast_start = True
+                self.setup_timings["discovery"] = self._ms_since(started)
+                return self._discovery
         # Three independent reads, asked together so the setup waits for the
         # slowest instead of their sum: the UPnP description (firmware, serial
         # number), the setup interface (video, speakers, signal) and the telnet
@@ -562,6 +588,98 @@ class DenonAvrDevice:
         await self._speaker_config.discover()
         await self.async_refresh_signal()
 
+    def _restore_layout(
+        self, snapshot: dict[str, Any] | None, known_answers: Sequence[KnownAnswers]
+    ) -> bool:
+        """Take the telnet and setup interface part of the discovery from a snapshot.
+
+        Only a snapshot with the layout (LAYOUT_VERSION) of the same model, and
+        only when the answers of the answer-gated controls are known; otherwise
+        nothing is changed and the setup asks as before.
+        """
+
+        if not snapshot or snapshot.get("layout_version") != LAYOUT_VERSION:
+            return False
+        if (snapshot.get("device") or {}).get("model_name") != self._discovery.device.model_name:
+            return False
+        if not snapshot.get("sources") or not snapshot.get("configured_channels"):
+            return False
+        self._video_config.restore(snapshot.get("video_config"))
+        self._speaker_config.restore(snapshot.get("speaker_setup"))
+        features = self._discovery.features | self._video_config.feature_flags()
+        specs = [
+            spec
+            for spec in self._answer_gated_controls()
+            if not (spec.scope == "feature" and spec.feature in features)
+        ]
+        queries = {spec.query for spec in specs if spec.query}
+        known = next(
+            (item for item in known_answers if item.covers(self._discovery.device, queries)),
+            None,
+        )
+        if known is None:
+            self._video_config.restore({"avail": {}, "fields": {}})
+            self._speaker_config.restore({"avail": {}, "fields": {}})
+            return False
+        discovery = self._discovery
+        discovery.features = features
+        discovery.answered = {spec.id for spec in specs if spec.query in known.answered}
+        self.known_answers = known
+        self.preload_discovery(snapshot)
+        discovery.speaker_config = {
+            group: set(values) for group, values in (snapshot.get("speaker_config") or {}).items()
+        }
+        if snapshot.get("channels"):
+            names = {item.name for item in fields(ChannelDescriptor)}
+            discovery.channels = [
+                ChannelDescriptor(**{key: value for key, value in channel.items() if key in names})
+                for channel in snapshot["channels"]
+            ]
+        state = self._state
+        state.channel_levels = dict(snapshot.get("channel_levels") or {})
+        state.channel_trims = dict(snapshot.get("channel_trims") or {})
+        state.crossovers = dict(snapshot.get("crossovers") or {})
+        state.speaker_sizes = dict(snapshot.get("speaker_sizes") or {})
+        self.layout_at_start = self.entity_layout()
+        return True
+
+    def entity_layout(self) -> dict[str, Any]:
+        """What decides which entities there are, beyond Deviceinfo.
+
+        Compared after a start from the snapshot with what the receiver then
+        answered: a difference (a firmware update, a new menu, another
+        speaker group) needs the entities built again.
+        """
+
+        state, discovery = self._state, self._discovery
+        sizes = dict(state.speaker_sizes)
+        presence = self._profile.speakers.get("subwoofer_presence", {})
+        return {
+            "features": sorted(discovery.features),
+            "answered": sorted(discovery.answered),
+            "channels": sorted(channel.code for channel in discovery.channels),
+            "channel_levels": sorted(state.channel_levels),
+            "channel_trims": sorted(state.channel_trims),
+            "crossovers": sorted(state.crossovers),
+            "speaker_groups": sorted(sizes),
+            # The subwoofer select differs for a yes/no receiver.
+            "subwoofer_presence": sizes.get("SWF") in presence,
+            "quick_selects": sorted(discovery.quick_select_names),
+            "video": self._video_config.layout(),
+            "speaker_setup": self._speaker_config.layout(),
+        }
+
+    async def async_complete_fast_start(self) -> None:
+        """After a start from the snapshot: read what was taken from it.
+
+        The setup interface over HTTP now; the telnet part comes with the
+        resync of the persistent connection. Waits until that has answered.
+        """
+
+        await self._async_discover_setup_interface()
+        await self.async_await_ready()
+        await self.async_await_resync()
+
     async def _timed(self, name: str, step: Awaitable[None]) -> None:
         """Run a discovery step and keep how long it took."""
 
@@ -591,6 +709,19 @@ class DenonAvrDevice:
             # next start need not wait for it (preload_discovery).
             "configured_channels": sorted(discovery.configured_channels),
             "quick_select_names": {str(number): name for number, name in discovery.quick_select_names.items()},
+            # The rest of what the entities are built from, for a start that
+            # does not ask first (async_discover with the snapshot).
+            "layout_version": LAYOUT_VERSION,
+            "speaker_config": {
+                group: sorted(values) for group, values in discovery.speaker_config.items()
+            },
+            "channels": [asdict(channel) for channel in discovery.channels],
+            "channel_levels": dict(self._state.channel_levels),
+            "channel_trims": dict(self._state.channel_trims),
+            "crossovers": dict(self._state.crossovers),
+            "speaker_sizes": dict(self._state.speaker_sizes),
+            "video_config": self._video_config.snapshot(),
+            "speaker_setup": self._speaker_config.snapshot(),
         }
 
     def preload_discovery(self, snapshot: dict[str, Any] | None) -> bool:
@@ -1053,10 +1184,13 @@ class DenonAvrDevice:
         started = loop.time()
         deadline = started + timeout
         while loop.time() < deadline:
+            # Channel levels come from SSLEV, or from CV on receivers without it
+            # (AVR-X2000), which waited the whole timeout on every start.
+            levels = self._state.channel_levels or self._state.channel_trims
             if self._state.system_power is not None and (
                 # Preloaded: the channels are known; only the first answer.
-                (preloaded and (self._discovery.channels or self._state.channel_levels))
-                or (self._state.channel_levels and self._discovery.configured_channels)
+                (preloaded and (self._discovery.channels or levels))
+                or (levels and self._discovery.configured_channels)
             ):
                 break
             await asyncio.sleep(0.1)

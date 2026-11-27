@@ -45,6 +45,7 @@ async def test_diagnostics_redact_the_mac(
     # The setup interface was not read in this test.
     assert result["setup_port"] is None
     assert result["started_offline"] is False
+    assert result["fast_start"] is False
     assert result["generation"] == "2016"
     # Where the start spent its time, part by part.
     assert {"deviceinfo", "description", "setup_interface", "introspection", "discovery", "ready"} <= set(

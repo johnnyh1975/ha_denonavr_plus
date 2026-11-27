@@ -1180,3 +1180,20 @@ def test_inputs_stored_by_their_code_get_readable_names() -> None:
             device.restore_discovery(snapshot)
         names = [source.name for source in device.discovery.sources]
         assert names == ["Tuner", "Internet Radio", "Network", "MEDIA PLAYER"], start
+
+
+@pytest.mark.parametrize("preloaded", [True, False])
+async def test_a_receiver_with_cv_levels_only_is_ready_without_the_timeout(
+    preloaded: bool,
+) -> None:
+    """An AVR-X2000 answers CV but not SSLEV; it waited 8 s on every start."""
+    from custom_components.denonavr_plus.avr import DenonAvrDevice
+
+    device = DenonAvrDevice(AsyncMock(), "192.0.2.10")
+    device.state.system_power = False
+    device.state.channel_trims = {"FL": 1.0, "FR": 0.0}
+    device.discovery.speaker_config = {"FRO": {"LAR"}}
+    device.discovery.configured_channels = {"FL", "FR"}
+    started = asyncio.get_running_loop().time()
+    await device.async_await_ready(timeout=5.0, preloaded=preloaded)
+    assert asyncio.get_running_loop().time() - started < 1.0

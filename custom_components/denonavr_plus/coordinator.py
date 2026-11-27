@@ -39,6 +39,9 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+#: Entries set up again after a fast start in this run (at most once each).
+_REBUILT_AFTER_FAST_START: set[str] = set()
+
 # The typed config entry carries the coordinator as its runtime data.
 type DenonAvrConfigEntry = ConfigEntry[DenonAvrCoordinator]
 
@@ -132,7 +135,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             if item is not None
         ]
         try:
-            await self.device.async_discover(known)
+            await self.device.async_discover(known, snapshot)
         except ConnectionError:
             # A receiver off without network standby does not answer. With the
             # last discovery the media players can still be set up (shown off,
@@ -151,6 +154,16 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # A model-dependent control answered once stays: one late reply at a
         # start (or a receiver in standby) must not drop its entity.
         self.device.discovery.answered |= set((snapshot or {}).get("answered", []))
+        if self.device.fast_start:
+            # Everything the entities are built from came from the last start:
+            # no wait at all. What it took from the snapshot is read again in
+            # the background; if it differs, the entry is set up once more.
+            await self.device.async_start()
+            assert self.config_entry is not None
+            self.config_entry.async_create_background_task(
+                self.hass, self._async_complete_fast_start(), "denonavr_plus fast start"
+            )
+            return
         preloaded = self.device.preload_discovery(snapshot)
         await self.device.async_start()
         if preloaded:
@@ -179,6 +192,36 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             await self._snapshot.async_save(self.device.discovery_snapshot())
         except Exception as err:  # noqa: BLE001 - a background task must not raise
             _LOGGER.debug("Discovery snapshot not saved: %s", err)
+
+    async def _async_complete_fast_start(self) -> None:
+        """Read what a start from the snapshot took from it; rebuild if it changed."""
+
+        assert self.config_entry is not None
+        entry_id = self.config_entry.entry_id
+        try:
+            await self.device.async_complete_fast_start()
+            await self._snapshot.async_save(self.device.discovery_snapshot())
+        except Exception as err:  # noqa: BLE001 - a background task must not raise
+            _LOGGER.debug("Discovery after a fast start not completed: %s", err)
+            return
+        layout = self.device.entity_layout()
+        if layout == self.device.layout_at_start:
+            return
+        if entry_id in _REBUILT_AFTER_FAST_START:
+            # Once per run: a receiver whose answers vary must not reload in turn.
+            _LOGGER.debug("Entity layout changed again after a rebuild; keeping it")
+            return
+        _REBUILT_AFTER_FAST_START.add(entry_id)
+        changed = sorted(
+            key for key in layout if layout[key] != (self.device.layout_at_start or {}).get(key)
+        )
+        _LOGGER.info(
+            "%s reports other capabilities than at its last start (%s); "
+            "setting up its entities again",
+            self.device.discovery.device.model_name or "Denon AVR",
+            ", ".join(changed),
+        )
+        self.hass.config_entries.async_schedule_reload(entry_id)
 
     async def async_shutdown(self) -> None:
         """Stop the telnet transport when the entry is unloaded."""
