@@ -72,6 +72,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import (
     CALLBACK_TYPE,
+    Context,
     Event,
     EventStateChangedData,
     HomeAssistant,
@@ -1152,8 +1153,9 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         options[choices.OPT_SOURCES] = selection
         self.hass.config_entries.async_update_entry(entry, options=options)
 
-    @receiver_action
-    async def async_select_sound_mode(self, sound_mode: str) -> None:
+    def _sound_mode_for(self, sound_mode: str) -> str | None:
+        """The receiver's mode a name stands for, or None."""
+
         # The names the list shows first, so a name chooses what the list
         # shows under it; then every name and token the receiver knows.
         mode = choices.match_mode(sound_mode, self._shown_sound_modes()) or choices.sound_mode_match(
@@ -1162,6 +1164,17 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if mode is None and sound_mode.isupper():
             # In capitals: the receiver's own token (MSDOLBY ATMOS), as before.
             mode = sound_mode
+        return mode
+
+    def shown_sound_mode(self, sound_mode: str) -> str:
+        """The name the list shows for what a name chooses (the name itself if none)."""
+
+        mode = self._sound_mode_for(sound_mode)
+        return self._shown_sound_modes().get(mode, mode) if mode else sound_mode
+
+    @receiver_action
+    async def async_select_sound_mode(self, sound_mode: str) -> None:
+        mode = self._sound_mode_for(sound_mode)
         if mode is None:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -1707,11 +1720,13 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
     # Why no sound? (action) ----------------------------------------------------
 
-    async def async_why_no_sound(self, fix: bool) -> list[dict[str, Any]]:
+    async def async_why_no_sound(
+        self, fix: bool, language: str | None = None
+    ) -> list[dict[str, Any]]:
         """What may keep this zone silent, and, with fix, what was put right."""
 
         return await no_sound.async_check(
-            self.hass, self.coordinator, self._zone.id, self._entry_options, fix=fix
+            self.hass, self.coordinator, self._zone.id, self._entry_options, fix=fix, language=language
         )
 
     @property
@@ -1720,13 +1735,19 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
 
         return self._zone.id
 
+    @property
+    def zone_activities(self) -> list[activities.Activity]:
+        """This zone's activities."""
+
+        return activities.activities(self._entry_options, self._zone.id)
+
     def activity(self, name: str) -> activities.Activity | None:
         """One of this zone's activities by its name, case and spaces ignored."""
 
         return activities.find(self._entry_options, name, self._zone.id)
 
     @receiver_action
-    async def async_start_activity(self, name: str) -> None:
+    async def async_start_activity(self, name: str, context: Context | None = None) -> None:
         """Start one of this zone's activities by its name (denonavr_plus.start_activity)."""
 
         activity = self.activity(name)
@@ -1741,7 +1762,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
                     ),
                 },
             )
-        await activities.async_start(self.hass, self.coordinator, activity)
+        await activities.async_start(self.hass, self.coordinator, activity, context or self._context)
 
     # Volume ramp (action) ------------------------------------------------------
 

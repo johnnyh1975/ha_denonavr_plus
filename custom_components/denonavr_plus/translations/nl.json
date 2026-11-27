@@ -364,7 +364,9 @@
           "hdmi_output": "HDMI-uitgang",
           "clarity": "Spraakhelderheid",
           "wake_player": "Gekoppelde speler inschakelen",
-          "delete": "Deze activiteit verwijderen"
+          "delete": "Deze activiteit verwijderen",
+          "audio_delay": "Audiovertraging",
+          "wake_entity": "Ook inschakelen"
         },
         "data_description": {
           "name": "Staat in de selectie en wordt gebruikt door de actie activiteit starten en door spraakopdrachten.",
@@ -372,7 +374,9 @@
           "volume_db": "In dB op de schaal van de receiver. Leeg: het inschakelvolume of het volume zoals het is. Blijft onder het maximale volume van de zone.",
           "hdmi_output": "Alleen hoofdzone. Leeg: de uitgang blijft zoals hij is.",
           "clarity": "Alleen hoofdzone: de schakelaar spraakhelderheid aan- of uitzetten, of laten.",
-          "wake_player": "Zet de mediaspeler aan die aan de ingang gekoppeld is (Configureren → Afspelen), zoals de tv of de streamingbox."
+          "wake_player": "Zet de mediaspeler aan die aan de ingang gekoppeld is (Configureren → Afspelen), zoals de tv of de streamingbox.",
+          "audio_delay": "Alleen hoofdzone, voor lipsynchroon geluid bij het beeld van deze activiteit. Leeg: de vertraging blijft zoals hij is. Auto Lip Sync van de receiver kan hem overschrijven.",
+          "wake_entity": "Nog een apparaat om in te schakelen, zoals de tv als de gekoppelde speler van de ingang een streamingbox is."
         }
       },
       "activities_next": {
@@ -1385,7 +1389,7 @@
       "message": "Er is geen activiteit {activity} in deze zone. Kies uit: {options}."
     },
     "intent_no_activity": {
-      "message": "Geen enkele zone heeft een activiteit {activity}."
+      "message": "Geen enkele zone heeft een activiteit {activity}. Activiteiten: {options}."
     },
     "intent_activity_several": {
       "message": "{activity} is een activiteit van meerdere zones: {zones}. Zeg welke."
@@ -1398,6 +1402,9 @@
     },
     "intent_no_zone": {
       "message": "Er wordt geen zone van een Denon- of Marantz-receiver bedoeld."
+    },
+    "intent_sound_mode_set": {
+      "message": "Geluidsmodus {sound_mode}."
     }
   },
   "issues": {

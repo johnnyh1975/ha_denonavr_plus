@@ -62,8 +62,13 @@ def test_an_activity_is_stored_without_its_unset_parts() -> None:
         "hdmi_output": "1",
         "clarity": "on",
         "wake_player": True,
+        "audio_delay": 40,
+        "wake_entity": "media_player.tv",
     }
     assert activities.parse(full).as_dict() == full
+    # Something that cannot be switched on is not kept.
+    assert activities.parse({**FILM, "wake_entity": "light.lamp"}).wake_entity is None
+    assert activities.parse({**FILM, "audio_delay": 40.0}).audio_delay == 40
     assert activities.parse({**FILM, "clarity": "keep", "wake_player": False}).as_dict() == FILM
 
 
@@ -78,7 +83,11 @@ def test_activities_are_found_by_name_and_zone() -> None:
 async def test_starting_an_activity_sets_the_zone_up_in_order(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
+    from homeassistant.setup import async_setup_component
+
+    assert await async_setup_component(hass, "homeassistant", {})
     hass.states.async_set("media_player.blu_ray", "off")
+    hass.states.async_set("media_player.tv", "off")
     woken: list[ServiceCall] = []
 
     async def _turn_on(call: ServiceCall) -> None:
@@ -87,7 +96,14 @@ async def test_starting_an_activity_sets_the_zone_up_in_order(
     await _with_activities(
         hass,
         loaded_entry,
-        {**FILM, "volume_db": -30.0, "hdmi_output": "1", "wake_player": True},
+        {
+            **FILM,
+            "volume_db": -30.0,
+            "hdmi_output": "1",
+            "audio_delay": 40,
+            "wake_player": True,
+            "wake_entity": "media_player.tv",
+        },
         **{OPT_LINKED_PLAYERS: {"DVD": {"player": "media_player.blu_ray"}}},
     )
     await _push(hass, "PWON", "ZMON", "SICD", "MV40")
@@ -96,11 +112,20 @@ async def test_starting_an_activity_sets_the_zone_up_in_order(
     telnet.sent.clear()
     activity = activities.find(dict(loaded_entry.options), "Film")
     assert activity is not None
-    await activities.async_start(hass, loaded_entry.runtime_data, activity)
+    from homeassistant.core import Context
+
+    context = Context()
+    await activities.async_start(hass, loaded_entry.runtime_data, activity, context)
     await hass.async_block_till_done()
-    # Input, then HDMI output, then volume; -30 dB is 50 on the receiver's scale.
-    assert telnet.sent == ["SIDVD", "VSMONI1", "MV50"]
-    assert [call.data["entity_id"] for call in woken] == ["media_player.blu_ray"]
+    # Who started it is kept: the logbook shows the woken devices as caused by it.
+    assert all(call.context.id == context.id for call in woken)
+    # Input, HDMI output, audio delay, then volume; -30 dB is 50 on the receiver's scale.
+    assert telnet.sent == ["SIDVD", "VSMONI1", "PSDELAY 040", "MV50"]
+    # The linked player and the TV.
+    assert {entity for call in woken for entity in call.data["entity_id"]} == {
+        "media_player.blu_ray",
+        "media_player.tv",
+    }
 
 
 async def test_an_activity_keeps_below_the_zone_limit(
@@ -128,6 +153,7 @@ async def test_sound_mode_hdmi_and_clarity_are_for_the_main_zone_only(
         "source": "CD",
         "sound_mode": "Stereo",
         "hdmi_output": "1",
+        "audio_delay": 40,
         "clarity": "on",
     }
     await _with_activities(hass, loaded_entry, item)

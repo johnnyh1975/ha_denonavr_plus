@@ -42,6 +42,8 @@ async def test_the_recorded_receiver_raises_the_center_and_dynamic_volume(
     with patch("custom_components.denonavr_plus.avr.device.CONFIRM_WAIT", 0.05):
         await clarity.async_turn_off(device, before)
     assert telnet.sent == ["PSCLV 50", "PSDYNVOL OFF"]
+    # Everything back: nothing left to put back.
+    assert before == {}
 
 
 async def test_values_already_set_are_left_alone(

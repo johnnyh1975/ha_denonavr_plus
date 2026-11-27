@@ -129,7 +129,7 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
         else:
             self._attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
 
-        low, high, step = _resolve_bounds(coordinator.device, spec)
+        low, high, step = resolve_bounds(coordinator.device, spec)
         if low is not None:
             self._attr_native_min_value = low
         if high is not None:
@@ -218,7 +218,7 @@ class DenonAvrChannelDistance(DenonAvrEntity, NumberEntity):
         await self.coordinator.device.async_set_channel_distance(self._code, value)
 
 
-def _resolve_bounds(
+def resolve_bounds(
     device: DenonAvrDevice, spec: ControlSpec
 ) -> tuple[float | None, float | None, float | None]:
     """Return (min, max, step), preferring the receiver published range."""

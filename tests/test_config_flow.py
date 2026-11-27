@@ -1468,6 +1468,12 @@ async def test_activities_are_added_changed_and_deleted(
     hdmi = result["data_schema"].schema[_field(result, "hdmi_output")].config["options"]
     assert [option["value"] for option in hdmi] == ["AUTO", "1", "2"]
     assert "delete" not in {str(field) for field in result["data_schema"].schema}
+    # The audio delay in the receiver's range; anything that can be switched on, not our players.
+    delay = result["data_schema"].schema[_field(result, "audio_delay")].config
+    assert (delay["min"], delay["max"]) == (0.0, 500.0)
+    wake = result["data_schema"].schema[_field(result, "wake_entity")].config
+    assert wake["domain"] == ["media_player", "remote", "switch"]
+    assert entity_id_of_main(hass, loaded_entry) in wake["exclude_entities"]
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
@@ -1475,8 +1481,10 @@ async def test_activities_are_added_changed_and_deleted(
             "zone": "main",
             "source": "DVD",
             "volume_db": -30.0,
+            "audio_delay": 40.0,
             "clarity": "on",
             "wake_player": False,
+            "wake_entity": "media_player.tv",
         },
     )
     assert result["type"] is FlowResultType.MENU
@@ -1498,9 +1506,18 @@ async def test_activities_are_added_changed_and_deleted(
         {"name": "   ", "zone": "zone2", "source": "CD", "clarity": "keep", "wake_player": False},
     )
     assert result["errors"] == {"base": "activity_incomplete"}
+    # What only the main zone has is not kept for Zone 2.
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {"name": "Music", "zone": "zone2", "source": "CD", "clarity": "keep", "wake_player": False},
+        {
+            "name": "Music",
+            "zone": "zone2",
+            "source": "CD",
+            "sound_mode": "Stereo",
+            "audio_delay": 20.0,
+            "clarity": "on",
+            "wake_player": False,
+        },
     )
     assert "activities" not in loaded_entry.options
     result = await hass.config_entries.options.async_configure(
@@ -1508,7 +1525,15 @@ async def test_activities_are_added_changed_and_deleted(
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert loaded_entry.options["activities"] == [
-        {"name": "Film", "zone": "main", "source": "DVD", "volume_db": -30.0, "clarity": "on"},
+        {
+            "name": "Film",
+            "zone": "main",
+            "source": "DVD",
+            "volume_db": -30.0,
+            "clarity": "on",
+            "audio_delay": 40,
+            "wake_entity": "media_player.tv",
+        },
         {"name": "Music", "zone": "zone2", "source": "CD"},
     ]
 

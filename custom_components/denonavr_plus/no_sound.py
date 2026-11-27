@@ -138,12 +138,12 @@ async def async_fix(coordinator: DenonAvrCoordinator, zone_id: str, finding: Fin
     return True
 
 
-async def async_texts(hass: HomeAssistant) -> dict[str, str]:
-    """The messages in the language Home Assistant runs in (English where missing)."""
+async def async_texts(hass: HomeAssistant, language: str | None = None) -> dict[str, str]:
+    """The messages in a language, by default Home Assistant's (English where missing)."""
 
     prefix = f"component.{DOMAIN}.exceptions."
     texts: dict[str, str] = {}
-    for language in ("en", hass.config.language):
+    for language in ("en", language or hass.config.language):
         found = await async_get_translations(hass, language, "exceptions", [DOMAIN])
         for key, text in found.items():
             if key.startswith(prefix) and key.endswith(".message"):
@@ -173,13 +173,14 @@ async def async_check(
     options: dict[str, Any],
     *,
     fix: bool,
+    language: str | None = None,
 ) -> list[dict[str, Any]]:
     """Check a zone, fix what was asked, and return the findings as plain data."""
 
     code = coordinator.device.zone_source(zone_id)
     link = linked_players.links_on_wire(options, coordinator.device).get(code) if code else None
     linked = hass.states.get(link.entity_id) if link is not None else None
-    texts = await async_texts(hass)
+    texts = await async_texts(hass, language)
     result: list[dict[str, Any]] = []
     for finding in findings(coordinator, zone_id, options, linked):
         fixed = fix and await async_fix(coordinator, zone_id, finding)

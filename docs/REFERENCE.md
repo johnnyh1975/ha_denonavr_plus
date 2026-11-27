@@ -213,6 +213,9 @@ activity sets a zone up in one go. Pick one to change or delete it, or none
 for a new one; after each comes a choice between another and saving, and
 nothing is saved before that. Per activity:
 
+Sound mode, HDMI output, audio delay and speech clarity are the main
+zone's; an activity of another zone does not keep them.
+
 - **Name**, **zone** and **input** (needed). The name is what the zone's
   *Activity* select, the `start_activity` action and voice commands use; case
   and spaces do not matter, and one name is used once.
@@ -221,15 +224,21 @@ nothing is saved before that. Per activity:
   volume. Empty: the turn-on volume or the volume as it was.
 - **HDMI output** (main zone, receivers with the HDMI output select):
   Auto, Monitor 1 or Monitor 2.
+- **Audio delay** in ms (main zone, receivers with the audio delay), in the
+  receiver's range: for lip sync with this activity's picture. With Auto
+  Lip Sync on, the receiver may correct it itself.
 - **Speech clarity** (main zone): switch it on, off, or leave it.
 - **Switch on the linked player**: the player linked to the input (Playback),
-  such as the TV or a streaming box.
+  such as a streaming box.
+- **Also switch on**: one more media player, remote or switch, such as the
+  TV when the input's linked player is the streaming box.
 
 Starting an activity goes through the zone's media player: it switches the
 zone on if needed (with the turn-on volume), selects the input (a renamed
 input, a refused input behave as there), then sets the sound mode, the HDMI
-output, the volume and speech clarity, in that order, and switches on the
-linked player last. What is left empty stays as it is. A zone's first
+output, the audio delay, the volume and speech clarity, in that order, and
+switches on the linked player and the other device last, without waiting
+for them. What is left empty stays as it is. A zone's first
 activity adds its select, its last one removes it; changing activities
 otherwise needs no restart.
 
@@ -446,16 +455,20 @@ AVC‑A10H describes it as 0–15).
 - **Why no sound?** per zone (a button): see the action below; the button
   fixes what it safely can and posts what it found as a notification.
 - **Activity** per zone with activities (a select, enabled; see Options →
-  Activities): choosing one starts it. It shows the activity started while
-  the zone is on and on its input, and nothing once the zone is off or on
-  another input. The name survives a restart of Home Assistant.
+  Activities): choosing one starts it. It shows the activity last started
+  on the zone, here, by the action or by voice, while the zone is on and on
+  its input, and nothing while the zone is off or on another input. The
+  name survives a restart of Home Assistant.
 - **Speech clarity** (a switch, enabled), where the receiver has a Dialogue
   Enhancer, Center Level Adjust or Dynamic Volume: on, it sets the Dialogue
   Enhancer to medium where the receiver has one, otherwise raises the center
   level by 3 dB (to +12 dB at most), and sets Dynamic Volume to medium where
   it was off. It remembers what it changed, also over a restart of Home
   Assistant, and off puts back only that. A setting you change by hand while
-  it is on is put back to the value before it, too. The Dialogue Enhancer
+  it is on is put back to the value before it, too. If the receiver refuses
+  a step (in standby, say), the switch stays on with what did change:
+  switching it on again tries the rest, switching it off again puts back
+  what is left. The Dialogue Enhancer
   (`PSDEH`) has not been tried on a receiver yet.
 - **Signal sensors**, on receivers with the setup interface (not the AVR-X2000):
   input and output resolution and HDR, input color space, color depth and FRL
@@ -671,23 +684,32 @@ data:
 
 ### Voice: intents and LLM tools
 
-Two intents for Assist and for LLM agents:
+Three intents for Assist and for LLM agents:
 
 - **`DenonAvrStartActivity`** (slot `activity`, and optionally `name`,
   `area` or `floor` for the zone): starts the activity. Without a zone it
   takes the zone that has an activity of that name; where several have one,
-  the zone in the voice satellite's area, otherwise it asks which. A refused
-  input is said, not logged as an error.
+  the zone in the voice satellite's area, otherwise it asks which. An
+  unknown name is answered with the activities there are; a refused input
+  is said, not logged as an error. The answers are in the language of the
+  request.
 - **`DenonAvrWhyNoSound`** (optional `fix`, and `name`, `area` or `floor`):
   says what the action *Why no sound?* finds. Without a zone it checks the
   main zone, or the zone in the satellite's area.
+- **`DenonAvrSetSoundMode`** (slot `sound_mode`, and optionally `name`,
+  `area` or `floor`): sets the main zone's sound mode by a name of its list
+  (renamed and readable names, or the receiver's own), in any case. An
+  unknown name is answered with the names the list has.
 
-Both look only at this integration's media players exposed to the
-assistant. An LLM agent with the Assist API gets them as tools while one of
+All three look only at this integration's media players exposed to the
+assistant; naming Zone 2 for the sound mode means its receiver. An LLM agent with the Assist API gets them as tools while one of
 those players is exposed. The default conversation agent needs sentences
 for them, in `config/custom_sentences/<language>/`; the user guide has
-examples. Speech clarity needs no intent: its switch answers *turn on speech
-clarity* like any switch, once it is exposed.
+examples. Speech clarity needs no intent of its own: once its switch is
+exposed, Home Assistant's own *turn on* and *turn off* reach it. Those match
+the entity's full name (*AVC-X3700H Speech clarity*) or an alias, so give it
+the alias *Speech clarity*; the user guide has sentences such as *make the
+voices clearer* for it.
 
 ### Volume ramp (`denonavr_plus.volume_ramp`)
 

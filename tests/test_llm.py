@@ -9,7 +9,11 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus import llm
-from custom_components.denonavr_plus.intent import INTENT_START_ACTIVITY, INTENT_WHY_NO_SOUND
+from custom_components.denonavr_plus.intent import (
+    INTENT_SET_SOUND_MODE,
+    INTENT_START_ACTIVITY,
+    INTENT_WHY_NO_SOUND,
+)
 
 from .common import entity_id
 from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
@@ -38,7 +42,7 @@ async def test_the_intents_are_tools_while_a_zone_is_exposed(
     found = llm.async_get_tools(hass, _context(), ha_llm.LLM_API_ASSIST)
     assert found is not None
     intents = sorted(getattr(tool, "intent_type", tool.name) for tool in found.tools)
-    assert intents == sorted([INTENT_START_ACTIVITY, INTENT_WHY_NO_SOUND])
+    assert intents == sorted([INTENT_SET_SOUND_MODE, INTENT_START_ACTIVITY, INTENT_WHY_NO_SOUND])
     # The descriptions are what the LLM reads to pick a tool.
     assert all("Denon or Marantz" in tool.description for tool in found.tools)
 

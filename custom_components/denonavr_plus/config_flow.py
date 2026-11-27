@@ -62,6 +62,7 @@ from .command_test import OPT_TEST_PENDING
 from .receiver_test import ReceiverTestSteps
 from .entity_groups import OPT_ENTITY_GROUPS
 from .coordinator import connection_options
+from .number import resolve_bounds
 from . import activities, choices, entity_groups, linked_players, move
 from .linked_players import (
     KEY_FOLLOW,
@@ -1109,6 +1110,26 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             )
+        delay = coordinator.device.profile.control(activities.AUDIO_DELAY_CONTROL)
+        # Offered where the receiver has the audio delay number.
+        if delay is not None and activities.zone_entity_id(
+            self.hass, coordinator, "number", f"number_{activities.AUDIO_DELAY_CONTROL}"
+        ):
+            low, high, step = resolve_bounds(coordinator.device, delay)
+            fields[
+                vol.Optional(
+                    activities.KEY_AUDIO_DELAY,
+                    description={"suggested_value": current.get(activities.KEY_AUDIO_DELAY)},
+                )
+            ] = NumberSelector(
+                NumberSelectorConfig(
+                    min=float(low if low is not None else 0),
+                    max=float(high if high is not None else 200),
+                    step=float(step or 1),
+                    unit_of_measurement="ms",
+                    mode=NumberSelectorMode.BOX,
+                )
+            )
         fields[
             vol.Required(
                 activities.KEY_CLARITY,
@@ -1123,6 +1144,16 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         fields[
             vol.Required(activities.KEY_WAKE, default=bool(current.get(activities.KEY_WAKE, False)))
         ] = BooleanSelector()
+        fields[
+            vol.Optional(
+                activities.KEY_WAKE_ENTITY,
+                description={"suggested_value": current.get(activities.KEY_WAKE_ENTITY)},
+            )
+        ] = EntitySelector(
+            EntitySelectorConfig(
+                domain=list(activities.WAKE_DOMAINS), exclude_entities=self._own_players()
+            )
+        )
         if editing:
             fields[vol.Required(KEY_DELETE, default=False)] = BooleanSelector()
         return vol.Schema(fields)
@@ -1147,6 +1178,9 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
             item = activities.parse(
                 {**values, activities.KEY_NAME: " ".join(str(values.get(activities.KEY_NAME, "")).split())}
             )
+            # Sound mode, HDMI output, audio delay and speech clarity are the
+            # main zone's: not kept for another zone (the form says so).
+            item = item.for_zone() if item is not None else None
             if item is None:
                 errors["base"] = "activity_incomplete"
             elif any(

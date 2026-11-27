@@ -364,7 +364,9 @@
           "hdmi_output": "HDMI output",
           "clarity": "Speech clarity",
           "wake_player": "Switch on the linked player",
-          "delete": "Delete this activity"
+          "delete": "Delete this activity",
+          "audio_delay": "Audio delay",
+          "wake_entity": "Also switch on"
         },
         "data_description": {
           "name": "Shown in the select and used by the start activity action and voice commands.",
@@ -372,7 +374,9 @@
           "volume_db": "In dB on the receiver's scale. Empty: the turn-on volume or the volume as it is. Kept below the zone's maximum volume.",
           "hdmi_output": "Main zone only. Empty: the output stays as it is.",
           "clarity": "Main zone only: switch the speech clarity switch on or off, or leave it.",
-          "wake_player": "Switches on the media player linked to the input (Configure → Playback), such as the TV or streaming box."
+          "wake_player": "Switches on the media player linked to the input (Configure → Playback), such as the TV or streaming box.",
+          "audio_delay": "Main zone only, for lip sync with this activity's picture. Empty: the delay stays as it is. Auto Lip Sync on the receiver may override it.",
+          "wake_entity": "Another device to switch on, such as the TV when the input's linked player is a streaming box."
         }
       },
       "activities_next": {
@@ -1385,7 +1389,7 @@
       "message": "There is no activity called {activity} in this zone. Choose one of: {options}."
     },
     "intent_no_activity": {
-      "message": "No zone has an activity called {activity}."
+      "message": "No zone has an activity called {activity}. Activities: {options}."
     },
     "intent_activity_several": {
       "message": "{activity} is an activity of several zones: {zones}. Say which one."
@@ -1398,6 +1402,9 @@
     },
     "intent_no_zone": {
       "message": "No zone of a Denon or Marantz receiver is meant."
+    },
+    "intent_sound_mode_set": {
+      "message": "Sound mode {sound_mode}."
     }
   },
   "issues": {

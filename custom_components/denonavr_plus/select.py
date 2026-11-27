@@ -565,12 +565,13 @@ class DenonAvrActivitySelect(DenonAvrEntity, RestoreEntity, SelectEntity):
         super().__init__(coordinator, f"select_activity_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
         self._attr_translation_key = "start_activity"
-        self._started: str | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        if (last := await self.async_get_last_state()) is not None and last.state in self.options:
-            self._started = last.state
+        started = self.coordinator.started_activities
+        last = await self.async_get_last_state()
+        if self._zone.id not in started and last is not None and last.state in self.options:
+            started[self._zone.id] = last.state
 
     @property
     def _activities(self) -> list[activities.Activity]:
@@ -583,7 +584,8 @@ class DenonAvrActivitySelect(DenonAvrEntity, RestoreEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        started = next((item for item in self._activities if item.name == self._started), None)
+        name = self.coordinator.started_activities.get(self._zone.id)
+        started = next((item for item in self._activities if item.name == name), None)
         zone = self.coordinator.data.zone(self._zone.id)
         if started is None or not zone.power:
             return None
@@ -593,9 +595,7 @@ class DenonAvrActivitySelect(DenonAvrEntity, RestoreEntity, SelectEntity):
     @receiver_action
     async def async_select_option(self, option: str) -> None:
         activity = next(item for item in self._activities if item.name == option)
-        await activities.async_start(self.hass, self.coordinator, activity)
-        self._started = activity.name
-        self.async_write_ha_state()
+        await activities.async_start(self.hass, self.coordinator, activity, self._context)
 
 
 class DenonAvrTunerPreset(DenonAvrEntity, SelectEntity):

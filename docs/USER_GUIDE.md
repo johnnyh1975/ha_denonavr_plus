@@ -278,8 +278,8 @@ tried on a receiver yet.
 
 An activity is one choice for what you do in a room, such as *Film* or
 *Music*: it switches the zone on and sets its input, and if you like the
-sound mode, the volume, the HDMI output, speech clarity and the linked
-player. Pick an activity to change or delete it, or leave the field empty
+sound mode, the volume, the HDMI output, the audio delay, speech clarity,
+the linked player and one more device such as the TV. Pick an activity to change or delete it, or leave the field empty
 for a new one; then add another or save. Each zone with activities gets an
 **Activity** select on its device; choosing *Film* there does it all, and it
 shows *Film* while the zone stays on that input. The action **Start
@@ -290,8 +290,10 @@ activity** and voice commands (section 10) do the same.
 >   *Film*, *Music*, *Radio*, *Games*.
 > - Set a volume only where it should always be the same; otherwise leave it
 >   empty and the turn-on volume applies.
-> - Switch on **Switch on the linked player** for the TV or the streaming box,
->   so *Film* wakes it too.
+> - Switch on **Switch on the linked player** for the streaming box, and
+>   choose the TV under **Also switch on**, so *Film* wakes both.
+> - Set an **audio delay** only if the picture of this activity runs behind
+>   the sound and Auto Lip Sync does not catch it.
 > - **Speech clarity** on for activities where dialogue matters, such as a
 >   *Late film*; the switch of the same name puts back what it changed.
 
@@ -488,13 +490,20 @@ of its source list. What they understand depends on the names you give.
 | **Alexa** | On, off, volume, input | Alexa knows only a fixed set of input names, such as HDMI 1 to HDMI 10, TV, CD, Phono, Tuner, Game, Blu-ray, DVD, Media Player, Satellite and AUX 1 to AUX 7. Give inputs such names under **Sources** if Alexa should switch them. |
 | **Apple Home** (HomeKit Bridge) | On, off and the input in the Home app and by Siri; volume through the Remote in Control Center | Add each zone in **accessory mode**, one HomeKit Bridge entry per media player; in a shared bridge it shows as a plain switch. |
 
-**Activities and *Why no sound?* by voice.** An LLM agent (with the Assist
-API) can start an activity and say why a zone is silent as soon as the zone
-is exposed. The built-in Assist agent needs sentences for that: put a file
-such as this one in `config/custom_sentences/en/denonavr_plus.yaml` and
-restart Home Assistant. *Start film*, *start the music activity in the
-living room*, *why is there no sound* and *fix the sound in the kitchen*
-then work; an activity name the zone does not have is said back.
+**Activities, sound modes, speech clarity and *Why no sound?* by voice.** An
+LLM agent (with the Assist API) can start an activity, set the sound mode
+and say why a zone is silent as soon as the zone is exposed. The built-in
+Assist agent needs sentences for that: put a file such as this one in
+`config/custom_sentences/en/denonavr_plus.yaml` and restart Home Assistant.
+*Start the film activity*, *start the music activity in the living room*,
+*set the sound mode to stereo*, *make the voices clearer*, *why is there no sound* and *fix
+the sound in the kitchen* then work; a name the zone does not have is said
+back with the ones it has. Keep the word *activity* (*Aktivität*) and *sound
+mode* (*Klangmodus*) in these sentences: a sentence of your own wins over
+Home Assistant's, and *start {activity}* alone would also catch *start a
+timer* or *start the vacuum*. For the two speech clarity sentences, expose the
+**Speech clarity** switch and give it the alias *speech clarity* (in German
+*Sprachverständlichkeit*) on its settings page.
 
 ```yaml
 language: "en"
@@ -502,7 +511,7 @@ intents:
   DenonAvrStartActivity:
     data:
       - sentences:
-          - "start [the] {activity} [activity] [(in|on) [the] {area}]"
+          - "start [the] {activity} activity [(in|on) [the] {area}]"
   DenonAvrWhyNoSound:
     data:
       - sentences:
@@ -511,8 +520,26 @@ intents:
           - "fix the sound [(in|on) [the] {area}]"
         slots:
           fix: true
+  DenonAvrSetSoundMode:
+    data:
+      - sentences:
+          - "(set|switch) [the] sound mode to {sound_mode} [(in|on) [the] {area}]"
+  HassTurnOn:
+    data:
+      - sentences:
+          - "make [the] (voices|dialogue) clearer"
+        slots:
+          name: "speech clarity"
+  HassTurnOff:
+    data:
+      - sentences:
+          - "(voices|dialogue) back to normal"
+        slots:
+          name: "speech clarity"
 lists:
   activity:
+    wildcard: true
+  sound_mode:
     wildcard: true
 ```
 
@@ -524,7 +551,7 @@ intents:
   DenonAvrStartActivity:
     data:
       - sentences:
-          - "starte [die Aktivität] {activity} [(im|in der|auf dem) {area}]"
+          - "starte die Aktivität {activity} [(im|in der|auf dem) {area}]"
   DenonAvrWhyNoSound:
     data:
       - sentences:
@@ -533,14 +560,32 @@ intents:
           - "repariere den Ton [(im|in der) {area}]"
         slots:
           fix: true
+  DenonAvrSetSoundMode:
+    data:
+      - sentences:
+          - "(stelle|schalte) [den] Klangmodus auf {sound_mode} [(im|in der) {area}]"
+  HassTurnOn:
+    data:
+      - sentences:
+          - "mach die (Stimmen|Dialoge) deutlicher"
+        slots:
+          name: "Sprachverständlichkeit"
+  HassTurnOff:
+    data:
+      - sentences:
+          - "(Stimmen|Dialoge) wieder normal"
+        slots:
+          name: "Sprachverständlichkeit"
 lists:
   activity:
+    wildcard: true
+  sound_mode:
     wildcard: true
 ```
 
 Without an area, the zone that has the activity is meant; if several have
-it, the one in the voice satellite's area. **Speech clarity** is a switch:
-expose it and say *turn on speech clarity*.
+it, the one in the voice satellite's area. With the alias, *turn on speech
+clarity* works for the switch too.
 
 > **Recommended:** hide the inputs nobody uses and rename the rest to what you
 > say out loud (**Configure → Sources**); every assistant reads the same list.

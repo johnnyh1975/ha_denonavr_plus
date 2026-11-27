@@ -364,7 +364,9 @@
           "hdmi_output": "Wyjście HDMI",
           "clarity": "Wyrazistość dialogów",
           "wake_player": "Włącz powiązany odtwarzacz",
-          "delete": "Usuń tę aktywność"
+          "delete": "Usuń tę aktywność",
+          "audio_delay": "Opóźnienie dźwięku",
+          "wake_entity": "Włącz także"
         },
         "data_description": {
           "name": "Widoczna w wyborze i używana przez akcję uruchomienia aktywności oraz polecenia głosowe.",
@@ -372,7 +374,9 @@
           "volume_db": "W dB na skali amplitunera. Puste: głośność włączenia lub głośność bez zmian. Pozostaje poniżej maksymalnej głośności strefy.",
           "hdmi_output": "Tylko strefa główna. Puste: wyjście zostaje bez zmian.",
           "clarity": "Tylko strefa główna: włącz lub wyłącz przełącznik wyrazistości dialogów albo zostaw go.",
-          "wake_player": "Włącza odtwarzacz multimedialny powiązany z wejściem (Konfiguruj → Odtwarzanie), np. telewizor lub przystawkę do streamingu."
+          "wake_player": "Włącza odtwarzacz multimedialny powiązany z wejściem (Konfiguruj → Odtwarzanie), np. telewizor lub przystawkę do streamingu.",
+          "audio_delay": "Tylko strefa główna, do synchronizacji dźwięku z obrazem tej aktywności. Puste: opóźnienie zostaje bez zmian. Auto Lip Sync amplitunera może je nadpisać.",
+          "wake_entity": "Kolejne urządzenie do włączenia, np. telewizor, gdy odtwarzaczem powiązanym z wejściem jest przystawka do streamingu."
         }
       },
       "activities_next": {
@@ -1385,7 +1389,7 @@
       "message": "W tej strefie nie ma aktywności o nazwie {activity}. Wybierz jedną z: {options}."
     },
     "intent_no_activity": {
-      "message": "Żadna strefa nie ma aktywności o nazwie {activity}."
+      "message": "Żadna strefa nie ma aktywności o nazwie {activity}. Aktywności: {options}."
     },
     "intent_activity_several": {
       "message": "{activity} to aktywność kilku stref: {zones}. Powiedz, której."
@@ -1398,6 +1402,9 @@
     },
     "intent_no_zone": {
       "message": "Nie chodzi o żadną strefę amplitunera Denon ani Marantz."
+    },
+    "intent_sound_mode_set": {
+      "message": "Tryb dźwięku {sound_mode}."
     }
   },
   "issues": {

@@ -104,6 +104,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self.announcing: set[str] = set()
         # The zones that got an activity select at setup (activities.py).
         self.activity_zones: frozenset[str] = frozenset()
+        # The activity last started on each zone, however it was started.
+        self.started_activities: dict[str, str] = {}
         # Connection diagnosis: when the telnet link went down, and whether the
         # long outage has already been reported (log once, repair while it lasts).
         self._link_down_since: datetime | None = None

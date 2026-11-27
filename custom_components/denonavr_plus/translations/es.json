@@ -364,7 +364,9 @@
           "hdmi_output": "Salida HDMI",
           "clarity": "Claridad de voz",
           "wake_player": "Encender el reproductor vinculado",
-          "delete": "Borrar esta actividad"
+          "delete": "Borrar esta actividad",
+          "audio_delay": "Retardo de audio",
+          "wake_entity": "Encender también"
         },
         "data_description": {
           "name": "Aparece en la selección y lo usan la acción de iniciar actividad y los comandos de voz.",
@@ -372,7 +374,9 @@
           "volume_db": "En dB en la escala del receptor. Vacío: el volumen de encendido o el volumen tal como está. Se mantiene por debajo del volumen máximo de la zona.",
           "hdmi_output": "Solo zona principal. Vacío: la salida queda como está.",
           "clarity": "Solo zona principal: encender o apagar el interruptor de claridad de voz, o dejarlo.",
-          "wake_player": "Enciende el reproductor multimedia vinculado a la entrada (Configurar → Reproducción), como el televisor o el reproductor de streaming."
+          "wake_player": "Enciende el reproductor multimedia vinculado a la entrada (Configurar → Reproducción), como el televisor o el reproductor de streaming.",
+          "audio_delay": "Solo zona principal, para sincronizar el sonido con la imagen de esta actividad. Vacío: el retardo queda como está. Auto Lip Sync del receptor puede anularlo.",
+          "wake_entity": "Otro dispositivo que encender, como el televisor cuando el reproductor vinculado a la entrada es un reproductor de streaming."
         }
       },
       "activities_next": {
@@ -1385,7 +1389,7 @@
       "message": "No hay ninguna actividad llamada {activity} en esta zona. Elige una de: {options}."
     },
     "intent_no_activity": {
-      "message": "Ninguna zona tiene una actividad llamada {activity}."
+      "message": "Ninguna zona tiene una actividad llamada {activity}. Actividades: {options}."
     },
     "intent_activity_several": {
       "message": "{activity} es una actividad de varias zonas: {zones}. Di cuál."
@@ -1398,6 +1402,9 @@
     },
     "intent_no_zone": {
       "message": "No se refiere a ninguna zona de un receptor Denon o Marantz."
+    },
+    "intent_sound_mode_set": {
+      "message": "Modo de sonido {sound_mode}."
     }
   },
   "issues": {

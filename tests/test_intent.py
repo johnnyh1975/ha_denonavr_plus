@@ -15,7 +15,11 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus import activities
-from custom_components.denonavr_plus.intent import INTENT_START_ACTIVITY, INTENT_WHY_NO_SOUND
+from custom_components.denonavr_plus.intent import (
+    INTENT_SET_SOUND_MODE,
+    INTENT_START_ACTIVITY,
+    INTENT_WHY_NO_SOUND,
+)
 
 from .common import entity_id
 from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
@@ -81,7 +85,7 @@ async def test_an_unknown_activity_is_named(
     await _activities(hass, with_intents, {"name": "Film", "zone": "main", "source": "DVD"})
     with pytest.raises(intent.IntentHandleError) as err:
         await _handle(hass, INTENT_START_ACTIVITY, activity="Disco")
-    assert str(err.value) == "No zone has an activity called Disco."
+    assert str(err.value) == "No zone has an activity called Disco. Activities: Film."
 
 
 async def test_a_refused_input_is_said(
@@ -159,3 +163,65 @@ async def test_why_no_sound_of_two_zones_in_an_area_asks_which(
     with pytest.raises(intent.IntentHandleError) as err:
         await _handle(hass, INTENT_WHY_NO_SOUND, area="Living room")
     assert str(err.value).startswith("Which zone?")
+
+
+async def test_the_sound_mode_is_set_by_its_shown_name(
+    hass: HomeAssistant, with_intents: MockConfigEntry
+) -> None:
+    await _push(
+        hass,
+        "PWON",
+        "ZMON",
+        "SIDVD",
+        "OPSMLALL MOV071Dolby Surround",
+        "OPSMLALL MUS011Stereo",
+        "OPSMLALL END",
+    )
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    # Zone 2 has no sound modes: the main zone is meant without asking.
+    response = await _handle(hass, INTENT_SET_SOUND_MODE, sound_mode="stereo")
+    assert "MSSTEREO" in telnet.sent
+    # Said with the name the list shows.
+    assert response.speech["plain"]["speech"] == "Sound mode Stereo."
+    assert response.success_results[0].id == entity_id(hass, with_intents, "media_player_main")
+
+
+async def test_an_unknown_sound_mode_is_answered_with_the_list(
+    hass: HomeAssistant, with_intents: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "OPSMLALL MUS011Stereo", "OPSMLALL END")
+    with pytest.raises(intent.IntentHandleError) as err:
+        await _handle(hass, INTENT_SET_SOUND_MODE, sound_mode="Disco")
+    assert "Disco" in str(err.value) and "Stereo" in str(err.value)
+
+
+
+async def test_naming_zone_2_sets_the_sound_mode_of_its_receiver(
+    hass: HomeAssistant, with_intents: MockConfigEntry
+) -> None:
+    await _push(hass, "PWON", "ZMON", "OPSMLALL MUS011Stereo", "OPSMLALL END")
+    zone2 = entity_id(hass, with_intents, "media_player_zone2")
+    telnet = FakeTelnet.instances[-1]
+    telnet.sent.clear()
+    response = await _handle(
+        hass, INTENT_SET_SOUND_MODE, sound_mode="Stereo", name=hass.states.get(zone2).name
+    )
+    assert "MSSTEREO" in telnet.sent
+    assert response.success_results[0].id == entity_id(hass, with_intents, "media_player_main")
+
+
+async def test_the_answer_comes_in_the_language_of_the_request(
+    hass: HomeAssistant, with_intents: MockConfigEntry
+) -> None:
+    await _activities(hass, with_intents, {"name": "Film", "zone": "main", "source": "DVD"})
+    with pytest.raises(intent.IntentHandleError) as err:
+        await intent.async_handle(
+            hass,
+            "test",
+            INTENT_START_ACTIVITY,
+            {"activity": {"value": "Disco"}},
+            assistant="conversation",
+            language="de",
+        )
+    assert str(err.value) == "Keine Zone hat eine Aktivität Disco. Aktivitäten: Film."

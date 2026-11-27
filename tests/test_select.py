@@ -569,3 +569,35 @@ async def test_each_zone_with_activities_gets_a_select_to_start_them(
     await asyncio.sleep(0.15)
     await hass.async_block_till_done()
     assert hass.states.get(select).state == "unknown"
+
+
+
+async def test_the_activity_select_shows_an_activity_started_by_the_action(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from custom_components.denonavr_plus import activities
+
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            activities.OPT_ACTIVITIES: [
+                {"name": "Film", "zone": "main", "source": "DVD"},
+                {"name": "Late film", "zone": "main", "source": "DVD"},
+            ]
+        },
+    )
+    await hass.async_block_till_done()
+    select = entity_id(hass, loaded_entry, "select_activity_main")
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SIDVD")
+    await asyncio.sleep(0.15)
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": select, "option": "Film"}, blocking=True
+    )
+    await hass.services.async_call(
+        DOMAIN, "start_activity", {"entity_id": main, "activity": "late film"}, blocking=True
+    )
+    await hass.async_block_till_done()
+    # The same input: the select follows what was started last.
+    assert hass.states.get(select).state == "Late film"

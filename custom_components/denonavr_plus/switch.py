@@ -101,9 +101,10 @@ class DenonAvrSpeechClaritySwitch(DenonAvrEntity, RestoreEntity, SwitchEntity):
 
     @receiver_action
     async def async_turn_on(self, **kwargs: Any) -> None:
-        if self._before is not None:
-            return
-        self._before = {}
+        # Again while on tries what a refusal left out; what it changed
+        # first keeps its value to put back.
+        if self._before is None:
+            self._before = {}
         try:
             await clarity.async_turn_on(self._device, self._before)
         finally:
@@ -112,9 +113,13 @@ class DenonAvrSpeechClaritySwitch(DenonAvrEntity, RestoreEntity, SwitchEntity):
 
     @receiver_action
     async def async_turn_off(self, **kwargs: Any) -> None:
-        before, self._before = self._before or {}, None
-        self.async_write_ha_state()
-        await clarity.async_turn_off(self._device, before)
+        before = dict(self._before or {})
+        try:
+            await clarity.async_turn_off(self._device, before)
+        finally:
+            # Off once everything is back; what was refused stays to put back.
+            self._before = before or None
+            self.async_write_ha_state()
 
 
 class DenonAvrMusicSwitch(DenonAvrEntity, SwitchEntity):

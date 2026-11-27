@@ -135,7 +135,7 @@ async def test_an_integer_takes_the_range_the_receiver_publishes(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """Audio Delay: AudioDelay/Adjust from 2016, AudioDelay itself on older ones."""
-    from custom_components.denonavr_plus.number import _resolve_bounds
+    from custom_components.denonavr_plus.number import resolve_bounds
 
     device = loaded_entry.runtime_data.device
     spec = device.profile.control("audio_delay")
@@ -143,11 +143,11 @@ async def test_an_integer_takes_the_range_the_receiver_publishes(
     meta = device.discovery.numeric_meta
     meta.pop("AudioDelay/Adjust", None)
     meta["AudioDelay"] = {"min": 0.0, "max": 200.0, "step": 1.0}
-    assert _resolve_bounds(device, spec) == (0.0, 200.0, 1.0)
+    assert resolve_bounds(device, spec) == (0.0, 200.0, 1.0)
     meta["AudioDelay/Adjust"] = {"min": 0.0, "max": 300.0, "step": 1.0}
-    assert _resolve_bounds(device, spec) == (0.0, 300.0, 1.0)
+    assert resolve_bounds(device, spec) == (0.0, 300.0, 1.0)
     del meta["AudioDelay/Adjust"], meta["AudioDelay"]
-    assert _resolve_bounds(device, spec) == (0, 500, 1)
+    assert resolve_bounds(device, spec) == (0, 500, 1)
 
 
 @pytest.mark.assumed(
@@ -158,11 +158,11 @@ async def test_bass_without_a_published_range_goes_from_minus_6_to_6_db(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """An AVR-X2000 publishes no range; its protocol document gives -6 to +6 (44 to 56)."""
-    from custom_components.denonavr_plus.number import _resolve_bounds
+    from custom_components.denonavr_plus.number import resolve_bounds
 
     device = loaded_entry.runtime_data.device
     device.discovery.numeric_meta.pop("Bass", None)
     for control in ("bass", "treble"):
         spec = device.profile.control(control)
         assert spec is not None
-        assert _resolve_bounds(device, spec) == (-6, 6, 1)
+        assert resolve_bounds(device, spec) == (-6, 6, 1)

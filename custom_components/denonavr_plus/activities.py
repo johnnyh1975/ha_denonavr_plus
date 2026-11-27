@@ -2,8 +2,9 @@
 
 An activity is kept in the entry options (Configure → Activities) and belongs
 to one zone. Starting it switches the zone on and, in this order, selects its
-input, its sound mode, its HDMI output, its volume and the speech clarity, and
-wakes the player linked to the input. Each part is optional except the input.
+input, its sound mode, its HDMI output, its audio delay, its volume and the
+speech clarity, and wakes the player linked to the input and one more device
+(the TV). Each part is optional except the input.
 
 Input and sound mode go through the zone's media player, so renamed inputs,
 readable sound mode names and refused inputs behave as there. Other
@@ -17,7 +18,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Context, HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
@@ -40,8 +41,15 @@ KEY_VOLUME = "volume_db"
 KEY_HDMI_OUTPUT = "hdmi_output"
 KEY_CLARITY = "clarity"
 KEY_WAKE = "wake_player"
+KEY_AUDIO_DELAY = "audio_delay"
+KEY_WAKE_ENTITY = "wake_entity"
 #: The control that chooses the HDMI output (VSMONI).
 HDMI_OUTPUT_CONTROL = "hdmi_video_output"
+#: The audio delay in ms (PSDELAY).
+AUDIO_DELAY_CONTROL = "audio_delay"
+#: What can be woken besides the linked player: switched on with
+#: homeassistant.turn_on.
+WAKE_DOMAINS = ("media_player", "remote", "switch")
 #: Speech clarity in an activity: leave it, switch it on or off.
 CLARITY_KEEP = "keep"
 CLARITY_ON = "on"
@@ -60,6 +68,22 @@ class Activity:
     hdmi_output: str | None = None
     clarity: str = CLARITY_KEEP
     wake_player: bool = False
+    audio_delay: int | None = None
+    wake_entity: str | None = None
+
+    def for_zone(self) -> Activity:
+        """The activity without what only the main zone has, outside it."""
+
+        if self.zone == "main":
+            return self
+        return Activity(
+            name=self.name,
+            zone=self.zone,
+            source=self.source,
+            volume_db=self.volume_db,
+            wake_player=self.wake_player,
+            wake_entity=self.wake_entity,
+        )
 
     def as_dict(self) -> dict[str, Any]:
         """The activity as stored in the options (unset fields left out)."""
@@ -75,6 +99,10 @@ class Activity:
             stored[KEY_CLARITY] = self.clarity
         if self.wake_player:
             stored[KEY_WAKE] = True
+        if self.audio_delay is not None:
+            stored[KEY_AUDIO_DELAY] = self.audio_delay
+        if self.wake_entity:
+            stored[KEY_WAKE_ENTITY] = self.wake_entity
         return stored
 
 
@@ -88,6 +116,8 @@ def parse(raw: Any) -> Activity | None:
         return None
     volume = raw.get(KEY_VOLUME)
     clarity = raw.get(KEY_CLARITY, CLARITY_KEEP)
+    delay = raw.get(KEY_AUDIO_DELAY)
+    wake = raw.get(KEY_WAKE_ENTITY)
     return Activity(
         name=name,
         zone=zone,
@@ -97,6 +127,8 @@ def parse(raw: Any) -> Activity | None:
         hdmi_output=raw.get(KEY_HDMI_OUTPUT) or None,
         clarity=clarity if clarity in (CLARITY_ON, CLARITY_OFF) else CLARITY_KEEP,
         wake_player=bool(raw.get(KEY_WAKE, False)),
+        audio_delay=int(delay) if isinstance(delay, (int, float)) and not isinstance(delay, bool) else None,
+        wake_entity=wake if isinstance(wake, str) and wake.split(".")[0] in WAKE_DOMAINS else None,
     )
 
 
@@ -136,9 +168,16 @@ def zone_entity_id(hass: HomeAssistant, coordinator: DenonAvrCoordinator, domain
 
 
 async def async_start(
-    hass: HomeAssistant, coordinator: DenonAvrCoordinator, activity: Activity
+    hass: HomeAssistant,
+    coordinator: DenonAvrCoordinator,
+    activity: Activity,
+    context: Context | None = None,
 ) -> None:
-    """Set the zone up as the activity says; raises when its input is refused."""
+    """Set the zone up as the activity says; raises when its input is refused.
+
+    However it was started (select, action, voice), the zone's select shows
+    it from then on (coordinator.started_activities).
+    """
 
     player = zone_entity_id(hass, coordinator, "media_player", f"media_player_{activity.zone}")
     if player is None:
@@ -154,7 +193,11 @@ async def async_start(
         "select_source",
         {ATTR_ENTITY_ID: player, "source": activity.source},
         blocking=True,
+        context=context,
     )
+    # Started once the zone took the input; the rest only fine-tunes it.
+    coordinator.started_activities[activity.zone] = activity.name
+    coordinator.async_update_listeners()
     device = coordinator.device
     if activity.sound_mode and activity.zone == "main":
         await hass.services.async_call(
@@ -162,9 +205,16 @@ async def async_start(
             "select_sound_mode",
             {ATTR_ENTITY_ID: player, "sound_mode": activity.sound_mode},
             blocking=True,
+            context=context,
         )
     if activity.hdmi_output and activity.zone == "main" and device.profile.control(HDMI_OUTPUT_CONTROL):
         await device.async_set_control(HDMI_OUTPUT_CONTROL, activity.hdmi_output)
+    if (
+        activity.audio_delay is not None
+        and activity.zone == "main"
+        and device.profile.control(AUDIO_DELAY_CONTROL)
+    ):
+        await device.async_set_control(AUDIO_DELAY_CONTROL, activity.audio_delay)
     entry = coordinator.config_entry
     options = dict(entry.options) if entry is not None else {}
     if activity.volume_db is not None:
@@ -180,10 +230,22 @@ async def async_start(
                 "turn_on" if activity.clarity == CLARITY_ON else "turn_off",
                 {ATTR_ENTITY_ID: clarity},
                 blocking=True,
+                context=context,
             )
+    woken: list[str] = []
     if activity.wake_player:
         link = linked_players.links(options).get(activity.source)
-        if link is not None and hass.states.get(link.entity_id) is not None:
+        if link is not None:
+            woken.append(link.entity_id)
+    if activity.wake_entity and activity.wake_entity not in woken:
+        woken.append(activity.wake_entity)
+    for entity_id in woken:
+        # Not blocking: a TV that takes its time does not hold up the activity.
+        if hass.states.get(entity_id) is not None:
             await hass.services.async_call(
-                "media_player", "turn_on", {ATTR_ENTITY_ID: link.entity_id}, blocking=False
+                "homeassistant",
+                "turn_on",
+                {ATTR_ENTITY_ID: entity_id},
+                blocking=False,
+                context=context,
             )

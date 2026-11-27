@@ -38,15 +38,21 @@ def controls(device: DenonAvrDevice) -> list[str]:
     return found
 
 
-def targets(device: DenonAvrDevice) -> dict[str, Any]:
-    """What to set for speech clarity, from the current values."""
+def targets(device: DenonAvrDevice, before: dict[str, Any] | None = None) -> dict[str, Any]:
+    """What to set for speech clarity, from the current values.
+
+    The center is raised from its value before speech clarity, where that is
+    known, so switching it on again does not raise it twice.
+    """
 
     values = device.state.values
     available = controls(device)
     wanted: dict[str, Any] = {}
     if DIALOG_ENHANCER in available:
         wanted[DIALOG_ENHANCER] = ENHANCER_ON
-    elif CENTER_LEVEL in available and isinstance(center := values.get(CENTER_LEVEL), (int, float)):
+    elif CENTER_LEVEL in available and isinstance(
+        center := (before or {}).get(CENTER_LEVEL, values.get(CENTER_LEVEL)), (int, float)
+    ):
         wanted[CENTER_LEVEL] = min(float(center) + CENTER_RAISE_DB, CENTER_MAX_DB)
     if DYNAMIC_VOLUME in available and values.get(DYNAMIC_VOLUME) == "OFF":
         wanted[DYNAMIC_VOLUME] = DYNAMIC_VOLUME_ON
@@ -60,14 +66,19 @@ async def async_turn_on(device: DenonAvrDevice, before: dict[str, Any]) -> None:
     back too.
     """
 
-    for control_id, value in targets(device).items():
-        before[control_id] = device.state.values.get(control_id)
+    for control_id, value in targets(device, before).items():
+        # The first value seen stays: again after a refusal keeps it.
+        before.setdefault(control_id, device.state.values.get(control_id))
         await device.async_set_control(control_id, value)
 
 
 async def async_turn_off(device: DenonAvrDevice, before: dict[str, Any]) -> None:
-    """Put back what speech clarity changed."""
+    """Put back what speech clarity changed; takes out of before what is back.
 
-    for control_id, value in before.items():
+    What could not be put back (a refusal) stays in before, for another try.
+    """
+
+    for control_id, value in list(before.items()):
         if value is not None:
             await device.async_set_control(control_id, value)
+        del before[control_id]

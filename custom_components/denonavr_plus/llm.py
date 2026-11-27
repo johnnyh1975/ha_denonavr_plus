@@ -18,12 +18,13 @@ from homeassistant.helpers import intent
 from homeassistant.helpers.llm import LLM_API_ASSIST, IntentTool, LLMContext, Tool
 
 from .const import DOMAIN
-from .intent import INTENT_START_ACTIVITY, INTENT_WHY_NO_SOUND
+from .intent import INTENT_SET_SOUND_MODE, INTENT_START_ACTIVITY, INTENT_WHY_NO_SOUND
 
 #: The intents offered, with their tool titles.
 LLM_INTENTS = {
     INTENT_START_ACTIVITY: "Start receiver activity",
     INTENT_WHY_NO_SOUND: "Why no sound",
+    INTENT_SET_SOUND_MODE: "Set receiver sound mode",
 }
 
 _NAMESPACED = "title" in inspect.signature(IntentTool).parameters

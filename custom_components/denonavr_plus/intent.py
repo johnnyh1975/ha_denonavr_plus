@@ -1,4 +1,5 @@
-"""Intents: start an activity and ask why a zone is silent, by voice or LLM.
+"""Intents: start an activity, choose the sound mode and ask why a zone is
+silent, by voice or LLM.
 
 Home Assistant sets this platform up with its intent integration. The
 default conversation agent reaches the intents through sentences the user
@@ -27,9 +28,11 @@ from homeassistant.helpers import intent
 
 from . import no_sound
 from .const import DOMAIN
+from .entity import unique_id
 
 INTENT_START_ACTIVITY = "DenonAvrStartActivity"
 INTENT_WHY_NO_SOUND = "DenonAvrWhyNoSound"
+INTENT_SET_SOUND_MODE = "DenonAvrSetSoundMode"
 
 _TARGET_SLOTS = {
     vol.Optional("name"): cv.string,
@@ -45,6 +48,7 @@ async def async_setup_intents(hass: HomeAssistant) -> None:
 
     intent.async_register(hass, StartActivityHandler())
     intent.async_register(hass, WhyNoSoundHandler())
+    intent.async_register(hass, SetSoundModeHandler())
 
 
 def _value(slots: dict[str, Any], name: str) -> Any:
@@ -97,8 +101,27 @@ def _prefer_area(hass: HomeAssistant, players: list[Any], slots: dict[str, Any])
     return near or players
 
 
-async def _texts(hass: HomeAssistant) -> dict[str, str]:
-    return await no_sound.async_texts(hass)
+async def _texts(intent_obj: intent.Intent) -> dict[str, str]:
+    """The texts in the language of the request (a German pipeline on an English system)."""
+
+    return await no_sound.async_texts(intent_obj.hass, intent_obj.language)
+
+
+def _main_players(hass: HomeAssistant, players: list[Any]) -> list[Any]:
+    """The main zones of the players' receivers (Zone 2 named means its receiver)."""
+
+    component = hass.data.get(DATA_COMPONENT)
+    found: list[Any] = []
+    for player in players:
+        main = player
+        if player.zone_id != "main" and component is not None:
+            entity_id = er.async_get(hass).async_get_entity_id(
+                "media_player", DOMAIN, unique_id(player.coordinator.device, "media_player_main")
+            )
+            main = component.get_entity(entity_id) if entity_id else None
+        if main is not None and main not in found:
+            found.append(main)
+    return found
 
 
 def _say(texts: dict[str, str], key: str, **placeholders: str) -> str:
@@ -111,6 +134,23 @@ def _say(texts: dict[str, str], key: str, **placeholders: str) -> str:
 
 def _named(state: State | None, fallback: str) -> str:
     return state.name if state is not None else fallback
+
+
+def _one(hass: HomeAssistant, texts: dict[str, str], players: list[Any]) -> Any:
+    """The one player meant; says so when there is none or there are several."""
+
+    if not players:
+        raise intent.IntentHandleError(_say(texts, "intent_no_zone"), "no_zone")
+    if len(players) > 1:
+        raise intent.IntentHandleError(
+            _say(
+                texts,
+                "intent_which_zone",
+                zones=", ".join(_named(hass.states.get(p.entity_id), p.entity_id) for p in players),
+            ),
+            "several_zones",
+        )
+    return players[0]
 
 
 class StartActivityHandler(intent.IntentHandler):
@@ -129,16 +169,15 @@ class StartActivityHandler(intent.IntentHandler):
         hass = intent_obj.hass
         slots = self.async_validate_slots(intent_obj.slots)
         name = str(_value(slots, "activity"))
-        texts = await _texts(hass)
-        players = [
-            player
-            for player in _players(hass, intent_obj, slots)
-            if player.activity(name) is not None
-        ]
-        players = _prefer_area(hass, players, slots)
+        texts = await _texts(intent_obj)
+        allowed = _players(hass, intent_obj, slots)
+        players = _prefer_area(
+            hass, [player for player in allowed if player.activity(name) is not None], slots
+        )
         if not players:
+            known = sorted({item.name for player in allowed for item in player.zone_activities})
             raise intent.IntentHandleError(
-                _say(texts, "intent_no_activity", activity=name),
+                _say(texts, "intent_no_activity", activity=name, options=", ".join(known) or "–"),
                 "no_activity",
             )
         if len(players) > 1:
@@ -155,7 +194,7 @@ class StartActivityHandler(intent.IntentHandler):
         activity = player.activity(name)
         assert activity is not None
         try:
-            await player.async_start_activity(activity.name)
+            await player.async_start_activity(activity.name, intent_obj.context)
         except HomeAssistantError as err:
             # Said, not logged as an error of the intent: an input refused.
             raise intent.IntentHandleError(str(err), "not_started") from err
@@ -191,27 +230,57 @@ class WhyNoSoundHandler(intent.IntentHandler):
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         hass = intent_obj.hass
         slots = self.async_validate_slots(intent_obj.slots)
-        texts = await _texts(hass)
+        texts = await _texts(intent_obj)
         players = _prefer_area(hass, _players(hass, intent_obj, slots), slots)
         if not slots.get("name") and not slots.get("area") and len(players) > 1:
             # Without a name: the main zones only, unless a zone is in the area.
             main = [player for player in players if player.zone_id == "main"]
             players = main or players
-        if not players:
-            raise intent.IntentHandleError(_say(texts, "intent_no_zone"), "no_zone")
-        if len(players) > 1:
-            raise intent.IntentHandleError(
-                _say(
-                    texts,
-                    "intent_which_zone",
-                    zones=", ".join(_named(hass.states.get(p.entity_id), p.entity_id) for p in players),
-                ),
-                "several_zones",
-            )
-        player = players[0]
-        result = await player.async_why_no_sound(bool(_value(slots, "fix")))
+        player = _one(hass, texts, players)
+        result = await player.async_why_no_sound(bool(_value(slots, "fix")), intent_obj.language)
         response = intent_obj.create_response()
         response.response_type = intent.IntentResponseType.QUERY_ANSWER
         response.async_set_speech(" ".join(item["message"] for item in result))
         response.async_set_speech_slots({"findings": result})
+        return response
+
+
+class SetSoundModeHandler(intent.IntentHandler):
+    """Choose the sound mode of a main zone, by the name its list shows."""
+
+    intent_type = INTENT_SET_SOUND_MODE
+    description = (
+        "Sets the sound mode of a Denon or Marantz receiver, such as Dolby Surround, "
+        "Stereo, Pure Direct or Multichannel Stereo. Takes the names of the main "
+        "zone's sound mode list; an unknown name is answered with the names it has."
+    )
+    slot_schema = {vol.Required("sound_mode"): cv.string, **_TARGET_SLOTS}
+    platforms = {"media_player"}
+
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
+        hass = intent_obj.hass
+        slots = self.async_validate_slots(intent_obj.slots)
+        mode = str(_value(slots, "sound_mode"))
+        texts = await _texts(intent_obj)
+        # Only the main zone has sound modes; Zone 2 named means its receiver.
+        players = _main_players(hass, _players(hass, intent_obj, slots))
+        player = _one(hass, texts, _prefer_area(hass, players, slots))
+        shown = player.shown_sound_mode(mode)
+        try:
+            await player.async_select_sound_mode(mode)
+        except HomeAssistantError as err:
+            raise intent.IntentHandleError(str(err), "not_set") from err
+        response = intent_obj.create_response()
+        response.response_type = intent.IntentResponseType.ACTION_DONE
+        response.async_set_results(
+            success_results=[
+                intent.IntentResponseTarget(
+                    type=intent.IntentResponseTargetType.ENTITY,
+                    name=_named(hass.states.get(player.entity_id), player.entity_id),
+                    id=player.entity_id,
+                )
+            ]
+        )
+        response.async_set_speech(_say(texts, "intent_sound_mode_set", sound_mode=shown))
+        response.async_set_speech_slots({"sound_mode": shown})
         return response
