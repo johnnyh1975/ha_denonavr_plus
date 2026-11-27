@@ -47,8 +47,10 @@ def _options(entry: MockConfigEntry, **links: dict[str, Any]) -> None:
     hass.config_entries.async_update_entry(entry, options=entry_options)
 
 
-def _player(code_player: str, *, follow: bool = False, full_volume: bool = False) -> dict[str, Any]:
-    return {"player": code_player, "follow": follow, "full_volume": full_volume}
+def _player(
+    code_player: str, *, follow: bool = False, full_volume: bool = False, power: bool = False
+) -> dict[str, Any]:
+    return {"player": code_player, "follow": follow, "full_volume": full_volume, "power": power}
 
 
 def test_links_skip_entries_without_a_player() -> None:
@@ -787,3 +789,73 @@ async def test_an_announcement_stream_is_not_followed(
     await hass.async_block_till_done()
     assert [line for line in telnet.sent if line.startswith("SI")] == []
     assert events == []
+
+
+
+# Switched with the input -----------------------------------------------------
+
+
+async def test_a_player_is_switched_on_with_its_input_and_off_with_its_zones(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    turned_on = async_mock_service(hass, "media_player", "turn_on")
+    turned_off = async_mock_service(hass, "media_player", "turn_off")
+    on_off = FEATURES | 128 | 256  # turn on, turn off
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "off", {"supported_features": on_off})
+    _options(loaded_entry, DVD=_player(APPLE_TV, power=True))
+    await _settle(hass)
+    assert not turned_on
+
+    telnet.push("SIDVD")
+    await _settle(hass)
+    assert [call.data["entity_id"] for call in turned_on] == [APPLE_TV]
+    hass.states.async_set(APPLE_TV, "playing", {"supported_features": on_off})
+
+    # Another input: the player stays on.
+    telnet.push("SICD")
+    await _settle(hass)
+    assert not turned_off
+    # Back, then the zone off: off with it.
+    telnet.push("SIDVD")
+    await _settle(hass)
+    telnet.push("ZMOFF")
+    await _settle(hass)
+    assert [call.data["entity_id"] for call in turned_off] == [APPLE_TV]
+
+
+async def test_without_the_option_or_the_feature_nothing_is_switched(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    turned_on = async_mock_service(hass, "media_player", "turn_on")
+    telnet = FakeTelnet.instances[-1]
+    telnet.push("PWON", "ZMON", "SICD")
+    await _settle(hass)
+    hass.states.async_set(APPLE_TV, "off", {"supported_features": FEATURES | 128})
+    hass.states.async_set(STREAMER, "off", {"supported_features": FEATURES})
+    _options(loaded_entry, DVD=_player(APPLE_TV), BD=_player(STREAMER, power=True))
+    await _settle(hass)
+    telnet.push("SIDVD")
+    await _settle(hass)
+    telnet.push("SIBD")
+    await _settle(hass)
+    assert not turned_on
+
+
+async def test_a_player_is_suggested_only_when_one_fits(hass: HomeAssistant) -> None:
+    hass.states.async_set("media_player.shield", "idle", {"friendly_name": "Nvidia Shield"})
+    hass.states.async_set("media_player.shield_2", "idle", {"friendly_name": "Shield Bedroom"})
+    hass.states.async_set("media_player.sonos", "idle", {"friendly_name": "Sonos Arc"})
+
+    def suggest(name: str, exclude: list[str] | None = None) -> str | None:
+        return linked_players.suggest_player(
+            hass, name, exclude=exclude or [], network=False, receiver_names=[]
+        )
+
+    assert suggest("Sonos") == "media_player.sonos"
+    assert suggest("Shield") is None  # two fit
+    assert suggest("Shield", ["media_player.shield_2"]) == "media_player.shield"
+    assert suggest("Blu-ray") is None  # a default name
+    assert suggest("Apple TV") is None

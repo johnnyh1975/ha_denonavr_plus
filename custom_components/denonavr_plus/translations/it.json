@@ -247,16 +247,18 @@
       },
       "linked_input": {
         "title": "Lettore collegato",
-        "description": "**{input}**: il lettore multimediale del dispositivo collegato a questo ingresso. Lascialo vuoto per scollegare l'ingresso; i due interruttori allora non hanno effetto.",
+        "description": "**{input}**: il lettore multimediale del dispositivo collegato a questo ingresso. Lascialo vuoto per scollegare l'ingresso; gli interruttori allora non hanno effetto.",
         "data": {
           "player": "Lettore multimediale",
           "follow": "La zona principale passa a questo ingresso quando il lettore parte",
-          "full_volume": "Mantieni il lettore al volume massimo"
+          "full_volume": "Mantieni il lettore al volume massimo",
+          "power": "Accendi e spegni il lettore con l'ingresso"
         },
         "data_description": {
           "player": "Titolo, copertina, posizione e stato compaiono su ogni zona che riproduce questo ingresso; riproduci, pausa, salta e avanzamento vanno a esso.",
           "follow": "Quando il lettore parte, la zona principale si accende se serve e passa qui. I lettori collegati che nessuna zona riproduce vengono allora messi in pausa, anche quando la zona principale passa a mano o con il telecomando a un altro ingresso con lettore collegato. Un lettore che parte entro 5 secondi da un cambio viene invece messo in pausa.",
-          "full_volume": "Il volume si regola sul ricevitore: finché una zona accesa riproduce questo ingresso, il lettore viene portato al volume massimo e riattivato, e di nuovo ogni volta che il suo volume cambia. Non per un dispositivo con altoparlanti propri, come un televisore: lì suonerebbe al volume massimo."
+          "full_volume": "Il volume si regola sul ricevitore: finché una zona accesa riproduce questo ingresso, il lettore viene portato al volume massimo e riattivato, e di nuovo ogni volta che il suo volume cambia. Non per un dispositivo con altoparlanti propri, come un televisore: lì suonerebbe al volume massimo.",
+          "power": "Quando una zona passa a questo ingresso, il lettore viene acceso se è spento; quando tutte le zone che lo riproducevano vengono spente, viene spento anche il lettore. Se una zona cambia solo ingresso, resta acceso."
         }
       },
       "playback_next": {

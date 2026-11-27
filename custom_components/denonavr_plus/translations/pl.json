@@ -247,16 +247,18 @@
       },
       "linked_input": {
         "title": "Powiązany odtwarzacz",
-        "description": "**{input}**: odtwarzacz multimedialny urządzenia podłączonego do tego wejścia. Zostaw puste, aby usunąć powiązanie; oba przełączniki nie mają wtedy znaczenia.",
+        "description": "**{input}**: odtwarzacz multimedialny urządzenia podłączonego do tego wejścia. Zostaw puste, aby usunąć powiązanie; przełączniki nie mają wtedy znaczenia.",
         "data": {
           "player": "Odtwarzacz multimedialny",
           "follow": "Strefa główna przełącza na to wejście, gdy odtwarzacz zacznie grać",
-          "full_volume": "Utrzymuj odtwarzacz na pełnej głośności"
+          "full_volume": "Utrzymuj odtwarzacz na pełnej głośności",
+          "power": "Włączaj i wyłączaj odtwarzacz razem z wejściem"
         },
         "data_description": {
           "player": "Jego tytuł, okładka, pozycja i stan pojawiają się w każdej strefie grającej to wejście; odtwarzanie, pauza, przeskok i przewijanie trafiają do niego.",
           "follow": "Gdy odtwarzacz rusza, strefa główna w razie potrzeby się włącza i przełącza tutaj. Powiązane odtwarzacze, których nie gra żadna strefa, zostają wtedy wstrzymane, także gdy strefa główna zostanie przełączona ręcznie lub pilotem na inne wejście z powiązanym odtwarzaczem. Odtwarzacz, który ruszy w ciągu 5 sekund od zmiany, zostaje wstrzymany zamiast tego.",
-          "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością."
+          "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością.",
+          "power": "Gdy strefa przełączy się na to wejście, odtwarzacz zostanie włączony, jeśli jest wyłączony; gdy wszystkie strefy, które go odtwarzały, zostaną wyłączone, odtwarzacz też zostanie wyłączony. Gdy strefa tylko zmienia wejście, pozostaje włączony."
         }
       },
       "playback_next": {

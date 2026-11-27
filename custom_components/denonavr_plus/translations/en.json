@@ -247,16 +247,18 @@
       },
       "linked_input": {
         "title": "Linked player",
-        "description": "**{input}**: the media player of the device connected to this input. Leave it empty to unlink the input; the two switches then do nothing.",
+        "description": "**{input}**: the media player of the device connected to this input. Leave it empty to unlink the input; the switches then do nothing.",
         "data": {
           "player": "Media player",
           "follow": "Main zone switches to this input when the player starts",
-          "full_volume": "Keep the player at full volume"
+          "full_volume": "Keep the player at full volume",
+          "power": "Switch the player on and off with the input"
         },
         "data_description": {
           "player": "Its title, artwork, position and state show on every zone that plays this input; play, pause, skip and seek go to it.",
           "follow": "When the player starts, the main zone turns on if needed and switches here. Linked players that no zone plays are then paused, also when the main zone is switched by hand or remote to another input with a linked player. A player that starts within 5 seconds of a switch is paused instead.",
-          "full_volume": "The volume is set on the receiver, so while a zone that is on plays this input, the player is set to full volume and unmuted, and again whenever its volume changes. Not for a device with its own speakers, such as a television: it would play at full volume there."
+          "full_volume": "The volume is set on the receiver, so while a zone that is on plays this input, the player is set to full volume and unmuted, and again whenever its volume changes. Not for a device with its own speakers, such as a television: it would play at full volume there.",
+          "power": "When a zone switches to this input, the player is switched on if it is off; when every zone that played it is switched off, the player is switched off too. A zone moving to another input leaves it on."
         }
       },
       "playback_next": {

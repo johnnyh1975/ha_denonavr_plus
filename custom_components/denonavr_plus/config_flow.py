@@ -66,6 +66,7 @@ from . import choices, entity_groups, linked_players, move
 from .linked_players import (
     KEY_FOLLOW,
     KEY_FULL_VOLUME,
+    KEY_POWER,
     KEY_PLAYER,
     OPT_LINKED_PLAYERS,
     OPT_PAUSE_ON_OFF,
@@ -101,6 +102,9 @@ SSDP_MANUFACTURERS = frozenset({"Denon", "DENON", "DENON PROFESSIONAL", "Marantz
 #: Model names of HEOS speakers and other units that are no receiver. They
 #: announce the same device types under the same manufacturer.
 _NOT_A_RECEIVER = ("HEOS", "Denon Home")
+
+#: The integration whose players may be made of this receiver's (see _own_players).
+MUSIC_ASSISTANT = "music_assistant"
 #: The device types Denon and Marantz units announce over SSDP.
 SSDP_DEVICE_TYPES = (
     "urn:schemas-denon-com:device:AiosDevice:1",
@@ -798,13 +802,43 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         state = self.hass.states.get(entity_id)
         return str(state.name) if state is not None else entity_id
 
+    def _suggested_player(self, code: str, name: str) -> str | None:
+        """A player that likely is the device on the input (linked_players.suggest_player)."""
+
+        coordinator = getattr(self.config_entry, "runtime_data", None)
+        device = getattr(coordinator, "device", None)
+        model = device.discovery.device.model_name if device is not None else None
+        return linked_players.suggest_player(
+            self.hass,
+            name,
+            exclude=self._own_players(),
+            network=self._is_network(code),
+            receiver_names=[self.config_entry.title, *([model] if model else [])],
+        )
+
     def _own_players(self) -> list[str]:
+        """This receiver's players, and Music Assistant's players made of them.
+
+        Music Assistant's "Home Assistant MediaPlayers" provider builds a player
+        from a Home Assistant media player and names it by that entity id; its
+        Music Assistant entity has it as unique id. Linked to the network input,
+        play would go back and forth between the two, so they are left out too.
+        """
+
         registry = er.async_get(self.hass)
-        return [
+        own = [
             item.entity_id
             for item in er.async_entries_for_config_entry(registry, self.config_entry.entry_id)
             if item.domain == "media_player"
         ]
+        wrapped = [
+            item.entity_id
+            for item in registry.entities.values()
+            if item.platform == MUSIC_ASSISTANT
+            and item.domain == "media_player"
+            and item.unique_id in own
+        ]
+        return own + wrapped
 
     def _playback_draft(self) -> dict[str, Any]:
         """The playback options as they will be saved: the entry's own now, with
@@ -899,6 +933,7 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                     bool(user_input.get(KEY_FOLLOW, False)),
                     # Not on the network input: see linked_players._full_volume_now.
                     bool(user_input.get(KEY_FULL_VOLUME, False)) and not self._is_network(code),
+                    bool(user_input.get(KEY_POWER, False)),
                 )
                 if player
                 else None
@@ -910,7 +945,11 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 # A suggestion, not a default, so the player can be cleared.
                 vol.Optional(
                     KEY_PLAYER,
-                    description={"suggested_value": current.entity_id if current else None},
+                    description={
+                        "suggested_value": current.entity_id
+                        if current
+                        else self._suggested_player(code, names.get(code, code))
+                    },
                 ): EntitySelector(
                     EntitySelectorConfig(
                         domain="media_player", exclude_entities=self._own_players()
@@ -918,6 +957,9 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
                 ),
                 vol.Required(
                     KEY_FOLLOW, default=current.follow if current else False
+                ): BooleanSelector(),
+                vol.Required(
+                    KEY_POWER, default=current.power if current else False
                 ): BooleanSelector(),
             }
         )

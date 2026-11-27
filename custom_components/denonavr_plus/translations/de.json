@@ -247,16 +247,18 @@
       },
       "linked_input": {
         "title": "Verknüpfter Player",
-        "description": "**{input}**: der Media Player des Geräts an diesem Eingang. Leer lassen, um die Verknüpfung zu lösen; die beiden Schalter wirken dann nicht.",
+        "description": "**{input}**: der Media Player des Geräts an diesem Eingang. Leer lassen, um die Verknüpfung zu lösen; die Schalter wirken dann nicht.",
         "data": {
           "player": "Media Player",
           "follow": "Hauptzone schaltet auf diesen Eingang, wenn der Player startet",
-          "full_volume": "Player auf voller Lautstärke halten"
+          "full_volume": "Player auf voller Lautstärke halten",
+          "power": "Player mit dem Eingang ein- und ausschalten"
         },
         "data_description": {
           "player": "Titel, Cover, Position und Zustand erscheinen auf jeder Zone, die diesen Eingang spielt; Wiedergabe, Pause, Springen und Spulen gehen an ihn.",
           "follow": "Startet der Player, schaltet sich die Hauptzone bei Bedarf ein und wechselt hierher. Verknüpfte Player, die keine Zone spielt, werden dann angehalten, auch wenn die Hauptzone von Hand oder per Fernbedienung auf einen anderen Eingang mit verknüpftem Player wechselt. Ein Player, der binnen 5 Sekunden nach einem Wechsel startet, wird stattdessen angehalten.",
-          "full_volume": "Die Lautstärke wird am Receiver eingestellt. Solange eine eingeschaltete Zone diesen Eingang spielt, wird der Player deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, und erneut, sobald sich seine Lautstärke ändert. Nicht für ein Gerät mit eigenen Lautsprechern wie einen Fernseher: Es würde dort mit voller Lautstärke spielen."
+          "full_volume": "Die Lautstärke wird am Receiver eingestellt. Solange eine eingeschaltete Zone diesen Eingang spielt, wird der Player deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, und erneut, sobald sich seine Lautstärke ändert. Nicht für ein Gerät mit eigenen Lautsprechern wie einen Fernseher: Es würde dort mit voller Lautstärke spielen.",
+          "power": "Wechselt eine Zone auf diesen Eingang, wird der Player eingeschaltet, wenn er aus ist; werden alle Zonen ausgeschaltet, die ihn spielten, wird auch der Player ausgeschaltet. Wechselt eine Zone nur den Eingang, bleibt er an."
         }
       },
       "playback_next": {

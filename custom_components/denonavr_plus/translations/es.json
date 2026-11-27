@@ -247,16 +247,18 @@
       },
       "linked_input": {
         "title": "Reproductor vinculado",
-        "description": "**{input}**: el reproductor del dispositivo conectado a esta entrada. Déjalo vacío para desvincular la entrada; los dos interruptores no tienen efecto entonces.",
+        "description": "**{input}**: el reproductor del dispositivo conectado a esta entrada. Déjalo vacío para desvincular la entrada; los interruptores no tienen efecto entonces.",
         "data": {
           "player": "Reproductor multimedia",
           "follow": "La zona principal cambia a esta entrada cuando el reproductor empieza",
-          "full_volume": "Mantener el reproductor al volumen máximo"
+          "full_volume": "Mantener el reproductor al volumen máximo",
+          "power": "Encender y apagar el reproductor con la entrada"
         },
         "data_description": {
           "player": "Su título, carátula, posición y estado aparecen en cada zona que reproduce esta entrada; reproducir, pausar, saltar y buscar se envían a él.",
           "follow": "Cuando el reproductor empieza, la zona principal se enciende si hace falta y cambia aquí. Los reproductores vinculados que ninguna zona reproduce se pausan entonces, también cuando la zona principal cambia a mano o con el mando a otra entrada con reproductor vinculado. Un reproductor que empieza en los 5 segundos siguientes a un cambio se pausa en su lugar.",
-          "full_volume": "El volumen se ajusta en el receptor: mientras una zona encendida reproduce esta entrada, el reproductor se pone al volumen máximo y sin silencio, y de nuevo cada vez que cambia su volumen. No para un dispositivo con altavoces propios, como un televisor: sonaría allí al volumen máximo."
+          "full_volume": "El volumen se ajusta en el receptor: mientras una zona encendida reproduce esta entrada, el reproductor se pone al volumen máximo y sin silencio, y de nuevo cada vez que cambia su volumen. No para un dispositivo con altavoces propios, como un televisor: sonaría allí al volumen máximo.",
+          "power": "Cuando una zona cambia a esta entrada, el reproductor se enciende si está apagado; cuando se apagan todas las zonas que lo reproducían, el reproductor también se apaga. Si una zona solo cambia de entrada, sigue encendido."
         }
       },
       "playback_next": {

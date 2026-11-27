@@ -18,9 +18,10 @@ come from the Rotel integration (1orgar/ha_rotel_amp).
 from __future__ import annotations
 
 import logging
+import re
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from homeassistant.components.media_player import (
@@ -38,6 +39,8 @@ from homeassistant.const import (
     ATTR_SUPPORTED_FEATURES,
     SERVICE_MEDIA_PAUSE,
     SERVICE_MEDIA_STOP,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
     SERVICE_VOLUME_MUTE,
     SERVICE_VOLUME_SET,
     STATE_UNAVAILABLE,
@@ -71,6 +74,9 @@ OPT_LINKED_PLAYERS = "linked_players"
 KEY_PLAYER = "player"
 KEY_FOLLOW = "follow"
 KEY_FULL_VOLUME = "full_volume"
+#: Switch the player on when a zone switches to its input, and off when the
+#: zones that played it are switched off.
+KEY_POWER = "power"
 #: Option: a zone on an input with a signal is "playing", without one "idle"
 #: (instead of "on"). Off by default: not yet tried on a receiver.
 OPT_SIGNAL_STATE = "signal_state"
@@ -108,12 +114,14 @@ class Link:
     entity_id: str
     follow: bool = False
     full_volume: bool = False
+    power: bool = False
 
     def stored(self) -> dict[str, Any]:
         return {
             KEY_PLAYER: self.entity_id,
             KEY_FOLLOW: self.follow,
             KEY_FULL_VOLUME: self.full_volume,
+            KEY_POWER: self.power,
         }
 
 
@@ -131,6 +139,7 @@ def links(options: dict[str, Any]) -> dict[str, Link]:
             str(value[KEY_PLAYER]),
             bool(value.get(KEY_FOLLOW, False)),
             bool(value.get(KEY_FULL_VOLUME, False)),
+            bool(value.get(KEY_POWER, False)),
         )
     return found
 
@@ -179,6 +188,68 @@ def links_on_wire(options: dict[str, Any], device: Any) -> dict[str, Link]:
     return {wire_code(device, code): link for code, link in links(options).items()}
 
 
+def _features(state: State) -> MediaPlayerEntityFeature:
+    return MediaPlayerEntityFeature(int(state.attributes.get(ATTR_SUPPORTED_FEATURES, 0)))
+
+
+#: Input names that say nothing about the device on them (the receivers'
+#: default names, words only).
+_GENERIC_INPUTS = frozenset(
+    {
+        "dvd", "blu ray", "bluray", "bd", "cd", "game", "game 2", "aux", "aux 1", "aux 2",
+        "aux1", "aux2", "tv", "tv audio", "cbl sat", "sat cbl", "media player", "mplay",
+        "tuner", "network", "net", "phono", "bluetooth", "usb", "8k", "heos music",
+    }
+)
+
+
+def _words(name: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+", name.lower())
+
+
+def suggest_player(
+    hass: HomeAssistant,
+    input_name: str,
+    *,
+    exclude: list[str],
+    network: bool,
+    receiver_names: list[str],
+) -> str | None:
+    """A media player that is likely the device on an input; None unless one fits.
+
+    An input renamed after its device ("Apple TV") fits a player whose name
+    holds those words ("Living room Apple TV"). The network input fits a
+    Music Assistant player named after the receiver. Only a single fit is
+    suggested, and only as a suggestion: the user still picks.
+    """
+
+    if network:
+        registry = er.async_get(hass)
+        candidates = [
+            item.entity_id
+            for item in registry.entities.values()
+            if item.platform == "music_assistant" and item.domain == "media_player"
+        ]
+        wanted = [_words(name) for name in receiver_names if _words(name)]
+    else:
+        words = _words(input_name)
+        if not words or " ".join(words) in _GENERIC_INPUTS:
+            return None
+        candidates = hass.states.async_entity_ids("media_player")
+        wanted = [words]
+    fits = []
+    for entity_id in candidates:
+        if entity_id in exclude:
+            continue
+        state = hass.states.get(entity_id)
+        if state is None:
+            continue
+        have = set(_words(str(state.attributes.get("friendly_name") or entity_id)))
+        if any(want and set(want) <= have for want in wanted):
+            fits.append(entity_id)
+    return fits[0] if len(fits) == 1 else None
+
+
 def issue_id(entry_id: str) -> str:
     return f"{ISSUE}_{entry_id}"
 
@@ -201,6 +272,8 @@ class LinkedPlayers:
         self._followed_at = 0.0
         self._followed: str | None = None
         self._full_volume_active: frozenset[str] = frozenset()
+        # Players switched with their input: the zones that play each now.
+        self._powered: dict[str, frozenset[str]] = {}
         # The main zone's input while it is on, to see it change.
         self._main_input: str | None = None
         # A follow on its way: its input, the player's context (for the
@@ -219,6 +292,8 @@ class LinkedPlayers:
         ]
         self._track()
         self._refresh_full_volume()
+        # What plays at the start is no switch: nothing is woken then.
+        self._powered = self._powered_now()
         self._main_input = self._current_main_input()
 
         # Other integrations add their players while Home Assistant starts.
@@ -248,6 +323,7 @@ class LinkedPlayers:
         if self._track() and self._hass.state is CoreState.running:
             self.async_check_missing()
         self._refresh_full_volume()
+        self._refresh_power()
         self._main_input_changed()
 
     @callback
@@ -280,7 +356,7 @@ class LinkedPlayers:
             old, new = data["old_entity_id"], data["entity_id"]
             _LOGGER.info("Linked player %s is now %s", old, new)
             renamed = {
-                code: (Link(new, link.follow, link.full_volume) if link.entity_id == old else link)
+                code: (replace(link, entity_id=new) if link.entity_id == old else link)
                 for code, link in current.items()
             }
             self._hass.config_entries.async_update_entry(
@@ -387,6 +463,53 @@ class LinkedPlayers:
             # Not for an announcement's stream: Music Assistant's HEOS
             # player may report it as playing.
             self._follow(code, entity_id, event.context)
+
+    # Switched with the input ---------------------------------------------------
+
+    def _powered_now(self) -> dict[str, frozenset[str]]:
+        """The players switched with their input, and the zones on that play it."""
+
+        coordinator = self._entry.runtime_data
+        device = coordinator.device
+        found: dict[str, frozenset[str]] = {}
+        for code, link in self._links.items():
+            if not link.power:
+                continue
+            wire = wire_code(device, code)
+            zones = frozenset(
+                zone_id
+                for zone_id, zone in coordinator.data.zones.items()
+                if zone.power and device.zone_source(zone_id) == wire
+            )
+            if zones:
+                found[link.entity_id] = zones
+        return found
+
+    @callback
+    def _refresh_power(self) -> None:
+        """Switch a player on with its input, and off with the zones that played it.
+
+        On when a zone that is on switches to the input (or is switched on on
+        it) and the player is off. Off only when every zone that played it is
+        switched off: a zone moving to another input leaves the player on.
+        """
+
+        now = self._powered_now()
+        data = self._entry.runtime_data.data
+        for entity_id in now.keys() - self._powered.keys():
+            state = self._hass.states.get(entity_id)
+            if state is not None and state.state == MediaPlayerState.OFF:
+                if _features(state) & MediaPlayerEntityFeature.TURN_ON:
+                    self._call_later(entity_id, SERVICE_TURN_ON)
+        for entity_id in self._powered.keys() - now.keys():
+            zones = self._powered[entity_id]
+            if any(data.zone(zone_id).power for zone_id in zones):
+                continue
+            state = self._hass.states.get(entity_id)
+            if state is not None and state.state not in (*_GONE, MediaPlayerState.OFF):
+                if _features(state) & MediaPlayerEntityFeature.TURN_OFF:
+                    self._call_later(entity_id, SERVICE_TURN_OFF)
+        self._powered = now
 
     # Full volume -----------------------------------------------------------
 
