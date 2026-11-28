@@ -24,7 +24,17 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 
-from . import activities, choices, command_test, entity_groups, layout_repair, linked_players, move, zone_sources
+from . import (
+    activities,
+    choices,
+    command_test,
+    entity_groups,
+    entity_plan,
+    layout_repair,
+    linked_players,
+    move,
+    zone_sources,
+)
 from .avr.profile import load_profile
 from .const import (
     CHANNEL_DISTANCE_MARKER,
@@ -103,11 +113,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     # `via_device` identifier tuple is deprecated (removed in HA 2027.8.0).
     _register_main_device(hass, entry, coordinator)
     coordinator.shown_zones = _shown_zones(entry, coordinator)
+    coordinator.activity_zones = activities.zones_with_activities(dict(entry.options))
     _remove_hidden_zones(hass, entry, coordinator)
     if not coordinator.started_offline:
         # Before the entities: Zone 2's input list is what they show.
         zone_sources.async_preselect(hass, entry)
     await hass.config_entries.async_forward_entry_setups(entry, _platforms(coordinator))
+    # Entities the options leave out go, those of a capability not reported
+    # at this start stay (entity_plan.py).
+    entity_plan.async_remove_unplanned(hass, entry, coordinator)
+    coordinator.platforms_ready.set()
     # Renamed and removed linked players, following one, keeping it at full volume.
     entry.async_on_unload(linked_players.LinkedPlayers(hass, entry).async_start())
     _apply_channel_defaults(hass, entry, coordinator)
@@ -200,9 +215,10 @@ def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -
 def _remove_hidden_zones(
     hass: HomeAssistant, entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator
 ) -> None:
-    """Remove the entities of zones the options leave out.
+    """Remove the devices of zones the options leave out, with what is on them.
 
-    Otherwise they would stay in the registry as "no longer provided".
+    Their entities on the receiver's own device (its volume, its source)
+    go with the plan (entity_plan.async_remove_unplanned).
     """
 
     hidden = {
@@ -210,16 +226,6 @@ def _remove_hidden_zones(
     } - coordinator.shown_zones
     if not hidden:
         return
-    registry = er.async_get(hass)
-    suffixes = tuple(
-        f"_{kind}_{zone}"
-        for zone in hidden
-        for kind in ("media_player", "number_volume", "sensor_source")
-    )
-    for item in er.async_entries_for_config_entry(registry, entry.entry_id):
-        if item.unique_id.endswith(suffixes):
-            registry.async_remove(item.entity_id)
-    # And the zone's own device, which has nothing left on it.
     devices = dr.async_get(hass)
     for device in dr.async_entries_for_config_entry(devices, entry.entry_id):
         if any(

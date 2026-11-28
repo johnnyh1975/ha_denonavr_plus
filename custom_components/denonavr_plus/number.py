@@ -15,19 +15,20 @@ from homeassistant.components.number import (
     NumberMode,
 )
 from homeassistant.const import UnitOfFrequency, UnitOfLength, UnitOfSoundPressure, UnitOfTime
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import choices
 from . import volume as _volume
-from typing import cast
+from typing import Any, cast
 
 from .avr import DenonAvrDevice, graphic_eq
 from .avr.models import ZoneDescriptor
 from .avr.profile import ControlSpec, range_paths
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action, zone_device
+from .entity import DenonAvrEntity, add_planned, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device, control_zone_shown
 
 # The control kinds that map to a number entity.
@@ -41,21 +42,21 @@ _UNIT_TOKENS = {"ms": UnitOfTime.MILLISECONDS, "m": UnitOfLength.METERS}
 # The graphic EQ bands and distances write the setup interface one at a time.
 PARALLEL_UPDATES = 1
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: DenonAvrConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
-) -> None:
-    """Create the adjustable number entities discovered for this receiver."""
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[NumberEntity]:
+    """Create the adjustable number entities discovered for this receiver.
 
-    coordinator = entry.runtime_data
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
     device = coordinator.device
     discovery = device.discovery
     entities: list[NumberEntity] = []
 
     # The volume of each zone in dB, settable (the media player shows 0..1).
     for zone in discovery.zones:
-        if choices.zone_enabled(dict(entry.options), zone.id):
+        if choices.zone_enabled(options, zone.id):
             entities.append(DenonAvrVolume(coordinator, zone))
 
     if device.has_tuner:
@@ -66,7 +67,7 @@ async def async_setup_entry(
             continue
         if not discovery.has_control(spec.scope, spec.feature, spec.id):
             continue
-        if not control_zone_shown(spec, dict(entry.options)):
+        if not control_zone_shown(spec, options):
             continue
         entities.append(DenonAvrNumber(coordinator, spec))
 
@@ -91,8 +92,18 @@ async def async_setup_entry(
         for label in device.graphic_eq.grammar.get("bands", []):
             entities.append(DenonAvrEqBand(coordinator, label))
 
-    async_add_entities(entities)
+    return entities
 
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: DenonAvrConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Add the planned entities."""
+
+    coordinator = entry.runtime_data
+    async_add_entities(add_planned(coordinator, Platform.NUMBER, planned(coordinator, dict(entry.options))))
 
 class DenonAvrNumber(DenonAvrEntity, NumberEntity):
     """A number entity backed by a profile level, attenuation or minutes control."""

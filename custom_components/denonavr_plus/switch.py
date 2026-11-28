@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -25,7 +26,7 @@ from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .avr import refusals
 from .avr.errors import SettingNotTaken
-from .entity import DenonAvrEntity, grayed_attributes, receiver_action, zone_device
+from .entity import DenonAvrEntity, add_planned, grayed_attributes, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device
 from .media_player import TURN_ON_SETTLE, TURN_ON_WAIT
 
@@ -33,14 +34,14 @@ from .media_player import TURN_ON_SETTLE, TURN_ON_WAIT
 # Some switches write the setup interface, which takes one write at a time.
 PARALLEL_UPDATES = 1
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: DenonAvrConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
-) -> None:
-    """Create a switch for each supported on/off feature control."""
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[SwitchEntity]:
+    """Create a switch for each supported on/off feature control.
 
-    coordinator = entry.runtime_data
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
     discovery = coordinator.device.discovery
     entities: list[SwitchEntity] = [
         DenonAvrSwitch(coordinator, spec)
@@ -62,12 +63,22 @@ async def async_setup_entry(
         entities.extend(
             DenonAvrMusicSwitch(coordinator, zone)
             for zone in discovery.zones
-            if choices.zone_enabled(dict(entry.options), zone.id)
+            if choices.zone_enabled(options, zone.id)
         )
     if clarity.controls(coordinator.device):
         entities.append(DenonAvrSpeechClaritySwitch(coordinator))
-    async_add_entities(entities)
+    return entities
 
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: DenonAvrConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Add the planned entities."""
+
+    coordinator = entry.runtime_data
+    async_add_entities(add_planned(coordinator, Platform.SWITCH, planned(coordinator, dict(entry.options))))
 
 class _Before(ExtraStoredData):
     """The values speech clarity changed, kept over a restart."""

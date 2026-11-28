@@ -1289,12 +1289,10 @@ def test_the_layout_comes_from_the_snapshot_only_when_it_fits() -> None:
     assert device._video_config.collection("input_hdcp") == {}
 
     assert device._restore_layout(snapshot, [known])
-    layout = device.entity_layout()
-    assert layout == device.layout_at_start
-    assert layout["channel_trims"] == ["FL", "FR"]
-    assert layout["subwoofer_presence"] is True
-    assert layout["answered"] == ["tone_control"]
-    assert layout["signal"] is False
+    assert sorted(device.state.channel_trims) == ["FL", "FR"]
+    assert device.state.speaker_sizes["SWF"] == "NO"
+    assert device.discovery.answered == {"tone_control"}
+    assert device.signal_supported is False
     assert device.discovery.configured_channels == {"FL", "FR"}
 
 

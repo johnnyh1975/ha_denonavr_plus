@@ -9,7 +9,10 @@ network restart), which start disabled.
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.button import ButtonDeviceClass, ButtonEntity
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -18,7 +21,7 @@ from . import choices, layout_repair, no_sound
 from .avr.models import ZoneDescriptor
 from .avr.speaker_layout import LayoutNotSeen
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action, zone_device
+from .entity import DenonAvrEntity, add_planned, receiver_action, zone_device
 from .helpers import control_zone_shown
 
 
@@ -26,14 +29,14 @@ from .helpers import control_zone_shown
 PARALLEL_UPDATES = 1
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: DenonAvrConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
-) -> None:
-    """Create the graphic-EQ action buttons when the receiver supports them."""
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[ButtonEntity]:
+    """Create the graphic-EQ action buttons when the receiver supports them.
 
-    coordinator = entry.runtime_data
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
     entities: list[ButtonEntity] = []
     if coordinator.device.graphic_eq.supported:
         entities.append(DenonAvrEqApply(coordinator))
@@ -46,7 +49,7 @@ async def async_setup_entry(
     )
     # Recall each quick select: for dashboards, Apple Home and voice, where a
     # select is clumsy. Zone 2 where the receiver answers Z2QUICK ?.
-    options = dict(entry.options)
+    options = options
     zone2 = device.profile.control("zone2_quick_select")
     for zone in device.discovery.zones:
         if zone.is_main or (
@@ -66,10 +69,20 @@ async def async_setup_entry(
     entities.extend(
         DenonAvrWhyNoSound(coordinator, zone)
         for zone in device.discovery.zones
-        if choices.zone_enabled(dict(entry.options), zone.id)
+        if choices.zone_enabled(options, zone.id)
     )
-    async_add_entities(entities)
+    return entities
 
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: DenonAvrConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Add the planned entities."""
+
+    coordinator = entry.runtime_data
+    async_add_entities(add_planned(coordinator, Platform.BUTTON, planned(coordinator, dict(entry.options))))
 
 class DenonAvrQuickSelectRecall(DenonAvrEntity, ButtonEntity):
     """Recall one quick select preset of a zone (MSQUICK<n>, Z2QUICK<n>).

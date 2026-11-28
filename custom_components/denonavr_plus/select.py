@@ -10,9 +10,9 @@ sources, quick select, crossover) are shown as it names them.
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -28,7 +28,7 @@ from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .const import DOMAIN
 from .avr import refusals
 from .avr.errors import SettingNotTaken
-from .entity import DenonAvrEntity, grayed_attributes, receiver_action, unique_id, zone_device
+from .entity import DenonAvrEntity, add_planned, grayed_attributes, receiver_action, zone_device
 from .helpers import (
     control_enabled_by_default,
     control_sub_device,
@@ -42,21 +42,21 @@ from .helpers import (
 # Several selects write the setup interface, which takes one write at a time.
 PARALLEL_UPDATES = 1
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: DenonAvrConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
-) -> None:
-    """Create a select entity for each supported enum control."""
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[SelectEntity]:
+    """Create a select entity for each supported enum control.
 
-    coordinator = entry.runtime_data
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
     discovery = coordinator.device.discovery
     entities: list[SelectEntity] = [
         DenonAvrSelect(coordinator, spec)
         for spec in coordinator.device.profile.controls.values()
         if spec.kind == "enum"
         and discovery.has_control(spec.scope, spec.feature, spec.id)
-        and control_zone_shown(spec, dict(entry.options))
+        and control_zone_shown(spec, options)
     ]
     # Two coupled sound mode selects: one picks the genre group (Movie/Music/
     # Game/Pure), the other lists the modes within the selected group. Both are
@@ -65,25 +65,14 @@ async def async_setup_entry(
     if discovery.sound_mode_genres:
         entities.append(DenonAvrSoundModeGroupSelect(coordinator))
         entities.append(DenonAvrSoundModeSelect(coordinator))
-    # Activities (activities.py), on each shown zone that has any.
-    options = dict(entry.options)
-    coordinator.activity_zones = activities.zones_with_activities(options)
-    with_select = [
-        zone
+    # Activities (activities.py), on each shown zone that has any. A zone's
+    # last activity deleted, its select goes (entity_plan.async_remove_unplanned).
+    with_activities = activities.zones_with_activities(options)
+    entities.extend(
+        DenonAvrActivitySelect(coordinator, zone)
         for zone in discovery.zones
-        if zone.id in coordinator.activity_zones and choices.zone_enabled(options, zone.id)
-    ]
-    entities.extend(DenonAvrActivitySelect(coordinator, zone) for zone in with_select)
-    # A zone's last activity deleted: its select goes, not "no longer provided".
-    registry = er.async_get(hass)
-    for zone in discovery.zones:
-        if zone in with_select:
-            continue
-        stale = registry.async_get_entity_id(
-            "select", DOMAIN, unique_id(coordinator.device, f"select_activity_{zone.id}")
-        )
-        if stale is not None:
-            registry.async_remove(stale)
+        if zone.id in with_activities and choices.zone_enabled(options, zone.id)
+    )
     # Quick select presets, if the receiver reported any names.
     if discovery.quick_select_names:
         entities.append(DenonAvrQuickSelect(coordinator))
@@ -146,8 +135,18 @@ async def async_setup_entry(
             for control in speakers.controls()
             if control.get("kind") == "select" and speakers.present(control["id"])
         )
-    async_add_entities(entities)
+    return entities
 
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: DenonAvrConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Add the planned entities."""
+
+    coordinator = entry.runtime_data
+    async_add_entities(add_planned(coordinator, Platform.SELECT, planned(coordinator, dict(entry.options))))
 
 class DenonAvrSelect(DenonAvrEntity, SelectEntity):
     """A select entity backed by a profile enum control."""

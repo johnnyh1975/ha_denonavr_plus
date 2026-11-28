@@ -7,34 +7,47 @@ entities are unavailable because the link is down.
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, add_planned
 
 
 # Read only; the coordinator pushes every update.
 PARALLEL_UPDATES = 0
+
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[BinarySensorEntity]:
+    """Create the connectivity binary sensor, and the firmware one on HEOS receivers.
+
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
+    entities: list[BinarySensorEntity] = [DenonAvrConnectivitySensor(coordinator)]
+    if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
+        entities.append(DenonAvrFirmwareSensor(coordinator))
+    return entities
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: DenonAvrConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create the connectivity binary sensor, and the firmware one on HEOS receivers."""
+    """Add the planned entities."""
 
     coordinator = entry.runtime_data
-    entities: list[BinarySensorEntity] = [DenonAvrConnectivitySensor(coordinator)]
-    if coordinator.device.heos_enabled and not coordinator.device.telnet_media:
-        entities.append(DenonAvrFirmwareSensor(coordinator))
-    async_add_entities(entities)
-
+    async_add_entities(add_planned(coordinator, Platform.BINARY_SENSOR, planned(coordinator, dict(entry.options))))
 
 class DenonAvrConnectivitySensor(DenonAvrEntity, BinarySensorEntity):
     """Reports whether the telnet control link is currently up."""

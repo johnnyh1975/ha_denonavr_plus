@@ -10,14 +10,17 @@ automations.
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.update import UpdateDeviceClass, UpdateEntity
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.translation import async_get_translations
 
 from .const import DOMAIN
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, add_planned
 
 # Read only; the coordinator pushes every update.
 PARALLEL_UPDATES = 0
@@ -27,18 +30,29 @@ PARALLEL_UPDATES = 0
 NEWER = "newer"
 
 
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[DenonAvrFirmwareUpdate]:
+    """Create the firmware entity on receivers whose HEOS can be asked.
+
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
+    device = coordinator.device
+    if device.heos_enabled and not device.telnet_media:
+        return [DenonAvrFirmwareUpdate(coordinator)]
+    return []
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: DenonAvrConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create the firmware entity on receivers whose HEOS can be asked."""
+    """Add the planned entities."""
 
     coordinator = entry.runtime_data
-    device = coordinator.device
-    if device.heos_enabled and not device.telnet_media:
-        async_add_entities([DenonAvrFirmwareUpdate(coordinator)])
-
+    async_add_entities(add_planned(coordinator, Platform.UPDATE, planned(coordinator, dict(entry.options))))
 
 class DenonAvrFirmwareUpdate(DenonAvrEntity, UpdateEntity):
     """Whether HEOS has a firmware update for the receiver, as an update entity."""

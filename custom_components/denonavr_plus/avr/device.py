@@ -264,7 +264,6 @@ class DenonAvrDevice:
         self.setup_timings: dict[str, int] = {}
         #: Started from the snapshot (async_discover), and its entity layout.
         self.fast_start = False
-        self.layout_at_start: dict[str, Any] | None = None
         self._available = False
         # Set at the first connection; a later one reads the versions again.
         self._connected_before = False
@@ -665,35 +664,7 @@ class DenonAvrDevice:
         state.channel_trims = dict(snapshot.get("channel_trims") or {})
         state.crossovers = dict(snapshot.get("crossovers") or {})
         state.speaker_sizes = dict(snapshot.get("speaker_sizes") or {})
-        self.layout_at_start = self.entity_layout()
         return True
-
-    def entity_layout(self) -> dict[str, Any]:
-        """What decides which entities there are, beyond Deviceinfo.
-
-        Compared after a start from the snapshot with what the receiver then
-        answered: a difference (a firmware update, a new menu, another
-        speaker group) needs the entities built again.
-        """
-
-        state, discovery = self._state, self._discovery
-        sizes = dict(state.speaker_sizes)
-        presence = self._profile.speakers.get("subwoofer_presence", {})
-        return {
-            "features": sorted(discovery.features),
-            "answered": sorted(discovery.answered),
-            "channels": sorted(channel.code for channel in discovery.channels),
-            "channel_levels": sorted(state.channel_levels),
-            "channel_trims": sorted(state.channel_trims),
-            "crossovers": sorted(state.crossovers),
-            "speaker_groups": sorted(sizes),
-            # The subwoofer select differs for a yes/no receiver.
-            "subwoofer_presence": sizes.get("SWF") in presence,
-            "quick_selects": sorted(discovery.quick_select_names),
-            "signal": self.signal_supported,
-            "video": self._video_config.layout(),
-            "speaker_setup": self._speaker_config.layout(),
-        }
 
     async def async_complete_fast_start(self) -> None:
         """After a start from the snapshot: read what was taken from it.

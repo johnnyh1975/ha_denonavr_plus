@@ -20,16 +20,30 @@ from homeassistant.components.remote import (
     DEFAULT_DELAY_SECS,
     RemoteEntity,
 )
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action
+from .entity import DenonAvrEntity, add_planned, receiver_action
 
 # Commands queue in the telnet client, which orders and paces them.
 PARALLEL_UPDATES = 0
+
+
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[DenonAvrRemote]:
+    """Create the receiver's remote.
+
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
+    if coordinator.device.remote_commands:
+        return [DenonAvrRemote(coordinator)]
+    return []
 
 
 async def async_setup_entry(
@@ -37,12 +51,10 @@ async def async_setup_entry(
     entry: DenonAvrConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create the receiver's remote."""
+    """Add the planned entities."""
 
     coordinator = entry.runtime_data
-    if coordinator.device.remote_commands:
-        async_add_entities([DenonAvrRemote(coordinator)])
-
+    async_add_entities(add_planned(coordinator, Platform.REMOTE, planned(coordinator, dict(entry.options))))
 
 class DenonAvrRemote(DenonAvrEntity, RemoteEntity):
     """The receiver's on-screen menu keys."""

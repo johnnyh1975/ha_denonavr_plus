@@ -8,11 +8,12 @@ receiver, so the entity ids naturally get the model based prefix (for example
 
 from __future__ import annotations
 
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Sequence
 from functools import wraps
 from typing import Any, cast
 
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.device_registry import (
     CONNECTION_NETWORK_MAC,
     DeviceInfo,
@@ -127,6 +128,22 @@ def unique_id(device: DenonAvrDevice, key: str) -> str:
     """The unique id of one of the receiver's entities."""
 
     return f"{_identifier(device)}_{key}"
+
+
+def add_planned(
+    coordinator: DenonAvrCoordinator, platform: str, entities: Sequence[Entity]
+) -> Sequence[Entity]:
+    """The planned entities of a platform, their unique ids kept for the check after the start.
+
+    The check (coordinator._async_after_start) builds the plan again and
+    compares these ids: what the platform was set up with, not what it would
+    have been a moment earlier.
+    """
+
+    coordinator.planned[platform] = frozenset(
+        entity.unique_id for entity in entities if entity.unique_id is not None
+    )
+    return entities
 
 
 class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):

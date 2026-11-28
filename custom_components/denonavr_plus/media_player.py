@@ -57,6 +57,7 @@ from homeassistant.components.media_player.browse_media import (
     async_process_play_media_url,
 )
 from homeassistant.const import (
+    Platform,
     ATTR_ENTITY_PICTURE,
     ATTR_SUPPORTED_FEATURES,
     SERVICE_MEDIA_NEXT_TRACK,
@@ -96,7 +97,7 @@ from .const import DOMAIN
 from .avr.models import NowPlaying, ZoneDescriptor, ZoneSnapshot, ZoneState
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .device_trigger import turn_on_trigger
-from .entity import DenonAvrEntity, receiver_action, zone_device
+from .entity import DenonAvrEntity, add_planned, receiver_action, zone_device
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -199,22 +200,32 @@ _SOURCE_ICON_KEYWORDS = (
 # Commands queue in the telnet client, which orders and paces them.
 PARALLEL_UPDATES = 0
 
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[DenonAvrMediaPlayer]:
+    """Create one media player per discovered zone.
+
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
+    # The receiver's players know each other: a zone joins the main zone's
+    # group by playing its source.
+    players: dict[str, DenonAvrMediaPlayer] = {}
+    for zone in coordinator.device.discovery.zones:
+        if choices.zone_enabled(options, zone.id):
+            players[zone.id] = DenonAvrMediaPlayer(coordinator, zone, players)
+    return list(players.values())
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: DenonAvrConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create one media player per discovered zone."""
+    """Add the planned entities."""
 
     coordinator = entry.runtime_data
-    # The receiver's players know each other: a zone joins the main zone's
-    # group by playing its source.
-    players: dict[str, DenonAvrMediaPlayer] = {}
-    for zone in coordinator.device.discovery.zones:
-        if choices.zone_enabled(dict(entry.options), zone.id):
-            players[zone.id] = DenonAvrMediaPlayer(coordinator, zone, players)
-    async_add_entities(players.values())
-
+    async_add_entities(add_planned(coordinator, Platform.MEDIA_PLAYER, planned(coordinator, dict(entry.options))))
 
 class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
     """A media player representing one zone of the receiver."""

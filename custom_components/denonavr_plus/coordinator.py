@@ -9,6 +9,7 @@ if the telnet link is temporarily down.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, timedelta
 from enum import StrEnum
@@ -43,6 +44,8 @@ _LOGGER = logging.getLogger(__name__)
 #: Entries set up again after a start in this run because the receiver then
 #: reported other capabilities (at most once each).
 _REBUILT_AFTER_FAST_START: set[str] = set()
+#: How long the check after the start waits for the platforms to be set up.
+PLATFORMS_READY_WAIT = 60.0
 
 
 class StartPath(StrEnum):
@@ -135,6 +138,10 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # How the entry started; with OFFLINE the entry reloads once the
         # receiver answers.
         self.start_path: StartPath | None = None
+        # Platform -> the unique ids it was set up with (entity.add_planned),
+        # and whether all platforms are (set by the setup in __init__).
+        self.planned: dict[str, frozenset[str]] = {}
+        self.platforms_ready = asyncio.Event()
         self._reload_scheduled = False
         self._identify_after: datetime | None = None
         self._snapshot = snapshot_store(hass, entry.entry_id)
@@ -211,13 +218,11 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             self.start_path = StartPath.PRELOADED
             await self.device.async_start()
             await self.device.async_await_ready(preloaded=True)
-            self.device.layout_at_start = self.device.entity_layout()
         else:
             self.start_path = StartPath.FULL
             await self.device.async_start()
             # Give the initial resync a moment so per channel entities can be built.
             await self.device.async_await_ready()
-            self.device.layout_at_start = self.device.entity_layout()
             # Saved after the wait, which fills the sources from Deviceinfo
             # when the telnet introspection brought none; saved again once the
             # resync is through (_async_after_start).
@@ -286,22 +291,28 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         except Exception as err:  # noqa: BLE001 - a background task must not raise
             _LOGGER.debug("Discovery after the start not completed: %s", err)
             return
-        layout = self.device.entity_layout()
-        if layout == self.device.layout_at_start:
+        # What the platforms were built from is compared once they are all set up.
+        try:
+            async with asyncio.timeout(PLATFORMS_READY_WAIT):
+                await self.platforms_ready.wait()
+        except TimeoutError:
+            return
+        # The plan holds the platforms, which import this module.
+        from .entity_plan import changed  # noqa: PLC0415
+
+        difference = changed(self, dict(self.config_entry.options))
+        if not difference:
             return
         if entry_id in _REBUILT_AFTER_FAST_START:
             # Once per run: a receiver whose answers vary must not reload in turn.
-            _LOGGER.debug("Entity layout changed again after a rebuild; keeping it")
+            _LOGGER.debug("Entities changed again after a rebuild; keeping them")
             return
         _REBUILT_AFTER_FAST_START.add(entry_id)
-        changed = sorted(
-            key for key in layout if layout[key] != (self.device.layout_at_start or {}).get(key)
-        )
         _LOGGER.info(
-            "%s reports other capabilities than at its last start (%s); "
-            "setting up its entities again",
+            "%s reports other capabilities than its entities were built from "
+            "(%d entities differ); setting them up again",
             self.device.discovery.device.model_name or "Denon AVR",
-            ", ".join(changed),
+            len(difference),
         )
         self.hass.config_entries.async_schedule_reload(entry_id)
 

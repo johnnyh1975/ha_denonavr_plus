@@ -7,9 +7,12 @@ the per channel calibration levels. Which sensors exist depends on the device.
 
 from __future__ import annotations
 
+from typing import Any
+
 from collections.abc import Callable
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.const import Platform
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant, callback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.entity import EntityCategory
@@ -20,7 +23,7 @@ from .activity import ACTIVITIES, zone_activity
 from .avr.models import ZoneDescriptor
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .avr import signal_info
-from .entity import DenonAvrEntity, zone_device
+from .entity import DenonAvrEntity, add_planned, zone_device
 
 # The audio information fields that start enabled. The decoder ('Dolby Atmos',
 # 'PCM') is what automations react to; the raw signal code, sample rate,
@@ -34,14 +37,14 @@ _ENABLED_SIGNAL = frozenset({"video_input_resolution", "video_input_hdr"})
 # Read only; the coordinator pushes every update.
 PARALLEL_UPDATES = 0
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: DenonAvrConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
-) -> None:
-    """Create the read only sensors discovered for this receiver."""
+def planned(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[SensorEntity]:
+    """Create the read only sensors discovered for this receiver.
 
-    coordinator = entry.runtime_data
+    The plan of this platform (entity_plan.py): what is set up, and what a
+    start compares once the receiver has answered everything. Builds the
+    entities without side effects.
+    """
+
     device = coordinator.device
     entities: list[SensorEntity] = []
 
@@ -73,12 +76,22 @@ async def async_setup_entry(
     # The selected source of each zone, under the name Home Assistant shows,
     # and what the zone plays in one word.
     for zone in device.discovery.zones:
-        if choices.zone_enabled(dict(entry.options), zone.id):
+        if choices.zone_enabled(options, zone.id):
             entities.append(DenonAvrSourceSensor(coordinator, zone))
             entities.append(DenonAvrActivitySensor(coordinator, zone))
 
-    async_add_entities(entities)
+    return entities
 
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: DenonAvrConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Add the planned entities."""
+
+    coordinator = entry.runtime_data
+    async_add_entities(add_planned(coordinator, Platform.SENSOR, planned(coordinator, dict(entry.options))))
 
 class DenonAvrReadonlySensor(DenonAvrEntity, SensorEntity):
     """A sensor for a single read only audio information field."""
