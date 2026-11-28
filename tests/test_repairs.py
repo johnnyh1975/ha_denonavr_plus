@@ -201,3 +201,38 @@ async def test_the_list_after_the_move_is_confirmed(
     result = await manager.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_every_fixable_repair_has_its_flow() -> None:
+    """A fixable repair the integration raises without a flow would fail to open."""
+    import re
+
+    from custom_components.denonavr_plus import repairs
+
+    package = Path(__file__).parents[1] / "custom_components/denonavr_plus"
+    keys = set()
+    for path in package.glob("*.py"):
+        text = path.read_text()
+        # The translation key named after each is_fixable=True, as a constant.
+        for name in re.findall(r"is_fixable=True,.*?translation_key=([\w.]+)", text, re.S):
+            keys.add((path.stem, name))
+    assert len(keys) == len(repairs.FIX_FLOWS) == 5
+
+
+async def test_a_repair_without_a_flow_is_an_error(hass: HomeAssistant) -> None:
+    """Before, any repair without its own branch opened the receiver test."""
+    import pytest
+
+    from custom_components.denonavr_plus import repairs
+
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        "something_new_abc",
+        is_fixable=True,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="something_new",
+        data={"entry_id": "abc"},
+    )
+    with pytest.raises(ValueError):
+        await repairs.async_create_fix_flow(hass, "something_new_abc", {"entry_id": "abc"})

@@ -1,16 +1,20 @@
-"""Repair flows: test a model not checked before, take another integration over,
-choose the inputs Zone 2 plays."""
+"""Repair flows, one per fixable repair: test a model not checked before, take
+another integration over, confirm the list after a move, unlink a missing
+player, put a speaker layout back."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import issue_registry as ir
 
-from . import layout_repair, linked_players, move
+from . import capabilities, layout_repair, linked_players, move
+from .const import DOMAIN
 from .coordinator import DenonAvrConfigEntry
 from .receiver_test import ReceiverTestSteps
 
@@ -49,19 +53,32 @@ class MoveRepairFlow(ConfirmRepairFlow):
         return self.async_create_entry(data={})
 
 
+#: The flow for each fixable repair, by its translation key. Every repair this
+#: integration raises with is_fixable=True has an entry (tests/test_repairs.py).
+FIX_FLOWS: dict[str, Callable[[dict[str, Any]], RepairsFlow]] = {
+    capabilities.ISSUE_CHECK: lambda data: CapabilityCheckRepairFlow(str(data["entry_id"])),
+    move.ISSUE_AVAILABLE: lambda data: MoveRepairFlow(
+        str(data["entry_id"]), str(data["old_entry_id"])
+    ),
+    move.ISSUE_CHECK: lambda data: ConfirmRepairFlow(),
+    linked_players.ISSUE: lambda data: linked_players.LinkedPlayerRepairFlow(
+        str(data["entry_id"])
+    ),
+    layout_repair.ISSUE: lambda data: layout_repair.SpeakerLayoutRepairFlow(
+        str(data["entry_id"]), str(data["point"])
+    ),
+}
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None
 ) -> RepairsFlow:
-    """The receiver test, taking another integration over, unlinking a missing
-    player, putting a speaker layout back, or a list to confirm."""
+    """The flow of a fixable repair, chosen by its translation key.
 
-    data = data or {}
-    if issue_id.startswith(move.ISSUE_AVAILABLE):
-        return MoveRepairFlow(str(data["entry_id"]), str(data["old_entry_id"]))
-    if issue_id.startswith(linked_players.ISSUE):
-        return linked_players.LinkedPlayerRepairFlow(str(data["entry_id"]))
-    if issue_id.startswith(move.ISSUE_CHECK):
-        return ConfirmRepairFlow()
-    if issue_id.startswith(layout_repair.ISSUE):
-        return layout_repair.SpeakerLayoutRepairFlow(str(data["entry_id"]), str(data["point"]))
-    return CapabilityCheckRepairFlow(str(data["entry_id"]))
+    A repair without a flow is an error, not some other flow.
+    """
+
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
+    if issue is None or issue.translation_key not in FIX_FLOWS:
+        raise ValueError(f"no repair flow for {issue_id}")
+    return FIX_FLOWS[issue.translation_key](data or {})
