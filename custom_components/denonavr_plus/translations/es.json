@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Altavoces activos"
+      },
+      "video_output_color_space": {
+        "name": "Espacio de color de salida"
+      },
+      "video_output_pixel_depth": {
+        "name": "Profundidad de color de salida"
+      },
+      "speaker_connection_front": {
+        "name": "Conexión del altavoz frontal",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Conexión del altavoz central",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Conexión del altavoz surround",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Conexión del altavoz surround trasero",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Conexión del altavoz frontal ancho",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Conexión del altavoz altura frontal",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Conexión del altavoz altura central",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Conexión del altavoz altura trasera",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Conexión del altavoz top surround",
+        "state": {
+          "none": "Ninguna",
+          "speaker_and_preout": "Altavoces y pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Modo de subwoofer",
+        "state": {
+          "standard": "Estándar",
+          "directional": "Direccional"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Disposición de subwoofers",
+        "state": {
+          "left_right": "Izquierda/Derecha",
+          "front_rear": "Delante/Detrás"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Actividad"
+      },
+      "input_signal_format": {
+        "name": "{input} formato de señal 4K/8K",
+        "state": {
+          "standard": "Estándar",
+          "enhanced": "Mejorado",
+          "custom": "Personalizado",
+          "8k_enhanced": "8K mejorado"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Personalizado"
+        }
+      },
+      "speaker_layout": {
+        "name": "Distribución de altavoces",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Zona 2",
+          "7_1ch_zone3": "7.1ch + Zona 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Zona 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Zona 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Zona 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Personalizado",
+          "preamplifier": "Preamplificador",
+          "11_1ch_alt": "11.1ch (variante 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "¿Por qué no hay sonido?"
+      },
+      "speaker_layout_apply": {
+        "name": "Aplicar distribución de altavoces"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Modo de sonido {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} muestra {setting} atenuado en su menú ahora y lo deja como está. Otro ajuste lo decide ahora, como el modo de sonido, la señal o HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Desvincular los reproductores que faltan",
             "description": "{title}: estos reproductores vinculados ya no existen: {players}. Confirma para desvincularlos; las entradas vuelven a mostrar la información del propio receptor. Para vincular otro reproductor, abre las opciones en Reproducción."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "La distribución de altavoces cambió otros ajustes",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Restaurar los ajustes de altavoces",
+            "description": "{model} restableció {count} ajustes de altavoces más al aplicar la nueva distribución (posiciones de altavoces, altavoz frontal A/B). Envía para volver a la distribución anterior y a esos ajustes; lo que hayas cambiado tú desde entonces se queda."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "El preset de altavoces es otro ahora, así que no se restauró nada. Vuelve al preset que tenías e inténtalo de nuevo.",
+          "speaker_layout_layout_changed": "La distribución de altavoces se cambió otra vez desde entonces, así que no se restauró nada.",
+          "speaker_layout_left": "{count} ajustes no se pudieron restaurar; compruébalos en el receptor.",
+          "receiver_unavailable": "El receptor no respondió. Inténtalo de nuevo cuando esté en la red."
         }
       }
     }

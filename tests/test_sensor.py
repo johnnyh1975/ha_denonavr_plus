@@ -165,3 +165,43 @@ async def test_zone_2_on_the_main_zones_input_has_its_activity(
     await hass.async_block_till_done()
     state = hass.states.get(entity_id(hass, loaded_entry, "sensor_activity_zone2"))
     assert state is not None and state.state == "radio"
+
+
+async def test_the_web_control_speaker_sensors(hass: HomeAssistant, web_control: Any) -> None:
+    """The AVC-X3900H's connection per speaker position (recorded page)."""
+    entry = web_control.entry
+    front = hass.states.get(entity_id(hass, entry, "sensor_speaker_connection_2"))
+    assert front.state == "speaker_and_preout"
+    assert front.attributes["options"] == ["none", "speaker_and_preout", "preout_only"]
+    assert entity_id(hass, entry, "sensor_speaker_connection_2").endswith("front_speaker_connection")
+    assert hass.states.get(entity_id(hass, entry, "sensor_speaker_connection_5")).state == "none"
+
+
+async def test_the_subwoofer_mode_and_layout(hass: HomeAssistant, web_control: Any) -> None:
+    """As the AVC-X3900H answers SSSPC ? (STD, 2LR); the layout counts in directional mode only."""
+    import asyncio
+    from unittest.mock import patch
+
+    from .setup_api import TELNET_ANSWERS
+
+    entry = web_control.entry
+    with patch.dict(
+        TELNET_ANSWERS,
+        {"SSSPC ?": ["SSSPCFRO SMA", "SSSPCSWF 2SP", "SSSPCSWM STD", "SSSPCSWL 2LR", "SSSPC END"]},
+    ):
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+        mode = entity_id(hass, entry, "sensor_subwoofer_directional_mode")
+        layout = entity_id(hass, entry, "sensor_subwoofer_layout")
+        assert hass.states.get(mode).state == "standard"
+        # Standard mode drives every subwoofer alike: 2LR names no layout in use.
+        assert hass.states.get(layout).state == "unknown"
+        FakeTelnet.instances[-1].push("SSSPCSWM DRC")
+        await asyncio.sleep(0.15)
+        await hass.async_block_till_done()
+        assert hass.states.get(mode).state == "directional"
+        assert hass.states.get(layout).state == "left_right"
+        FakeTelnet.instances[-1].push("SSSPCSWL 4XX")
+        await asyncio.sleep(0.15)
+        await hass.async_block_till_done()
+        assert hass.states.get(layout).state == "unknown"

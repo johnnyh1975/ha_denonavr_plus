@@ -58,3 +58,13 @@ def test_the_answers_of_a_capability_check() -> None:
         }
     )
     assert known == _known()
+
+
+def test_the_firmware_names_the_dts_decoder_where_known() -> None:
+    from custom_components.denonavr_plus.avr.models import DeviceInfo
+
+    assert DeviceInfo(firmware_version="3.139.174", dts_version="4.30.10.15").firmware_text == (
+        "3.139.174 (DTS 4.30.10.15)"
+    )
+    assert DeviceInfo(firmware_version="3.139.174").firmware_text == "3.139.174"
+    assert DeviceInfo(dts_version="4.30.10.15").firmware_text is None

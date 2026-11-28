@@ -187,9 +187,10 @@ async def test_amp_assign_options_follow_the_amp_type() -> None:
     speakers = _speakers(api)
     await speakers.discover()
 
-    # No availability map for speakers: the menu is read unconditionally.
+    # The availability map first; without an answer the menu is read anyway.
     assert [(section, type_id) for section, type_id, _ in api.reads] == [
-        ("speakers", 2)
+        ("speakers", 1),
+        ("speakers", 2),
     ]
     assert speakers.value("amp_assign") == "2"
     options = speakers.options("amp_assign")
@@ -247,3 +248,84 @@ async def test_a_setup_interface_that_does_not_answer_keeps_what_was_read() -> N
     await video.discover()
     await video.refresh()
     assert video.layout() == before
+
+
+# Per-item menus of the Web Control generation (recordings of an AVC-X3900H) ---
+
+
+async def test_the_recorded_avc_x3900h_lists_its_inputs_and_speaker_positions() -> None:
+    from .setup_api import recorded
+
+    api = FakeSetupApi(recorded("AVC-X3900H"))
+    video, speakers = _video(api), _speakers(api)
+    await video.discover()
+    await speakers.discover()
+    formats = video.collection("input_signal_format")
+    assert formats["1"] == {"name": "AAP", "value": "2", "display": 3, "options": ["1", "2", "4"]}
+    # TV Audio is grayed: listed, not settable.
+    hdcp = video.collection("input_hdcp")
+    assert hdcp["6"]["name"] == "TV Audio" and not video.item_settable("input_hdcp", "6")
+    assert video.item_settable("input_hdcp", "1")
+    # Speaker layout: item 1, with the modes this receiver allows.
+    layout = speakers.collection("speaker_layout")
+    assert layout == {
+        "1": {"name": "", "value": "6", "display": 3, "options": ["18", "1", "2", "7", "14", "6", "17", "19"]}
+    }
+    # Connection only where the receiver reports one; a position is as settable as its <Conn>.
+    assert {slot: item["value"] for slot, item in speakers.collection("speaker_connection").items()} == {
+        "2": "1", "3": "1", "4": "1", "5": "0",
+    }
+    assert speakers.collection("speaker_layout_config")["2"]["display"] == 2
+    # Entities: every listed input, the named positions, the layout; no positions' config.
+    assert "input_hdcp:6" in video.layout()
+    assert sorted(item for item in speakers.layout() if ":" in item) == [
+        "speaker_connection:2", "speaker_connection:3", "speaker_connection:4",
+        "speaker_connection:5", "speaker_layout:1",
+    ]
+    # Amp Assign is hidden on this receiver: not read, not offered.
+    assert ("speakers", 2) not in [(section, type_id) for section, type_id, _ in api.reads]
+
+
+async def test_a_receiver_without_the_menus_has_no_items() -> None:
+    from .setup_api import recorded
+
+    api = FakeSetupApi(recorded("AVR-X3600H"))
+    video = _video(api)
+    await video.discover()
+    assert video.collection("input_signal_format") == {}
+    assert video.entity_slots("input_signal_format") == []
+
+
+@pytest.mark.assumed(
+    "the write shape <Format index=\"1\">2</Format> is the receiver's own page's, as "
+    "LaserGuruGuy read it; a write on an AVC-X3800H/X3900H would settle it"
+)
+async def test_an_input_setting_is_written_by_its_index_and_read_again() -> None:
+    from .setup_api import recorded
+
+    api = FakeSetupApi(recorded("AVC-X3900H"))
+    updates: list[int] = []
+    grammar = {**load_profile().grammar["video_web"], "write_settle_seconds": 0}
+    video = VideoConfigController(api, grammar, lambda: updates.append(1))  # type: ignore[arg-type]
+    await video.discover()
+    await video.async_set_item("input_signal_format", "1", "4")
+    assert api.writes == [("video", 14, '<Format index="1">4</Format>')]
+    assert api.reads[-1][:2] == ("video", 14) and updates == [1]
+    # Unknown items are not written; a refused write raises.
+    await video.async_set_item("input_signal_format", "99", "4")
+    assert len(api.writes) == 1
+    api.accept = False
+    with pytest.raises(SetupWriteError):
+        await video.async_set_item("input_hdcp", "1", "2", read=False)
+
+
+async def test_the_items_come_back_from_the_snapshot() -> None:
+    from .setup_api import recorded
+
+    api = FakeSetupApi(recorded("AVC-X3900H"))
+    video = _video(api)
+    await video.discover()
+    again = _video(FakeSetupApi({}))
+    again.restore(video.snapshot())
+    assert again.collection("input_hdcp") == video.collection("input_hdcp")
+    assert again.layout() == video.layout()

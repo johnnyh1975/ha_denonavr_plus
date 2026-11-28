@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.avr.profile import load_profile
@@ -179,9 +182,14 @@ async def test_setup_api_switches_follow_the_receiver(
         hdmi_control = entity_id(hass, entry, "switch_hdmi_control")
         state = hass.states.get(hdmi_control)
         assert state is not None and state.state == "on"
-        # Grayed out on the receiver: shown, but not settable.
-        arc = hass.states.get(entity_id(hass, entry, "switch_arc"))
-        assert arc is not None and arc.state == "unavailable"
+        # Grayed out on the receiver: shown with its value, not settable.
+        arc_id = entity_id(hass, entry, "switch_arc")
+        arc = hass.states.get(arc_id)
+        assert arc is not None and arc.state == "off"
+        assert arc.attributes["settable"] is False
+        with pytest.raises(HomeAssistantError) as err:
+            await hass.services.async_call("switch", "turn_on", {"entity_id": arc_id}, blocking=True)
+        assert err.value.translation_key == "setting_not_taken_menu_grayed"
 
         for service in ("turn_off", "turn_on"):
             await hass.services.async_call(

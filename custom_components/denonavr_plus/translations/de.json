@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Aktive Lautsprecher"
+      },
+      "video_output_color_space": {
+        "name": "Ausgangsfarbraum"
+      },
+      "video_output_pixel_depth": {
+        "name": "Ausgangsfarbtiefe"
+      },
+      "speaker_connection_front": {
+        "name": "Anschluss Front",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Anschluss Center",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Anschluss Surround",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Anschluss Surround hinten",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Anschluss Front Wide",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Anschluss Höhe vorne",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Anschluss Höhe Mitte",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Anschluss Höhe hinten",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Anschluss Top Surround",
+        "state": {
+          "none": "Keiner",
+          "speaker_and_preout": "Lautsprecher und Pre-Out",
+          "preout_only": "Nur Pre-Out"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Subwoofer-Modus",
+        "state": {
+          "standard": "Standard",
+          "directional": "Gerichtet"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Subwoofer-Anordnung",
+        "state": {
+          "left_right": "Links/Rechts",
+          "front_rear": "Vorne/Hinten"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Aktivität"
+      },
+      "input_signal_format": {
+        "name": "{input} 4K/8K-Signalformat",
+        "state": {
+          "standard": "Standard",
+          "enhanced": "Erweitert",
+          "custom": "Benutzerdefiniert",
+          "8k_enhanced": "8K erweitert"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Benutzerdefiniert"
+        }
+      },
+      "speaker_layout": {
+        "name": "Lautsprecher-Layout",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Zone 2",
+          "7_1ch_zone3": "7.1ch + Zone 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Zone 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Zone 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Zone 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Benutzerdefiniert",
+          "preamplifier": "Vorverstärker",
+          "11_1ch_alt": "11.1ch (Variante 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "Warum kein Ton?"
+      },
+      "speaker_layout_apply": {
+        "name": "Lautsprecher-Layout übernehmen"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Klangmodus {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} zeigt {setting} gerade ausgegraut im Menü und lässt es, wie es ist. Eine andere Einstellung bestimmt es gerade, etwa der Klangmodus, das Signal oder HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Fehlende Player lösen",
             "description": "{title}: Diese verknüpften Media Player gibt es nicht mehr: {players}. Bestätige, um die Verknüpfungen zu lösen; die Eingänge zeigen dann wieder die Angaben des Receivers. Um stattdessen einen anderen Player zu verknüpfen, öffne die Optionen unter Wiedergabe."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "Lautsprecher-Layout hat weitere Einstellungen geändert",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Lautsprecher-Einstellungen zurückstellen",
+            "description": "{model} hat beim Übernehmen des neuen Lautsprecher-Layouts {count} weitere Lautsprecher-Einstellungen zurückgesetzt (Lautsprecherpositionen, Front-Lautsprecher A/B). Bestätige, um das vorherige Layout und diese Einstellungen zurückzustellen; was du seitdem selbst geändert hast, bleibt."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "Das Lautsprecher-Preset ist jetzt ein anderes, daher wurde nichts zurückgestellt. Wechsle zurück zum vorherigen Preset und versuche es erneut.",
+          "speaker_layout_layout_changed": "Das Lautsprecher-Layout wurde seitdem erneut geändert, daher wurde nichts zurückgestellt.",
+          "speaker_layout_left": "{count} Einstellungen ließen sich nicht zurückstellen; prüfe sie am Receiver.",
+          "receiver_unavailable": "Der Receiver hat nicht geantwortet. Versuche es erneut, wenn er im Netzwerk ist."
         }
       }
     }

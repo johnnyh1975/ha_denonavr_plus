@@ -104,8 +104,11 @@ differences the integration follows:
 The receivers from about 2022 on (Web Control, the setup interface on port
 11080) answer some queries in a newer form: speakers as present or absent
 instead of a size, up to four subwoofers, quick selects in blocks, auto lip
-sync as `OPALS`, the volume limit in two digits. The integration reads both
-forms; what it writes in the newer form has not been tried on such a
+sync as `OPALS`, the volume limit in two digits. Their setup interface
+also has settings per input (4K/8K format, HDCP), a speaker layout in place
+of Amp Assign and the connection of each speaker position. The integration
+reads both forms and offers these settings, checked against the recorded
+AVC-X3900H; what it writes in the newer form has not been tried on such a
 receiver yet.
 
 Protocol details per generation are in [docs/protocol](protocol/README.md):

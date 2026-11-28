@@ -23,7 +23,11 @@ def test_every_reason_names_a_control_of_the_profile() -> None:
     profile = load_profile()
     for control_id in refusals.REASONS:
         assert profile.control(control_id) is not None, control_id
-    assert refusals.ALL_REASONS == {refusals.STANDBY, *refusals.REASONS.values()}
+    assert refusals.ALL_REASONS == {
+        refusals.STANDBY,
+        refusals.MENU_GRAYED,
+        *refusals.REASONS.values(),
+    }
 
 
 def test_every_reason_has_its_text() -> None:

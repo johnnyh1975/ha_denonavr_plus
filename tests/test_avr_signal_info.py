@@ -39,7 +39,9 @@ def test_video_and_channels() -> None:
         "video_input_hdr": "HDR10",
         "video_output_hdr": "HDR10",
         "video_input_color_space": "YCbCr 4:2:2",
+        "video_output_color_space": "YCbCr 4:2:2",
         "video_input_pixel_depth": "12bit",
+        "video_output_pixel_depth": "12bit",
         # "---" means no value.
         "video_input_frl": None,
     }

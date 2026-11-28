@@ -24,6 +24,9 @@
       },
       "why_no_sound": {
         "default": "mdi:volume-off"
+      },
+      "speaker_layout_apply": {
+        "default": "mdi:check-all"
       }
     },
     "number": {
@@ -300,6 +303,15 @@
       },
       "start_activity": {
         "default": "mdi:play-box-multiple"
+      },
+      "input_signal_format": {
+        "default": "mdi:video-4k-box"
+      },
+      "input_hdcp": {
+        "default": "mdi:shield-key-outline"
+      },
+      "speaker_layout": {
+        "default": "mdi:speaker-multiple"
       }
     },
     "sensor": {
@@ -361,6 +373,45 @@
         "default": "mdi:surround-sound"
       },
       "audio_active_speakers": {
+        "default": "mdi:speaker-multiple"
+      },
+      "video_output_color_space": {
+        "default": "mdi:palette"
+      },
+      "video_output_pixel_depth": {
+        "default": "mdi:palette-swatch"
+      },
+      "speaker_connection_front": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_center": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_surround": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_surround_back": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_front_wide": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_height_front": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_height_middle": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_height_rear": {
+        "default": "mdi:connection"
+      },
+      "speaker_connection_top_surround": {
+        "default": "mdi:connection"
+      },
+      "subwoofer_directional_mode": {
+        "default": "mdi:speaker"
+      },
+      "subwoofer_layout": {
         "default": "mdi:speaker-multiple"
       }
     },

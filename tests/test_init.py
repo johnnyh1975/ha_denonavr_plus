@@ -360,6 +360,24 @@ async def test_the_device_shows_no_protocol_family_as_hardware(
     assert all(device.hw_version is None for device in devices)
 
 
+async def test_the_device_is_registered_with_its_dts_decoder_from_the_start(
+    hass: HomeAssistant, web_control: Any
+) -> None:
+    """The recorded AVC-X3900H names DTS 4.30.10.15 on its information page."""
+    from custom_components.denonavr_plus import _register_main_device
+
+    entry = web_control.entry
+    coordinator = entry.runtime_data
+    info = coordinator.device.discovery.device
+    assert info.dts_version == "4.30.10.15"
+    info.firmware_version, info.network_module_version = "3.139.174", "Aios 6.5V"
+    _register_main_device(hass, entry, coordinator)
+    main = dr.async_get(hass).async_get(coordinator.main_device_id)
+    assert main is not None
+    assert main.sw_version == "3.139.174 (DTS 4.30.10.15)"
+    assert main.hw_version == "Aios 6.5V"
+
+
 async def test_sub_devices_follow_the_receivers_room(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

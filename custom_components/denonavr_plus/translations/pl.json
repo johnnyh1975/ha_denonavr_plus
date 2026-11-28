@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Aktywne głośniki"
+      },
+      "video_output_color_space": {
+        "name": "Przestrzeń barw wyjścia"
+      },
+      "video_output_pixel_depth": {
+        "name": "Głębia koloru wyjścia"
+      },
+      "speaker_connection_front": {
+        "name": "Podłączenie głośników: przednie",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Podłączenie głośników: centralny",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Podłączenie głośników: surround",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Podłączenie głośników: surround tylne",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Podłączenie głośników: przednie szerokie",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Podłączenie głośników: wysokościowe przednie",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Podłączenie głośników: wysokościowe środkowe",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Podłączenie głośników: wysokościowe tylne",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Podłączenie głośników: top surround",
+        "state": {
+          "none": "Brak",
+          "speaker_and_preout": "Głośniki i pre-out",
+          "preout_only": "Tylko pre-out"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Tryb subwoofera",
+        "state": {
+          "standard": "Standardowy",
+          "directional": "Kierunkowy"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Rozmieszczenie subwooferów",
+        "state": {
+          "left_right": "Lewo/Prawo",
+          "front_rear": "Przód/Tył"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Aktywność"
+      },
+      "input_signal_format": {
+        "name": "{input} format sygnału 4K/8K",
+        "state": {
+          "standard": "Standardowy",
+          "enhanced": "Rozszerzony",
+          "custom": "Własny",
+          "8k_enhanced": "8K rozszerzony"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Własny"
+        }
+      },
+      "speaker_layout": {
+        "name": "Układ głośników",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Strefa 2",
+          "7_1ch_zone3": "7.1ch + Strefa 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Strefa 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Strefa 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Strefa 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Własny",
+          "preamplifier": "Przedwzmacniacz",
+          "11_1ch_alt": "11.1ch (wariant 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "Dlaczego nie ma dźwięku?"
+      },
+      "speaker_layout_apply": {
+        "name": "Zastosuj układ głośników"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Tryb dźwięku {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} pokazuje teraz {setting} jako wyszarzone w menu i pozostawia bez zmian. Decyduje o tym teraz inne ustawienie, np. tryb dźwięku, sygnał lub HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Usuń powiązania brakujących odtwarzaczy",
             "description": "{title}: te powiązane odtwarzacze multimedialne już nie istnieją: {players}. Zatwierdź, aby usunąć powiązania; wejścia znów pokażą informacje samego amplitunera. Aby powiązać inny odtwarzacz, otwórz opcje w sekcji Odtwarzanie."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "Układ głośników zmienił inne ustawienia",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Przywróć ustawienia głośników",
+            "description": "{model} po zastosowaniu nowego układu głośników zresetował {count} innych ustawień głośników (pozycje głośników, głośniki przednie A/B). Zatwierdź, aby przywrócić poprzedni układ i te ustawienia; to, co sam zmieniłeś od tego czasu, zostaje."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "Preset głośników jest teraz inny, więc nic nie przywrócono. Wróć do poprzedniego presetu i spróbuj ponownie.",
+          "speaker_layout_layout_changed": "Układ głośników został od tego czasu ponownie zmieniony, więc nic nie przywrócono.",
+          "speaker_layout_left": "Nie udało się przywrócić {count} ustawień; sprawdź je na amplitunerze.",
+          "receiver_unavailable": "Amplituner nie odpowiedział. Spróbuj ponownie, gdy będzie w sieci."
         }
       }
     }

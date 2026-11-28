@@ -24,7 +24,7 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 
-from . import activities, choices, command_test, entity_groups, linked_players, move, zone_sources
+from . import activities, choices, command_test, entity_groups, layout_repair, linked_players, move, zone_sources
 from .avr.profile import load_profile
 from .const import (
     CHANNEL_TRIM_MARKER,
@@ -179,6 +179,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) ->
     ir.async_delete_issue(hass, DOMAIN, zone_sources.issue_id(entry.entry_id))
     ir.async_delete_issue(hass, DOMAIN, f"app_control_off_{entry.entry_id}")
     ir.async_delete_issue(hass, DOMAIN, linked_players.issue_id(entry.entry_id))
+    ir.async_delete_issue(hass, DOMAIN, layout_repair.issue_id(entry.entry_id))
 
 
 def _shown_zones(entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator) -> frozenset[str]:
@@ -266,10 +267,10 @@ def _register_main_device(
         manufacturer=device.manufacturer or "Denon",
         model=device.model_name,
         name=device.model_name or "Denon AVR",
-        sw_version=device.firmware_version,
-        # hardware_type is the protocol family (avr-x-2016), not the hardware;
-        # it is in the diagnostics. None clears what earlier versions stored.
-        hw_version=None,
+        sw_version=device.firmware_text,
+        # The HEOS network module, as the entities show it (hardware_type is
+        # the protocol family, avr-x-2016, and stays in the diagnostics).
+        hw_version=device.network_module_version,
         serial_number=device.serial_number,
         configuration_url=coordinator.device.setup_url,
     )

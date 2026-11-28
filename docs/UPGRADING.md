@@ -4,6 +4,20 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 1.4.x to 1.5
+
+- **Grayed setup items**: an HDMI or video setup item the receiver grays out
+  (ARC while HDMI Control is off, for example) is no longer *unavailable*: it
+  shows its value, and a change is refused with the reason. Automations that
+  waited for *unavailable* should check the attribute `settable` instead.
+- **Newer receivers** (AVC‑X3800H/X3900H): a new **Inputs** device with the
+  4K/8K format and HDCP per input, a **Speaker layout** select with its
+  **Apply** button, and sensors for the speaker connections and the
+  subwoofer mode and layout. They start disabled; turn them on with the
+  Video and Speakers groups (Configure → Entities).
+- The device page shows the DTS decoder's version next to the firmware and
+  the network module as hardware.
+
 ## From 1.3.x to 1.4
 
 - **Speech clarity**: a new switch on receivers with a Dialogue Enhancer,

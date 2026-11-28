@@ -20,11 +20,14 @@ from typing import Any, cast
 
 from . import activities, choices, sound_modes
 from .avr import graphic_eq
+from .avr.speaker_layout import SpeakerLayout
 from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .const import DOMAIN
-from .entity import DenonAvrEntity, receiver_action, unique_id, zone_device
+from .avr import refusals
+from .avr.errors import SettingNotTaken
+from .entity import DenonAvrEntity, grayed_attributes, receiver_action, unique_id, zone_device
 from .helpers import (
     control_enabled_by_default,
     control_sub_device,
@@ -121,6 +124,16 @@ async def async_setup_entry(
             for control in video.controls()
             if control.get("kind") == "select" and video.present(control["id"])
         )
+    # Per input settings of the Web Control generation (4K/8K format, HDCP),
+    # one select per input, on the Inputs sub-device.
+    if video.supported:
+        entities.extend(
+            DenonAvrInputSettingSelect(coordinator, spec["id"], slot)
+            for spec in video.collection_specs()
+            for slot in video.entity_slots(spec["id"])
+        )
+    if coordinator.device.speaker_layout.supported:
+        entities.append(DenonAvrSpeakerLayoutSelect(coordinator))
     # Speaker-setup /ajax selects (Amp Assign), on the Speakers sub-device. The
     # amp-assign options are device-driven (keyed on the queried AmpType).
     speakers = coordinator.device.speaker_config
@@ -707,8 +720,10 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
     """A multi-option video setup item, backed by the /ajax video controller.
 
     Its options and current value come from the receiver via the config API
-    (device.video_config); a grayed-out item (e.g. Pass Through Source until
-    HDMI Pass Through is on) reports itself unavailable rather than settable.
+    (device.video_config). A grayed-out item (e.g. Pass Through Source until
+    HDMI Pass Through is on) shows the value its menu shows and refuses a
+    change with the reason; its attributes say whether it can be changed now
+    and, for the HDMI setup, what the receiver itself has stored.
     """
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -740,7 +755,11 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and self._ctrl.available(self._id)
+        return super().available and self._ctrl.present(self._id)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return grayed_attributes(self._device, self._ctrl, self._id)
 
     @property
     def options(self) -> list[str]:
@@ -754,7 +773,115 @@ class DenonAvrVideoSelect(DenonAvrEntity, SelectEntity):
 
     @receiver_action
     async def async_select_option(self, option: str) -> None:
+        if not self._ctrl.available(self._id):
+            raise SettingNotTaken(self._id, refusals.MENU_GRAYED)
         for wire, label in self._ctrl.options(self._id).items():
             if self._shown(label) == option:
                 await self._ctrl.async_set(self._id, wire)
                 return
+
+
+class DenonAvrInputSettingSelect(DenonAvrEntity, SelectEntity):
+    """A setting per input of the Web Control generation: 4K/8K format or HDCP.
+
+    One per input the receiver lists (AVC-X3800H/X3900H), named after the
+    input as the receiver names it. An input the receiver grays out (TV Audio)
+    shows its value and refuses a change with the reason.
+    """
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: DenonAvrCoordinator, collection_id: str, slot: str) -> None:
+        super().__init__(coordinator, f"select_{collection_id}_{slot}", sub_device="inputs")
+        self._collection = collection_id
+        self._slot = slot
+        self._attr_translation_key = collection_id
+        item = self._video.collection(collection_id).get(slot) or {}
+        self._attr_translation_placeholders = {"input": item.get("name") or slot}
+
+    @property
+    def _video(self) -> VideoConfigController:
+        return self.coordinator.device.video_config
+
+    @property
+    def _keys(self) -> dict[str, str]:
+        spec = self._video.collection_spec(self._collection) or {}
+        return cast(dict[str, str], spec.get("option_keys", {}))
+
+    def _item(self) -> dict[str, Any] | None:
+        return self._video.collection(self._collection).get(self._slot)
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._item() is not None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"settable": self._video.item_settable(self._collection, self._slot)}
+
+    @property
+    def options(self) -> list[str]:
+        item = self._item()
+        return [self._keys.get(option, f"option_{option}") for option in (item or {}).get("options", [])]
+
+    @property
+    def current_option(self) -> str | None:
+        item = self._item()
+        if item is None or not item["value"]:
+            return None
+        return self._keys.get(item["value"], f"option_{item['value']}")
+
+    @receiver_action
+    async def async_select_option(self, option: str) -> None:
+        if not self._video.item_settable(self._collection, self._slot):
+            raise SettingNotTaken(self._collection, refusals.MENU_GRAYED)
+        item = self._item() or {}
+        wire = next(
+            (value for value in item.get("options", []) if self._keys.get(value, f"option_{value}") == option),
+            None,
+        )
+        if wire is not None:
+            await self._video.async_set_item(self._collection, self._slot, wire)
+
+
+class DenonAvrSpeakerLayoutSelect(DenonAvrEntity, SelectEntity):
+    """The speaker layout (Web Control generation), prepared here, written by its button.
+
+    A new layout makes the receiver reset the speaker positions and front
+    speaker A/B, so choosing one only prepares it; the button "Apply speaker
+    layout" writes it. The select shows the prepared layout until then.
+    """
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
+    _attr_translation_key = "speaker_layout"
+
+    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
+        super().__init__(coordinator, "select_speaker_layout", sub_device="speakers")
+
+    @property
+    def _layout(self) -> SpeakerLayout:
+        return self.coordinator.device.speaker_layout
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._layout.supported
+
+    @property
+    def options(self) -> list[str]:
+        return [self._layout.key(mode) for mode in self._layout.options]
+
+    @property
+    def current_option(self) -> str | None:
+        mode = self._layout.pending or self._layout.current
+        return self._layout.key(mode) if mode else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"prepared": self._layout.pending is not None}
+
+    async def async_select_option(self, option: str) -> None:
+        if (mode := self._layout.mode_of(option)) is not None:
+            self._layout.stage(mode)
+            self.async_write_ha_state()

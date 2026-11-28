@@ -22,11 +22,12 @@ Menu ``display`` flags mirror the setup UI: 1 = not available (hidden), 2 = gray
 
 from __future__ import annotations
 
+import asyncio
 import copy
-
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
+from xml.sax.saxutils import escape
 
 from .errors import SetupWriteError
 
@@ -55,6 +56,50 @@ def _int(text: str | None, default: int = 0) -> int:
         return default
 
 
+def parse_collection(spec: dict[str, Any], root: ET.Element) -> dict[str, dict[str, Any]]:
+    """One item per input or speaker position of a menu, keyed by its index.
+
+    Items of the Web Control generation (AVC-X3900H): per input
+    ``<Source index="1" display="3"><Name>..</Name><Format>2</Format>..``,
+    per speaker position ``<Item index="2"><Config display="3"><Value>4</Value>
+    <List>..</List></Config><Conn><Value>1</Value></Conn></Item>``. An item
+    is as settable as the stricter of its own display and that of the element
+    that carries the setting (``availability_from``).
+    """
+
+    if root.tag != spec.get("root"):
+        return {}
+    key_attr = spec.get("key_attr", "index")
+    items: dict[str, dict[str, Any]] = {}
+    for element in root.findall(spec.get("item", "Source")):
+        slot = (element.get(key_attr) or "").strip()
+        value = element.find(spec["value_field"])
+        if not slot or value is None:
+            continue
+        display = _int(element.get("display"), _SELECTABLE)
+        carrier = element.find(spec["availability_from"]) if "availability_from" in spec else None
+        if carrier is not None:
+            display = min(display, _int(carrier.get("display"), _SELECTABLE))
+        if "options_from" in spec:
+            options = [
+                text for item in element.findall(spec["options_from"]) if (text := (item.text or "").strip())
+            ]
+        else:
+            options = []
+            for option in spec.get("options", []):
+                rule = spec.get("conditional_options", {}).get(option)
+                if rule and (element.findtext(rule["field"]) or "").strip() != rule["equals"]:
+                    continue
+                options.append(option)
+        items[slot] = {
+            "name": (element.findtext(spec.get("name_field", "Name")) or "").strip(),
+            "value": (value.text or "").strip(),
+            "display": display,
+            "options": options,
+        }
+    return items
+
+
 class VideoConfigController:
     """Owns the /ajax video setup subsystem: availability, read and write."""
 
@@ -72,6 +117,8 @@ class VideoConfigController:
         self._avail: dict[str, int] = {}
         # Control id -> {"value": str, "display": int, "options": dict|None}.
         self._fields: dict[str, dict[str, Any]] = {}
+        # Collection id -> slot -> {"name", "value", "display", "options"}.
+        self._collections: dict[str, dict[str, dict[str, Any]]] = {}
 
     @property
     def supported(self) -> bool:
@@ -105,7 +152,11 @@ class VideoConfigController:
     def snapshot(self) -> dict[str, Any]:
         """What discover() read, as plain data for a start from the snapshot."""
 
-        return {"avail": dict(self._avail), "fields": copy.deepcopy(self._fields)}
+        return {
+            "avail": dict(self._avail),
+            "fields": copy.deepcopy(self._fields),
+            "collections": copy.deepcopy(self._collections),
+        }
 
     def restore(self, data: dict[str, Any] | None) -> None:
         """Take what an earlier discover() read, until the next one runs."""
@@ -117,12 +168,21 @@ class VideoConfigController:
             self._avail = {str(key): int(value) for key, value in avail.items()}
         if isinstance(fields, dict):
             self._fields = copy.deepcopy(fields)
+        collections = data.get("collections")
+        if isinstance(collections, dict):
+            self._collections = copy.deepcopy(collections)
 
     def layout(self) -> list[str]:
         """The controls entities are made for: present ones and the menu flags."""
 
         present = [control["id"] for control in self.controls() if self.present(control["id"])]
-        return sorted(present) + sorted(self.feature_flags())
+        items = [
+            f"{spec['id']}:{slot}"
+            for spec in self.collection_specs()
+            if spec.get("entities", True)
+            for slot in self.entity_slots(spec["id"])
+        ]
+        return sorted(present) + sorted(self.feature_flags()) + sorted(items)
 
     async def discover(self) -> None:
         """Read the availability map and the advertised menus (at connect)."""
@@ -140,11 +200,11 @@ class VideoConfigController:
 
         if not self.supported:
             return
-        previous = self._fields
+        previous = (self._fields, self._collections)
         await self._read_menus()
         # This runs on every reconcile poll; only notify when a value actually
         # changed so we do not write HA state each interval for no reason.
-        if self._fields != previous:
+        if (self._fields, self._collections) != previous:
             self._on_update()
 
     async def _read_availability(self) -> None:
@@ -176,6 +236,89 @@ class VideoConfigController:
             # what was read before, also what a start took from its snapshot.
             return
         self._fields = fields
+        await self._read_collections()
+
+    def collection_specs(self) -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], self._grammar.get("collections", []))
+
+    def collection_spec(self, collection_id: str) -> dict[str, Any] | None:
+        return next((spec for spec in self.collection_specs() if spec["id"] == collection_id), None)
+
+    async def _read_collections(self, type_id: int | None = None) -> bool:
+        """Read the per-item menus the receiver advertises; False when one did not answer."""
+
+        documents: dict[int, ET.Element | None] = {}
+        read: dict[str, dict[str, dict[str, Any]] | None] = {}
+        complete = True
+        for spec in self.collection_specs():
+            menu_type = int(spec["type"])
+            if type_id is not None and menu_type != type_id:
+                continue
+            if self._avail.get(spec["root"], _NOT_AVAILABLE) < _GRAYOUT:
+                read[spec["id"]] = None
+                continue
+            if menu_type not in documents:
+                documents[menu_type] = _parse(await self._webconfig.async_get(self._section, menu_type))
+            root = documents[menu_type]
+            if root is None:
+                complete = False
+                continue
+            read[spec["id"]] = parse_collection(spec, root)
+        # Only what was read now, so a read of another menu meanwhile stays.
+        collections = dict(self._collections)
+        for collection_id, items in read.items():
+            if items is None:
+                collections.pop(collection_id, None)
+            else:
+                collections[collection_id] = items
+        self._collections = collections
+        return complete
+
+    def entity_slots(self, collection_id: str) -> list[str]:
+        """The items that get an entity: shown ones, and only named positions where named."""
+
+        spec = self.collection_spec(collection_id) or {}
+        named = spec.get("position_keys")
+        return [
+            slot
+            for slot, item in self.collection(collection_id).items()
+            if item["display"] >= _GRAYOUT and (named is None or slot in named)
+        ]
+
+    def item_settable(self, collection_id: str, slot: str) -> bool:
+        item = self.collection(collection_id).get(slot)
+        return item is not None and item["display"] >= _SELECTABLE
+
+    def collection(self, collection_id: str) -> dict[str, dict[str, Any]]:
+        """The items of a collection, keyed by index, in the receiver's order."""
+
+        return self._collections.get(collection_id, {})
+
+    async def async_read_collection(self, collection_id: str) -> bool:
+        """Read one collection's menu again now (to confirm a staged change)."""
+
+        spec = self.collection_spec(collection_id)
+        if spec is None:
+            return False
+        return await self._read_collections(int(spec["type"]))
+
+    async def async_set_item(self, collection_id: str, slot: str, wire: str, *, read: bool = True) -> None:
+        """Write one item of a collection: ``<Format index="1">2</Format>``."""
+
+        spec = self.collection_spec(collection_id)
+        item = self.collection(collection_id).get(slot)
+        if spec is None or item is None:
+            return
+        tag = spec.get("write_field", spec["value_field"])
+        key_attr = spec.get("key_attr", "index")
+        payload = f'<{tag} {key_attr}="{escape(slot, {chr(34): "&quot;"})}">{escape(wire)}</{tag}>'
+        if not await self._webconfig.async_set(self._section, int(spec["type"]), payload):
+            raise SetupWriteError(collection_id)
+        if read:
+            # The receiver applies it a moment later, as its own page waits.
+            await asyncio.sleep(float(self._grammar.get("write_settle_seconds", 0.8)))
+            await self._read_collections(int(spec["type"]))
+            self._on_update()
 
     def _parse_control(
         self, control: dict[str, Any], root: ET.Element, fields: dict[str, Any]

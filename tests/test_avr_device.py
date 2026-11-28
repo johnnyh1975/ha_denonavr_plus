@@ -1288,8 +1288,12 @@ def test_the_layout_comes_from_the_snapshot_only_when_it_fits() -> None:
     }
     # Another model, or the answers not known: nothing is taken.
     assert not device._restore_layout({**snapshot, "device": {"model_name": "AVR-X2600H"}}, [known])
-    assert not device._restore_layout(snapshot, [])
+    held = {"slot": {"name": "TV", "value": "1", "display": 3, "options": ["0", "1"]}}
+    taken = {"avail": {}, "fields": {}, "collections": {"input_hdcp": held}}
+    assert not device._restore_layout({**snapshot, "video_config": taken}, [])
     assert device.discovery.sources == []
+    # What a declined snapshot held is not kept, the collections included.
+    assert device._video_config.collection("input_hdcp") == {}
 
     assert device._restore_layout(snapshot, [known])
     layout = device.entity_layout()
@@ -1299,3 +1303,61 @@ def test_the_layout_comes_from_the_snapshot_only_when_it_fits() -> None:
     assert layout["answered"] == ["tone_control"]
     assert layout["signal"] is False
     assert device.discovery.configured_channels == {"FL", "FR"}
+
+
+@pytest.mark.assumed(
+    "the order of the SSAUDSTS digits follows LaserGuruGuy/denon_avr, which settings each "
+    "item covers and that the receiver refuses a grayed one are ours; an AVR-X3600H answer "
+    "with a grayed item (the graphic EQ with MultEQ on) and the write refused would settle it"
+)
+async def test_a_setting_its_menu_shows_grayed_is_refused_before_it_is_sent(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    telnet = FakeTelnet.instances[-1]
+    # CenterLevelAdjust settable, SubwooferLevelAdjust grayed, ... Audyssey hidden.
+    telnet.push("PWON", "ZMON", "SSAUDSTS 212222200")
+    await asyncio.sleep(0.15)
+    assert device.menu_status("dialog_level") == "settable"
+    assert device.menu_status("subwoofer_level") == "grayed"
+    assert device.menu_status("multeq") == "hidden"
+    assert device.menu_status("bass") is None
+    # GraphicEQ is the tenth item, past the digits sent: unknown.
+    assert device.menu_status("graphic_eq") is None
+    telnet.sent.clear()
+    with pytest.raises(SettingNotTaken) as err:
+        await device.async_set_control_confirmed("subwoofer_level", 3.0)
+    assert err.value.reason == "menu_grayed" and telnet.sent == []
+    # Hidden counts too; asked for and answered again, it is settable.
+    with pytest.raises(SettingNotTaken):
+        await device.async_set_control_confirmed("multeq", "AUDYSSEY")
+    assert "SSAUDSTS ?" in device._resync_queries() and "SSHOS ?" in device._resync_queries()
+
+
+async def test_the_stored_hdmi_setup_is_the_own_setting(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    device = loaded_entry.runtime_data.device
+    FakeTelnet.instances[-1].push("SSHOSPAS ON")
+    await asyncio.sleep(0.15)
+    assert device.own_setting("hdmi_pass_through") == "on"
+    assert device.own_setting("arc") is None
+    assert device.own_setting("bass") is None
+
+
+async def test_the_dts_decoder_version_comes_from_the_information_page(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """General > Information of the setup interface (recorded AVC-X3900H)."""
+    from .setup_api import FakeSetupApi, recorded
+
+    device = loaded_entry.runtime_data.device
+    api = FakeSetupApi(recorded("AVC-X3900H"))
+    with patch.object(device._webconfig, "async_get", api.async_get):
+        await device._read_dts_version()
+    assert device.discovery.device.dts_version == "4.30.10.15"
+    # No page, or no XML: nothing changes.
+    for answer in (None, "<not xml", "<Information/>"):
+        with patch.object(device._webconfig, "async_get", AsyncMock(return_value=answer)):
+            await device._read_dts_version()
+        assert device.discovery.device.dts_version == "4.30.10.15"

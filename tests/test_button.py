@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -9,6 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.denonavr_plus import layout_repair
+from custom_components.denonavr_plus.avr.speaker_layout import SpeakerLayout
 from custom_components.denonavr_plus.avr.transport import WebConfigClient
 from custom_components.denonavr_plus.button import DenonAvrQuickSelectSave
 from custom_components.denonavr_plus.const import DOMAIN
@@ -56,12 +59,17 @@ async def test_accepted_eq_write_passes(
 async def test_command_buttons_send_their_commands(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    await async_enable(hass, loaded_entry, "button_channel_level_reset", "button_network_restart")
+    await async_enable(
+        hass, loaded_entry, "button_channel_level_reset", "button_network_restart"
+    )
     telnet = FakeTelnet.instances[-1]
     telnet.sent.clear()
     for key in ("button_channel_level_reset", "button_network_restart"):
         await hass.services.async_call(
-            "button", "press", {"entity_id": entity_id(hass, loaded_entry, key)}, blocking=True
+            "button",
+            "press",
+            {"entity_id": entity_id(hass, loaded_entry, key)},
+            blocking=True,
         )
     assert telnet.sent == ["CVZRL", "NSRBT"]
 
@@ -109,6 +117,63 @@ async def test_recover_audio_cycles_standby_and_restores_the_input(
 
     task = asyncio.create_task(answer())
     with patch("custom_components.denonavr_plus.avr.device.RECOVER_STANDBY_TIME", 0):
-        await hass.services.async_call("button", "press", {"entity_id": button}, blocking=True)
+        await hass.services.async_call(
+            "button", "press", {"entity_id": button}, blocking=True
+        )
     await task
     assert telnet.sent == ["PWSTANDBY", "PWON", "SITV"]
+
+
+async def test_a_speaker_layout_the_receiver_does_not_take_is_an_error(
+    hass: HomeAssistant, web_control: Any
+) -> None:
+    """The recorded page does not change after the write: the layout was not taken."""
+    entry = web_control.entry
+    layout = entry.runtime_data.device.speaker_layout
+    layout._settle = 0
+    layout.stage("17")
+    button = entity_id(hass, entry, "button_speaker_layout_apply")
+    with pytest.raises(HomeAssistantError) as err:
+        await hass.services.async_call(
+            "button", "press", {"entity_id": button}, blocking=True
+        )
+    assert err.value.translation_key == "setup_write_failed"
+    assert web_control.writes == [("speakers", 15, '<Config index="1">17</Config>')]
+    # Maybe taken all the same, later: the way back is kept as a repair.
+    point = layout_repair.open_point(hass, entry.entry_id)
+    assert point is not None and point["unsettled"] and point["before"]["mode"] == "6"
+
+
+LAYOUT_POINT = {
+    "before": {
+        "mode": "6",
+        "positions": {"3": "4"},
+        "front_speaker": "A",
+        "speaker_preset": None,
+    },
+    "after": {
+        "mode": "17",
+        "positions": {"3": "5"},
+        "front_speaker": "A",
+        "speaker_preset": None,
+    },
+    "unsettled": False,
+}
+
+
+async def test_a_second_layout_change_goes_back_to_the_state_before_the_first(
+    hass: HomeAssistant, web_control: Any
+) -> None:
+    entry = web_control.entry
+    button = entity_id(hass, entry, "button_speaker_layout_apply")
+    second = {**LAYOUT_POINT, "after": {**LAYOUT_POINT["after"], "mode": "1"}}
+    apply = AsyncMock(side_effect=[LAYOUT_POINT, second, None])
+    with patch.object(SpeakerLayout, "async_apply", apply):
+        for _ in range(3):
+            await hass.services.async_call(
+                "button", "press", {"entity_id": button}, blocking=True
+            )
+    assert apply.await_args_list[0].args == (None,)
+    assert apply.await_args_list[1].args == (LAYOUT_POINT["before"],)
+    # Nothing prepared the third time: the open repair stays as it was.
+    assert layout_repair.open_point(hass, entry.entry_id) == second

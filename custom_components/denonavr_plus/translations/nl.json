@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Actieve luidsprekers"
+      },
+      "video_output_color_space": {
+        "name": "Kleurruimte uitgang"
+      },
+      "video_output_pixel_depth": {
+        "name": "Kleurdiepte uitgang"
+      },
+      "speaker_connection_front": {
+        "name": "Aansluiting luidspreker voor",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Aansluiting luidspreker center",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Aansluiting luidspreker surround",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Aansluiting luidspreker surround achter",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Aansluiting luidspreker voor breed",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Aansluiting luidspreker hoogte voor",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Aansluiting luidspreker hoogte midden",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Aansluiting luidspreker hoogte achter",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Aansluiting luidspreker top surround",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidsprekers en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Subwoofermodus",
+        "state": {
+          "standard": "Standaard",
+          "directional": "Gericht"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Subwooferopstelling",
+        "state": {
+          "left_right": "Links/Rechts",
+          "front_rear": "Voor/Achter"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Activiteit"
+      },
+      "input_signal_format": {
+        "name": "{input} 4K/8K-signaalformaat",
+        "state": {
+          "standard": "Standaard",
+          "enhanced": "Uitgebreid",
+          "custom": "Aangepast",
+          "8k_enhanced": "8K uitgebreid"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Aangepast"
+        }
+      },
+      "speaker_layout": {
+        "name": "Luidsprekerindeling",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Zone 2",
+          "7_1ch_zone3": "7.1ch + Zone 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Zone 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Zone 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Zone 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Aangepast",
+          "preamplifier": "Voorversterker",
+          "11_1ch_alt": "11.1ch (variant 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "Waarom geen geluid?"
+      },
+      "speaker_layout_apply": {
+        "name": "Luidsprekerindeling toepassen"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Geluidsmodus {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} toont {setting} nu grijs in het menu en laat het zoals het is. Een andere instelling bepaalt het nu, zoals de geluidsmodus, het signaal of HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Ontbrekende spelers ontkoppelen",
             "description": "{title}: deze gekoppelde mediaspelers bestaan niet meer: {players}. Bevestig om ze te ontkoppelen; de ingangen tonen dan weer de gegevens van de receiver. Om een andere speler te koppelen, open je de opties onder Afspelen."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "Luidsprekerindeling heeft andere instellingen gewijzigd",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Luidsprekerinstellingen terugzetten",
+            "description": "{model} heeft bij het toepassen van de nieuwe luidsprekerindeling {count} andere luidsprekerinstellingen teruggezet (luidsprekerposities, voorluidspreker A/B). Bevestig om de vorige indeling en deze instellingen terug te zetten; wat je sindsdien zelf hebt gewijzigd blijft."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "De luidsprekerpreset is nu een andere, dus er is niets teruggezet. Ga terug naar de preset van eerst en probeer het opnieuw.",
+          "speaker_layout_layout_changed": "De luidsprekerindeling is sindsdien opnieuw gewijzigd, dus er is niets teruggezet.",
+          "speaker_layout_left": "{count} instellingen konden niet worden teruggezet; controleer ze op de receiver.",
+          "receiver_unavailable": "De receiver antwoordde niet. Probeer het opnieuw als hij op het netwerk is."
         }
       }
     }

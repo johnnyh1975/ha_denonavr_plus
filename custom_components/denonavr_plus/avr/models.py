@@ -41,11 +41,22 @@ class DeviceInfo:
     # ProductCategory from Deviceinfo.xml: 1 AV receiver, 2 system (network
     # CD receivers such as the M-CR510 and the DRA-N4).
     product_category: int | None = None
-    # HEOS/AIOS network module identifiers, surfaced in diagnostics rather than
-    # on the device card (they describe the streaming module, not the AVR).
+    # HEOS/AIOS network module identifiers; the module version is the
+    # device card's hardware version.
     network_module_version: str | None = None
     firmware_revision: str | None = None
+    # The DTS decoder version, from the setup interface's information page
+    # (general, type 12); None without the setup interface.
+    dts_version: str | None = None
     zone_count: int = 1
+
+    @property
+    def firmware_text(self) -> str | None:
+        """The firmware as the device card shows it, with the DTS decoder where known."""
+
+        if self.firmware_version and self.dts_version:
+            return f"{self.firmware_version} (DTS {self.dts_version})"
+        return self.firmware_version
 
 
 @dataclass

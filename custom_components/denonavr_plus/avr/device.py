@@ -20,6 +20,7 @@ import logging
 from collections.abc import Awaitable, Callable, Coroutine, Sequence
 from dataclasses import asdict, fields, replace
 from typing import Any
+from xml.etree import ElementTree as ET
 
 import aiohttp
 
@@ -61,6 +62,7 @@ from . import (
     signal_info,
     video_config,
 )
+from .speaker_layout import SpeakerLayout
 from .video_config import VideoConfigController
 from .const import (
     CHECK_REPLY_FIRST,
@@ -208,6 +210,12 @@ class DenonAvrDevice:
             self._webconfig,
             self._profile.grammar.get("speakers_web", {}),
             self._schedule_update,
+        )
+        self._speaker_layout = SpeakerLayout(
+            self._speaker_config,
+            lambda control_id: self._state.values.get(control_id),
+            self.async_set_control,
+            self._profile.grammar.get("speakers_web", {}),
         )
         self._telnet = TelnetClient(
             host,
@@ -594,7 +602,25 @@ class DenonAvrDevice:
         await self._video_config.discover()
         self._discovery.features |= self._video_config.feature_flags()
         await self._speaker_config.discover()
+        await self._read_dts_version()
         await self.async_refresh_signal()
+
+    async def _read_dts_version(self) -> None:
+        """The DTS decoder version from the setup interface's information page."""
+
+        page = self._profile.grammar.get("information", {})
+        if not page:
+            return
+        text = await self._webconfig.async_get(page["section"], int(page["type"]))
+        if not text:
+            return
+        try:
+            root = ET.fromstring(text)  # noqa: S314 - the receiver on the local network
+        except ET.ParseError:
+            return
+        version = (root.findtext(page.get("dts_path", "Firmware/DTSVersion")) or "").strip()
+        if version:
+            self._discovery.device.dts_version = version
 
     def _restore_layout(
         self, snapshot: dict[str, Any] | None, known_answers: Sequence[KnownAnswers]
@@ -626,8 +652,8 @@ class DenonAvrDevice:
             None,
         )
         if known is None:
-            self._video_config.restore({"avail": {}, "fields": {}})
-            self._speaker_config.restore({"avail": {}, "fields": {}})
+            self._video_config.restore({"avail": {}, "fields": {}, "collections": {}})
+            self._speaker_config.restore({"avail": {}, "fields": {}, "collections": {}})
             return False
         discovery = self._discovery
         discovery.features = features
@@ -1623,6 +1649,10 @@ class DenonAvrDevice:
         # Read only audio information.
         for readonly in self._profile.readonly.values():
             add(readonly.get("query"))
+        # Which audio menu items are grayed now, and the HDMI setup as stored
+        # (receivers with the setup interface; others do not answer).
+        for status in ("audio_menu_status", "hdmi_setup"):
+            add(self._profile.grammar.get(status, {}).get("query"))
         # Feature controls, only those the receiver advertises. Some controls
         # have several queries (a list query and a read query, e.g. channel
         # calibration via SSLEV plus live trims via CV); send all of them.
@@ -2016,6 +2046,12 @@ class DenonAvrDevice:
 
         return self._speaker_config
 
+    @property
+    def speaker_layout(self) -> SpeakerLayout:
+        """The speaker layout of the Web Control generation (staged, with a restore point)."""
+
+        return self._speaker_layout
+
     def _zone(self, zone_id: str) -> ZoneDescriptor | None:
         """Return the discovered ZoneDescriptor for a zone id, if any."""
 
@@ -2351,6 +2387,34 @@ class DenonAvrDevice:
             await self._send(f"{spec.prefix}{wire}")
             await self._refresh_current_sound_modes()
 
+    def menu_status(self, control_id: str) -> str | None:
+        """Whether the receiver's Audio menu shows a setting now: hidden, grayed or settable.
+
+        From SSAUDSTS, one digit per menu item; None for a setting it does not
+        cover or a receiver that does not report it.
+        """
+
+        grammar = self._profile.grammar.get("audio_menu_status", {})
+        digits = self._state.values.get("audio_menu_status")
+        if not isinstance(digits, str):
+            return None
+        for item, controls in grammar.get("controls", {}).items():
+            if control_id not in controls:
+                continue
+            position = list(grammar.get("items", [])).index(item)
+            if position >= len(digits):
+                return None
+            return {"0": "hidden", "1": "grayed", "2": "settable"}.get(digits[position])
+        return None
+
+    def own_setting(self, control_id: str) -> str | None:
+        """An HDMI setup item as the receiver stores it (SSHOS), also while its menu is grayed."""
+
+        items = self._profile.grammar.get("hdmi_setup", {}).get("items", {})
+        code = next((code for code, item in items.items() if item == control_id), None)
+        value = self._state.values.get(f"hdmi_setup_{code}") if code else None
+        return value.lower() if isinstance(value, str) else None
+
     async def async_set_control(self, control_id: str, value: object) -> None:
         """Set any profile driven feature control to a new value.
 
@@ -2393,6 +2457,9 @@ class DenonAvrDevice:
         and a value the receiver already has is only sent.
         """
 
+        if self.menu_status(control_id) in ("hidden", "grayed"):
+            # The receiver shows the item grayed now: it would keep the value.
+            raise SettingNotTaken(control_id, refusals.MENU_GRAYED)
         spec = self._profile.control(control_id)
         reason = None
         if spec is not None:

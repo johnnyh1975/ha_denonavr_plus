@@ -50,7 +50,9 @@ VIDEO_FIELDS = {
     "video_input_hdr": ("HDR", "Input"),
     "video_output_hdr": ("HDR", "Output"),
     "video_input_color_space": ("ColorSpace", "Input"),
+    "video_output_color_space": ("ColorSpace", "Output"),
     "video_input_pixel_depth": ("PixelDepth", "Input"),
+    "video_output_pixel_depth": ("PixelDepth", "Output"),
     "video_input_frl": ("FRLRate", "Input"),
 }
 AUDIO_FIELDS = ("audio_input_channels", "audio_active_speakers")

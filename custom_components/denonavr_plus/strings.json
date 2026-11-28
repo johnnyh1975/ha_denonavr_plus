@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Active speakers"
+      },
+      "video_output_color_space": {
+        "name": "Output color space"
+      },
+      "video_output_pixel_depth": {
+        "name": "Output color depth"
+      },
+      "speaker_connection_front": {
+        "name": "Front speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Center speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Surround speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Surround back speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Front wide speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Front height speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Middle height speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Rear height speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Top surround speaker connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speakers and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Subwoofer mode",
+        "state": {
+          "standard": "Standard",
+          "directional": "Directional"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Subwoofer layout",
+        "state": {
+          "left_right": "Left/Right",
+          "front_rear": "Front/Rear"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Activity"
+      },
+      "input_signal_format": {
+        "name": "{input} 4K/8K signal format",
+        "state": {
+          "standard": "Standard",
+          "enhanced": "Enhanced",
+          "custom": "Custom",
+          "8k_enhanced": "8K Enhanced"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Custom"
+        }
+      },
+      "speaker_layout": {
+        "name": "Speaker layout",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Zone 2",
+          "7_1ch_zone3": "7.1ch + Zone 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Zone 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Zone 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Zone 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Custom",
+          "preamplifier": "Pre amplifier",
+          "11_1ch_alt": "11.1ch (variant 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "Why no sound?"
+      },
+      "speaker_layout_apply": {
+        "name": "Apply speaker layout"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Sound mode {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} shows {setting} grayed out in its menu right now and keeps it as it is. Another setting decides it now, such as the sound mode, the signal or HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Unlink the missing players",
             "description": "{title}: these linked media players no longer exist: {players}. Submit to unlink them; the inputs then show the receiver's own information again. To link another player instead, open the options under Playback."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "Speaker layout changed other settings",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Restore the speaker settings",
+            "description": "{model} reset {count} other speaker settings when the new speaker layout was applied (speaker positions, front speaker A/B). Submit to put back the previous layout and these settings; what you changed yourself since stays."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "The speaker preset is another one now, so nothing was put back. Switch back to the preset you had and try again.",
+          "speaker_layout_layout_changed": "The speaker layout was changed again since, so nothing was put back.",
+          "speaker_layout_left": "{count} settings could not be put back; check them on the receiver.",
+          "receiver_unavailable": "The receiver did not answer. Try again when it is on the network."
         }
       }
     }

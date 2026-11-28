@@ -23,7 +23,9 @@ from .avr.models import ZoneDescriptor
 from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity, receiver_action, zone_device
+from .avr import refusals
+from .avr.errors import SettingNotTaken
+from .entity import DenonAvrEntity, grayed_attributes, receiver_action, zone_device
 from .helpers import control_enabled_by_default, control_sub_device
 from .media_player import TURN_ON_SETTLE, TURN_ON_WAIT
 
@@ -201,9 +203,10 @@ class DenonAvrSwitch(DenonAvrEntity, SwitchEntity):
 class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
     """An on/off video setup item, backed by the /ajax video controller.
 
-    Its state comes from the receiver via the config API (device.video_config);
-    a grayed-out item (e.g. ARC until HDMI Control is on) reports itself
-    unavailable rather than settable.
+    Its state comes from the receiver via the config API (device.video_config).
+    A grayed-out item (e.g. ARC until HDMI Control is on) shows the value its
+    menu shows and refuses a change with the reason; its attributes say
+    whether it can be changed now and what the receiver itself has stored.
     """
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -222,16 +225,25 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and self._video.available(self._id)
+        return super().available and self._video.present(self._id)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return grayed_attributes(self._device, self._video, self._id)
 
     @property
     def is_on(self) -> bool:
         return bool(self._video.value(self._id) == self._on)
 
+    async def _set(self, wire: str) -> None:
+        if not self._video.available(self._id):
+            raise SettingNotTaken(self._id, refusals.MENU_GRAYED)
+        await self._video.async_set(self._id, wire)
+
     @receiver_action
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await self._video.async_set(self._id, self._on)
+        await self._set(self._on)
 
     @receiver_action
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await self._video.async_set(self._id, self._off)
+        await self._set(self._off)

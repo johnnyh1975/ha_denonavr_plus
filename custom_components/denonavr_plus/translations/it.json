@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Diffusori attivi"
+      },
+      "video_output_color_space": {
+        "name": "Spazio colore in uscita"
+      },
+      "video_output_pixel_depth": {
+        "name": "Profondità colore in uscita"
+      },
+      "speaker_connection_front": {
+        "name": "Collegamento diffusore anteriore",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Collegamento diffusore centrale",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Collegamento diffusore surround",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Collegamento diffusore surround posteriore",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Collegamento diffusore anteriore wide",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Collegamento diffusore altezza anteriore",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Collegamento diffusore altezza centrale",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Collegamento diffusore altezza posteriore",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Collegamento diffusore top surround",
+        "state": {
+          "none": "Nessuno",
+          "speaker_and_preout": "Diffusori e pre-out",
+          "preout_only": "Solo pre-out"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Modalità subwoofer",
+        "state": {
+          "standard": "Standard",
+          "directional": "Direzionale"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Disposizione subwoofer",
+        "state": {
+          "left_right": "Sinistra/Destra",
+          "front_rear": "Davanti/Dietro"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Attività"
+      },
+      "input_signal_format": {
+        "name": "{input} formato segnale 4K/8K",
+        "state": {
+          "standard": "Standard",
+          "enhanced": "Avanzato",
+          "custom": "Personalizzato",
+          "8k_enhanced": "8K avanzato"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Personalizzato"
+        }
+      },
+      "speaker_layout": {
+        "name": "Disposizione diffusori",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Zona 2",
+          "7_1ch_zone3": "7.1ch + Zona 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Zona 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Zona 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Zona 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Personalizzato",
+          "preamplifier": "Preamplificatore",
+          "11_1ch_alt": "11.1ch (variante 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "Perché non c'è audio?"
+      },
+      "speaker_layout_apply": {
+        "name": "Applica disposizione diffusori"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Modalità audio {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} mostra {setting} in grigio nel menu in questo momento e lo lascia com'è. Lo decide un'altra impostazione, come la modalità audio, il segnale o HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Scollega i lettori mancanti",
             "description": "{title}: questi lettori multimediali collegati non esistono più: {players}. Conferma per scollegarli; gli ingressi mostrano di nuovo le informazioni del ricevitore. Per collegare un altro lettore, apri le opzioni in Riproduzione."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "La disposizione dei diffusori ha cambiato altre impostazioni",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Ripristina le impostazioni dei diffusori",
+            "description": "{model} ha reimpostato altre {count} impostazioni dei diffusori applicando la nuova disposizione (posizioni dei diffusori, diffusore anteriore A/B). Conferma per tornare alla disposizione precedente e a queste impostazioni; ciò che hai cambiato tu nel frattempo resta."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "Il preset dei diffusori ora è un altro, quindi non è stato ripristinato nulla. Torna al preset di prima e riprova.",
+          "speaker_layout_layout_changed": "La disposizione dei diffusori è stata cambiata di nuovo nel frattempo, quindi non è stato ripristinato nulla.",
+          "speaker_layout_left": "{count} impostazioni non si sono potute ripristinare; controllale sul ricevitore.",
+          "receiver_unavailable": "Il ricevitore non ha risposto. Riprova quando è in rete."
         }
       }
     }

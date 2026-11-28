@@ -59,3 +59,28 @@ def deviceinfo(name: str) -> str:
 
 def all_deviceinfo_files() -> list[Path]:
     return sorted(DENONAVR_FIXTURES.glob("*Deviceinfo*.xml"))
+
+
+@pytest.fixture
+async def web_control(hass: HomeAssistant, receiver_network: Any) -> Any:
+    """A receiver whose setup interface answers as the recorded AVC-X3900H.
+
+    Its telnet is the usual fake (with the speaker answers of setup_api), its
+    every entity enabled; ``.entry`` is the loaded entry.
+    """
+    from homeassistant.const import CONF_HOST
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+
+    from .setup_api import FakeSetupApi, answering_receiver, recorded
+    from .test_init import HOST
+
+    api = FakeSetupApi(recorded("AVC-X3900H"))
+    with answering_receiver(api):
+        entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION)
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        api.entry = entry  # type: ignore[attr-defined]
+        yield api

@@ -14,8 +14,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import choices, no_sound
+from . import choices, layout_repair, no_sound
 from .avr.models import ZoneDescriptor
+from .avr.speaker_layout import LayoutNotSeen
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, receiver_action, zone_device
 
@@ -44,6 +45,8 @@ async def async_setup_entry(
     )
     entities.extend(DenonAvrCommandButton(coordinator, name) for name in device.button_commands)
     entities.append(DenonAvrRecoverAudio(coordinator))
+    if device.speaker_layout.supported:
+        entities.append(DenonAvrSpeakerLayoutApply(coordinator))
     entities.extend(
         DenonAvrWhyNoSound(coordinator, zone)
         for zone in device.discovery.zones
@@ -185,3 +188,43 @@ class DenonAvrWhyNoSound(DenonAvrEntity, ButtonEntity):
         entry = self.coordinator.config_entry
         assert entry is not None
         await no_sound.async_notify(self.hass, entry.entry_id, self._zone.id, result)
+
+
+class DenonAvrSpeakerLayoutApply(DenonAvrEntity, ButtonEntity):
+    """Write the speaker layout prepared in its select (Web Control generation).
+
+    The receiver resets the speaker positions and front speaker A/B with a new
+    layout; what it reset becomes a repair that puts it back.
+    """
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
+    _attr_translation_key = "speaker_layout_apply"
+
+    def __init__(self, coordinator: DenonAvrCoordinator) -> None:
+        super().__init__(coordinator, "button_speaker_layout_apply", sub_device="speakers")
+
+    @property
+    def available(self) -> bool:
+        layout = self.coordinator.device.speaker_layout
+        return super().available and layout.supported and not layout.busy
+
+    @receiver_action
+    async def async_press(self) -> None:
+        entry = self.coordinator.config_entry
+        assert entry is not None
+        entry_id = entry.entry_id
+        # A repair still open keeps its state before: that is the one to go back to.
+        earlier = layout_repair.open_point(self.hass, entry_id)
+        try:
+            point = await self.coordinator.device.speaker_layout.async_apply(
+                earlier["before"] if earlier else None
+            )
+        except LayoutNotSeen as err:
+            # Not seen in time, maybe taken all the same: the way back stays.
+            layout_repair.async_report(self.hass, self.coordinator, err.point)
+            raise
+        finally:
+            self.coordinator.async_update_listeners()
+        if point is not None:
+            layout_repair.async_report(self.hass, self.coordinator, point)

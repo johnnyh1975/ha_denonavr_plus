@@ -144,3 +144,15 @@ def answering_receiver(api: FakeSetupApi) -> Iterator[None]:
         ),
     ):
         yield
+
+
+def recorded(model: str) -> dict[tuple[str, int], str]:
+    """The setup-interface documents of a recorded receiver (tests/fixtures/recordings)."""
+    from pathlib import Path
+
+    folder = Path(__file__).parent / "fixtures" / "recordings" / model
+    documents: dict[tuple[str, int], str] = {}
+    for path in folder.glob("ajax_*_*.xml"):
+        _, section, type_id = path.stem.split("_")
+        documents[(section, int(type_id))] = path.read_text()
+    return documents

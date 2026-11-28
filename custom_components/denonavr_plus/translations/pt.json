@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Altifalantes ativos"
+      },
+      "video_output_color_space": {
+        "name": "Espaço de cor de saída"
+      },
+      "video_output_pixel_depth": {
+        "name": "Profundidade de cor de saída"
+      },
+      "speaker_connection_front": {
+        "name": "Ligação da coluna frontal",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Ligação da coluna central",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Ligação da coluna surround",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Ligação da coluna surround traseiro",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Ligação da coluna frontal larga",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Ligação da coluna altura frontal",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Ligação da coluna altura central",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Ligação da coluna altura traseira",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Ligação da coluna top surround",
+        "state": {
+          "none": "Nenhuma",
+          "speaker_and_preout": "Colunas e pre-out",
+          "preout_only": "Só pre-out"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Modo do subwoofer",
+        "state": {
+          "standard": "Padrão",
+          "directional": "Direcional"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Disposição dos subwoofers",
+        "state": {
+          "left_right": "Esquerda/Direita",
+          "front_rear": "Frente/Trás"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Atividade"
+      },
+      "input_signal_format": {
+        "name": "{input} formato de sinal 4K/8K",
+        "state": {
+          "standard": "Padrão",
+          "enhanced": "Melhorado",
+          "custom": "Personalizado",
+          "8k_enhanced": "8K melhorado"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Personalizado"
+        }
+      },
+      "speaker_layout": {
+        "name": "Disposição das colunas",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Zona 2",
+          "7_1ch_zone3": "7.1ch + Zona 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Zona 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Zona 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Zona 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Personalizado",
+          "preamplifier": "Pré-amplificador",
+          "11_1ch_alt": "11.1ch (variante 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "Porque não há som?"
+      },
+      "speaker_layout_apply": {
+        "name": "Aplicar disposição das colunas"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Modo de som {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} mostra {setting} esbatido no menu neste momento e deixa-o como está. Outra definição decide agora, como o modo de som, o sinal ou o HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Desassociar os leitores em falta",
             "description": "{title}: estes leitores multimédia associados já não existem: {players}. Confirme para os desassociar; as entradas voltam a mostrar a informação do próprio recetor. Para associar outro leitor, abra as opções em Reprodução."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "A disposição das colunas alterou outras definições",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Repor as definições das colunas",
+            "description": "{model} repôs mais {count} definições das colunas ao aplicar a nova disposição (posições das colunas, colunas frontais A/B). Confirme para voltar à disposição anterior e a essas definições; o que alterou entretanto fica."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "O preset de colunas é agora outro, por isso nada foi reposto. Volte ao preset anterior e tente de novo.",
+          "speaker_layout_layout_changed": "A disposição das colunas foi alterada de novo entretanto, por isso nada foi reposto.",
+          "speaker_layout_left": "Não foi possível repor {count} definições; verifique-as no recetor.",
+          "receiver_unavailable": "O recetor não respondeu. Tente de novo quando estiver na rede."
         }
       }
     }

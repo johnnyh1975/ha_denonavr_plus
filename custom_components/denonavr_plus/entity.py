@@ -36,6 +36,7 @@ SUB_DEVICE_NAMES = {
     "video": "Video",
     "picture": "Picture",
     "speakers": "Speakers",
+    "inputs": "Inputs",
     "eq": "Graphic EQ",
     "zone2": "Zone 2",
     "zone3": "Zone 3",
@@ -49,6 +50,15 @@ def zone_device(zone: ZoneDescriptor) -> str | None:
     """The sub-device of a zone's entities: none for the main zone."""
 
     return None if zone.is_main else zone.id
+
+
+def grayed_attributes(device: DenonAvrDevice, controller: Any, control_id: str) -> dict[str, Any]:
+    """Whether a setup item can be changed now and, for the HDMI setup, its own stored value."""
+
+    attributes: dict[str, Any] = {"settable": controller.available(control_id)}
+    if (own := device.own_setting(control_id)) is not None:
+        attributes["own_setting"] = own
+    return attributes
 
 
 def receiver_action[_FuncT: Callable[..., Coroutine[Any, Any, Any]]](func: _FuncT) -> _FuncT:
@@ -159,7 +169,9 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
             manufacturer=device_info.manufacturer or "Denon",
             model=device_info.model_name,
             name=device_info.model_name or "Denon AVR",
-            sw_version=device_info.firmware_version,
+            sw_version=device_info.firmware_text,
+            # The HEOS/AIOS network module, the receiver's streaming hardware.
+            hw_version=device_info.network_module_version,
             serial_number=device_info.serial_number,
             # The receiver's own web control page, useful as a device link.
             configuration_url=self._device.setup_url,

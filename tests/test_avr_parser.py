@@ -790,9 +790,9 @@ def test_an_input_named_by_its_code_earlier_gets_its_readable_name() -> None:
     assert discovery.sources[0].name == "Internet Radio"
 
 
-# ── Recordings of newer receivers (LaserGuruGuy/denon_avr) ────────────────
+# ── Recordings of newer receivers (tests/fixtures/recordings) ────────────
 
-_RECORDINGS = Path(__file__).parent / "fixtures" / "laserguruguy"
+_RECORDINGS = Path(__file__).parent / "fixtures" / "recordings"
 
 
 def _replay(model: str) -> tuple[TelnetParser, AvrState, Discovery]:
@@ -813,7 +813,7 @@ def _replay(model: str) -> tuple[TelnetParser, AvrState, Discovery]:
 
 def test_a_recorded_avc_x3900h_is_read_as_it_reports() -> None:
     """AVC-X3900H (2026, 3.139.174): YES/NO speakers, four subwoofers, OPALS."""
-    parser, state, discovery = _replay("avc_x3900h")
+    parser, state, discovery = _replay("AVC-X3900H")
     assert discovery.device.model_name == "AVC-X3900H"
     assert discovery.configured_channels == {"FL", "FR", "C", "SL", "SR", "SW"}
     # Auto lip sync as OPALSSET (no SSALS); the answered prefix is the one written.
@@ -827,7 +827,7 @@ def test_a_recorded_avc_x3900h_is_read_as_it_reports() -> None:
 
 
 def test_a_recorded_avr_x3600h_keeps_the_older_spellings() -> None:
-    parser, state, discovery = _replay("avr_x3600h")
+    parser, state, discovery = _replay("AVR-X3600H")
     assert discovery.quick_select_names == {
         1: "Quick Select 1", 2: "Quick Select 2", 3: "Quick Select 3", 4: "Quick Select 4"
     }
@@ -857,3 +857,20 @@ def test_the_level_of_a_second_subwoofer() -> None:
     parser, state = TelnetParser(load_profile(), Discovery()), AvrState()
     assert parser.feed("PSSWL2 59", state)
     assert state.values["subwoofer_2_level"] == 9.0
+
+
+@pytest.mark.assumed(
+    "SSAUDSTS and the SSHOS item lines follow LaserGuruGuy/denon_avr (AVR-X3600H, "
+    "AVC-X3900H, after his recordings were made); an answer to SSAUDSTS ? and SSHOS ? "
+    "from one of them would settle it"
+)
+def test_the_audio_menu_status_and_the_stored_hdmi_setup() -> None:
+    parser, state = TelnetParser(load_profile(), Discovery()), AvrState()
+    assert parser.feed("SSAUDSTS 222121222122000", state)
+    assert state.values["audio_menu_status"] == "222121222122000"
+    assert not parser.feed("SSAUDSTS ???", state)
+    assert parser.feed("SSHOSPAS OFF", state)
+    assert state.values["hdmi_setup_PAS"] == "OFF"
+    assert parser.feed("SSHOS END", state)
+    # An item this profile does not know is not claimed.
+    assert not parser.feed("SSHOSIPM 1", state)

@@ -16,6 +16,8 @@ from __future__ import annotations
 
 #: The main zone is in standby: an AVR-X2000 took no setting then.
 STANDBY = "standby"
+#: The receiver's Audio menu shows the item grayed or hidden now (SSAUDSTS).
+MENU_GRAYED = "menu_grayed"
 
 #: Control groups that act on the main zone's sound or picture.
 MAIN_ZONE_GROUPS = frozenset(
@@ -44,7 +46,7 @@ REASONS: dict[str, str] = {
 }
 
 #: Every reason, for the texts (translation keys setting_not_taken_<reason>).
-ALL_REASONS = frozenset({STANDBY, *REASONS.values()})
+ALL_REASONS = frozenset({STANDBY, MENU_GRAYED, *REASONS.values()})
 
 
 #: Settings whose condition holds for one value only: the subwoofer can be

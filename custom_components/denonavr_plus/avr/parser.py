@@ -565,6 +565,15 @@ class TelnetParser:
         if line.startswith("OPSML"):
             return self._set_current_sound_mode(line[5:], state)
 
+        audio_menu = self._profile.grammar.get("audio_menu_status", {})
+        if (prefix := audio_menu.get("prefix")) and line.startswith(prefix):
+            # One digit per Audio menu item (0 hidden, 1 grayed, 2 settable).
+            digits = line[len(prefix):].strip()
+            if not digits.isdigit():
+                return False
+            state.values["audio_menu_status"] = digits
+            return True
+
         # Read only audio information.
         for control_id, spec in self._readonly_matchers:
             prefix = spec.get("prefix", "")
@@ -584,6 +593,17 @@ class TelnetParser:
                 if prefix != control.prefix:
                     self.variant_prefixes[control.id] = prefix
                 return self._set_feature(control, remainder, state)
+
+        hdmi = self._profile.grammar.get("hdmi_setup", {})
+        if (prefix := hdmi.get("prefix")) and line.startswith(prefix):
+            # The HDMI setup as stored (SSHOSCONARC ON), also while the menu
+            # shows a value HDMI Control imposes; after the matchers, which
+            # take SSHOSALS (auto lip sync of older receivers).
+            code, _, value = line[len(prefix):].partition(" ")
+            if code in hdmi.get("items", {}) and value.strip():
+                state.values[f"hdmi_setup_{code}"] = value.strip()
+                return True
+            return line[len(prefix):].strip() == self._profile.list_terminator
 
         return False
 

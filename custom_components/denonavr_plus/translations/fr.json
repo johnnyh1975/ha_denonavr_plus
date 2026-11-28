@@ -476,6 +476,98 @@
       },
       "audio_active_speakers": {
         "name": "Enceintes actives"
+      },
+      "video_output_color_space": {
+        "name": "Espace colorimétrique de sortie"
+      },
+      "video_output_pixel_depth": {
+        "name": "Profondeur de couleur de sortie"
+      },
+      "speaker_connection_front": {
+        "name": "Connexion enceinte avant",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Connexion enceinte centrale",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Connexion enceinte surround",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Connexion enceinte surround arrière",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Connexion enceinte avant large",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Connexion enceinte hauteur avant",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Connexion enceinte hauteur milieu",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Connexion enceinte hauteur arrière",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Connexion enceinte top surround",
+        "state": {
+          "none": "Aucune",
+          "speaker_and_preout": "Enceintes et pre-out",
+          "preout_only": "Pre-out seulement"
+        }
+      },
+      "subwoofer_directional_mode": {
+        "name": "Mode caisson de basses",
+        "state": {
+          "standard": "Standard",
+          "directional": "Directionnel"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Disposition des caissons",
+        "state": {
+          "left_right": "Gauche/Droite",
+          "front_rear": "Avant/Arrière"
+        }
       }
     },
     "select": {
@@ -1001,6 +1093,43 @@
       },
       "start_activity": {
         "name": "Activité"
+      },
+      "input_signal_format": {
+        "name": "{input} format de signal 4K/8K",
+        "state": {
+          "standard": "Standard",
+          "enhanced": "Amélioré",
+          "custom": "Personnalisé",
+          "8k_enhanced": "8K amélioré"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "HDCP 1.4",
+          "hdcp_2_3": "HDCP 2.3",
+          "custom": "Personnalisé"
+        }
+      },
+      "speaker_layout": {
+        "name": "Disposition des enceintes",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + Zone 2",
+          "7_1ch_zone3": "7.1ch + Zone 3",
+          "7_1ch_zone2_3_mono": "7.1ch + Zone 2/3 mono",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + Zone 2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + Zone 2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Personnalisé",
+          "preamplifier": "Préamplificateur",
+          "11_1ch_alt": "11.1ch (variante 2)",
+          "5_1ch_front_lcr_bi_amp": "5.1ch Front L/C/R Bi-Amp"
+        }
       }
     },
     "switch": {
@@ -1196,6 +1325,9 @@
       },
       "why_no_sound": {
         "name": "Pourquoi pas de son ?"
+      },
+      "speaker_layout_apply": {
+        "name": "Appliquer la disposition des enceintes"
       }
     },
     "remote": {
@@ -1405,6 +1537,9 @@
     },
     "intent_sound_mode_set": {
       "message": "Mode son {sound_mode}."
+    },
+    "setting_not_taken_menu_grayed": {
+      "message": "{model} affiche {setting} grisé dans son menu en ce moment et le laisse tel quel. Un autre réglage en décide, comme le mode son, le signal ou HDMI Control."
     }
   },
   "issues": {
@@ -1523,6 +1658,23 @@
             "title": "Délier les lecteurs manquants",
             "description": "{title} : ces lecteurs multimédias liés n'existent plus : {players}. Validez pour les délier ; les entrées montrent alors à nouveau les informations du récepteur. Pour lier un autre lecteur, ouvrez les options sous Lecture."
           }
+        }
+      }
+    },
+    "speaker_layout_changed": {
+      "title": "La disposition des enceintes a modifié d'autres réglages",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Rétablir les réglages des enceintes",
+            "description": "{model} a réinitialisé {count} autres réglages d'enceintes en appliquant la nouvelle disposition (positions des enceintes, enceinte avant A/B). Validez pour revenir à la disposition précédente et à ces réglages ; ce que vous avez changé vous-même depuis reste."
+          }
+        },
+        "abort": {
+          "speaker_layout_preset_changed": "Le preset d'enceintes a changé, rien n'a donc été rétabli. Revenez au preset d'avant et réessayez.",
+          "speaker_layout_layout_changed": "La disposition des enceintes a été modifiée à nouveau depuis, rien n'a donc été rétabli.",
+          "speaker_layout_left": "{count} réglages n'ont pas pu être rétablis ; vérifiez-les sur l'ampli.",
+          "receiver_unavailable": "L'ampli n'a pas répondu. Réessayez quand il est sur le réseau."
         }
       }
     }

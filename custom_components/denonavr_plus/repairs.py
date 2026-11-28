@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from . import linked_players, move, zone_sources
+from . import layout_repair, linked_players, move, zone_sources
 from .coordinator import DenonAvrConfigEntry
 from .receiver_test import ReceiverTestSteps
 
@@ -64,4 +64,6 @@ async def async_create_fix_flow(
         return linked_players.LinkedPlayerRepairFlow(str(data["entry_id"]))
     if issue_id.startswith(move.ISSUE_CHECK):
         return ConfirmRepairFlow()
+    if issue_id.startswith(layout_repair.ISSUE):
+        return layout_repair.SpeakerLayoutRepairFlow(str(data["entry_id"]), str(data["point"]))
     return CapabilityCheckRepairFlow(str(data["entry_id"]))

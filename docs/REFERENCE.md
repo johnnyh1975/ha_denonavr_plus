@@ -292,7 +292,7 @@ ports. Nothing needs to be opened towards the internet.
 | **1900/udp** | SSDP (multicast) | Automatic discovery of the receiver on the LAN                                                                                                                                        | Optional (auto‑discovery only) |
 | **1256/tcp** | Length‑framed JSON | Not currently used (reserved for future use)                                                                                                                                          | Unused |
 | **1255/tcp** | HEOS CLI | Now‑playing media, album art and transport (play/pause/next) for network sources                                                                                                      | Optional (degrades gracefully) |
-| **10443/tcp** | HTTPS (setup config) | Graphic‑EQ per‑band values, the Video setup menu (HDMI setup/CEC, ARC, OSD, TV/4K format) and Amp Assign — settings with no telnet token, read/write (non‑disruptive; self‑signed cert) | Optional (graphic EQ + video + amp assign) |
+| **10443/tcp** | HTTPS (setup config) | Graphic‑EQ per‑band values, the Video setup menu (HDMI setup/CEC, ARC, OSD, TV/4K format), Amp Assign, the DTS decoder version, and on newer receivers the settings per input and the speaker layout — settings with no telnet token, read/write (non‑disruptive; self‑signed cert) | Optional (graphic EQ + video + speaker setup) |
 | **11080/tcp** | HTTP (setup config) | The same, on newer firmware that closes 10443; used only when 10443 does not accept a connection | Optional (as 10443) |
 
 Notes:
@@ -313,8 +313,9 @@ Settings are organized into **sub‑devices that mirror the receiver's own setup
 menus**, so a large control set stays tidy instead of crowding one page. The main
 receiver device keeps the day‑to‑day controls (player, power, source, sound mode,
 quick select, input mode, front‑display dimmer); the **Audio**, **Video**,
-**Picture**, **Speakers** and **Graphic EQ** sub‑devices each carry their own
-part of the setup. **Picture** holds the image‑quality tuning (a coherent group,
+**Picture**, **Speakers**, **Inputs** and **Graphic EQ** sub‑devices each carry
+their own part of the setup (**Inputs** only on receivers with settings per
+input). **Picture** holds the image‑quality tuning (a coherent group,
 split off from Video like the Graphic EQ is split off from Audio); **Video** holds
 the output/connectivity settings (video mode, HDMI setup, on‑screen display, TV/4K
 signal format). The sub‑devices are in the receiver's room: one without a room
@@ -422,6 +423,36 @@ AVC‑A10H describes it as 0–15).
   Pass‑Through Source, RC Select, On‑Screen Volume position, Now‑Playing display,
   4K Signal Format, TV Format (NTSC/PAL). On **Picture**: Noise Reduction. Each
   only when the receiver advertises it.
+  A video or HDMI setup item the receiver grays out (ARC while HDMI Control is
+  off, Pass‑Through Source while Pass Through is off) shows the value its menu
+  shows and refuses a change with the reason; the attribute `settable` says
+  whether it can be changed now and, for the HDMI setup, `own_setting` what
+  the receiver itself has stored for it.
+- **Newer receivers** (the Web Control generation, AVC‑X3800H/X3900H; from
+  LaserGuruGuy's recordings of an AVC‑X3900H, not yet tried by this
+  integration):
+  - On **Inputs**, per input as the receiver names it: **4K/8K Signal Format**
+    (Standard, Enhanced, 8K Enhanced, and Custom where the input allows it)
+    and **HDCP** (Auto, 1.4, 2.3, Custom where allowed). An input the
+    receiver grays out (TV Audio) is shown, not changed.
+  - **Speaker layout** (on Speakers), the successor of Amp Assign, with the
+    layouts this receiver allows. A new layout makes the receiver reset the
+    choices of the speaker positions and front speaker A/B, so the select only
+    prepares it (attribute `prepared`) and the button **Apply speaker layout**
+    writes it. If the receiver reset anything, a repair says how many settings
+    and puts them back: first the layout, then each position the user has not
+    changed since, then front speaker A/B. It is refused when the speaker
+    preset is another one now or the layout was changed again; the restore
+    point is kept in the repair, also over a restart of Home Assistant. A
+    layout the receiver does not show in time is an error, and the repair
+    stays, as it may have taken it all the same. A second layout change while
+    the repair is open keeps the state before the first one.
+  - **Speaker connection** sensors per position (front, center, surround,
+    surround back, front wide, heights, top surround): speakers and pre‑out,
+    pre‑out only, or none. Diagnostic, start disabled.
+  - **Subwoofer mode** (standard, directional) and **Subwoofer layout**
+    (left/right, front/rear) sensors where the receiver reports them; the
+    layout only in directional mode, unknown in standard mode.
 - **Switches**: Main Power, Main Mute, Tone Control, Dynamic EQ, Loudness
   Management, Cinema EQ, Subwoofer, Speaker Virtualizer, Center Spread,
   DTS Neural:X, Low Frequency Containment (LFC), Graphic EQ, Auto Lip Sync,
@@ -471,8 +502,8 @@ AVC‑A10H describes it as 0–15).
   what is left. The Dialogue Enhancer
   (`PSDEH`) has not been tried on a receiver yet.
 - **Signal sensors**, on receivers with the setup interface (not the AVR-X2000):
-  input and output resolution and HDR, input color space, color depth and FRL
-  rate on the Video device, the input signal's channels and the active
+  input and output resolution, HDR, color space and color depth, and the
+  input FRL rate on the Video device, the input signal's channels and the active
   speakers on the Audio device. Input resolution and HDR start enabled; they
   are read at setup, with each poll and a few seconds after an input, power or
   signal change. Not yet confirmed on a receiver.
@@ -487,6 +518,9 @@ AVC‑A10H describes it as 0–15).
   "Newer version" while there is one, because HEOS names none. It installs
   nothing. After an update the receiver restarts; when the integration
   connects again it reads the version anew, and the device page shows it.
+- **Device page**: the firmware, with the DTS decoder's version where the
+  setup interface reports it (for example `3.139.174 (DTS 4.30.10.15)`), and
+  as hardware the HEOS network module.
 - **Recover audio** (a button, starts disabled): standby and back on with the
   input it had, for a receiver that has lost its sound.
 - **Model-dependent controls**, created only when the receiver answers their
@@ -970,11 +1004,12 @@ Which receivers work, and what differs by generation and brand:
   | Bass, Treble | with Tone Control on and Dynamic EQ off |
   | Tone Control | with Dynamic EQ off |
   | Contrast, Brightness, Saturation, Enhancer, Noise Reduction | in the Custom picture mode |
+  | Center Level, Subwoofer Level, Restorer/M-DAX, Audio Delay, MultEQ and the Audyssey settings, Graphic EQ, Dirac filter, DAC filter | while the receiver's Audio menu shows the item (receivers that report it, from the AVR‑X3600H on); a grayed or hidden item is refused before anything is sent |
 
   Over HTTP (telnet down) nothing comes back to confirm by; Video Mode, which
   needs an active video signal, is not confirmed either.
 - Speaker distances and crossovers are supported over telnet (read/write). Other
   advanced one time setup settings that the receiver exposes only through its web
-  UI's configuration API (full speaker layout, HDMI Control/CEC, per input
-  assignment, some zone defaults) are not implemented.
+  UI's configuration API (the speaker layout before the Web Control
+  generation, per input assignment, some zone defaults) are not implemented.
 - Room correction calibration remains a job for the receiver's own setup tooling.

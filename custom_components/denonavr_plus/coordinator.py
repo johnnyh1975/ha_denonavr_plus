@@ -123,7 +123,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._saved_snapshot: dict[str, Any] | None = None
         self._pending_snapshot: dict[str, Any] | None = None
         # The firmware the device card shows (see _follow_firmware).
-        self._firmware_shown: str | None = None
+        self._firmware_shown: tuple[str | None, str | None] | None = None
         # The last capability check of this receiver (see capabilities.py).
         self.capabilities = CapabilityResults(hass, entry.entry_id)
         # The last command test (see command_test.py); one at a time with the check.
@@ -335,13 +335,20 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
     def _follow_firmware(self) -> None:
         """Show a new firmware on the device card after the receiver updated itself."""
 
-        firmware = self.device.discovery.device.firmware_version
-        if firmware is None or firmware == self._firmware_shown or self.main_device_id is None:
+        info = self.device.discovery.device
+        firmware = info.firmware_text
+        shown = (firmware, info.network_module_version)
+        if firmware is None or shown == self._firmware_shown or self.main_device_id is None:
             return
         registry = dr.async_get(self.hass)
-        if (entry := registry.async_get(self.main_device_id)) and entry.sw_version != firmware:
-            registry.async_update_device(entry.id, sw_version=firmware)
-        self._firmware_shown = firmware
+        if (entry := registry.async_get(self.main_device_id)) and (
+            entry.sw_version,
+            entry.hw_version,
+        ) != shown:
+            registry.async_update_device(
+                entry.id, sw_version=firmware, hw_version=info.network_module_version
+            )
+        self._firmware_shown = shown
 
     @callback
     def _check_app_control(self) -> None:

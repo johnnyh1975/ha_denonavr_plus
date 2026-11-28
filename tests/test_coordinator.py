@@ -686,3 +686,19 @@ async def test_a_control_answered_at_an_earlier_start_sets_up_nothing_again(
         await asyncio.sleep(1.2)
         await hass.async_block_till_done()
     reload.assert_not_called()
+
+
+async def test_the_device_card_shows_the_dts_decoder_and_the_network_module(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    coordinator = loaded_entry.runtime_data
+    info = coordinator.device.discovery.device
+    info.firmware_version = "3.139.174"
+    info.dts_version, info.network_module_version = "4.30.10.15", "Aios 6.5V"
+    FakeTelnet.instances[-1].push("MV41")
+    await asyncio.sleep(0.15)
+    await hass.async_block_till_done()
+    device = dr.async_get(hass).async_get(coordinator.main_device_id)
+    assert device is not None
+    assert device.sw_version == "3.139.174 (DTS 4.30.10.15)"
+    assert device.hw_version == "Aios 6.5V"

@@ -54,6 +54,19 @@ async def async_setup_entry(
     if device.signal_supported:
         entities.extend(DenonAvrSignalSensor(coordinator, key) for key in signal_info.FIELDS)
 
+    # How each speaker position is connected (Web Control generation).
+    speakers = device.speaker_config
+    entities.extend(
+        DenonAvrSpeakerConnectionSensor(coordinator, slot)
+        for slot in speakers.entity_slots(SPEAKER_CONNECTION)
+    )
+    # The subwoofer mode and layout, where the receiver reports them (SSSPCSWM/SWL).
+    entities.extend(
+        DenonAvrSubwooferSetupSensor(coordinator, group)
+        for group in SUBWOOFER_SETUP
+        if group in device.state.speaker_sizes
+    )
+
     # The current sound mode as a diagnostic sensor (also on the media player).
     entities.append(DenonAvrSoundModeSensor(coordinator))
 
@@ -215,3 +228,61 @@ class DenonAvrActivitySensor(DenonAvrEntity, SensorEntity):
             linked=self.hass.states.get(link.entity_id) if link is not None else None,
             network_media_type=now.media_type if now.active else None,
         )
+
+
+SPEAKER_CONNECTION = "speaker_connection"
+
+#: Subwoofer setup groups of SSSPC -> (translation key, token -> state).
+#: Tokens as LaserGuruGuy saw them on an AVC-X3900H: STD Standard, DRC
+#: Directional, 2LR Left/Right, 2FR Front/Rear.
+SUBWOOFER_SETUP: dict[str, tuple[str, dict[str, str]]] = {
+    "SWM": ("subwoofer_directional_mode", {"STD": "standard", "DRC": "directional"}),
+    "SWL": ("subwoofer_layout", {"2LR": "left_right", "2FR": "front_rear"}),
+}
+
+
+class DenonAvrSpeakerConnectionSensor(DenonAvrEntity, SensorEntity):
+    """How a speaker position is connected now: speakers and pre-out, or pre-out only."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+    _attr_device_class = SensorDeviceClass.ENUM
+
+    def __init__(self, coordinator: DenonAvrCoordinator, slot: str) -> None:
+        super().__init__(coordinator, f"sensor_speaker_connection_{slot}", sub_device="speakers")
+        self._slot = slot
+        spec = coordinator.device.speaker_config.collection_spec(SPEAKER_CONNECTION) or {}
+        self._keys: dict[str, str] = spec.get("value_keys", {})
+        self._attr_options = list(self._keys.values())
+        self._attr_translation_key = f"speaker_connection_{spec['position_keys'][slot]}"
+
+    @property
+    def native_value(self) -> str | None:
+        item = self.coordinator.device.speaker_config.collection(SPEAKER_CONNECTION).get(self._slot)
+        return self._keys.get(item["value"]) if item else None
+
+
+class DenonAvrSubwooferSetupSensor(DenonAvrEntity, SensorEntity):
+    """The subwoofer mode (standard, directional) or layout, as the receiver reports it."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+    _attr_device_class = SensorDeviceClass.ENUM
+
+    def __init__(self, coordinator: DenonAvrCoordinator, group: str) -> None:
+        key, self._tokens = SUBWOOFER_SETUP[group]
+        super().__init__(coordinator, f"sensor_{key}", sub_device="speakers")
+        self._group = group
+        self._attr_translation_key = key
+        self._attr_options = list(self._tokens.values())
+
+    @property
+    def native_value(self) -> str | None:
+        sizes = self.coordinator.device.state.speaker_sizes
+        if self._group == "SWL" and sizes.get("SWM") != "DRC":
+            # The layout applies in the directional mode only; the receiver
+            # still reports one (2LR) in the standard mode.
+            return None
+        token = sizes.get(self._group)
+        # A token not seen yet stays unknown rather than an invalid state.
+        return self._tokens.get(token) if token else None

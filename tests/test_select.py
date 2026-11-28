@@ -13,6 +13,8 @@ from pathlib import Path
 
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.avr.profile import load_profile
@@ -603,3 +605,50 @@ async def test_the_activity_select_shows_an_activity_started_by_the_action(
     await hass.async_block_till_done()
     # The same input: the select follows what was started last.
     assert hass.states.get(select).state == "Late film"
+
+
+async def test_each_input_has_its_4k_8k_format_and_hdcp(
+    hass: HomeAssistant, web_control: FakeSetupApi
+) -> None:
+    """The AVC-X3900H's inputs on the Inputs device, named as the receiver names them."""
+    entry = web_control.entry  # type: ignore[attr-defined]
+    entity = entity_id(hass, entry, "select_input_signal_format_1")
+    state = hass.states.get(entity)
+    assert state.state == "enhanced"
+    # Custom only where the input allows it.
+    assert state.attributes["options"] == ["standard", "enhanced", "8k_enhanced"]
+    assert state.attributes["settable"] is True
+    item = registry_entry(hass, entry, "select_input_signal_format_1")
+    device = dr.async_get(hass).async_get(item.device_id)
+    assert device.name.endswith("Inputs")
+    assert entity.endswith("aap_4k_8k_signal_format")
+    with patch("custom_components.denonavr_plus.avr.video_config.VideoConfigController.async_set_item") as write:
+        await hass.services.async_call(
+            "select", "select_option", {"entity_id": entity, "option": "8k_enhanced"}, blocking=True
+        )
+    write.assert_awaited_once_with("input_signal_format", "1", "4")
+    # TV Audio is grayed on the receiver: shown, not changed.
+    tv_audio = entity_id(hass, entry, "select_input_hdcp_6")
+    assert hass.states.get(tv_audio).attributes["settable"] is False
+    with pytest.raises(HomeAssistantError) as err:
+        await hass.services.async_call(
+            "select", "select_option", {"entity_id": tv_audio, "option": "hdcp_2_3"}, blocking=True
+        )
+    assert err.value.translation_key == "setting_not_taken_menu_grayed"
+
+
+async def test_a_speaker_layout_is_only_prepared_by_its_select(
+    hass: HomeAssistant, web_control: FakeSetupApi
+) -> None:
+    entry = web_control.entry  # type: ignore[attr-defined]
+    entity = entity_id(hass, entry, "select_speaker_layout")
+    state = hass.states.get(entity)
+    assert state.state == "7_1ch_front_b"
+    assert "preamplifier" in state.attributes["options"]
+    assert state.attributes["prepared"] is False
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": entity, "option": "preamplifier"}, blocking=True
+    )
+    state = hass.states.get(entity)
+    assert state.state == "preamplifier" and state.attributes["prepared"] is True
+    assert web_control.writes == []

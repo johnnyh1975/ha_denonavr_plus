@@ -41,6 +41,7 @@ _SUB_DEVICE_GROUP = {
     "speakers": "speakers",
     "video": "video",
     "picture": "video",
+    "inputs": "video",
     "eq": "graphic_eq",
     "zone2": "zones",
     "zone3": "zones",
