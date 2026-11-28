@@ -30,9 +30,7 @@ from custom_components.denonavr_plus.const import (
 )
 
 from .common import entity_id
-from .test_init import FakeHeos, FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeHeos, FakeTelnet
 
 HTTP_OK: dict[str, Any] = {"power": True, "volume_db": -40.0}
 
@@ -52,8 +50,7 @@ async def _pass(hass: HomeAssistant, freezer: FrozenDateTimeFactory, minutes: in
 def _drop_link() -> FakeTelnet:
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     return telnet
 
 
@@ -76,9 +73,8 @@ async def test_telnet_down_while_http_answers_raises_a_repair(
         assert issue.severity is ir.IssueSeverity.WARNING
         assert "telnet" in caplog.text.lower()
 
-        assert telnet._on_availability is not None
         telnet.connected = True
-        telnet._on_availability(True)
+        telnet.set_available(True)
         # Pushed updates are debounced on the event loop clock; with the clock
         # frozen, fire the timer instead of sleeping.
         freezer.tick(timedelta(seconds=1))
@@ -130,9 +126,8 @@ async def test_poll_runs_more_often_while_telnet_is_down(
         # The media players now depend on the HTTP poll alone.
         assert coordinator.update_interval == HTTP_FALLBACK_INTERVAL
 
-        assert telnet._on_availability is not None
         telnet.connected = True
-        telnet._on_availability(True)
+        telnet.set_available(True)
         freezer.tick(timedelta(seconds=1))
         async_fire_time_changed(hass)
         await hass.async_block_till_done()
@@ -177,8 +172,7 @@ async def test_a_silent_receiver_starts_from_the_last_discovery(
     # The receiver answers: the entry is set up in full.
     telnet = FakeTelnet.instances[-1]
     telnet.connected = True
-    assert telnet._on_availability is not None
-    telnet._on_availability(True)
+    telnet.set_available(True)
     await _settle(hass)
     await hass.async_block_till_done()
     assert loaded_entry.state is ConfigEntryState.LOADED
@@ -291,8 +285,7 @@ async def test_telnet_alone_does_not_reload_in_a_loop(
     ):
         telnet = FakeTelnet.instances[-1]
         telnet.connected = True
-        assert telnet._on_availability is not None
-        telnet._on_availability(True)
+        telnet.set_available(True)
         await _settle(hass)
         # Pushes keep arriving; none of them starts another attempt yet.
         for _ in range(5):

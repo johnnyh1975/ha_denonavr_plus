@@ -16,9 +16,7 @@ from custom_components.denonavr_plus.intent import (
 )
 
 from .common import entity_id
-from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
-__all__ = ["loaded_entry", "receiver_network"]
 
 
 def _context(assistant: str | None = "conversation") -> ha_llm.LLMContext:

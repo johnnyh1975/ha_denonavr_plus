@@ -12,9 +12,7 @@ from custom_components.denonavr_plus.const import DOMAIN
 from custom_components.denonavr_plus.linked_players import OPT_LINKED_PLAYERS
 
 from .common import entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 async def _push(hass: HomeAssistant, *lines: str) -> None:

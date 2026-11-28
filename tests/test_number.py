@@ -10,9 +10,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.denonavr_plus.avr.profile import load_profile
 
 from .common import async_enable, entity_id, registry_entry
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 async def test_distances_and_eq_bands_start_disabled(

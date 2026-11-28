@@ -85,6 +85,7 @@
     "step": {
       "init": {
         "title": "Opções",
+        "description": "As fontes, os modos de som, a reprodução, as atividades e o teste do recetor aparecem enquanto o recetor está ligado.",
         "menu_options": {
           "volume": "Volume",
           "zones": "Zonas e ligar",
@@ -235,21 +236,15 @@
       },
       "playback": {
         "title": "Reprodução",
-        "description": "Como os leitores multimédia mostram o que toca numa entrada. Escolha uma entrada para associar o dispositivo nela conectado, como uma Apple TV ou um streamer, ou confirme para guardar.",
-        "data": {
-          "input": "Associar um leitor a uma entrada",
-          "pause_on_off": "Pausar o leitor associado ao desligar a zona",
-          "signal_state": "A reproduzir ou inativo pelo sinal de entrada"
-        },
-        "data_description": {
-          "input": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor associado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta. A entrada de rede aceita o leitor do Music Assistant: a sua fila e a sua biblioteca vêm então com ele. Uma pesquisa por voz no recetor também procura nos leitores associados que o permitem, como o Music Assistant.",
-          "pause_on_off": "Desligar uma zona no Home Assistant pausa o leitor associado da entrada que estava a tocar, para que não continue sem ninguém ouvir. Não enquanto outra zona ainda tocar essa entrada.",
-          "signal_state": "Uma zona numa entrada sem leitor associado mostra \"A reproduzir\" enquanto a entrada tem sinal e \"Inativo\" sem sinal, em vez de \"Ligado\". As fontes de rede e o sintonizador mantêm o seu próprio estado. Ainda não experimentado num recetor: não se sabe se todos os modelos avisam quando um sinal termina. Uma fonte HDMI que mostra o seu menu envia muitas vezes também um sinal."
+        "description": "Como os leitores multimédia mostram o que toca numa entrada. Cada alteração é guardada quando a submete.",
+        "menu_options": {
+          "playback_link": "Associar um leitor a uma entrada",
+          "playback_display": "Apresentação da reprodução"
         }
       },
       "linked_input": {
         "title": "Leitor associado",
-        "description": "**{input}**: o leitor multimédia do dispositivo conectado a esta entrada. Deixe vazio para desassociar a entrada; os interruptores não têm então efeito.",
+        "description": "**{input}**: o leitor multimédia do dispositivo conectado a esta entrada. Deixe vazio para desassociar a entrada; os interruptores não têm então efeito. Submeter guarda a associação.",
         "data": {
           "player": "Leitor multimédia",
           "follow": "A zona principal muda para esta entrada quando o leitor começa",
@@ -261,14 +256,6 @@
           "follow": "Quando o leitor começa, a zona principal liga-se se necessário e muda para aqui. Os leitores associados que nenhuma zona toca são então pausados, também quando a zona principal muda à mão ou pelo comando para outra entrada com leitor associado. Um leitor que comece nos 5 segundos seguintes a uma mudança é pausado em vez disso.",
           "full_volume": "O volume é ajustado no recetor: enquanto uma zona ligada toca esta entrada, o leitor é posto no volume máximo e sem silêncio, e de novo sempre que o seu volume muda. Não para um dispositivo com altifalantes próprios, como um televisor: tocaria aí no volume máximo.",
           "power": "Quando uma zona muda para esta entrada, o leitor é ligado se estiver desligado; quando todas as zonas que o reproduziam são desligadas, o leitor também é desligado. Se uma zona apenas muda de entrada, ele fica ligado."
-        }
-      },
-      "playback_next": {
-        "title": "Mais entradas?",
-        "description": "A alteração para {input} fica registada. É guardada com as restantes quando escolher Guardar.",
-        "menu_options": {
-          "playback": "Associar outra entrada",
-          "playback_save": "Guardar"
         }
       },
       "connection": {
@@ -344,47 +331,69 @@
       },
       "activities": {
         "title": "Atividades",
-        "description": "Uma atividade prepara uma zona de uma só vez: entrada, modo de som, volume, saída HDMI e clareza de voz. Cada zona com atividades recebe uma seleção para as iniciar. Até agora, {count} atividades. Escolha uma para a alterar ou apagar, ou deixe o campo vazio para uma nova.",
-        "data": {
-          "activity": "Atividade"
-        },
-        "data_description": {
-          "activity": "Vazio: uma atividade nova."
+        "description": "Uma atividade prepara uma zona de uma só vez: entrada, modo de som, volume, saída HDMI e clareza de voz. Cada zona com atividades recebe uma seleção para as iniciar. Até agora, {count} atividades.",
+        "menu_options": {
+          "activity_new": "Nova atividade",
+          "activity_change": "Alterar ou apagar uma atividade"
         }
       },
       "activity": {
         "title": "Atividade",
-        "description": "A zona liga-se e assume estas definições por ordem. Só são precisos nome, zona e entrada.",
+        "description": "Nome e zona. O passo seguinte tem a entrada e o que mais a zona assume.",
         "data": {
           "name": "Nome",
           "zone": "Zona",
+          "delete": "Apagar esta atividade"
+        },
+        "data_description": {
+          "name": "Aparece na seleção e é usado pela ação de iniciar atividade e pelos comandos de voz."
+        }
+      },
+      "playback_link": {
+        "title": "Associar um leitor a uma entrada",
+        "description": "Enquanto a entrada toca, a sua zona mostra o título, a capa, a posição e o estado do leitor associado, e reproduzir, pausa, saltar e avançar vão para ele. Energia, volume e entrada ficam com o recetor. Uma entrada com leitor mostra-o depois da seta. A entrada de rede aceita o leitor do Music Assistant: a sua fila e a sua biblioteca vêm então com ele. Uma pesquisa por voz no recetor também procura nos leitores associados que o permitem, como o Music Assistant.",
+        "data": {
+          "input": "Entrada"
+        }
+      },
+      "playback_display": {
+        "title": "Apresentação da reprodução",
+        "data": {
+          "pause_on_off": "Pausar o leitor associado ao desligar a zona",
+          "signal_state": "A reproduzir ou inativo pelo sinal de entrada"
+        },
+        "data_description": {
+          "pause_on_off": "Desligar uma zona no Home Assistant pausa o leitor associado da entrada que estava a tocar, para que não continue sem ninguém ouvir. Não enquanto outra zona ainda tocar essa entrada.",
+          "signal_state": "Uma zona numa entrada sem leitor associado mostra \"A reproduzir\" enquanto a entrada tem sinal e \"Inativo\" sem sinal, em vez de \"Ligado\". As fontes de rede e o sintonizador mantêm o seu próprio estado. Experimental: nem todos os recetores podem avisar quando um sinal termina. Uma fonte HDMI que mostra o seu menu envia muitas vezes também um sinal."
+        }
+      },
+      "activity_change": {
+        "title": "Alterar ou apagar uma atividade",
+        "data": {
+          "activity": "Atividade"
+        }
+      },
+      "activity_details": {
+        "title": "{activity}",
+        "description": "A zona liga-se e assume estas definições por ordem. Só é precisa a entrada; Submeter guarda a atividade.",
+        "data": {
           "source": "Entrada",
           "sound_mode": "Modo de som",
           "volume_db": "Volume",
           "hdmi_output": "Saída HDMI",
+          "audio_delay": "Atraso de áudio",
           "clarity": "Clareza de voz",
           "wake_player": "Ligar o leitor associado",
-          "delete": "Apagar esta atividade",
-          "audio_delay": "Atraso de áudio",
           "wake_entity": "Ligar também"
         },
         "data_description": {
-          "name": "Aparece na seleção e é usado pela ação de iniciar atividade e pelos comandos de voz.",
-          "sound_mode": "Só zona principal. Vazio: o modo de som fica como está.",
+          "sound_mode": "Vazio: o modo de som fica como está.",
           "volume_db": "Em dB na escala do recetor. Vazio: o volume ao ligar ou o volume tal como está. Fica abaixo do volume máximo da zona.",
-          "hdmi_output": "Só zona principal. Vazio: a saída fica como está.",
-          "clarity": "Só zona principal: ligar ou desligar o interruptor de clareza de voz, ou deixá-lo.",
+          "hdmi_output": "Vazio: a saída fica como está.",
+          "audio_delay": "Para sincronizar o som com a imagem desta atividade. Vazio: o atraso fica como está. O Auto Lip Sync do recetor pode sobrepor-se.",
+          "clarity": "Ligar ou desligar o interruptor de clareza de voz, ou deixá-lo.",
           "wake_player": "Liga o leitor multimédia associado à entrada (Configurar → Reprodução), como uma box de streaming.",
-          "audio_delay": "Só zona principal, para sincronizar o som com a imagem desta atividade. Vazio: o atraso fica como está. O Auto Lip Sync do recetor pode sobrepor-se.",
           "wake_entity": "Outro dispositivo a ligar, como o televisor quando o leitor associado à entrada é uma box de streaming."
-        }
-      },
-      "activities_next": {
-        "title": "Mais atividades?",
-        "description": "{activity} fica anotada. É guardada junto com as outras quando escolher Guardar.",
-        "menu_options": {
-          "activities": "Outra atividade",
-          "activities_save": "Guardar"
         }
       }
     },
@@ -1311,6 +1320,9 @@
       "eq_default": {
         "name": "Predefinição"
       },
+      "quick_select_recall": {
+        "name": "Quick Select {name}"
+      },
       "quick_select_save": {
         "name": "Guardar Quick Select {name}"
       },
@@ -1379,6 +1391,9 @@
     "cannot_reach": {
       "message": "Não é possível contactar o recetor em {host} ({error}). A configuração é repetida."
     },
+    "model_not_named_yet": {
+      "message": "O recetor em {host} responde, mas ainda não indicou o seu modelo; provavelmente ainda está a iniciar. A configuração será repetida."
+    },
     "play_url_unsupported": {
       "message": "O {model} não reproduz endereços web: não tem HEOS. Escolha uma fonte ou um Quick Select."
     },
@@ -1402,6 +1417,9 @@
     },
     "play_url_main_zone": {
       "message": "O {model} reproduz endereços web na zona principal (via HEOS). Reproduza-os aí e junte esta zona à zona principal."
+    },
+    "play_url_invalid": {
+      "message": "O endereço web contém um carácter de controlo, como uma quebra de linha. O {model} não o pode reproduzir."
     },
     "heos_unavailable": {
       "message": "O HEOS não está ligado no {model} neste momento."
@@ -1543,6 +1561,12 @@
     },
     "speaker_layout_busy": {
       "message": "Está a ser escrita ou reposta uma disposição das colunas; tente novamente dentro de momentos."
+    },
+    "capability_report_title": {
+      "message": "Ajude a suportar o {model}"
+    },
+    "capability_report_message": {
+      "message": "O teste do recetor {model} terminou; os resultados estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Abra o [problema pré-preenchido]({url}) e anexe lá o ficheiro. Ignore esta mensagem se não o quiser partilhar. O que se ouve e vê pode ser testado em Configurar → Testar o recetor."
     }
   },
   "issues": {
@@ -1595,17 +1619,9 @@
         }
       }
     },
-    "capability_report": {
-      "title": "Ajude a suportar o {model}",
-      "description": "O teste do recetor {model} terminou; os resultados estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Abra o problema pré-preenchido com «Saber mais» e anexe lá o ficheiro. Ignore esta mensagem se não o quiser partilhar. O que se ouve e vê pode ser testado em Configurar → Testar o recetor."
-    },
     "heos_playback_error": {
       "title": "O {model} não conseguiu reproduzi-lo",
       "description": "O HEOS no {model} comunicou um erro de reprodução: {error}\n\nCausas comuns: um endereço que o recetor não alcança, um formato que não reproduz ou um serviço que exige sessão iniciada na app HEOS. A mensagem desaparece sozinha assim que algo voltar a tocar."
-    },
-    "command_test_done": {
-      "title": "Teste de comandos do {model} concluído",
-      "description": "O {model} confirmou {confirmed} de {total} comandos. Definições não repostas: {not_restored}; verifique-as no recetor se não for 0. Os detalhes estão no ficheiro de diagnóstico (Definições → Dispositivos e serviços → Denon AVR Plus → ⋮ → Transferir diagnósticos). Abra o problema pré-preenchido com \"Saber mais\" e anexe lá o ficheiro. Ignore esta mensagem se não o quiser partilhar."
     },
     "move_available": {
       "title": "{title} também está configurado em {integration}",
@@ -1629,23 +1645,6 @@
             "title": "Automatizações verificadas?",
             "description": "Estas automatizações e scripts usam algo da integração oficial que aqui funciona de outra forma. À esquerda da seta o que usam, à direita o que o substitui (– significa: já não é necessário, ou sem substituto). Nada foi alterado.\n\n{findings}\n\nConfirme quando as tiver alterado; a lista desaparece."
           }
-        }
-      }
-    },
-    "zone2_sources": {
-      "title": "Que entradas pode a Zona 2 de {model} reproduzir?",
-      "fix_flow": {
-        "step": {
-          "choose": {
-            "title": "Entradas da Zona 2",
-            "description": "Os recetores mais pequenos não reproduzem entradas HDMI na Zona 2. Escolha as entradas que a Zona 2 pode reproduzir; as outras saem da sua lista. As entradas HDMI começam desmarcadas quando o recetor não indica HDMI para a Zona 2. A lista pode ser alterada depois nas opções, em Fontes.",
-            "data": {
-              "sources": "Entradas da Zona 2"
-            }
-          }
-        },
-        "abort": {
-          "not_loaded": "A integração não está carregada agora; tente novamente quando o recetor estiver ligado."
         }
       }
     },

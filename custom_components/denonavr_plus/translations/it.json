@@ -85,6 +85,7 @@
     "step": {
       "init": {
         "title": "Opzioni",
+        "description": "Sorgenti, modalità audio, riproduzione, attività e il test del ricevitore compaiono mentre il ricevitore è connesso.",
         "menu_options": {
           "volume": "Volume",
           "zones": "Zone e accensione",
@@ -235,21 +236,15 @@
       },
       "playback": {
         "title": "Riproduzione",
-        "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Scegli un ingresso per collegare il dispositivo connesso, ad esempio una Apple TV o uno streamer, oppure conferma per salvare.",
-        "data": {
-          "input": "Collega un lettore a un ingresso",
-          "pause_on_off": "Metti in pausa il lettore collegato quando la zona si spegne",
-          "signal_state": "In esecuzione o inattivo in base al segnale d'ingresso"
-        },
-        "data_description": {
-          "input": "Mentre l'ingresso suona, la sua zona mostra titolo, copertina, posizione e stato del lettore collegato, e riproduci, pausa, salta e avanzamento vanno a esso. Accensione, volume e ingresso restano al ricevitore. Un ingresso con lettore lo mostra dopo la freccia. L'ingresso di rete accetta il lettore di Music Assistant: la sua coda e la sua libreria vengono allora con esso. Una ricerca vocale sul ricevitore cerca anche nei lettori collegati che possono farlo, come Music Assistant.",
-          "pause_on_off": "Spegnere una zona in Home Assistant mette in pausa il lettore collegato dell'ingresso che riproduceva, così non continua senza che nessuno lo senta. Non mentre un'altra zona riproduce ancora quell'ingresso.",
-          "signal_state": "Una zona su un ingresso senza lettore collegato mostra «In esecuzione» finché l'ingresso porta un segnale e «Inattivo» senza, invece di «Acceso». Le sorgenti di rete e il sintonizzatore mantengono il proprio stato. Non ancora provato su un ricevitore: non si sa se ogni modello segnala la fine di un segnale. Una sorgente HDMI che mostra il suo menu spesso invia anch'essa un segnale."
+        "description": "Come i lettori multimediali mostrano cosa suona su un ingresso. Ogni modifica viene salvata quando la invii.",
+        "menu_options": {
+          "playback_link": "Collega un lettore a un ingresso",
+          "playback_display": "Visualizzazione della riproduzione"
         }
       },
       "linked_input": {
         "title": "Lettore collegato",
-        "description": "**{input}**: il lettore multimediale del dispositivo collegato a questo ingresso. Lascialo vuoto per scollegare l'ingresso; gli interruttori allora non hanno effetto.",
+        "description": "**{input}**: il lettore multimediale del dispositivo collegato a questo ingresso. Lascialo vuoto per scollegare l'ingresso; gli interruttori allora non hanno effetto. Invia salva il collegamento.",
         "data": {
           "player": "Lettore multimediale",
           "follow": "La zona principale passa a questo ingresso quando il lettore parte",
@@ -261,14 +256,6 @@
           "follow": "Quando il lettore parte, la zona principale si accende se serve e passa qui. I lettori collegati che nessuna zona riproduce vengono allora messi in pausa, anche quando la zona principale passa a mano o con il telecomando a un altro ingresso con lettore collegato. Un lettore che parte entro 5 secondi da un cambio viene invece messo in pausa.",
           "full_volume": "Il volume si regola sul ricevitore: finché una zona accesa riproduce questo ingresso, il lettore viene portato al volume massimo e riattivato, e di nuovo ogni volta che il suo volume cambia. Non per un dispositivo con altoparlanti propri, come un televisore: lì suonerebbe al volume massimo.",
           "power": "Quando una zona passa a questo ingresso, il lettore viene acceso se è spento; quando tutte le zone che lo riproducevano vengono spente, viene spento anche il lettore. Se una zona cambia solo ingresso, resta acceso."
-        }
-      },
-      "playback_next": {
-        "title": "Altri ingressi?",
-        "description": "La modifica per {input} è annotata. Viene salvata insieme alle altre quando scegli Salva.",
-        "menu_options": {
-          "playback": "Collega un altro ingresso",
-          "playback_save": "Salva"
         }
       },
       "connection": {
@@ -344,47 +331,69 @@
       },
       "activities": {
         "title": "Attività",
-        "description": "Un'attività prepara una zona in un colpo solo: ingresso, modalità audio, volume, uscita HDMI e chiarezza dei dialoghi. Ogni zona con attività riceve una selezione per avviarle. Finora {count} attività. Scegline una per modificarla o eliminarla, oppure lascia il campo vuoto per una nuova.",
-        "data": {
-          "activity": "Attività"
-        },
-        "data_description": {
-          "activity": "Vuoto: una nuova attività."
+        "description": "Un'attività prepara una zona in un colpo solo: ingresso, modalità audio, volume, uscita HDMI e chiarezza dei dialoghi. Ogni zona con attività riceve una selezione per avviarle. Finora {count} attività.",
+        "menu_options": {
+          "activity_new": "Nuova attività",
+          "activity_change": "Modificare o eliminare un'attività"
         }
       },
       "activity": {
         "title": "Attività",
-        "description": "La zona si accende e prende queste impostazioni nell'ordine. Servono solo nome, zona e ingresso.",
+        "description": "Nome e zona. Il passo successivo contiene l'ingresso e cos'altro prende la zona.",
         "data": {
           "name": "Nome",
           "zone": "Zona",
+          "delete": "Elimina questa attività"
+        },
+        "data_description": {
+          "name": "Compare nella selezione ed è usato dall'azione di avvio attività e dai comandi vocali."
+        }
+      },
+      "playback_link": {
+        "title": "Collega un lettore a un ingresso",
+        "description": "Mentre l'ingresso suona, la sua zona mostra titolo, copertina, posizione e stato del lettore collegato, e riproduci, pausa, salta e avanzamento vanno a esso. Accensione, volume e ingresso restano al ricevitore. Un ingresso con lettore lo mostra dopo la freccia. L'ingresso di rete accetta il lettore di Music Assistant: la sua coda e la sua libreria vengono allora con esso. Una ricerca vocale sul ricevitore cerca anche nei lettori collegati che possono farlo, come Music Assistant.",
+        "data": {
+          "input": "Ingresso"
+        }
+      },
+      "playback_display": {
+        "title": "Visualizzazione della riproduzione",
+        "data": {
+          "pause_on_off": "Metti in pausa il lettore collegato quando la zona si spegne",
+          "signal_state": "In esecuzione o inattivo in base al segnale d'ingresso"
+        },
+        "data_description": {
+          "pause_on_off": "Spegnere una zona in Home Assistant mette in pausa il lettore collegato dell'ingresso che riproduceva, così non continua senza che nessuno lo senta. Non mentre un'altra zona riproduce ancora quell'ingresso.",
+          "signal_state": "Una zona su un ingresso senza lettore collegato mostra «In esecuzione» finché l'ingresso porta un segnale e «Inattivo» senza, invece di «Acceso». Le sorgenti di rete e il sintonizzatore mantengono il proprio stato. Sperimentale: non tutti i ricevitori potrebbero segnalare la fine di un segnale. Una sorgente HDMI che mostra il suo menu spesso invia anch'essa un segnale."
+        }
+      },
+      "activity_change": {
+        "title": "Modificare o eliminare un'attività",
+        "data": {
+          "activity": "Attività"
+        }
+      },
+      "activity_details": {
+        "title": "{activity}",
+        "description": "La zona si accende e prende queste impostazioni nell'ordine. Serve solo l'ingresso; Invia salva l'attività.",
+        "data": {
           "source": "Ingresso",
           "sound_mode": "Modalità audio",
           "volume_db": "Volume",
           "hdmi_output": "Uscita HDMI",
+          "audio_delay": "Ritardo audio",
           "clarity": "Chiarezza dei dialoghi",
           "wake_player": "Accendi il lettore collegato",
-          "delete": "Elimina questa attività",
-          "audio_delay": "Ritardo audio",
           "wake_entity": "Accendi anche"
         },
         "data_description": {
-          "name": "Compare nella selezione ed è usato dall'azione di avvio attività e dai comandi vocali.",
-          "sound_mode": "Solo zona principale. Vuoto: la modalità audio resta com'è.",
+          "sound_mode": "Vuoto: la modalità audio resta com'è.",
           "volume_db": "In dB sulla scala del ricevitore. Vuoto: il volume all'accensione o il volume com'è. Resta sotto il volume massimo della zona.",
-          "hdmi_output": "Solo zona principale. Vuoto: l'uscita resta com'è.",
-          "clarity": "Solo zona principale: accendere o spegnere l'interruttore della chiarezza dei dialoghi, o lasciarlo.",
+          "hdmi_output": "Vuoto: l'uscita resta com'è.",
+          "audio_delay": "Per sincronizzare l'audio con l'immagine di questa attività. Vuoto: il ritardo resta com'è. L'Auto Lip Sync del ricevitore può prevalere.",
+          "clarity": "Accendere o spegnere l'interruttore della chiarezza dei dialoghi, o lasciarlo.",
           "wake_player": "Accende il lettore multimediale collegato all'ingresso (Configura → Riproduzione), come un box di streaming.",
-          "audio_delay": "Solo zona principale, per sincronizzare l'audio con l'immagine di questa attività. Vuoto: il ritardo resta com'è. L'Auto Lip Sync del ricevitore può prevalere.",
           "wake_entity": "Un altro dispositivo da accendere, come il televisore quando il lettore collegato all'ingresso è un box di streaming."
-        }
-      },
-      "activities_next": {
-        "title": "Altre attività?",
-        "description": "{activity} è annotata. Viene salvata insieme alle altre quando scegli Salva.",
-        "menu_options": {
-          "activities": "Un'altra attività",
-          "activities_save": "Salva"
         }
       }
     },
@@ -1311,6 +1320,9 @@
       "eq_default": {
         "name": "Predefinito"
       },
+      "quick_select_recall": {
+        "name": "Quick Select {name}"
+      },
       "quick_select_save": {
         "name": "Salva Quick Select {name}"
       },
@@ -1379,6 +1391,9 @@
     "cannot_reach": {
       "message": "Impossibile raggiungere il sintoamplificatore a {host} ({error}). La configurazione viene ritentata."
     },
+    "model_not_named_yet": {
+      "message": "Il ricevitore su {host} risponde, ma non ha ancora indicato il suo modello; probabilmente si sta ancora avviando. La configurazione verrà ritentata."
+    },
     "play_url_unsupported": {
       "message": "Il {model} non riproduce indirizzi web: non ha HEOS. Scegli invece una sorgente o un Quick Select."
     },
@@ -1402,6 +1417,9 @@
     },
     "play_url_main_zone": {
       "message": "Il {model} riproduce gli indirizzi web nella zona principale (tramite HEOS). Riproducili lì e unisci questa zona a quella principale."
+    },
+    "play_url_invalid": {
+      "message": "L'indirizzo web contiene un carattere di controllo, come un a capo. Il {model} non può riprodurlo."
     },
     "heos_unavailable": {
       "message": "HEOS non è collegato sul {model} in questo momento."
@@ -1543,6 +1561,12 @@
     },
     "speaker_layout_busy": {
       "message": "È in corso la scrittura o il ripristino di una configurazione dei diffusori; riprova tra poco."
+    },
+    "capability_report_title": {
+      "message": "Aiuta a supportare il {model}"
+    },
+    "capability_report_message": {
+      "message": "La prova del ricevitore {model} è terminata; i risultati sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Apri la [segnalazione precompilata]({url}) e allega lì il file. Ignora questo messaggio se non vuoi condividerlo. Ciò che si sente e si vede si può provare in Configura → Prova il ricevitore."
     }
   },
   "issues": {
@@ -1595,17 +1619,9 @@
         }
       }
     },
-    "capability_report": {
-      "title": "Aiuta a supportare il {model}",
-      "description": "La prova del ricevitore {model} è terminata; i risultati sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Apri la segnalazione precompilata con «Ulteriori informazioni» e allega lì il file. Ignora questo messaggio se non vuoi condividerlo. Ciò che si sente e si vede si può provare in Configura → Prova il ricevitore."
-    },
     "heos_playback_error": {
       "title": "Il {model} non è riuscito a riprodurlo",
       "description": "HEOS sul {model} ha segnalato un errore di riproduzione: {error}\n\nCause frequenti: un indirizzo che il sintoamplificatore non raggiunge, un formato che non riproduce o un servizio che richiede l'accesso nell'app HEOS. Il messaggio scompare da solo appena si riproduce di nuovo qualcosa."
-    },
-    "command_test_done": {
-      "title": "Prova dei comandi del {model} terminata",
-      "description": "Il {model} ha confermato {confirmed} comandi su {total}. Impostazioni non ripristinate: {not_restored}; controllale sul ricevitore se non è 0. I dettagli sono nel file di diagnostica (Impostazioni → Dispositivi e servizi → Denon AVR Plus → ⋮ → Scarica diagnostica). Apri la segnalazione precompilata con \"Ulteriori informazioni\" e allega lì il file. Ignora questo messaggio se non vuoi condividerlo."
     },
     "move_available": {
       "title": "{title} è configurato anche in {integration}",
@@ -1629,23 +1645,6 @@
             "title": "Automazioni controllate?",
             "description": "Queste automazioni e script usano qualcosa dell'integrazione ufficiale che qui funziona diversamente. A sinistra della freccia ciò che usano, a destra ciò che lo sostituisce (– significa: non serve più, o nessun sostituto). Non è stato modificato nulla.\n\n{findings}\n\nConferma quando le hai modificate; l'elenco scompare."
           }
-        }
-      }
-    },
-    "zone2_sources": {
-      "title": "Quali ingressi può riprodurre la Zona 2 di {model}?",
-      "fix_flow": {
-        "step": {
-          "choose": {
-            "title": "Ingressi della Zona 2",
-            "description": "I ricevitori più piccoli non riproducono ingressi HDMI nella Zona 2. Scegli gli ingressi che la Zona 2 può riprodurre; gli altri escono dal suo elenco. Gli ingressi HDMI partono deselezionati se il ricevitore non indica HDMI per la Zona 2. L'elenco si può cambiare in seguito nelle opzioni, in Sorgenti.",
-            "data": {
-              "sources": "Ingressi della Zona 2"
-            }
-          }
-        },
-        "abort": {
-          "not_loaded": "L'integrazione non è caricata in questo momento; riprova quando il ricevitore è collegato."
         }
       }
     },

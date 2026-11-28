@@ -10,9 +10,7 @@ from homeassistant.exceptions import ServiceValidationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .common import async_enable, entity_id, registry_entry
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 @pytest.fixture(autouse=True)

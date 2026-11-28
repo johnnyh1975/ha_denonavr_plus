@@ -32,9 +32,7 @@ from custom_components.denonavr_plus.avr.profile import (
     profile_for_receiver,
 )
 
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 class Receiver:

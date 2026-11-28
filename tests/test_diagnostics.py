@@ -18,15 +18,7 @@ from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 from custom_components.denonavr_plus.avr.transport import UpnpClient
 from custom_components.denonavr_plus.const import DOMAIN
 
-from .test_init import (  # noqa: F401 -- fixtures
-    HOST,
-    FakeHeos,
-    FakeTelnet,
-    loaded_entry,
-    receiver_network,
-)
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import HOST, FakeHeos, FakeTelnet
 
 
 async def test_diagnostics_redact_the_mac(

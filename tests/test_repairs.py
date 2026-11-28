@@ -21,13 +21,12 @@ from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import DOMAIN
 
 from .test_capabilities import RESULT
-from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
+
 
 MANIFEST_VERSION = json.loads(
     (Path(__file__).parents[1] / "custom_components/denonavr_plus/manifest.json").read_text()
 )["version"]
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .common import report_notification
 
 
 def _issue(hass: HomeAssistant, entry: MockConfigEntry, kind: str) -> ir.IssueEntry | None:
@@ -84,9 +83,9 @@ async def test_the_repair_runs_the_check_and_points_to_github(
     key = f"{DOMAIN}.{loaded_entry.entry_id}.capabilities"
     assert hass_storage[key]["data"]["queries"]["PW?"]["result"] == "answered"
     assert _issue(hass, loaded_entry, "capability_check") is None
-    report = _issue(hass, loaded_entry, "capability_report")
-    assert report is not None and not report.is_fixable
-    assert report.learn_more_url == capabilities.issue_url("AVC-X3700H", "1.2.3")
+    report = report_notification(hass, loaded_entry)
+    assert report is not None
+    assert capabilities.issue_url("AVC-X3700H", "1.2.3") in report["message"]
 
 
 async def test_the_repair_without_a_connection(

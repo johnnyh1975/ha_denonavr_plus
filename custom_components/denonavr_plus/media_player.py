@@ -91,7 +91,7 @@ from .announcement import Announcement
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
 from .avr.errors import CommandNotSent, SourceNotTaken
-from .avr.transport.heos import HeosClient, HeosCommandError
+from .avr.transport.heos import HeosClient, HeosCommandError, sendable_url
 from .const import DOMAIN
 from .avr.models import NowPlaying, ZoneDescriptor, ZoneSnapshot, ZoneState
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
@@ -1735,7 +1735,19 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         if media_source.is_media_source_id(media_id):
             item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
             media_id = item.url
-        await self._device.async_play_url(async_process_play_media_url(self.hass, media_id))
+        await self._async_play_url(media_id)
+
+    async def _async_play_url(self, url: str) -> None:
+        """Play a web address over HEOS; one with a control character is refused."""
+
+        url = async_process_play_media_url(self.hass, url)
+        if not sendable_url(url):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="play_url_invalid",
+                translation_placeholders={"model": self._model},
+            )
+        await self._device.async_play_url(url)
 
     @property
     def _model(self) -> str:
@@ -1987,7 +1999,7 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
             if media_source.is_media_source_id(url):
                 item = await media_source.async_resolve_media(self.hass, url, self.entity_id)
                 url = item.url
-            await self._device.async_play_url(async_process_play_media_url(self.hass, url))
+            await self._async_play_url(url)
 
         await self._announcement.async_play(
             self._ensure_on, lambda: self._announce_volume(extra), play

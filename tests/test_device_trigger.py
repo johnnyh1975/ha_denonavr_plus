@@ -26,9 +26,7 @@ from custom_components.denonavr_plus.avr.transport import GoformClient
 from custom_components.denonavr_plus.const import DOMAIN
 
 from .common import entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 def _receiver_device(hass: HomeAssistant, entry: MockConfigEntry) -> dr.DeviceEntry:
@@ -67,8 +65,7 @@ async def _receiver_gone(hass: HomeAssistant, freezer: FrozenDateTimeFactory) ->
     """Telnet drops and HTTP does not answer: the receiver is off without network standby."""
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=None)):
         for _ in range(2):
             freezer.tick(timedelta(seconds=11))

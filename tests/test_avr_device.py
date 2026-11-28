@@ -27,9 +27,7 @@ from custom_components.denonavr_plus.avr.transport import GoformClient
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
 from .common import registry_entry
-from .test_init import FakeHeos, FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeHeos, FakeTelnet
 
 
 async def test_a_raw_command_to_an_unreachable_receiver_raises(
@@ -39,8 +37,7 @@ async def test_a_raw_command_to_an_unreachable_receiver_raises(
     # the device still refuses rather than dropping the command silently.
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     send = AsyncMock(return_value=True)
     with (
         patch.object(GoformClient, "async_get_status", AsyncMock(return_value=None)),
@@ -61,8 +58,7 @@ async def test_an_own_query_is_dropped_quietly_without_telnet(
     """Queries are the integration's own; only a command asked for raises."""
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     device = loaded_entry.runtime_data.device
     with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=None)):
         freezer.tick(timedelta(seconds=11))
@@ -675,8 +671,7 @@ async def test_a_command_over_http_reads_the_zones_again(
 ) -> None:
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     status = AsyncMock(return_value={"power": True, "volume_db": -30.0})
     send = AsyncMock(return_value=True)
     with (
@@ -841,9 +836,8 @@ async def test_a_reconnect_reads_the_firmware_again(
         "<firmware_version>9.999.1</firmware_version></device></root>"
     )
     with patch.object(UpnpClient, "async_get_description", AsyncMock(return_value=description)):
-        assert telnet._on_availability is not None
-        telnet._on_availability(False)
-        telnet._on_availability(True)
+        telnet.set_available(False)
+        telnet.set_available(True)
         await hass.async_block_till_done()
     assert device.discovery.device.firmware_version == "9.999.1"
 
@@ -1105,8 +1099,7 @@ async def test_without_telnet_the_sound_state_is_read_over_http(
     device = loaded_entry.runtime_data.device
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     post = AsyncMock(side_effect=_answers)
     status = {"power": True, "source": "CD", "volume_db": -40.0, "muted": False}
     with (
@@ -1129,7 +1122,7 @@ async def test_without_telnet_the_sound_state_is_read_over_http(
         "multeq", "dynamic_eq", "dynamic_volume",
     }
     telnet.connected = True
-    telnet._on_availability(True)
+    telnet.set_available(True)
     assert device.http_values == frozenset()
 
 

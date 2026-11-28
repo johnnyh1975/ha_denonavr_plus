@@ -18,9 +18,7 @@ from custom_components.denonavr_plus import move
 from custom_components.denonavr_plus.const import DOMAIN
 from custom_components.denonavr_plus.volume import OPT_OFFICIAL_SCALE
 
-from .test_init import HOST, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import HOST
 
 SERIAL = "0000000000001"
 

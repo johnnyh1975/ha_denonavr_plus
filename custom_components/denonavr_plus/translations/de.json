@@ -85,6 +85,7 @@
     "step": {
       "init": {
         "title": "Optionen",
+        "description": "Quellen, Klangmodi, Wiedergabe, Aktivitäten und der Receiver-Test erscheinen, solange der Receiver verbunden ist.",
         "menu_options": {
           "volume": "Lautstärke",
           "zones": "Zonen und Einschalten",
@@ -235,21 +236,15 @@
       },
       "playback": {
         "title": "Wiedergabe",
-        "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Wähle einen Eingang, um das daran angeschlossene Gerät zu verknüpfen, etwa ein Apple TV oder einen Streamer, oder bestätige, um zu speichern.",
-        "data": {
-          "input": "Player mit einem Eingang verknüpfen",
-          "pause_on_off": "Verknüpften Player beim Ausschalten der Zone pausieren",
-          "signal_state": "Wiedergabe oder Leerlauf nach dem Eingangssignal"
-        },
-        "data_description": {
-          "input": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Ein/Aus, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil. Der Netzwerkeingang nimmt den Player von Music Assistant: Dessen Warteschlange und Bibliothek kommen dann mit. Eine Sprachsuche am Receiver durchsucht auch die verknüpften Player, die suchen können, etwa Music Assistant.",
-          "pause_on_off": "Wird eine Zone in Home Assistant ausgeschaltet, pausiert der verknüpfte Player des Eingangs, den sie gespielt hat, damit er nicht ungehört weiterspielt. Nicht, solange eine andere Zone diesen Eingang noch spielt.",
-          "signal_state": "Eine Zone an einem Eingang ohne verknüpften Player zeigt „Wiedergabe“, solange der Eingang ein Signal führt, und „Leerlauf“ ohne Signal, statt „Ein“. Netzwerkquellen und der Tuner behalten ihren eigenen Zustand. Noch auf keinem Receiver ausprobiert: Ob jedes Modell meldet, wenn ein Signal endet, ist offen. Eine HDMI-Quelle, die ihr Menü zeigt, sendet oft auch ein Signal."
+        "description": "Wie die Media Player zeigen, was an einem Eingang spielt. Jede Änderung wird beim Absenden gespeichert.",
+        "menu_options": {
+          "playback_link": "Player mit einem Eingang verknüpfen",
+          "playback_display": "Anzeige der Wiedergabe"
         }
       },
       "linked_input": {
         "title": "Verknüpfter Player",
-        "description": "**{input}**: der Media Player des Geräts an diesem Eingang. Leer lassen, um die Verknüpfung zu lösen; die Schalter wirken dann nicht.",
+        "description": "**{input}**: der Media Player des Geräts an diesem Eingang. Leer lassen, um die Verknüpfung zu lösen; die Schalter wirken dann nicht. Absenden speichert die Verknüpfung.",
         "data": {
           "player": "Media Player",
           "follow": "Hauptzone schaltet auf diesen Eingang, wenn der Player startet",
@@ -261,14 +256,6 @@
           "follow": "Startet der Player, schaltet sich die Hauptzone bei Bedarf ein und wechselt hierher. Verknüpfte Player, die keine Zone spielt, werden dann angehalten, auch wenn die Hauptzone von Hand oder per Fernbedienung auf einen anderen Eingang mit verknüpftem Player wechselt. Ein Player, der binnen 5 Sekunden nach einem Wechsel startet, wird stattdessen angehalten.",
           "full_volume": "Die Lautstärke wird am Receiver eingestellt. Solange eine eingeschaltete Zone diesen Eingang spielt, wird der Player deshalb auf volle Lautstärke gesetzt und die Stummschaltung aufgehoben, und erneut, sobald sich seine Lautstärke ändert. Nicht für ein Gerät mit eigenen Lautsprechern wie einen Fernseher: Es würde dort mit voller Lautstärke spielen.",
           "power": "Wechselt eine Zone auf diesen Eingang, wird der Player eingeschaltet, wenn er aus ist; werden alle Zonen ausgeschaltet, die ihn spielten, wird auch der Player ausgeschaltet. Wechselt eine Zone nur den Eingang, bleibt er an."
-        }
-      },
-      "playback_next": {
-        "title": "Weitere Eingänge?",
-        "description": "Die Änderung für {input} ist vorgemerkt. Sie wird zusammen mit weiteren gespeichert, wenn du Speichern wählst.",
-        "menu_options": {
-          "playback": "Weiteren Eingang verknüpfen",
-          "playback_save": "Speichern"
         }
       },
       "connection": {
@@ -344,47 +331,69 @@
       },
       "activities": {
         "title": "Aktivitäten",
-        "description": "Eine Aktivität richtet eine Zone in einem Schritt ein: Eingang, Klangmodus, Lautstärke, HDMI-Ausgang und Sprachverständlichkeit. Jede Zone mit Aktivitäten bekommt eine Auswahl, um sie zu starten. Bisher {count} Aktivitäten. Wähle eine, um sie zu ändern oder zu löschen, oder lass das Feld leer für eine neue.",
-        "data": {
-          "activity": "Aktivität"
-        },
-        "data_description": {
-          "activity": "Leer: eine neue Aktivität."
+        "description": "Eine Aktivität richtet eine Zone in einem Schritt ein: Eingang, Klangmodus, Lautstärke, HDMI-Ausgang und Sprachverständlichkeit. Jede Zone mit Aktivitäten bekommt eine Auswahl, um sie zu starten. Bisher {count} Aktivitäten.",
+        "menu_options": {
+          "activity_new": "Neue Aktivität",
+          "activity_change": "Aktivität ändern oder löschen"
         }
       },
       "activity": {
         "title": "Aktivität",
-        "description": "Die Zone schaltet sich ein und übernimmt diese Einstellungen der Reihe nach. Nötig sind nur Name, Zone und Eingang.",
+        "description": "Name und Zone. Im nächsten Schritt folgen der Eingang und was die Zone sonst übernimmt.",
         "data": {
           "name": "Name",
           "zone": "Zone",
+          "delete": "Diese Aktivität löschen"
+        },
+        "data_description": {
+          "name": "Erscheint in der Auswahl und gilt für die Aktion „Aktivität starten“ und für Sprachbefehle."
+        }
+      },
+      "playback_link": {
+        "title": "Player mit einem Eingang verknüpfen",
+        "description": "Solange der Eingang spielt, zeigt seine Zone Titel, Cover, Position und Zustand des verknüpften Players, und Wiedergabe, Pause, Springen und Spulen gehen an ihn. Ein/Aus, Lautstärke und Eingang bleiben beim Receiver. Ein Eingang mit Player zeigt ihn hinter dem Pfeil. Der Netzwerkeingang nimmt den Player von Music Assistant: Dessen Warteschlange und Bibliothek kommen dann mit. Eine Sprachsuche am Receiver durchsucht auch die verknüpften Player, die suchen können, etwa Music Assistant.",
+        "data": {
+          "input": "Eingang"
+        }
+      },
+      "playback_display": {
+        "title": "Anzeige der Wiedergabe",
+        "data": {
+          "pause_on_off": "Verknüpften Player beim Ausschalten der Zone pausieren",
+          "signal_state": "Wiedergabe oder Leerlauf nach dem Eingangssignal"
+        },
+        "data_description": {
+          "pause_on_off": "Wird eine Zone in Home Assistant ausgeschaltet, pausiert der verknüpfte Player des Eingangs, den sie gespielt hat, damit er nicht ungehört weiterspielt. Nicht, solange eine andere Zone diesen Eingang noch spielt.",
+          "signal_state": "Eine Zone an einem Eingang ohne verknüpften Player zeigt „Wiedergabe“, solange der Eingang ein Signal führt, und „Leerlauf“ ohne Signal, statt „Ein“. Netzwerkquellen und der Tuner behalten ihren eigenen Zustand. Experimentell: Nicht jeder Receiver meldet womöglich, wenn ein Signal endet. Eine HDMI-Quelle, die ihr Menü zeigt, sendet oft auch ein Signal."
+        }
+      },
+      "activity_change": {
+        "title": "Aktivität ändern oder löschen",
+        "data": {
+          "activity": "Aktivität"
+        }
+      },
+      "activity_details": {
+        "title": "{activity}",
+        "description": "Die Zone schaltet sich ein und übernimmt diese Einstellungen der Reihe nach. Nötig ist nur der Eingang; Absenden speichert die Aktivität.",
+        "data": {
           "source": "Eingang",
           "sound_mode": "Klangmodus",
           "volume_db": "Lautstärke",
           "hdmi_output": "HDMI-Ausgang",
+          "audio_delay": "Audio-Verzögerung",
           "clarity": "Sprachverständlichkeit",
           "wake_player": "Verknüpften Player einschalten",
-          "delete": "Diese Aktivität löschen",
-          "audio_delay": "Audio-Verzögerung",
           "wake_entity": "Außerdem einschalten"
         },
         "data_description": {
-          "name": "Erscheint in der Auswahl und gilt für die Aktion „Aktivität starten“ und für Sprachbefehle.",
-          "sound_mode": "Nur Hauptzone. Leer: der Klangmodus bleibt, wie er ist.",
+          "sound_mode": "Leer: der Klangmodus bleibt, wie er ist.",
           "volume_db": "In dB auf der Skala des Receivers. Leer: die Einschaltlautstärke oder die Lautstärke, wie sie ist. Bleibt unter der Höchstlautstärke der Zone.",
-          "hdmi_output": "Nur Hauptzone. Leer: der Ausgang bleibt, wie er ist.",
-          "clarity": "Nur Hauptzone: den Schalter Sprachverständlichkeit ein- oder ausschalten oder lassen.",
+          "hdmi_output": "Leer: der Ausgang bleibt, wie er ist.",
+          "audio_delay": "Für lippensynchronen Ton zum Bild dieser Aktivität. Leer: die Verzögerung bleibt, wie sie ist. Auto Lip Sync am Receiver kann sie übersteuern.",
+          "clarity": "Den Schalter Sprachverständlichkeit ein- oder ausschalten oder lassen.",
           "wake_player": "Schaltet den mit dem Eingang verknüpften Media Player ein (Konfigurieren → Wiedergabe), etwa eine Streaming-Box.",
-          "audio_delay": "Nur Hauptzone, für lippensynchronen Ton zum Bild dieser Aktivität. Leer: die Verzögerung bleibt, wie sie ist. Auto Lip Sync am Receiver kann sie übersteuern.",
           "wake_entity": "Ein weiteres Gerät zum Einschalten, etwa der Fernseher, wenn der verknüpfte Player des Eingangs eine Streaming-Box ist."
-        }
-      },
-      "activities_next": {
-        "title": "Weitere Aktivitäten?",
-        "description": "{activity} ist vorgemerkt. Gespeichert wird es zusammen mit allen anderen, wenn du Speichern wählst.",
-        "menu_options": {
-          "activities": "Weitere Aktivität",
-          "activities_save": "Speichern"
         }
       }
     },
@@ -1311,6 +1320,9 @@
       "eq_default": {
         "name": "Standard"
       },
+      "quick_select_recall": {
+        "name": "Quick Select {name}"
+      },
       "quick_select_save": {
         "name": "Quick Select {name} speichern"
       },
@@ -1379,6 +1391,9 @@
     "cannot_reach": {
       "message": "Der Receiver unter {host} ist nicht erreichbar ({error}). Die Einrichtung wird wiederholt."
     },
+    "model_not_named_yet": {
+      "message": "Der Receiver unter {host} antwortet, hat sein Modell aber noch nicht genannt; vermutlich startet er noch. Die Einrichtung wird wiederholt."
+    },
     "play_url_unsupported": {
       "message": "Der {model} spielt keine Webadressen ab: Er hat kein HEOS. Wähle stattdessen eine Quelle oder ein Quick Select."
     },
@@ -1402,6 +1417,9 @@
     },
     "play_url_main_zone": {
       "message": "Der {model} spielt Webadressen in der Hauptzone ab (über HEOS). Spiele sie dort ab und füge diese Zone der Hauptzone hinzu."
+    },
+    "play_url_invalid": {
+      "message": "Die Webadresse enthält ein Steuerzeichen, etwa einen Zeilenumbruch. Der {model} kann sie nicht abspielen."
     },
     "heos_unavailable": {
       "message": "HEOS ist beim {model} gerade nicht verbunden."
@@ -1543,6 +1561,12 @@
     },
     "speaker_layout_busy": {
       "message": "Gerade wird ein Lautsprecher-Layout geschrieben oder zurückgestellt; versuche es gleich noch einmal."
+    },
+    "capability_report_title": {
+      "message": "Hilf bei der Unterstützung des {model}"
+    },
+    "capability_report_message": {
+      "message": "Die Receiver-Prüfung des {model} ist abgeschlossen; die Ergebnisse stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne das [vorausgefüllte Issue]({url}) und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest. Hörbares und Sichtbares lässt sich unter Konfigurieren → Receiver prüfen testen."
     }
   },
   "issues": {
@@ -1595,17 +1619,9 @@
         }
       }
     },
-    "capability_report": {
-      "title": "Hilf bei der Unterstützung des {model}",
-      "description": "Die Receiver-Prüfung des {model} ist abgeschlossen; die Ergebnisse stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne über „Mehr erfahren“ das vorausgefüllte Issue und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest. Hörbares und Sichtbares lässt sich unter Konfigurieren → Receiver prüfen testen."
-    },
     "heos_playback_error": {
       "title": "{model} konnte es nicht abspielen",
       "description": "HEOS im {model} meldet einen Wiedergabefehler: {error}\n\nHäufige Ursachen sind eine Adresse, die der Receiver nicht erreicht, ein Format, das er nicht abspielt, oder ein Dienst, der eine Anmeldung in der HEOS-App braucht. Die Meldung verschwindet von selbst, sobald wieder etwas spielt."
-    },
-    "command_test_done": {
-      "title": "Befehlstest des {model} abgeschlossen",
-      "description": "Der {model} hat {confirmed} von {total} Befehlen bestätigt. Nicht wiederhergestellte Einstellungen: {not_restored}; prüfe sie am Receiver, wenn das nicht 0 ist. Die Einzelheiten stehen in der Diagnose-Datei (Einstellungen → Geräte & Dienste → Denon AVR Plus → ⋮ → Diagnosedaten herunterladen). Öffne über „Mehr erfahren“ das vorausgefüllte Issue und hänge die Datei dort an. Ignoriere diese Meldung, wenn du sie nicht teilen möchtest."
     },
     "move_available": {
       "title": "{title} ist auch in {integration} eingerichtet",
@@ -1629,23 +1645,6 @@
             "title": "Automationen geprüft?",
             "description": "Diese Automationen und Skripte nutzen etwas der offiziellen Integration, das hier anders geht. Links vom Pfeil steht, was sie nutzen, rechts, was es ersetzt (– heißt: nicht mehr nötig oder kein Ersatz). Geändert wurde nichts.\n\n{findings}\n\nBestätige, sobald du sie angepasst hast; dann verschwindet die Liste."
           }
-        }
-      }
-    },
-    "zone2_sources": {
-      "title": "Welche Eingänge kann Zone 2 des {model} spielen?",
-      "fix_flow": {
-        "step": {
-          "choose": {
-            "title": "Eingänge für Zone 2",
-            "description": "Kleinere Receiver spielen in Zone 2 keinen HDMI-Eingang. Wähle die Eingänge, die Zone 2 spielen kann; die anderen verschwinden aus ihrer Eingangsliste. Eingänge mit HDMI sind abgewählt, wenn der Receiver für Zone 2 kein HDMI meldet. Die Liste lässt sich später in den Optionen unter Quellen ändern.",
-            "data": {
-              "sources": "Eingänge der Zone 2"
-            }
-          }
-        },
-        "abort": {
-          "not_loaded": "Die Integration ist gerade nicht geladen; versuche es erneut, sobald der Receiver verbunden ist."
         }
       }
     },

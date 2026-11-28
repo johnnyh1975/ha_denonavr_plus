@@ -85,6 +85,7 @@
     "step": {
       "init": {
         "title": "Options",
+        "description": "Les sources, modes sonores, la lecture, les activités et le test de l'ampli apparaissent tant que l'ampli est connecté.",
         "menu_options": {
           "volume": "Volume",
           "zones": "Zones et mise en marche",
@@ -235,21 +236,15 @@
       },
       "playback": {
         "title": "Lecture",
-        "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Choisissez une entrée pour lier l'appareil qui y est branché, comme une Apple TV ou un streamer, ou validez pour enregistrer.",
-        "data": {
-          "input": "Lier un lecteur à une entrée",
-          "pause_on_off": "Mettre en pause le lecteur lié à l'extinction de la zone",
-          "signal_state": "Lecture ou inactif selon le signal d'entrée"
-        },
-        "data_description": {
-          "input": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche. L'entrée réseau accepte le lecteur de Music Assistant : sa file d'attente et sa bibliothèque suivent alors. Une recherche vocale sur l'ampli cherche aussi dans les lecteurs liés qui le peuvent, comme Music Assistant.",
-          "pause_on_off": "Éteindre une zone dans Home Assistant met en pause le lecteur lié de l'entrée qu'elle jouait, pour qu'il ne continue pas sans être entendu. Pas tant qu'une autre zone joue encore cette entrée.",
-          "signal_state": "Une zone sur une entrée sans lecteur lié affiche « Lecture en cours » tant que l'entrée porte un signal et « Inactif » sans signal, au lieu de « Allumé ». Les sources réseau et le tuner gardent leur propre état. Pas encore essayé sur un récepteur : on ne sait pas si chaque modèle signale la fin d'un signal. Une source HDMI qui affiche son menu envoie souvent aussi un signal."
+        "description": "Comment les lecteurs multimédias montrent ce qui joue sur une entrée. Chaque modification est enregistrée quand vous la validez.",
+        "menu_options": {
+          "playback_link": "Lier un lecteur à une entrée",
+          "playback_display": "Affichage de la lecture"
         }
       },
       "linked_input": {
         "title": "Lecteur lié",
-        "description": "**{input}** : le lecteur multimédia de l'appareil branché sur cette entrée. Laissez vide pour délier l'entrée ; les interrupteurs n'ont alors aucun effet.",
+        "description": "**{input}** : le lecteur multimédia de l'appareil branché sur cette entrée. Laissez vide pour délier l'entrée ; les interrupteurs n'ont alors aucun effet. Valider enregistre le lien.",
         "data": {
           "player": "Lecteur multimédia",
           "follow": "La zone principale passe à cette entrée quand le lecteur démarre",
@@ -261,14 +256,6 @@
           "follow": "Quand le lecteur démarre, la zone principale s'allume si besoin et passe ici. Les lecteurs liés qu'aucune zone ne joue sont alors mis en pause, aussi quand la zone principale passe à la main ou par la télécommande sur une autre entrée avec un lecteur lié. Un lecteur qui démarre dans les 5 secondes suivant un changement est mis en pause à la place.",
           "full_volume": "Le volume se règle sur le récepteur : tant qu'une zone allumée joue cette entrée, le lecteur est mis au volume maximal et sans sourdine, puis à nouveau dès que son volume change. Pas pour un appareil avec ses propres haut-parleurs, comme un téléviseur : il y jouerait au volume maximal.",
           "power": "Quand une zone passe sur cette entrée, le lecteur est allumé s'il est éteint ; quand toutes les zones qui le diffusaient sont éteintes, le lecteur est éteint aussi. Une zone qui change seulement d'entrée le laisse allumé."
-        }
-      },
-      "playback_next": {
-        "title": "D'autres entrées ?",
-        "description": "La modification pour {input} est notée. Elle sera enregistrée avec les autres lorsque vous choisirez Enregistrer.",
-        "menu_options": {
-          "playback": "Lier une autre entrée",
-          "playback_save": "Enregistrer"
         }
       },
       "connection": {
@@ -344,47 +331,69 @@
       },
       "activities": {
         "title": "Activités",
-        "description": "Une activité prépare une zone en une fois : entrée, mode son, volume, sortie HDMI et clarté des dialogues. Chaque zone qui a des activités reçoit une sélection pour les lancer. {count} activités pour l'instant. Choisissez-en une pour la modifier ou la supprimer, ou laissez le champ vide pour en créer une.",
-        "data": {
-          "activity": "Activité"
-        },
-        "data_description": {
-          "activity": "Vide : une nouvelle activité."
+        "description": "Une activité prépare une zone en une fois : entrée, mode son, volume, sortie HDMI et clarté des dialogues. Chaque zone qui a des activités reçoit une sélection pour les lancer. {count} activités pour l'instant.",
+        "menu_options": {
+          "activity_new": "Nouvelle activité",
+          "activity_change": "Modifier ou supprimer une activité"
         }
       },
       "activity": {
         "title": "Activité",
-        "description": "La zone s'allume et prend ces réglages dans l'ordre. Seuls le nom, la zone et l'entrée sont nécessaires.",
+        "description": "Nom et zone. L'étape suivante contient l'entrée et ce que la zone prend en plus.",
         "data": {
           "name": "Nom",
           "zone": "Zone",
+          "delete": "Supprimer cette activité"
+        },
+        "data_description": {
+          "name": "Affiché dans la sélection et utilisé par l'action de lancement d'activité et les commandes vocales."
+        }
+      },
+      "playback_link": {
+        "title": "Lier un lecteur à une entrée",
+        "description": "Tant que l'entrée joue, sa zone montre le titre, la pochette, la position et l'état du lecteur lié, et lecture, pause, saut et avance rapide lui sont envoyés. L'alimentation, le volume et l'entrée restent au récepteur. Une entrée avec lecteur l'affiche après la flèche. L'entrée réseau accepte le lecteur de Music Assistant : sa file d'attente et sa bibliothèque suivent alors. Une recherche vocale sur l'ampli cherche aussi dans les lecteurs liés qui le peuvent, comme Music Assistant.",
+        "data": {
+          "input": "Entrée"
+        }
+      },
+      "playback_display": {
+        "title": "Affichage de la lecture",
+        "data": {
+          "pause_on_off": "Mettre en pause le lecteur lié à l'extinction de la zone",
+          "signal_state": "Lecture ou inactif selon le signal d'entrée"
+        },
+        "data_description": {
+          "pause_on_off": "Éteindre une zone dans Home Assistant met en pause le lecteur lié de l'entrée qu'elle jouait, pour qu'il ne continue pas sans être entendu. Pas tant qu'une autre zone joue encore cette entrée.",
+          "signal_state": "Une zone sur une entrée sans lecteur lié affiche « Lecture en cours » tant que l'entrée porte un signal et « Inactif » sans signal, au lieu de « Allumé ». Les sources réseau et le tuner gardent leur propre état. Expérimental : tous les récepteurs ne signalent peut-être pas la fin d'un signal. Une source HDMI qui affiche son menu envoie souvent aussi un signal."
+        }
+      },
+      "activity_change": {
+        "title": "Modifier ou supprimer une activité",
+        "data": {
+          "activity": "Activité"
+        }
+      },
+      "activity_details": {
+        "title": "{activity}",
+        "description": "La zone s'allume et prend ces réglages dans l'ordre. Seule l'entrée est nécessaire ; Valider enregistre l'activité.",
+        "data": {
           "source": "Entrée",
           "sound_mode": "Mode son",
           "volume_db": "Volume",
           "hdmi_output": "Sortie HDMI",
+          "audio_delay": "Retard audio",
           "clarity": "Clarté des dialogues",
           "wake_player": "Allumer le lecteur associé",
-          "delete": "Supprimer cette activité",
-          "audio_delay": "Retard audio",
           "wake_entity": "Allumer aussi"
         },
         "data_description": {
-          "name": "Affiché dans la sélection et utilisé par l'action de lancement d'activité et les commandes vocales.",
-          "sound_mode": "Zone principale seulement. Vide : le mode son reste tel quel.",
+          "sound_mode": "Vide : le mode son reste tel quel.",
           "volume_db": "En dB sur l'échelle de l'ampli. Vide : le volume à l'allumage ou le volume tel quel. Reste sous le volume maximal de la zone.",
-          "hdmi_output": "Zone principale seulement. Vide : la sortie reste telle quelle.",
-          "clarity": "Zone principale seulement : allumer ou éteindre l'interrupteur de clarté des dialogues, ou le laisser.",
+          "hdmi_output": "Vide : la sortie reste telle quelle.",
+          "audio_delay": "Pour caler le son sur l'image de cette activité. Vide : le retard reste tel quel. L'Auto Lip Sync de l'ampli peut le remplacer.",
+          "clarity": ": allumer ou éteindre l'interrupteur de clarté des dialogues, ou le laisser.",
           "wake_player": "Allume le lecteur multimédia associé à l'entrée (Configurer → Lecture), par exemple un boîtier de streaming.",
-          "audio_delay": "Zone principale seulement, pour caler le son sur l'image de cette activité. Vide : le retard reste tel quel. L'Auto Lip Sync de l'ampli peut le remplacer.",
           "wake_entity": "Un autre appareil à allumer, par exemple le téléviseur quand le lecteur associé à l'entrée est un boîtier de streaming."
-        }
-      },
-      "activities_next": {
-        "title": "D'autres activités ?",
-        "description": "{activity} est noté. Il est enregistré avec les autres quand vous choisissez Enregistrer.",
-        "menu_options": {
-          "activities": "Une autre activité",
-          "activities_save": "Enregistrer"
         }
       }
     },
@@ -1311,6 +1320,9 @@
       "eq_default": {
         "name": "Par défaut"
       },
+      "quick_select_recall": {
+        "name": "Quick Select {name}"
+      },
       "quick_select_save": {
         "name": "Enregistrer Quick Select {name}"
       },
@@ -1379,6 +1391,9 @@
     "cannot_reach": {
       "message": "Impossible de joindre l'ampli-tuner à {host} ({error}). La configuration est réessayée."
     },
+    "model_not_named_yet": {
+      "message": "L'ampli-tuner à {host} répond, mais n'a pas encore indiqué son modèle ; il est probablement encore en train de démarrer. La configuration est réessayée."
+    },
     "play_url_unsupported": {
       "message": "Le {model} ne lit pas d'adresses web : il n'a pas HEOS. Choisissez plutôt une source ou un Quick Select."
     },
@@ -1402,6 +1417,9 @@
     },
     "play_url_main_zone": {
       "message": "Le {model} lit les adresses web dans sa zone principale (via HEOS). Lisez-les là et ajoutez cette zone à la zone principale."
+    },
+    "play_url_invalid": {
+      "message": "L'adresse web contient un caractère de contrôle, comme un saut de ligne. Le {model} ne peut pas la lire."
     },
     "heos_unavailable": {
       "message": "HEOS n'est pas connecté sur le {model} pour le moment."
@@ -1543,6 +1561,12 @@
     },
     "speaker_layout_busy": {
       "message": "Une configuration d'enceintes est en cours d'écriture ou de restauration ; réessayez dans un instant."
+    },
+    "capability_report_title": {
+      "message": "Aidez à prendre en charge le {model}"
+    },
+    "capability_report_message": {
+      "message": "Le test du récepteur {model} est terminé ; les résultats sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le [ticket prérempli]({url}) et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager. Ce qui s'entend et se voit peut être testé sous Configurer → Tester le récepteur."
     }
   },
   "issues": {
@@ -1595,17 +1619,9 @@
         }
       }
     },
-    "capability_report": {
-      "title": "Aidez à prendre en charge le {model}",
-      "description": "Le test du récepteur {model} est terminé ; les résultats sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le ticket prérempli avec « En savoir plus » et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager. Ce qui s'entend et se voit peut être testé sous Configurer → Tester le récepteur."
-    },
     "heos_playback_error": {
       "title": "Le {model} n'a pas pu le lire",
       "description": "HEOS sur le {model} a signalé une erreur de lecture : {error}\n\nCauses fréquentes : une adresse que l'ampli-tuner n'atteint pas, un format qu'il ne lit pas ou un service qui demande une connexion dans l'app HEOS. Le message disparaît de lui-même dès que la lecture reprend."
-    },
-    "command_test_done": {
-      "title": "Test des commandes du {model} terminé",
-      "description": "Le {model} a confirmé {confirmed} commandes sur {total}. Réglages non rétablis : {not_restored} ; vérifiez-les sur le récepteur si ce n'est pas 0. Les détails sont dans le fichier de diagnostic (Paramètres → Appareils et services → Denon AVR Plus → ⋮ → Télécharger les diagnostics). Ouvrez le ticket prérempli avec « En savoir plus » et joignez-y le fichier. Ignorez ce message si vous ne souhaitez pas le partager."
     },
     "move_available": {
       "title": "{title} est aussi configuré dans {integration}",
@@ -1629,23 +1645,6 @@
             "title": "Automatisations vérifiées ?",
             "description": "Ces automatisations et scripts utilisent quelque chose de l'intégration officielle qui fonctionne autrement ici. À gauche de la flèche ce qu'ils utilisent, à droite ce qui le remplace (– signifie : plus nécessaire, ou pas de remplacement). Rien n'a été modifié.\n\n{findings}\n\nValidez une fois que vous les avez modifiées ; la liste disparaît."
           }
-        }
-      }
-    },
-    "zone2_sources": {
-      "title": "Quelles entrées la zone 2 de {model} peut-elle lire ?",
-      "fix_flow": {
-        "step": {
-          "choose": {
-            "title": "Entrées de la zone 2",
-            "description": "Les petits récepteurs ne lisent aucune entrée HDMI en zone 2. Choisissez les entrées que la zone 2 peut lire ; les autres quittent sa liste. Les entrées HDMI sont décochées si le récepteur n'indique pas de HDMI pour la zone 2. La liste peut être modifiée plus tard dans les options, sous Sources.",
-            "data": {
-              "sources": "Entrées de la zone 2"
-            }
-          }
-        },
-        "abort": {
-          "not_loaded": "L'intégration n'est pas chargée pour le moment ; réessayez une fois le récepteur connecté."
         }
       }
     },

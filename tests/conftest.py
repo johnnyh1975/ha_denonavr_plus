@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowManager
 
+from .fakes import HOST, deviceinfo, receiver_network_patches  # noqa: F401 -- deviceinfo for the tests
 from .flow_translations import problems
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -52,9 +53,31 @@ def flow_screens_have_their_texts() -> Iterator[None]:
     assert not found, "\n".join(dict.fromkeys(found))
 
 
-def deviceinfo(name: str) -> str:
-    """The text of a recorded Deviceinfo document, e.g. 'AVC-X3700H-Deviceinfo-8080.xml'."""
-    return (DENONAVR_FIXTURES / name).read_text(encoding="utf-8")
+@pytest.fixture
+def receiver_network() -> Iterator[None]:
+    """Patch the receiver's network edges (tests/fakes.py)."""
+    with receiver_network_patches():
+        yield
+
+
+@pytest.fixture
+async def loaded_entry(hass: HomeAssistant, receiver_network: None) -> AsyncIterator[Any]:
+    """A receiver set up from the recorded AVC-X3700H, at the current entry version.
+
+    tests/test_migrations.py covers older versions.
+    """
+    from homeassistant.const import CONF_HOST
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    yield entry
 
 
 def all_deviceinfo_files() -> list[Path]:
@@ -74,7 +97,6 @@ async def web_control(hass: HomeAssistant, receiver_network: Any) -> Any:
     from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
     from .setup_api import FakeSetupApi, answering_receiver, recorded
-    from .test_init import HOST
 
     api = FakeSetupApi(recorded("AVC-X3900H"))
     with answering_receiver(api):
@@ -84,3 +106,26 @@ async def web_control(hass: HomeAssistant, receiver_network: Any) -> Any:
         await hass.async_block_till_done()
         api.entry = entry  # type: ignore[attr-defined]
         yield api
+
+
+@pytest.fixture
+async def flow_without_setup(
+    request: pytest.FixtureRequest, hass: HomeAssistant
+) -> AsyncIterator[None]:
+    """A flow tested on its own: the entry is never set up for real.
+
+    Except for the options tests that need a loaded receiver (its sources and
+    sound modes come from it). A flow that creates or reconfigures an entry
+    schedules its setup or reload; it is awaited here, while setup is still
+    patched, or it would run during teardown against no receiver at all.
+    """
+    if "loaded_entry" in request.fixturenames:
+        yield
+        return
+    with (
+        patch("custom_components.denonavr_plus.async_setup_entry", return_value=True),
+        # The receiver answers on its control connection, unless a test says not.
+        patch("custom_components.denonavr_plus.config_flow.async_answers", AsyncMock(return_value=True)),
+    ):
+        yield
+        await hass.async_block_till_done()

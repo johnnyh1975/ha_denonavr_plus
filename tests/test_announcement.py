@@ -16,17 +16,15 @@ from custom_components.denonavr_plus.announcement import Phase
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 
 from .common import entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401
+from .fakes import FakeTelnet
 from .test_media_player import _eventually, _heos_state, _push
-
-__all__ = ["loaded_entry", "receiver_network"]
 
 
 async def test_an_announcement_puts_the_zone_back(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """Input, volume and mute are kept, the announcement plays loud enough, then all is back."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     hass.config_entries.async_update_entry(
         loaded_entry, options={"main": {volume.OPT_ANNOUNCE_VOLUME: -10.0}}
@@ -101,7 +99,7 @@ async def test_an_announcement_that_does_not_start_puts_the_zone_back_at_once(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """HEOS refuses the URL: the zone is put back before the error is reported."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMOFF", "SITV", "MV50")
     heos = FakeHeos.instances[-1]
@@ -220,7 +218,7 @@ async def test_an_announcement_without_heos_leaves_no_window(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """Refused before it starts: the linked players are not held off afterwards."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     FakeHeos.instances[-1].connected = False
     await _push(hass, "PWON", "ZMON", "SICD")
@@ -244,7 +242,7 @@ async def test_a_second_announcement_keeps_its_window(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """The first one's settle time ends in the middle of the second: the window stays."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SICD")
     heos = FakeHeos.instances[-1]
@@ -290,7 +288,7 @@ async def test_an_announcement_during_the_restore_still_restores(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """A doorbell while the zone is put back after the first one: the zone still comes back."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SICD")
     heos = FakeHeos.instances[-1]
@@ -345,7 +343,7 @@ async def test_an_announcement_right_after_a_restore_puts_back_the_first_state(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """The receiver has not yet reported the restored input: the first snapshot holds."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SICD")
     heos = FakeHeos.instances[-1]
@@ -390,7 +388,7 @@ async def test_turning_off_during_an_announcement_puts_nothing_back(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """A restore after the turn off would switch the zone on again."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SICD")
     heos = FakeHeos.instances[-1]

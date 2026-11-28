@@ -68,3 +68,11 @@ def test_the_firmware_names_the_dts_decoder_where_known() -> None:
     )
     assert DeviceInfo(firmware_version="3.139.174").firmware_text == "3.139.174"
     assert DeviceInfo(dts_version="4.30.10.15").firmware_text is None
+
+
+def test_the_interface_level_names_the_generation_on_the_device_card() -> None:
+    from custom_components.denonavr_plus.avr.models import DeviceInfo
+
+    assert DeviceInfo(comm_api_version=301).interface_text == "CommApiVers 0301"
+    assert DeviceInfo().interface_text is None
+

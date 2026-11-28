@@ -66,6 +66,10 @@ _SNAPSHOT_VERSION = 1
 SNAPSHOT_SAVE_DELAY = 10.0
 
 
+class ModelNotNamedYet(ConnectionError):
+    """The receiver answered, still without the model it named before."""
+
+
 def snapshot_store(hass: HomeAssistant, entry_id: str) -> Store[dict[str, Any]]:
     """Where the last discovery of an entry is kept (see async_setup)."""
 
@@ -166,6 +170,16 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             )
             await self.device.async_start()
             return
+        if not self.device.discovery.device.model_name and (
+            (snapshot or {}).get("device") or {}
+        ).get("model_name"):
+            # A receiver still starting answers without its model (as the
+            # official integration found, core #193612). Entities and devices
+            # set up now would be named "Denon AVR"; try again a little later.
+            # Only for a receiver that named it before: one that never does
+            # (no ModelName, or a UPnP description without it) is set up as
+            # "Denon AVR", as the config flow named it.
+            raise ModelNotNamedYet("the receiver did not name its model yet")
         # A model-dependent control answered once stays: one late reply at a
         # start (or a receiver in standby) must not drop its entity.
         self.device.discovery.answered |= set((snapshot or {}).get("answered", []))

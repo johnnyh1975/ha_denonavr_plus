@@ -177,6 +177,17 @@ async def test_a_url_is_played_with_its_reserved_characters_encoded() -> None:
     ]
 
 
+async def test_a_url_with_a_line_break_is_refused() -> None:
+    """A line break would end the command and send the rest as a second one."""
+    client, _ = _client()
+    _feed(client, "player/get_players", payload=[RECEIVER])
+    _sent(client)
+    for url in ("http://example.com/a.mp3\r\nheos://system/reboot", "http://example.com/\x00"):
+        with pytest.raises(ValueError):
+            await client.async_play_url(url)
+    assert _sent(client) == []
+
+
 def test_the_outcome_of_a_command_is_kept_without_the_url() -> None:
     """For the diagnostics: whether the receiver took play_stream, not what was played."""
     client, _ = _client()

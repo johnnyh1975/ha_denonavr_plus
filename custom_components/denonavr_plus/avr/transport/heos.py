@@ -222,6 +222,9 @@ class HeosClient:
         False while the receiver's player is not known yet.
         """
 
+        if not sendable_url(url):
+            # A line break would end the command and send the rest as another.
+            raise ValueError("a URL with a control character cannot be sent")
         if self._pid is None:
             return False
         await self._queue.put(
@@ -804,6 +807,12 @@ _SENT_COMMANDS = frozenset(
         "player/play_previous",
     }
 )
+
+
+def sendable_url(url: str) -> bool:
+    """Whether a URL can go into a HEOS command: no control characters."""
+
+    return not any(ord(char) < 0x20 or ord(char) == 0x7F for char in url)
 
 
 def _quote(value: str) -> str:

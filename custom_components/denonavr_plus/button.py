@@ -19,6 +19,7 @@ from .avr.models import ZoneDescriptor
 from .avr.speaker_layout import LayoutNotSeen
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity, receiver_action, zone_device
+from .helpers import control_zone_shown
 
 
 # The graphic EQ buttons write the setup interface one at a time.
@@ -43,6 +44,21 @@ async def async_setup_entry(
         DenonAvrQuickSelectSave(coordinator, number)
         for number in sorted(device.discovery.quick_select_names)
     )
+    # Recall each quick select: for dashboards, Apple Home and voice, where a
+    # select is clumsy. Zone 2 where the receiver answers Z2QUICK ?.
+    options = dict(entry.options)
+    zone2 = device.profile.control("zone2_quick_select")
+    for zone in device.discovery.zones:
+        if zone.is_main or (
+            zone.id == "zone2"
+            and zone2 is not None
+            and device.discovery.has_control(zone2.scope, zone2.feature, zone2.id)
+            and control_zone_shown(zone2, options)
+        ):
+            entities.extend(
+                DenonAvrQuickSelectRecall(coordinator, zone, number)
+                for number in sorted(device.discovery.quick_select_names)
+            )
     entities.extend(DenonAvrCommandButton(coordinator, name) for name in device.button_commands)
     entities.append(DenonAvrRecoverAudio(coordinator))
     if device.speaker_layout.supported:
@@ -53,6 +69,30 @@ async def async_setup_entry(
         if choices.zone_enabled(dict(entry.options), zone.id)
     )
     async_add_entities(entities)
+
+
+class DenonAvrQuickSelectRecall(DenonAvrEntity, ButtonEntity):
+    """Recall one quick select preset of a zone (MSQUICK<n>, Z2QUICK<n>).
+
+    The main zone's start shown, Zone 2's hidden with the zone's other
+    settings.
+    """
+
+    def __init__(self, coordinator: DenonAvrCoordinator, zone: ZoneDescriptor, number: int) -> None:
+        super().__init__(
+            coordinator, f"button_quick_select_{zone.id}_{number}", sub_device=zone_device(zone)
+        )
+        self._zone = zone.id
+        self._number = number
+        self._attr_translation_key = "quick_select_recall"
+        self._attr_translation_placeholders = {
+            "name": coordinator.device.discovery.quick_select_names[number]
+        }
+        self._attr_entity_registry_enabled_default = zone.is_main
+
+    @receiver_action
+    async def async_press(self) -> None:
+        await self.coordinator.device.async_select_quick_select(self._number, self._zone)
 
 
 class DenonAvrQuickSelectSave(DenonAvrEntity, ButtonEntity):

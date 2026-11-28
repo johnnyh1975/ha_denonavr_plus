@@ -20,9 +20,7 @@ from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.models import DeviceInfo
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
-from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
-__all__ = ["loaded_entry", "receiver_network"]
 
 RESULT: dict[str, Any] = {
     "check_version": 1,
@@ -33,6 +31,7 @@ RESULT: dict[str, Any] = {
         "PSFOO ?": {"group": "Test", "result": "no reply", "lines": []},
     },
 }
+from .common import report_notification
 
 
 def _issue(hass: HomeAssistant, entry: MockConfigEntry, kind: str) -> ir.IssueEntry | None:
@@ -120,7 +119,7 @@ async def test_a_check_asked_for_at_setup_runs_once(
     check.assert_awaited_once()
     assert entry.state is ConfigEntryState.LOADED
     assert "capability_check_pending" not in entry.options
-    assert _issue(hass, entry, "capability_report") is not None
+    assert report_notification(hass, entry) is not None
 
 
 async def test_a_check_asked_for_waits_for_the_connection(
@@ -155,7 +154,7 @@ async def test_removing_the_entry_removes_the_check(
     assert await hass.config_entries.async_remove(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert key not in hass_storage
-    assert _issue(hass, loaded_entry, "capability_report") is None
+    assert report_notification(hass, loaded_entry) is None
 
 
 async def test_checks_run_one_at_a_time(
@@ -195,10 +194,10 @@ async def test_a_check_ending_after_removal_keeps_nothing(
         await coordinator.capabilities.async_run(coordinator)
     await hass.async_block_till_done()
     assert key not in hass_storage
-    assert _issue(hass, loaded_entry, "capability_report") is None
+    assert report_notification(hass, loaded_entry) is None
 
 
-async def test_the_report_repair_survives_a_reload(
+async def test_the_report_survives_a_reload(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     coordinator = loaded_entry.runtime_data
@@ -208,4 +207,4 @@ async def test_the_report_repair_survives_a_reload(
         await coordinator.capabilities.async_run(coordinator)
     assert await hass.config_entries.async_reload(loaded_entry.entry_id)
     await hass.async_block_till_done()
-    assert _issue(hass, loaded_entry, "capability_report") is not None
+    assert report_notification(hass, loaded_entry) is not None

@@ -4,7 +4,7 @@ The check itself (the queries) is avr/capability_check.py. Here: the result
 is kept per entry, goes into the diagnostics, and a receiver of no described
 generation (avr/generation.py) gets a repair that runs the receiver test
 (receiver_test.py), which starts with the check. For the others the test is
-optional, in the options. When a check ran, a second repair
+optional, in the options. When a check ran, a notification
 points to a prefilled device-support issue on GitHub, where the user attaches
 the diagnostics file. Nothing is sent anywhere by the integration itself.
 """
@@ -16,6 +16,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
+from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
@@ -139,6 +140,8 @@ class CapabilityResults:
         """Ask for a check when the receiver has none and its generation is not described."""
 
         model = device.model_name
+        # Before 1.6 the pointer to GitHub was a repair; it is a notification now.
+        ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(ISSUE_REPORT))
         if described(device) or self.result is not None:
             ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(ISSUE_CHECK))
             return
@@ -156,7 +159,7 @@ class CapabilityResults:
     def async_delete_check_issue(self) -> None:
         """At unload: the request for a check is raised again at the next setup.
 
-        The pointer to GitHub stays until the user ignores it or the entry is
+        The pointer to GitHub stays until the user dismisses it or the entry is
         removed; a reload must not take it away before it was read.
         """
 
@@ -165,22 +168,36 @@ class CapabilityResults:
     def async_delete_issues(self) -> None:
         for issue in (ISSUE_CHECK, ISSUE_REPORT):
             ir.async_delete_issue(self._hass, DOMAIN, self._issue_id(issue))
+        persistent_notification.async_dismiss(self._hass, self._notification_id())
 
     def async_report(self, result: dict[str, Any]) -> None:
-        """The pointer to the prefilled issue, for a model not known yet."""
+        """The pointer to the prefilled issue, for a model not known yet.
+
+        A notification, not a repair: nothing needs fixing, it is an offer.
+        """
 
         if known_model(result.get("model")):
             return
-        ir.async_create_issue(
-            self._hass,
-            DOMAIN,
-            self._issue_id(ISSUE_REPORT),
-            is_fixable=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key=ISSUE_REPORT,
-            translation_placeholders={"model": result.get("model") or "Denon AVR"},
-            learn_more_url=issue_url(result.get("model"), result.get("firmware")),
+        self._hass.async_create_task(
+            self._async_notify(result), "denonavr_plus capability report", eager_start=False
         )
+
+    async def _async_notify(self, result: dict[str, Any]) -> None:
+        from .no_sound import async_texts
+
+        texts = await async_texts(self._hass)
+        model = result.get("model") or "Denon AVR"
+        persistent_notification.async_create(
+            self._hass,
+            texts["capability_report_message"].format(
+                model=model, url=issue_url(result.get("model"), result.get("firmware"))
+            ),
+            title=texts["capability_report_title"].format(model=model),
+            notification_id=self._notification_id(),
+        )
+
+    def _notification_id(self) -> str:
+        return f"{DOMAIN}_{ISSUE_REPORT}_{self._entry_id}"
 
     def _issue_id(self, issue: str) -> str:
         return f"{issue}_{self._entry_id}"

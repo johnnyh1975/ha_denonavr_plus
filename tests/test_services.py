@@ -21,9 +21,7 @@ from custom_components.denonavr_plus.const import DOMAIN
 from custom_components.denonavr_plus.services import MAX_COMMAND_LENGTH, valid_command
 
 from .common import entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 async def _send(
@@ -43,8 +41,7 @@ async def _drop_telnet(
 ) -> None:
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=http_status)):
         for _ in range(2):
             freezer.tick(timedelta(seconds=11))

@@ -85,6 +85,7 @@
     "step": {
       "init": {
         "title": "Opties",
+        "description": "Bronnen, geluidsmodi, afspelen, activiteiten en de receivertest verschijnen zolang de receiver verbonden is.",
         "menu_options": {
           "volume": "Volume",
           "zones": "Zones en inschakelen",
@@ -235,21 +236,15 @@
       },
       "playback": {
         "title": "Afspelen",
-        "description": "Hoe de mediaspelers tonen wat er op een ingang speelt. Kies een ingang om het daarop aangesloten apparaat te koppelen, zoals een Apple TV of een streamer, of bevestig om op te slaan.",
-        "data": {
-          "input": "Een speler aan een ingang koppelen",
-          "pause_on_off": "Gekoppelde speler pauzeren als de zone uitgaat",
-          "signal_state": "Speelt of inactief volgens het ingangssignaal"
-        },
-        "data_description": {
-          "input": "Zolang de ingang speelt, toont zijn zone titel, albumhoes, positie en status van de gekoppelde speler, en afspelen, pauzeren, overslaan en zoeken gaan naar die speler. Aan/uit, volume en ingang blijven bij de receiver. Een ingang met speler toont die na de pijl. De netwerkingang neemt de speler van Music Assistant: zijn wachtrij en bibliotheek komen dan mee. Zoeken met spraak op de receiver zoekt ook in de gekoppelde spelers die dat kunnen, zoals Music Assistant.",
-          "pause_on_off": "Een zone in Home Assistant uitzetten pauzeert de gekoppelde speler van de ingang die ze speelde, zodat die niet ongehoord doorspeelt. Niet zolang een andere zone die ingang nog speelt.",
-          "signal_state": "Een zone op een ingang zonder gekoppelde speler toont \"Speelt\" zolang de ingang een signaal heeft en \"Inactief\" zonder signaal, in plaats van \"Aan\". Netwerkbronnen en de tuner houden hun eigen status. Nog niet op een receiver geprobeerd: of elk model meldt wanneer een signaal stopt, is onbekend. Een HDMI-bron die zijn menu toont, stuurt vaak ook een signaal."
+        "description": "Hoe de mediaspelers tonen wat er op een ingang speelt. Elke wijziging wordt opgeslagen zodra je hem verzendt.",
+        "menu_options": {
+          "playback_link": "Een speler aan een ingang koppelen",
+          "playback_display": "Weergave van het afspelen"
         }
       },
       "linked_input": {
         "title": "Gekoppelde speler",
-        "description": "**{input}**: de mediaspeler van het apparaat op deze ingang. Laat leeg om de koppeling op te heffen; de schakelaars doen dan niets.",
+        "description": "**{input}**: de mediaspeler van het apparaat op deze ingang. Laat leeg om de koppeling op te heffen; de schakelaars doen dan niets. Verzenden slaat de koppeling op.",
         "data": {
           "player": "Mediaspeler",
           "follow": "Hoofdzone schakelt naar deze ingang als de speler start",
@@ -261,14 +256,6 @@
           "follow": "Start de speler, dan gaat de hoofdzone zo nodig aan en schakelt hierheen. Gekoppelde spelers die geen zone speelt, worden dan gepauzeerd, ook als de hoofdzone met de hand of met de afstandsbediening naar een andere ingang met gekoppelde speler wisselt. Een speler die binnen 5 seconden na een wissel start, wordt in plaats daarvan gepauzeerd.",
           "full_volume": "Het volume wordt op de receiver ingesteld: zolang een ingeschakelde zone deze ingang speelt, wordt de speler op vol volume gezet en het dempen opgeheven, en opnieuw zodra zijn volume verandert. Niet voor een apparaat met eigen luidsprekers, zoals een televisie: die zou daar op vol volume spelen.",
           "power": "Schakelt een zone naar deze ingang, dan gaat de speler aan als hij uit staat; worden alle zones die hem speelden uitgezet, dan gaat ook de speler uit. Wisselt een zone alleen van ingang, dan blijft hij aan."
-        }
-      },
-      "playback_next": {
-        "title": "Meer ingangen?",
-        "description": "De wijziging voor {input} is genoteerd. Ze wordt samen met de andere opgeslagen als je Opslaan kiest.",
-        "menu_options": {
-          "playback": "Nog een ingang koppelen",
-          "playback_save": "Opslaan"
         }
       },
       "connection": {
@@ -344,47 +331,69 @@
       },
       "activities": {
         "title": "Activiteiten",
-        "description": "Een activiteit zet een zone in één keer klaar: ingang, geluidsmodus, volume, HDMI-uitgang en spraakhelderheid. Elke zone met activiteiten krijgt een selectie om ze te starten. Tot nu toe {count} activiteiten. Kies er een om hem te wijzigen of te verwijderen, of laat het veld leeg voor een nieuwe.",
-        "data": {
-          "activity": "Activiteit"
-        },
-        "data_description": {
-          "activity": "Leeg: een nieuwe activiteit."
+        "description": "Een activiteit zet een zone in één keer klaar: ingang, geluidsmodus, volume, HDMI-uitgang en spraakhelderheid. Elke zone met activiteiten krijgt een selectie om ze te starten. Tot nu toe {count} activiteiten.",
+        "menu_options": {
+          "activity_new": "Nieuwe activiteit",
+          "activity_change": "Activiteit wijzigen of verwijderen"
         }
       },
       "activity": {
         "title": "Activiteit",
-        "description": "De zone gaat aan en neemt deze instellingen op volgorde over. Alleen naam, zone en ingang zijn nodig.",
+        "description": "Naam en zone. De volgende stap bevat de ingang en wat de zone verder overneemt.",
         "data": {
           "name": "Naam",
           "zone": "Zone",
+          "delete": "Deze activiteit verwijderen"
+        },
+        "data_description": {
+          "name": "Staat in de selectie en wordt gebruikt door de actie activiteit starten en door spraakopdrachten."
+        }
+      },
+      "playback_link": {
+        "title": "Een speler aan een ingang koppelen",
+        "description": "Zolang de ingang speelt, toont zijn zone titel, albumhoes, positie en status van de gekoppelde speler, en afspelen, pauzeren, overslaan en zoeken gaan naar die speler. Aan/uit, volume en ingang blijven bij de receiver. Een ingang met speler toont die na de pijl. De netwerkingang neemt de speler van Music Assistant: zijn wachtrij en bibliotheek komen dan mee. Zoeken met spraak op de receiver zoekt ook in de gekoppelde spelers die dat kunnen, zoals Music Assistant.",
+        "data": {
+          "input": "Ingang"
+        }
+      },
+      "playback_display": {
+        "title": "Weergave van het afspelen",
+        "data": {
+          "pause_on_off": "Gekoppelde speler pauzeren als de zone uitgaat",
+          "signal_state": "Speelt of inactief volgens het ingangssignaal"
+        },
+        "data_description": {
+          "pause_on_off": "Een zone in Home Assistant uitzetten pauzeert de gekoppelde speler van de ingang die ze speelde, zodat die niet ongehoord doorspeelt. Niet zolang een andere zone die ingang nog speelt.",
+          "signal_state": "Een zone op een ingang zonder gekoppelde speler toont \"Speelt\" zolang de ingang een signaal heeft en \"Inactief\" zonder signaal, in plaats van \"Aan\". Netwerkbronnen en de tuner houden hun eigen status. Experimenteel: misschien meldt niet elke receiver wanneer een signaal stopt. Een HDMI-bron die zijn menu toont, stuurt vaak ook een signaal."
+        }
+      },
+      "activity_change": {
+        "title": "Activiteit wijzigen of verwijderen",
+        "data": {
+          "activity": "Activiteit"
+        }
+      },
+      "activity_details": {
+        "title": "{activity}",
+        "description": "De zone gaat aan en neemt deze instellingen op volgorde over. Alleen de ingang is nodig; Verzenden slaat de activiteit op.",
+        "data": {
           "source": "Ingang",
           "sound_mode": "Geluidsmodus",
           "volume_db": "Volume",
           "hdmi_output": "HDMI-uitgang",
+          "audio_delay": "Audiovertraging",
           "clarity": "Spraakhelderheid",
           "wake_player": "Gekoppelde speler inschakelen",
-          "delete": "Deze activiteit verwijderen",
-          "audio_delay": "Audiovertraging",
           "wake_entity": "Ook inschakelen"
         },
         "data_description": {
-          "name": "Staat in de selectie en wordt gebruikt door de actie activiteit starten en door spraakopdrachten.",
-          "sound_mode": "Alleen hoofdzone. Leeg: de geluidsmodus blijft zoals hij is.",
+          "sound_mode": "Leeg: de geluidsmodus blijft zoals hij is.",
           "volume_db": "In dB op de schaal van de receiver. Leeg: het inschakelvolume of het volume zoals het is. Blijft onder het maximale volume van de zone.",
-          "hdmi_output": "Alleen hoofdzone. Leeg: de uitgang blijft zoals hij is.",
-          "clarity": "Alleen hoofdzone: de schakelaar spraakhelderheid aan- of uitzetten, of laten.",
+          "hdmi_output": "Leeg: de uitgang blijft zoals hij is.",
+          "audio_delay": "Voor lipsynchroon geluid bij het beeld van deze activiteit. Leeg: de vertraging blijft zoals hij is. Auto Lip Sync van de receiver kan hem overschrijven.",
+          "clarity": "De schakelaar spraakhelderheid aan- of uitzetten, of laten.",
           "wake_player": "Zet de mediaspeler aan die aan de ingang gekoppeld is (Configureren → Afspelen), zoals een streamingbox.",
-          "audio_delay": "Alleen hoofdzone, voor lipsynchroon geluid bij het beeld van deze activiteit. Leeg: de vertraging blijft zoals hij is. Auto Lip Sync van de receiver kan hem overschrijven.",
           "wake_entity": "Nog een apparaat om in te schakelen, zoals de tv als de gekoppelde speler van de ingang een streamingbox is."
-        }
-      },
-      "activities_next": {
-        "title": "Meer activiteiten?",
-        "description": "{activity} is genoteerd. Het wordt samen met de andere opgeslagen als je Opslaan kiest.",
-        "menu_options": {
-          "activities": "Nog een activiteit",
-          "activities_save": "Opslaan"
         }
       }
     },
@@ -1311,6 +1320,9 @@
       "eq_default": {
         "name": "Standaard"
       },
+      "quick_select_recall": {
+        "name": "Snelkeuze {name}"
+      },
       "quick_select_save": {
         "name": "Quick Select {name} opslaan"
       },
@@ -1379,6 +1391,9 @@
     "cannot_reach": {
       "message": "De receiver op {host} is niet bereikbaar ({error}). Het instellen wordt opnieuw geprobeerd."
     },
+    "model_not_named_yet": {
+      "message": "De receiver op {host} antwoordt, maar heeft zijn model nog niet genoemd; hij start waarschijnlijk nog op. De installatie wordt opnieuw geprobeerd."
+    },
     "play_url_unsupported": {
       "message": "De {model} speelt geen webadressen af: hij heeft geen HEOS. Kies in plaats daarvan een bron of een snelkeuze."
     },
@@ -1402,6 +1417,9 @@
     },
     "play_url_main_zone": {
       "message": "De {model} speelt webadressen af in de hoofdzone (via HEOS). Speel ze daar af en voeg deze zone aan de hoofdzone toe."
+    },
+    "play_url_invalid": {
+      "message": "Het webadres bevat een stuurteken, zoals een regeleinde. De {model} kan het niet afspelen."
     },
     "heos_unavailable": {
       "message": "HEOS is op dit moment niet verbonden op de {model}."
@@ -1543,6 +1561,12 @@
     },
     "speaker_layout_busy": {
       "message": "Er wordt een luidsprekerindeling geschreven of teruggezet; probeer het zo opnieuw."
+    },
+    "capability_report_title": {
+      "message": "Help de {model} te ondersteunen"
+    },
+    "capability_report_message": {
+      "message": "De receivertest van de {model} is voltooid; de resultaten staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Open de [vooraf ingevulde issue]({url}) en voeg het bestand daar toe. Negeer deze melding als je het niet wilt delen. Wat je hoort en ziet kun je testen onder Configureren → Receiver testen."
     }
   },
   "issues": {
@@ -1595,17 +1619,9 @@
         }
       }
     },
-    "capability_report": {
-      "title": "Help de {model} te ondersteunen",
-      "description": "De receivertest van de {model} is voltooid; de resultaten staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Open via 'Meer informatie' de vooraf ingevulde issue en voeg het bestand daar toe. Negeer deze melding als je het niet wilt delen. Wat je hoort en ziet kun je testen onder Configureren → Receiver testen."
-    },
     "heos_playback_error": {
       "title": "De {model} kon het niet afspelen",
       "description": "HEOS op de {model} meldde een afspeelfout: {error}\n\nVeelvoorkomende oorzaken zijn een adres dat de receiver niet bereikt, een formaat dat hij niet afspeelt of een dienst die een aanmelding in de HEOS-app vraagt. De melding verdwijnt vanzelf zodra er weer iets speelt."
-    },
-    "command_test_done": {
-      "title": "Commandotest van de {model} voltooid",
-      "description": "De {model} bevestigde {confirmed} van {total} commando's. Niet teruggezette instellingen: {not_restored}; controleer ze op de receiver als dit niet 0 is. De details staan in het diagnosebestand (Instellingen → Apparaten en diensten → Denon AVR Plus → ⋮ → Diagnostische gegevens downloaden). Open de vooraf ingevulde issue via \"Meer informatie\" en voeg het bestand daar toe. Negeer dit bericht als je het niet wilt delen."
     },
     "move_available": {
       "title": "{title} is ook ingesteld in {integration}",
@@ -1629,23 +1645,6 @@
             "title": "Automatiseringen gecontroleerd?",
             "description": "Deze automatiseringen en scripts gebruiken iets van de officiële integratie dat hier anders werkt. Links van de pijl wat ze gebruiken, rechts wat het vervangt (– betekent: niet meer nodig, of geen vervanging). Er is niets gewijzigd.\n\n{findings}\n\nBevestig zodra je ze hebt aangepast; de lijst verdwijnt."
           }
-        }
-      }
-    },
-    "zone2_sources": {
-      "title": "Welke ingangen kan zone 2 van {model} afspelen?",
-      "fix_flow": {
-        "step": {
-          "choose": {
-            "title": "Ingangen van zone 2",
-            "description": "Kleinere receivers spelen in zone 2 geen HDMI-ingang af. Kies de ingangen die zone 2 kan afspelen; de andere verdwijnen uit de lijst. HDMI-ingangen staan uit als de receiver geen HDMI voor zone 2 meldt. De lijst kan later in de opties onder Bronnen worden gewijzigd.",
-            "data": {
-              "sources": "Ingangen van zone 2"
-            }
-          }
-        },
-        "abort": {
-          "not_loaded": "De integratie is nu niet geladen; probeer het opnieuw zodra de receiver verbonden is."
         }
       }
     },

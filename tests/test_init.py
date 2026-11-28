@@ -33,186 +33,7 @@ from custom_components.denonavr_plus.avr.transport import (
 )
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
-from .conftest import deviceinfo
-
-HOST = "192.0.2.10"
-RECORDING = "AVC-X3700H-Deviceinfo-8080.xml"
-
-
-class FakeTelnet:
-    """Stands in for TelnetClient: records commands, lets a test push lines."""
-
-    instances: list[FakeTelnet] = []
-
-    def __init__(
-        self,
-        host: str,
-        on_line: Callable[[str], None],
-        on_connected: Callable[[], Awaitable[None]] | None = None,
-        on_availability: Callable[[bool], None] | None = None,
-        port: int = 23,
-    ) -> None:
-        self.host = host
-        self._on_line = on_line
-        self._on_connected = on_connected
-        self._on_availability = on_availability
-        self.connected = False
-        self.sent: list[str] = []
-        self.response_time: float | None = 0.042
-        self.queued = 0
-        self.log: list[str] = []
-        # Answer each command with itself, as a receiver that takes it does.
-        self.echo = False
-        FakeTelnet.instances.append(self)
-
-    async def async_start(self) -> None:
-        self.connected = True
-        if self._on_availability is not None:
-            self._on_availability(True)
-        if self._on_connected is not None:
-            await self._on_connected()
-
-    async def async_stop(self) -> None:
-        self.connected = False
-
-    async def async_send(self, command: str) -> None:
-        self.sent.append(command)
-        if self.echo and not command.endswith("?"):
-            self.push(command)
-
-    def push(self, *lines: str) -> None:
-        for line in lines:
-            self._on_line(line)
-
-
-class FakeHeos:
-    """Stands in for HeosClient: records play mode commands, lets a test push now playing."""
-
-    instances: list[FakeHeos] = []
-
-    def __init__(self, host: str, on_update: Callable[[dict[str, Any]], None], port: int = 1255) -> None:
-        self.host = host
-        self.on_update = on_update
-        self.calls: list[tuple[str, Any]] = []
-        # A HEOS receiver whose HEOS link is up; tests of a missing link set False.
-        self.connected = True
-        self.command_results: dict[str, dict[str, str]] = {}
-        self.favorites: list[str] = []
-        self.update: bool | None = None
-        self.log: list[str] = []
-        FakeHeos.instances.append(self)
-
-    async def async_set_repeat(self, repeat: str) -> None:
-        self.calls.append(("repeat", repeat))
-
-    async def async_set_shuffle(self, shuffle: bool) -> None:
-        self.calls.append(("shuffle", shuffle))
-
-    async def async_play(self) -> None:
-        self.calls.append(("play", None))
-
-    async def async_check_update(self) -> bool | None:
-        return self.update
-
-    async def async_play_preset(self, number: int) -> None:
-        self.calls.append(("play_preset", number))
-
-    async def async_get_queue(self) -> list[dict[str, Any]]:
-        return [
-            {"queue_id": 1, "title": "Song", "artist": "Band", "album": None, "image_url": None},
-            {"queue_id": 2, "title": "Other", "artist": None, "album": None, "image_url": None},
-        ]
-
-    async def async_play_queue_item(self, queue_id: int) -> None:
-        self.calls.append(("play_queue", queue_id))
-
-    async def async_clear_queue(self) -> None:
-        self.calls.append(("clear_queue", None))
-
-    async def async_remove_from_queue(self, queue_ids: list[int]) -> None:
-        self.calls.append(("remove_from_queue", queue_ids))
-
-    async def async_move_queue_item(self, queue_ids: list[int], destination: int) -> None:
-        self.calls.append(("move_queue_item", (queue_ids, destination)))
-
-    async def async_add_to_queue(
-        self, sid: int, cid: str, criteria: int, mid: str | None = None
-    ) -> None:
-        self.calls.append(("add_to_queue", (sid, cid, criteria, mid)))
-
-    async def async_music_sources(self) -> list[Any]:
-        from custom_components.denonavr_plus.avr.transport.heos import HeosItem
-
-        return [HeosItem("Favorites", 1028, container=True)]
-
-    async def async_pause(self) -> None:
-        self.calls.append(("pause", None))
-
-    async def async_stop_playback(self) -> None:
-        self.calls.append(("stop", None))
-
-    async def async_next(self) -> None:
-        self.calls.append(("next", None))
-
-    async def async_previous(self) -> None:
-        self.calls.append(("previous", None))
-
-    async def async_play_url(self, url: str) -> bool:
-        self.calls.append(("url", url))
-        return True
-
-    async def async_start(self) -> None:
-        return None
-
-    async def async_stop(self) -> None:
-        return None
-
-
-_ORIGINAL_AWAIT_READY = DenonAvrDevice.async_await_ready
-
-
-async def _await_ready_without_waiting(
-    self: DenonAvrDevice, timeout: float = 8.0, *, preloaded: bool = False
-) -> None:
-    # The real method waits up to 8 s for the first resync; the fakes answer
-    # nothing, so skip the wait but keep the fallback logic it runs.
-    await _ORIGINAL_AWAIT_READY(self, timeout=0, preloaded=preloaded)
-
-
-@pytest.fixture
-def receiver_network() -> Any:
-    """Patch the receiver's network edges; yields the patch context."""
-    FakeTelnet.instances.clear()
-    FakeHeos.instances.clear()
-    with (
-        patch("custom_components.denonavr_plus.avr.device.TelnetClient", FakeTelnet),
-        patch("custom_components.denonavr_plus.avr.device.HeosClient", FakeHeos),
-        patch("custom_components.denonavr_plus.avr.device.async_probe", AsyncMock()),
-        patch.object(
-            GoformClient, "async_get_device_info", AsyncMock(return_value=deviceinfo(RECORDING))
-        ),
-        patch.object(GoformClient, "async_get_status", AsyncMock(return_value=None)),
-        patch.object(GoformClient, "async_post", AsyncMock(return_value=None)),
-        patch.object(UpnpClient, "async_get_description", AsyncMock(return_value=None)),
-        patch.object(WebConfigClient, "async_get", AsyncMock(return_value=None)),
-        patch.object(DenonAvrDevice, "async_await_ready", _await_ready_without_waiting),
-    ):
-        yield
-
-
-@pytest.fixture
-async def loaded_entry(
-    hass: HomeAssistant, receiver_network: Any
-) -> AsyncIterator[MockConfigEntry]:
-    # Created at the current version; tests/test_migrations.py covers older ones.
-    entry = MockConfigEntry(
-        domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION
-    )
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    yield entry
-
+from .fakes import HOST, FakeTelnet
 
 def _main_player(hass: HomeAssistant, entry: MockConfigEntry) -> str:
     registry = er.async_get(hass)
@@ -291,8 +112,7 @@ async def test_lost_link_makes_entities_unavailable(
     await _settle(hass)
     assert hass.states.get(entity_id).state == STATE_ON
 
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     await _settle(hass)
     assert hass.states.get(entity_id).state == STATE_UNAVAILABLE
 
@@ -376,6 +196,8 @@ async def test_the_device_is_registered_with_its_dts_decoder_from_the_start(
     assert main is not None
     assert main.sw_version == "3.139.174 (DTS 4.30.10.15)"
     assert main.hw_version == "Aios 6.5V"
+    # The interface level of the recording, for support without diagnostics.
+    assert main.model_id == "CommApiVers 0301"
 
 
 async def test_sub_devices_follow_the_receivers_room(
@@ -557,6 +379,35 @@ async def test_channels_follow_a_speaker_set_up_or_removed_on_the_receiver(
         assert state("SL") is disabled
 
 
+async def test_distances_follow_a_speaker_removed_on_the_receiver(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Like the levels: a distance of a speaker removed is hidden."""
+    from .common import registry_entry
+
+    registry = er.async_get(hass)
+    telnet = FakeTelnet.instances[-1]
+
+    def distance(code: str) -> er.RegistryEntryDisabler | None:
+        return registry_entry(hass, loaded_entry, f"number_channel_distance_{code}").disabled_by
+
+    with patch("custom_components.denonavr_plus.SPEAKERS_SETTLE", 0):
+        telnet.push("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSUA NON", "SSSPCSWF NO")
+        await _settle(hass)
+        for code in ("FL", "C"):
+            registry.async_update_entity(
+                registry_entry(hass, loaded_entry, f"number_channel_distance_{code}").entity_id,
+                disabled_by=None,
+            )
+        telnet.push("SSSPCFRO SMA", "SSSPCCEN NON", "SSSPCSUA NON", "SSSPCSWF NO")
+        await _settle(hass)
+        assert distance("C") is er.RegistryEntryDisabler.INTEGRATION
+        assert distance("FL") is None
+        telnet.push("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSUA NON", "SSSPCSWF NO")
+        await _settle(hass)
+        assert distance("C") is None
+
+
 async def test_channels_wait_until_the_speaker_answer_is_complete(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -649,3 +500,80 @@ async def test_linking_a_player_to_the_network_input_shows_the_music_switches(
         is er.RegistryEntryDisabler.USER
     )
 
+
+async def test_a_receiver_without_its_model_yet_is_tried_again(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Still starting, it answers without the model it named before: tried again.
+
+    No entities named "Denon AVR", and the reason says it was reached.
+    """
+    import re
+
+    from custom_components.denonavr_plus.avr.transport import GoformClient
+    from custom_components.denonavr_plus.coordinator import snapshot_store
+
+    from .fakes import RECORDING, deviceinfo
+
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION)
+    entry.add_to_hass(hass)
+    await snapshot_store(hass, entry.entry_id).async_save({"device": {"model_name": "AVC-X3700H"}})
+    text = re.sub(r"<ModelName>.*?</ModelName>", "", deviceinfo(RECORDING), flags=re.S)
+    with patch.object(GoformClient, "async_get_device_info", AsyncMock(return_value=text)):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.reason is not None and "not named its model" in entry.reason
+    assert not er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+
+
+async def test_a_receiver_that_never_names_its_model_is_set_up(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Without a model it never named (no ModelName): set up, not retried forever."""
+    import re
+
+    from custom_components.denonavr_plus.avr.transport import GoformClient
+
+    from .fakes import RECORDING, deviceinfo
+
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: HOST}, minor_version=CONFIG_MINOR_VERSION)
+    entry.add_to_hass(hass)
+    text = re.sub(r"<ModelName>.*?</ModelName>", "", deviceinfo(RECORDING), flags=re.S)
+    with patch.object(GoformClient, "async_get_device_info", AsyncMock(return_value=text)):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_showing_zone_2_later_reloads_once(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """Zone 2 shown in the options: one reload, which also preselects its inputs."""
+    from custom_components.denonavr_plus import choices, zone_sources
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: HOST},
+        minor_version=CONFIG_MINOR_VERSION,
+        options={choices.OPT_ZONES: ["main"]},
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    reload = hass.config_entries.async_reload
+    reloads: list[str] = []
+
+    async def counted(entry_id: str) -> bool:
+        reloads.append(entry_id)
+        return await reload(entry_id)
+
+    with patch.object(hass.config_entries, "async_reload", counted):
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, choices.OPT_ZONES: ["main", "zone2"]}
+        )
+        await hass.async_block_till_done()
+    assert len(reloads) == 1
+    assert entry.options[zone_sources.OPT_ZONE2_SOURCES_ASKED] is True
+    assert await hass.config_entries.async_unload(entry.entry_id)

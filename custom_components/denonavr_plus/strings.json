@@ -85,6 +85,7 @@
     "step": {
       "init": {
         "title": "Options",
+        "description": "Sources, sound modes, playback, activities and the receiver test appear while the receiver is connected.",
         "menu_options": {
           "volume": "Volume",
           "zones": "Zones and power",
@@ -235,21 +236,15 @@
       },
       "playback": {
         "title": "Playback",
-        "description": "How the media players show what plays on an input. Pick an input to link the device connected to it, such as an Apple TV or a streamer, or submit to save.",
-        "data": {
-          "input": "Link a player to an input",
-          "pause_on_off": "Pause the linked player when the zone is switched off",
-          "signal_state": "Playing or idle by the input signal"
-        },
-        "data_description": {
-          "input": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow. The network input takes Music Assistant's player: its queue and library then go with it. A voice search on the receiver also searches the linked players that can, such as Music Assistant.",
-          "pause_on_off": "Switching a zone off in Home Assistant pauses the linked player of the input it played, so it does not play on unheard. Not while another zone still plays that input.",
-          "signal_state": "A zone on an input without a linked player shows \"Playing\" while the input carries a signal and \"Idle\" without one, instead of \"On\". Network sources and the tuner keep their own state. Not yet tried on a receiver: whether every model reports when a signal stops is unknown. An HDMI source showing its menu often sends a signal too."
+        "description": "How the media players show what plays on an input. Each change is saved when you submit it.",
+        "menu_options": {
+          "playback_link": "Link a player to an input",
+          "playback_display": "How playback is shown"
         }
       },
       "linked_input": {
         "title": "Linked player",
-        "description": "**{input}**: the media player of the device connected to this input. Leave it empty to unlink the input; the switches then do nothing.",
+        "description": "**{input}**: the media player of the device connected to this input. Leave it empty to unlink the input; the switches then do nothing. Submit saves the link.",
         "data": {
           "player": "Media player",
           "follow": "Main zone switches to this input when the player starts",
@@ -261,14 +256,6 @@
           "follow": "When the player starts, the main zone turns on if needed and switches here. Linked players that no zone plays are then paused, also when the main zone is switched by hand or remote to another input with a linked player. A player that starts within 5 seconds of a switch is paused instead.",
           "full_volume": "The volume is set on the receiver, so while a zone that is on plays this input, the player is set to full volume and unmuted, and again whenever its volume changes. Not for a device with its own speakers, such as a television: it would play at full volume there.",
           "power": "When a zone switches to this input, the player is switched on if it is off; when every zone that played it is switched off, the player is switched off too. A zone moving to another input leaves it on."
-        }
-      },
-      "playback_next": {
-        "title": "More inputs?",
-        "description": "The change for {input} is noted. It is saved together with any others when you choose Save.",
-        "menu_options": {
-          "playback": "Link another input",
-          "playback_save": "Save"
         }
       },
       "connection": {
@@ -344,47 +331,69 @@
       },
       "activities": {
         "title": "Activities",
-        "description": "An activity sets up a zone in one go: input, sound mode, volume, HDMI output and speech clarity. Each zone with activities gets a select to start them. {count} activities so far. Pick one to change or delete it, or leave the field empty for a new one.",
-        "data": {
-          "activity": "Activity"
-        },
-        "data_description": {
-          "activity": "Empty: a new activity."
+        "description": "An activity sets up a zone in one go: input, sound mode, volume, HDMI output and speech clarity. Each zone with activities gets a select to start them. {count} activities so far.",
+        "menu_options": {
+          "activity_new": "New activity",
+          "activity_change": "Change or delete an activity"
         }
       },
       "activity": {
         "title": "Activity",
-        "description": "The zone switches on and takes these settings in order. Only name, zone and input are needed.",
+        "description": "Name and zone. The next step has the input and what else the zone takes.",
         "data": {
           "name": "Name",
           "zone": "Zone",
+          "delete": "Delete this activity"
+        },
+        "data_description": {
+          "name": "Shown in the select and used by the start activity action and voice commands."
+        }
+      },
+      "playback_link": {
+        "title": "Link a player to an input",
+        "description": "While the input plays, its zone shows the linked player's title, artwork, position and state, and play, pause, skip and seek go to it. Power, volume and the input stay with the receiver. An input with a player shows it after the arrow. The network input takes Music Assistant's player: its queue and library then go with it. A voice search on the receiver also searches the linked players that can, such as Music Assistant.",
+        "data": {
+          "input": "Input"
+        }
+      },
+      "playback_display": {
+        "title": "How playback is shown",
+        "data": {
+          "pause_on_off": "Pause the linked player when the zone is switched off",
+          "signal_state": "Playing or idle by the input signal"
+        },
+        "data_description": {
+          "pause_on_off": "Switching a zone off in Home Assistant pauses the linked player of the input it played, so it does not play on unheard. Not while another zone still plays that input.",
+          "signal_state": "A zone on an input without a linked player shows \"Playing\" while the input carries a signal and \"Idle\" without one, instead of \"On\". Network sources and the tuner keep their own state. Experimental: not every receiver may report when a signal stops. An HDMI source showing its menu often sends a signal too."
+        }
+      },
+      "activity_change": {
+        "title": "Change or delete an activity",
+        "data": {
+          "activity": "Activity"
+        }
+      },
+      "activity_details": {
+        "title": "{activity}",
+        "description": "The zone switches on and takes these settings in order. Only the input is needed; Submit saves the activity.",
+        "data": {
           "source": "Input",
           "sound_mode": "Sound mode",
           "volume_db": "Volume",
           "hdmi_output": "HDMI output",
+          "audio_delay": "Audio delay",
           "clarity": "Speech clarity",
           "wake_player": "Switch on the linked player",
-          "delete": "Delete this activity",
-          "audio_delay": "Audio delay",
           "wake_entity": "Also switch on"
         },
         "data_description": {
-          "name": "Shown in the select and used by the start activity action and voice commands.",
-          "sound_mode": "Main zone only. Empty: the sound mode stays as it is.",
+          "sound_mode": "Empty: the sound mode stays as it is.",
           "volume_db": "In dB on the receiver's scale. Empty: the turn-on volume or the volume as it is. Kept below the zone's maximum volume.",
-          "hdmi_output": "Main zone only. Empty: the output stays as it is.",
-          "clarity": "Main zone only: switch the speech clarity switch on or off, or leave it.",
+          "hdmi_output": "Empty: the output stays as it is.",
+          "audio_delay": "For lip sync with this activity's picture. Empty: the delay stays as it is. Auto Lip Sync on the receiver may override it.",
+          "clarity": "Switch the speech clarity switch on or off, or leave it.",
           "wake_player": "Switches on the media player linked to the input (Configure → Playback), such as a streaming box.",
-          "audio_delay": "Main zone only, for lip sync with this activity's picture. Empty: the delay stays as it is. Auto Lip Sync on the receiver may override it.",
           "wake_entity": "Another device to switch on, such as the TV when the input's linked player is a streaming box."
-        }
-      },
-      "activities_next": {
-        "title": "More activities?",
-        "description": "{activity} is noted. It is saved together with any others when you choose Save.",
-        "menu_options": {
-          "activities": "Another activity",
-          "activities_save": "Save"
         }
       }
     },
@@ -1311,6 +1320,9 @@
       "eq_default": {
         "name": "Default"
       },
+      "quick_select_recall": {
+        "name": "Quick Select {name}"
+      },
       "quick_select_save": {
         "name": "Save Quick Select {name}"
       },
@@ -1379,6 +1391,9 @@
     "cannot_reach": {
       "message": "Cannot reach the receiver at {host} ({error}). Setup is retried."
     },
+    "model_not_named_yet": {
+      "message": "The receiver at {host} answers but has not named its model yet; it is probably still starting. Setup is retried."
+    },
     "play_url_unsupported": {
       "message": "The {model} plays no web addresses: it has no HEOS. Pick a source or a quick select instead."
     },
@@ -1402,6 +1417,9 @@
     },
     "play_url_main_zone": {
       "message": "The {model} plays web addresses on its main zone (over HEOS). Play them there and join this zone to it."
+    },
+    "play_url_invalid": {
+      "message": "The web address contains a control character, such as a line break. The {model} cannot play it."
     },
     "heos_unavailable": {
       "message": "HEOS is not connected on the {model} right now."
@@ -1543,6 +1561,12 @@
     },
     "speaker_layout_busy": {
       "message": "A speaker layout is being written or put back; try again in a moment."
+    },
+    "capability_report_title": {
+      "message": "Help support the {model}"
+    },
+    "capability_report_message": {
+      "message": "The receiver test of the {model} has finished; its results are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the [prefilled issue]({url}) and attach the file there. Ignore this message if you do not want to share it. What you hear and see can be tested under Configure → Test the receiver."
     }
   },
   "issues": {
@@ -1595,17 +1619,9 @@
         }
       }
     },
-    "capability_report": {
-      "title": "Help support the {model}",
-      "description": "The receiver test of the {model} has finished; its results are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it. What you hear and see can be tested under Configure → Test the receiver."
-    },
     "heos_playback_error": {
       "title": "{model} could not play it",
       "description": "HEOS on the {model} reported a playback error: {error}\n\nCommon causes are an address the receiver cannot reach, a format it does not play, or a service that needs a sign-in in the HEOS app. The message disappears by itself as soon as something plays again."
-    },
-    "command_test_done": {
-      "title": "Command test of the {model} finished",
-      "description": "The {model} confirmed {confirmed} of {total} commands. Settings not put back: {not_restored}; check them on the receiver if this is not 0. The details are in the diagnostics file (Settings → Devices & services → Denon AVR Plus → ⋮ → Download diagnostics). Open the prefilled issue with \"Learn more\" and attach the file there. Ignore this message if you do not want to share it."
     },
     "move_available": {
       "title": "{title} is also set up in {integration}",
@@ -1629,23 +1645,6 @@
             "title": "Automations checked?",
             "description": "These automations and scripts use something of the official integration that works differently here. Left of the arrow what they use, right what replaces it (– means not needed any more, or no replacement). Nothing was changed.\n\n{findings}\n\nSubmit once you have changed them; the list goes away."
           }
-        }
-      }
-    },
-    "zone2_sources": {
-      "title": "Which inputs can Zone 2 of {model} play?",
-      "fix_flow": {
-        "step": {
-          "choose": {
-            "title": "Which inputs Zone 2 offers",
-            "description": "Smaller receivers play no HDMI input in Zone 2. Choose the inputs Zone 2 can play; the others leave its input list. Inputs with HDMI start deselected when the receiver reports no HDMI for Zone 2. The list can be changed later in the options under Sources.",
-            "data": {
-              "sources": "Zone 2 inputs"
-            }
-          }
-        },
-        "abort": {
-          "not_loaded": "The integration is not loaded right now; try again once the receiver is connected."
         }
       }
     },

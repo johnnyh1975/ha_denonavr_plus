@@ -127,7 +127,7 @@ def answering_receiver(api: FakeSetupApi) -> Iterator[None]:
     from custom_components.denonavr_plus.avr.transport.webconfig import WebConfigClient
     from custom_components.denonavr_plus.entity import DenonAvrEntity
 
-    from .test_init import FakeTelnet
+    from .fakes import FakeTelnet
 
     async def async_send(self: FakeTelnet, command: str) -> None:
         self.sent.append(command)

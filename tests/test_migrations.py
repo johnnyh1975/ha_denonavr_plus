@@ -19,9 +19,7 @@ from custom_components.denonavr_plus.const import (
     DOMAIN,
 )
 
-from .test_init import HOST, receiver_network  # noqa: F401 -- fixture
-
-__all__ = ["receiver_network"]
+from .fakes import HOST
 
 
 async def _set_up(hass: HomeAssistant, version: int, minor: int, **options: Any) -> MockConfigEntry:

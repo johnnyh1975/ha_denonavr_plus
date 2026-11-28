@@ -23,9 +23,7 @@ from custom_components.denonavr_plus.helpers import enum_options, option_key
 
 from .common import async_enable, entity_id, registry_entry
 from .setup_api import FakeSetupApi, answering_receiver
-from .test_init import HOST, FakeTelnet, loaded_entry, receiver_network  # noqa: F401
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import HOST, FakeTelnet
 
 
 async def _push(hass: HomeAssistant, *lines: str) -> None:

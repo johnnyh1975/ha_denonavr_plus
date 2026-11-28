@@ -27,6 +27,9 @@
       },
       "speaker_layout_apply": {
         "default": "mdi:check-all"
+      },
+      "quick_select_recall": {
+        "default": "mdi:numeric"
       }
     },
     "number": {

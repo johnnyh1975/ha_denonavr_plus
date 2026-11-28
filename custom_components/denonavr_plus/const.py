@@ -30,6 +30,7 @@ OPT_CHANNELS_INITIALIZED = "channels_initialized"
 OPT_CHANNELS_APPLIED = "channels_configured"
 # Unique id fragment identifying a channel trim, followed by the channel code.
 CHANNEL_TRIM_MARKER = "_channel_trim_"
+CHANNEL_DISTANCE_MARKER = "_channel_distance_"
 
 # CONF_HOST (the receiver address) and CONF_PORT (the goform port, 8080 or 80)
 # are imported above and re-exported here so the rest of the integration keeps a single import

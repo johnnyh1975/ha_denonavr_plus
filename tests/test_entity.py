@@ -16,9 +16,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus.const import DOMAIN
 
-from .test_init import HOST, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["receiver_network"]
+from .fakes import HOST
 
 LANGUAGES = ["de", "en", "es", "fr", "it", "nl", "pl", "pt"]
 
@@ -84,6 +82,36 @@ async def test_names_are_translated_but_ids_are_not(
     assert trim_state is not None and trim_state.attributes["friendly_name"].endswith("Center Pegel")
 
 
+async def test_a_recreated_id_follows_the_renamed_receiver(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """"Recreate entity ID" after renaming the receiver uses its new name.
+
+    The id is left to Home Assistant's own rule (its entity id parts: room,
+    device, entity), only the entity part is English. An id asked for whole
+    would keep the model name forever.
+    """
+    from homeassistant.helpers import device_registry as dr
+
+    hass.config.language = "de"
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: HOST})
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    registry = er.async_get(hass)
+    volume = next(
+        item for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if item.unique_id.endswith("_number_volume_main")
+    )
+    assert volume.entity_id == "number.avc_x3700h_volume"
+    devices = dr.async_get(hass)
+    assert volume.device_id is not None
+    devices.async_update_device(volume.device_id, name_by_user="Living Room AVR")
+    item = registry.async_get(volume.entity_id)
+    assert item is not None
+    assert registry.async_regenerate_entity_id(item) == "number.living_room_avr_volume"
+
+
 SNAPSHOT = Path(__file__).parent / "fixtures" / "entity_ids" / "AVC-X3700H.json"
 
 
@@ -139,13 +167,12 @@ async def test_settings_read_over_http_stay_available_without_telnet(
     from custom_components.denonavr_plus.avr.transport import GoformClient
 
     from .common import entity_id
-    from .test_init import FakeTelnet
+    from .fakes import FakeTelnet
 
     audyssey = '<rx><cmd><list><param name="dynamiceq">1</param></list></cmd></rx>'
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     with (
         patch.object(GoformClient, "async_get_status", AsyncMock(return_value={"power": True})),
         patch.object(GoformClient, "async_post", AsyncMock(return_value=audyssey)),

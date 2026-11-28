@@ -11,6 +11,9 @@
     "@johnnyh1975"
   ],
   "config_flow": true,
+  "connectivity": [
+    "network"
+  ],
   "dependencies": [
     "ssdp"
   ],

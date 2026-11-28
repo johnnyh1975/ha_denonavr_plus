@@ -42,7 +42,13 @@ Which settings are recommended, and why: [user guide, section 5](USER_GUIDE.md#5
 **Configure** on the integration entry opens a menu: volume, zones, sources,
 sound modes, playback, activities, connection, entities, and **Test the receiver** (see
 [user guide, section 7](USER_GUIDE.md#7-test-a-receiver-model)). Apart from that test, nothing in it changes the receiver; it
-changes what Home Assistant shows and does.
+changes what Home Assistant shows and does. The menu offers only what can be
+done now: sources, sound modes (once the receiver has reported any),
+playback and activities while the integration is set up (also from what the
+last start learned, while the receiver does not answer), the receiver test
+while the receiver is connected, entities while a group has entities to
+show or hide. Each step saves when
+it is submitted.
 
 **Volume** (works even when the receiver is off):
 
@@ -83,10 +89,13 @@ zone shows only these two switches.
 
 **Sources** (needs the receiver connected, it reads its sources): per zone,
 which sources the media player offers, then a name for each in Home
-Assistant. For Zone 2 this is asked once after setup, as a repair, with the
+Assistant. Zone 2's list is chosen once after setup, without asking: the
 inputs that carry HDMI as delivered (CBL/SAT, DVD, Blu-ray, Game, Media
-Player, AUX1, AUX2, 8K) deselected when the receiver does not answer `Z2HDA?`
-(Zone 2 HDMI audio): smaller receivers play no HDMI input in Zone 2. The names and hidden inputs set on the receiver are already taken
+Player, AUX1, AUX2, 8K) are left out when the receiver does not answer
+`Z2HDA?` (Zone 2 HDMI audio), since smaller receivers play no HDMI input in
+Zone 2; otherwise every input. A stored input the receiver no longer offers
+stays stored for when it comes back. Two inputs the receiver itself names
+alike do not block saving; a name given here must be unique. The names and hidden inputs set on the receiver are already taken
 over; this narrows down and renames on top. Inputs the receiver lists without
 a name (the network input, the tuner, and on receivers before 2016 each
 network service) get a readable one: *Network*, *Tuner*, *Internet Radio*,
@@ -117,7 +126,8 @@ offers the modes of the current group only (every mode, when the receiver
 lists no groups); the media player takes every mode the receiver has listed
 and its tokens.
 
-**Playback** (needs the receiver connected, it reads its inputs):
+**Playback** (needs the receiver connected, it reads its inputs): a menu
+with **Link a player to an input** and **How playback is shown**.
 
 - **Link a player to an input**: pick an input, then the media player of the
   device on it, such as an Apple TV, a streamer or a Chromecast. The list
@@ -143,9 +153,8 @@ and its tokens.
   input's own information. A player with a media browser is a folder in the
   zone's browser; one that can search is searched too when Assist looks for
   media on the zone (see Voice below). Either way, playing an item switches
-  the zone to the player's input first. Clearing the player unlinks the input. After each input
-  comes a choice: link another input, or save; nothing is saved before that.
-  Submitting the step without an input saves too. Per input:
+  the zone to the player's input first. Clearing the player unlinks the input. Submitting the
+  player's step saves the link. Per input:
   - **Main zone switches to this input when the player starts** (default off):
     the main zone turns on if needed and switches to the input, through its
     own action, so the turn-on volume and the volume limit apply. Nothing
@@ -204,17 +213,18 @@ and its tokens.
   main zone's input (`SSINFAISFSV`, `NON` without one); another zone uses it
   while it plays the same input and otherwise stays *On*. Network sources and
   the tuner keep their own state, and a linked player decides by itself,
-  since a paused streamer often keeps sending a signal. Not yet tried on a
-  receiver: whether every model reports when a signal stops is unknown. Note
-  that an HDMI source in its menu often sends a signal too.
+  since a paused streamer often keeps sending a signal. Experimental: not yet
+  tried on a receiver, and whether every model reports when a signal stops is
+  unknown. Note that an HDMI source in its menu often sends a signal too.
 
 **Activities** (needs the receiver connected, it reads its inputs): an
-activity sets a zone up in one go. Pick one to change or delete it, or none
-for a new one; after each comes a choice between another and saving, and
-nothing is saved before that. Per activity:
+activity sets a zone up in one go. **New activity** (directly when there is
+none yet) or **Change or delete an activity**; first the name and zone (and
+delete), then the input and what else that zone takes. Submitting the second
+step saves the activity. Per activity:
 
 Sound mode, HDMI output, audio delay and speech clarity are the main
-zone's; an activity of another zone does not keep them.
+zone's and are asked only for it; Zone 2 offers its own inputs.
 
 - **Name**, **zone** and **input** (needed). The name is what the zone's
   *Activity* select, the `start_activity` action and voice commands use; case
@@ -519,8 +529,9 @@ AVC‑A10H describes it as 0–15).
   nothing. After an update the receiver restarts; when the integration
   connects again it reads the version anew, and the device page shows it.
 - **Device page**: the firmware, with the DTS decoder's version where the
-  setup interface reports it (for example `3.139.174 (DTS 4.30.10.15)`), and
-  as hardware the HEOS network module.
+  setup interface reports it (for example `3.139.174 (DTS 4.30.10.15)`), as
+  hardware the HEOS network module, and as model ID the interface level
+  (`CommApiVers 0301`), which names the receiver's generation.
 - **Recover audio** (a button, starts disabled): standby and back on with the
   input it had, for a receiver that has lost its sound.
 - **Model-dependent controls**, created only when the receiver answers their
@@ -534,6 +545,11 @@ AVC‑A10H describes it as 0–15).
   command list) and have not been tried on a receiver yet. A speaker preset
   holds the whole speaker setup; when it changes, the integration reads the
   speaker sizes, distances, levels and crossovers again.
+- **Quick select buttons**: one per quick select the receiver reports, named
+  after it, that recalls it; for the main zone, and for Zone 2 where the
+  receiver answers `Z2QUICK ?` (those start disabled with Zone 2's other
+  settings). Easier on a dashboard, in Apple Home or by voice than the select,
+  which shows nothing once a preset was changed.
 - **Buttons**: save a quick select preset (one per preset the receiver reports),
   reset all channel levels, restart the network module. They start disabled.
 - **Remote**: the on-screen menu keys (see Actions). It starts disabled: its
@@ -557,7 +573,8 @@ AVC‑A10H describes it as 0–15).
 A receiver offers well over a hundred settings, so only what you change while
 listening starts enabled:
 
-- the media players, the sound mode selects and quick select
+- the media players, the sound mode selects, quick select and the main
+  zone's quick select buttons
 - tone (bass, treble, tone control), Dynamic EQ, Dynamic Volume, Dynamic
   Compression, MultEQ, Cinema EQ, center level and Dialog Control
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
@@ -879,7 +896,8 @@ one (`fast_start`).
 
 When the main zone follows a linked player (**Main zone switches to this
 input when the player starts**, under Configure → Playback), Home Assistant
-gets the event `denonavr_plus_input_followed`, with the player's context:
+gets the event `denonavr_plus_input_followed`, with the player's context. The
+logbook shows it as *switched to Apple TV because Apple TV started*.
 
 | Field | Value |
 |---|---|

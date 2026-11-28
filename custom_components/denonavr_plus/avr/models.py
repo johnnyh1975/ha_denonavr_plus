@@ -51,6 +51,18 @@ class DeviceInfo:
     zone_count: int = 1
 
     @property
+    def interface_text(self) -> str | None:
+        """The interface level as the device card shows it (its model id).
+
+        CommApiVers names the generation (avr/generation.py); it helps with
+        support without opening the diagnostics.
+        """
+
+        if self.comm_api_version is None:
+            return None
+        return f"CommApiVers {self.comm_api_version:04d}"
+
+    @property
     def firmware_text(self) -> str | None:
         """The firmware as the device card shows it, with the DTS decoder where known."""
 

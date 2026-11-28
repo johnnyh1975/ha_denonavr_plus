@@ -27,6 +27,7 @@ from homeassistant.helpers.typing import ConfigType
 from . import activities, choices, command_test, entity_groups, layout_repair, linked_players, move, zone_sources
 from .avr.profile import load_profile
 from .const import (
+    CHANNEL_DISTANCE_MARKER,
     CHANNEL_TRIM_MARKER,
     CONF_HOST,
     CONF_PORT,
@@ -38,6 +39,7 @@ from .const import (
 from .coordinator import (
     DenonAvrConfigEntry,
     DenonAvrCoordinator,
+    ModelNotNamedYet,
     connection_options,
     snapshot_store,
 )
@@ -81,7 +83,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         await coordinator.async_shutdown()
         raise ConfigEntryNotReady(
             translation_domain=DOMAIN,
-            translation_key="cannot_reach",
+            translation_key=(
+                "model_not_named_yet" if isinstance(err, ModelNotNamedYet) else "cannot_reach"
+            ),
             translation_placeholders={"host": host, "error": str(err)},
         ) from err
     except Exception:
@@ -100,6 +104,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     _register_main_device(hass, entry, coordinator)
     coordinator.shown_zones = _shown_zones(entry, coordinator)
     _remove_hidden_zones(hass, entry, coordinator)
+    if not coordinator.started_offline:
+        # Before the entities: Zone 2's input list is what they show.
+        zone_sources.async_preselect(hass, entry)
     await hass.config_entries.async_forward_entry_setups(entry, _platforms(coordinator))
     # Renamed and removed linked players, following one, keeping it at full volume.
     entry.async_on_unload(linked_players.LinkedPlayers(hass, entry).async_start())
@@ -114,7 +121,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         # Started from the stored data, the entry reloads once the receiver
         # answers; its generation is read then.
         coordinator.capabilities.async_update_issues(coordinator.device.discovery.device)
-        zone_sources.async_update_issue(hass, entry)
     if entry.options.get(move.OPT_MOVE_PENDING):
         # Taking another integration's entry over, chosen when the receiver
         # was added; the reload after it runs what else is pending. It starts
@@ -236,8 +242,6 @@ async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) 
         entity_groups.async_apply(
             hass, entry, coordinator.device.discovery.configured_channels
         )
-        # Zone 2's inputs chosen in the options, or Zone 2 hidden: no question.
-        zone_sources.async_update_issue(hass, entry)
         _music_follows_link(hass, entry, coordinator)
     if (
         _shown_zones(entry, coordinator) != coordinator.shown_zones
@@ -289,6 +293,7 @@ def _register_main_device(
         identifiers={(DOMAIN, coordinator.device.identifier)},
         manufacturer=device.manufacturer or "Denon",
         model=device.model_name,
+        model_id=device.interface_text,
         name=device.model_name or "Denon AVR",
         sw_version=device.firmware_text,
         # The HEOS network module, as the entities show it (hardware_type is
@@ -422,37 +427,40 @@ def _apply_channel_defaults(
         return
 
     registry = er.async_get(hass)
-    channels = [
-        (regentry, regentry.unique_id.split(CHANNEL_TRIM_MARKER)[-1])
-        for regentry in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if CHANNEL_TRIM_MARKER in regentry.unique_id
-    ]
     # The channels last applied; none the first time (migrations.py stores
     # them for entries from before they were kept).
     previous = set(applied) if applied is not None else None
-    # Trims an entity group switched stay with the group.
+    # Channel entities an entity group switched stay with the group.
     grouped = set(entry.options.get(entity_groups.OPT_GROUP_ENABLED, []))
-    # Trims start hidden; one of a speaker set up again comes back only when
-    # the trims are in use (one of a speaker the receiver kept is shown).
-    in_use = any(
-        regentry.disabled_by is None
-        for regentry, code in channels
-        if code in configured and (previous is None or code in previous)
-    )
-    for regentry, code in channels:
-        removed = code not in configured and (previous is None or code in previous)
-        added = previous is not None and code in configured and code not in previous and in_use
-        if removed and regentry.disabled_by is None:
-            registry.async_update_entity(
-                regentry.entity_id,
-                disabled_by=er.RegistryEntryDisabler.INTEGRATION,
+    for marker in (CHANNEL_TRIM_MARKER, CHANNEL_DISTANCE_MARKER):
+        channels = [
+            (regentry, regentry.unique_id.split(marker)[-1])
+            for regentry in er.async_entries_for_config_entry(registry, entry.entry_id)
+            if marker in regentry.unique_id
+        ]
+        # They start hidden; one of a speaker set up again comes back only
+        # when its kind is in use (one of a speaker the receiver kept is shown).
+        in_use = any(
+            regentry.disabled_by is None
+            for regentry, code in channels
+            if code in configured and (previous is None or code in previous)
+        )
+        for regentry, code in channels:
+            removed = code not in configured and (previous is None or code in previous)
+            added = (
+                previous is not None and code in configured and code not in previous and in_use
             )
-        elif (
-            added
-            and regentry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
-            and regentry.unique_id not in grouped
-        ):
-            registry.async_update_entity(regentry.entity_id, disabled_by=None)
+            if removed and regentry.disabled_by is None:
+                registry.async_update_entity(
+                    regentry.entity_id,
+                    disabled_by=er.RegistryEntryDisabler.INTEGRATION,
+                )
+            elif (
+                added
+                and regentry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+                and regentry.unique_id not in grouped
+            ):
+                registry.async_update_entity(regentry.entity_id, disabled_by=None)
 
     hass.config_entries.async_update_entry(
         entry,

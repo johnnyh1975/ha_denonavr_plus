@@ -16,9 +16,7 @@ from custom_components.denonavr_plus.avr.transport import UpnpClient
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
 from .common import entity_id
-from .test_init import HOST, FakeHeos, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import HOST, FakeHeos
 
 #: The receiver's UPnP description, with the firmware it runs.
 _DESCRIPTION = (

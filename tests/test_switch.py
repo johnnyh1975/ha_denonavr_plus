@@ -16,9 +16,7 @@ from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
 from .common import async_enable, entity_id, registry_entry
 from .setup_api import FakeSetupApi, answering_receiver
-from .test_init import HOST, FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import HOST, FakeTelnet
 
 
 async def test_switches_that_repeat_the_media_player_start_disabled(

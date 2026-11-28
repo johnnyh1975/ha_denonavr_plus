@@ -20,9 +20,7 @@ from custom_components.denonavr_plus.avr.speaker_layout import (
 )
 from custom_components.denonavr_plus.const import DOMAIN
 
-from .test_init import receiver_network  # noqa: F401 -- fixtures
 
-__all__ = ["receiver_network"]
 
 POINT = {
     "before": {

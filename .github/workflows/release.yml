@@ -101,7 +101,9 @@ jobs:
           mkdir -p /tmp/hacs-package
           cp -r custom_components/denonavr_plus/. /tmp/hacs-package/
           cd /tmp/hacs-package
-          zip -r "${GITHUB_WORKSPACE}/ha_denonavr_plus.zip" .
+          # The test run above leaves bytecode behind; it does not belong in
+          # an install.
+          zip -r "${GITHUB_WORKSPACE}/ha_denonavr_plus.zip" . -x '*/__pycache__/*' '__pycache__/*' '*.pyc'
 
       - name: Validate HACS ZIP structure
         run: |
@@ -118,6 +120,10 @@ jobs:
             echo "::error::hacs.json must not be inside the zip"
             exit 1
           fi
+          if echo "$FILE_LIST" | grep -qE '(^|/)__pycache__/|\.pyc$'; then
+            echo "::error::bytecode (__pycache__, .pyc) inside the zip"
+            exit 1
+          fi
           echo "ha_denonavr_plus.zip structure OK"
 
       - name: Build full-review ZIP
@@ -127,7 +133,8 @@ jobs:
           cp hacs.json README.md pyproject.toml mypy.ini AGENTS.md /tmp/full-package/
           cp "${{ steps.notes.outputs.path }}" "/tmp/full-package/RELEASE_NOTES_${{ steps.version.outputs.tag }}.md"
           cd /tmp/full-package
-          zip -r "${GITHUB_WORKSPACE}/ha_denonavr_plus-${{ steps.version.outputs.tag }}-full.zip" .
+          zip -r "${GITHUB_WORKSPACE}/ha_denonavr_plus-${{ steps.version.outputs.tag }}-full.zip" . \
+            -x '*/__pycache__/*' '__pycache__/*' '*.pyc' '*/.pytest_cache/*'
 
       - name: Create GitHub Release with assets
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3

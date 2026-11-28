@@ -15,9 +15,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.denonavr_plus import entity_groups
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
-from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
-__all__ = ["loaded_entry", "receiver_network"]
 
 INTEGRATION = er.RegistryEntryDisabler.INTEGRATION
 USER = er.RegistryEntryDisabler.USER

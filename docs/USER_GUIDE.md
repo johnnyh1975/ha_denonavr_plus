@@ -16,6 +16,22 @@ Denon AVR Plus with the official integration.
 > which answers with what real receivers sent. Names, numbers and the
 > settings a model offers differ on your receiver.
 
+**I want to …**
+
+| … | Where |
+|---|---|
+| switch the receiver on, change input, volume or sound mode | the receiver's media player ([section 4](#4-everyday-use)) |
+| start *Film* or *Music* with one choice | **Configure → Activities**, then the zone's *Activity* select ([Activities](#activities)) |
+| see what the Apple TV or Music Assistant plays on the receiver's card | **Configure → Playback → Link a player to an input** ([Playback](#playback)) |
+| make the voices clearer | the *Speech clarity* switch on the receiver's device, or by voice ([section 10](#10-voice-assistants-and-apple-home)) |
+| hide inputs nobody uses, or rename them | **Configure → Sources** ([Sources and sound modes](#sources-and-sound-modes)) |
+| limit the volume, or set the turn-on volume | **Configure → Volume** ([Volume](#volume)) |
+| show the speaker, video or EQ settings | **Configure → Entities** ([Entities](#entities)) |
+| recall a quick select from a dashboard or Apple Home | the *Quick Select* buttons on the receiver's device |
+| find out why a zone is silent | the *Why no sound?* button, or ask Assist ([section 11](#11-troubleshooting)) |
+| move over from the official integration | [section 8](#8-move-over-from-another-denon-integration) |
+| check that my model works | **Configure → Test the receiver** ([section 7](#7-test-a-receiver-model)) |
+
 **Contents**
 
 1. [Before you start](#1-before-you-start)
@@ -124,7 +140,9 @@ Two things work differently from what you might expect:
 
 - **Entity IDs are English** in every language, for example
   `switch.avc_x3700h_audio_dynamic_eq`, so examples and shared automations
-  fit every installation.
+  fit every installation. Which parts make up an ID is Home Assistant's own
+  setting: by default it puts the room's name in front when the receiver is
+  in a room, and *Recreate entity ID* uses the receiver's current name.
 - **Some settings depend on the signal.** The receiver ignores, for example,
   Dynamic Compression without a Dolby or DTS signal and the video settings
   without a picture. A change that does not stick is usually that, not an
@@ -222,8 +240,9 @@ Surround instead of the receiver's Dolby Audio - DD + DSur); switch
 >
 > **Zone 2:** smaller receivers play no HDMI input in Zone 2 (an
 > AVR-X2600H stays silent), only analog inputs, the tuner and network
-> sources. After setup a repair asks once which inputs Zone 2 can play, with
-> the HDMI inputs deselected when the receiver reports no HDMI for Zone 2.
+> sources. After setup Zone 2's list leaves the HDMI inputs out when the
+> receiver reports no HDMI for Zone 2; change it here if your Zone 2 plays
+> them.
 > When Zone 2 does not switch to an input, Home Assistant says so and hides
 > it from Zone 2's list. If Zone 2 was on and the input does not come within
 > ten seconds after all, it leaves the Zone 2 list here for good, where you
@@ -233,8 +252,9 @@ Surround instead of the receiver's Dolby Audio - DD + DSur); switch
 ### Playback
 
 Link the device on an input to its media player in Home Assistant, such as
-an Apple TV on the Media Player input: pick the input, then the player, then
-link another input or save. While the input plays, the receiver's media
+an Apple TV on the Media Player input: **Link a player to an input**, pick
+the input, then the player; submitting saves it. **How playback is shown**
+has the two options below. While the input plays, the receiver's media
 player shows what the Apple TV plays, with artwork and position, and its
 play, pause and skip buttons control the Apple TV. Power, volume and the
 input stay with the receiver, so one card does both. The receiver's media
@@ -243,7 +263,7 @@ switches the receiver to its input.
 
 ![The receiver's media player on the Apple TV's input: the Apple TV's title, cover and position](images/guide/more-info-linked.png)
 
-![The Playback step: an input to link, pausing on turn off, and the signal option](images/guide/options-playback.png)
+![The Playback menu: link a player to an input, or how playback is shown](images/guide/options-playback.png)
 
 ![The linked player of an input, with its switches](images/guide/options-linked-player.png)
 
@@ -257,8 +277,8 @@ renamed after its device gets that device's player suggested; the network
 input gets Music Assistant's player of the receiver. **Pause the linked player when the zone is switched off**
 (on by default) keeps a player from playing on to a receiver you switched
 off in Home Assistant. **Playing or idle by the input signal** shows *Playing* or
-*Idle* instead of *On* on inputs without a linked player; it has not been
-tried on a receiver yet.
+*Idle* instead of *On* on inputs without a linked player; it is
+experimental.
 
 > **Recommended:**
 > - Link every input with a device that Home Assistant knows: an Apple TV,
@@ -281,13 +301,16 @@ tried on a receiver yet.
 An activity is one choice for what you do in a room, such as *Film* or
 *Music*: it switches the zone on and sets its input, and if you like the
 sound mode, the volume, the HDMI output, the audio delay, speech clarity,
-the linked player and one more device such as the TV. Pick an activity to change or delete it, or leave the field empty
-for a new one; then add another or save. Each zone with activities gets an
+the linked player and one more device such as the TV. Choose **New
+activity** or **Change or delete an activity**: first the name and zone,
+then the input and what else that zone takes (the sound mode, HDMI output,
+audio delay and speech clarity are the main zone's). Submitting saves the
+activity. Each zone with activities gets an
 **Activity** select on its device; choosing *Film* there does it all, and it
 shows *Film* while the zone stays on that input. The action **Start
 activity** and voice commands (section 10) do the same.
 
-![An activity: name, zone, input, and what else it sets](images/guide/options-activity.png)
+![The second step of an activity: the input and what else the main zone takes](images/guide/options-activity.png)
 
 > **Recommended:**
 > - One activity per thing you really do, named as you would say it:
@@ -635,9 +658,9 @@ card shows and controls what Music Assistant plays. [Section 9](#9-with-music-as
 says how.
 
 **Why can Zone 2 not play my Blu-ray player?** Smaller receivers play no HDMI
-input in Zone 2. The integration asks once after setup which inputs Zone 2
-can play, and drops an input the receiver refuses. Change the list under
-**Configure → Sources**.
+input in Zone 2. After setup Zone 2's list leaves the HDMI inputs out when
+the receiver reports no HDMI for Zone 2, and drops an input Zone 2 refuses.
+Change the list under **Configure → Sources**.
 
 **Why do announcements not work on my receiver?** Announcements play over
 HEOS. Receivers without HEOS (the AVR-X2000 and older) have no way to play a

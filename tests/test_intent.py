@@ -22,9 +22,7 @@ from custom_components.denonavr_plus.intent import (
 )
 
 from .common import entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 @pytest.fixture

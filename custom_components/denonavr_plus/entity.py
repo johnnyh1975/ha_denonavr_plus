@@ -168,6 +168,7 @@ class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):
             identifiers={(DOMAIN, identifier)},
             manufacturer=device_info.manufacturer or "Denon",
             model=device_info.model_name,
+            model_id=device_info.interface_text,
             name=device_info.model_name or "Denon AVR",
             sw_version=device_info.firmware_text,
             # The HEOS/AIOS network module, the receiver's streaming hardware.

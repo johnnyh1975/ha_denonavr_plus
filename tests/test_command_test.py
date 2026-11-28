@@ -9,9 +9,9 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.denonavr_plus import capabilities
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
@@ -20,9 +20,7 @@ from custom_components.denonavr_plus.diagnostics import (
 )
 
 from .test_capabilities import RESULT as CHECK_RESULT
-from .test_init import loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
-__all__ = ["loaded_entry", "receiver_network"]
 
 RESULT: dict[str, Any] = {
     "test_version": 1,
@@ -36,11 +34,12 @@ RESULT: dict[str, Any] = {
         "lfe": {"group": "quiet", "result": "no_value"},
     },
 }
+from .common import report_notification
 
 
-def _issue(hass: HomeAssistant, entry: MockConfigEntry) -> ir.IssueEntry | None:
+def _issue(hass: HomeAssistant, entry: MockConfigEntry) -> dict[str, Any] | None:
     """The pointer to the prefilled issue (the recording is not a known model)."""
-    return ir.async_get(hass).async_get_issue(DOMAIN, f"capability_report_{entry.entry_id}")
+    return report_notification(hass, entry)
 
 
 async def _setup(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
@@ -65,10 +64,10 @@ async def test_a_test_chosen_at_setup_runs_once(
     assert run.await_args.args[0] == ["quiet"]
     assert entry.state is ConfigEntryState.LOADED
     assert "command_test_pending" not in entry.options
+    # A notification, not a repair: nothing to fix.
     issue = _issue(hass, entry)
-    assert issue is not None and not issue.is_fixable
-    assert issue.translation_placeholders == {"model": "AVC-X3700H"}
-    assert issue.learn_more_url is not None and "AVC-X3700H" in issue.learn_more_url
+    assert issue is not None and "AVC-X3700H" in issue["title"]
+    assert capabilities.issue_url("AVC-X3700H", None) in issue["message"]
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
     assert diagnostics["command_test"]["tests"] == RESULT["tests"]
 
@@ -97,7 +96,7 @@ async def test_the_check_runs_before_the_test(
             hass, capability_check_pending=True, command_test_pending=["quiet"]
         )
     assert order == ["check", "test"]
-    assert entry.options == {}
+    assert "command_test_pending" not in entry.options
     assert _issue(hass, entry) is not None
 
 
@@ -147,12 +146,12 @@ async def test_no_group_left_only_clears_the_option(
     with patch.object(DenonAvrDevice, "async_command_test", run):
         entry = await _setup(hass, command_test_pending=[])
         # An empty list is not "pending": nothing runs at setup.
-        assert entry.options == {"command_test_pending": []}
+        assert entry.options["command_test_pending"] == []
         from custom_components.denonavr_plus import command_test
 
         await command_test.async_run_pending(hass, entry)
     run.assert_not_awaited()
-    assert entry.options == {}
+    assert "command_test_pending" not in entry.options
 
 
 async def test_removing_the_entry_removes_the_test(

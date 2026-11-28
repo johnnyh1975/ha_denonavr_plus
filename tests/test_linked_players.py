@@ -26,9 +26,7 @@ from custom_components.denonavr_plus import linked_players
 from custom_components.denonavr_plus.const import DOMAIN
 from custom_components.denonavr_plus.linked_players import Link
 
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 APPLE_TV = "media_player.apple_tv"
 STREAMER = "media_player.streamer"

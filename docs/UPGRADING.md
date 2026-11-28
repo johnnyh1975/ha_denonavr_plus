@@ -4,6 +4,25 @@ What you have to do when you update Denon AVR Plus. Versions that need
 nothing from you are not listed. What changed in each version is in the
 [release notes](../release-notes/).
 
+## From 1.5.x to 1.6
+
+- **Options as menus**: **Playback** and **Activities** open a short menu
+  now, and each change is saved when you submit its last step; there is no
+  *Save* step at the end any more. The options menu shows only what can be
+  done at the moment (for example no *Sources* before the integration is
+  set up, no receiver test while the receiver is not connected).
+- **Zone 2 inputs**: the question *"Which inputs can Zone 2 play?"* is no
+  longer a repair. If it was still open, Zone 2's list is set as the repair
+  would have proposed (without the HDMI inputs when the receiver reports no
+  HDMI for Zone 2); change it under **Configure → Sources**.
+- **Help support your model**: after the receiver test of a model not known
+  yet, the pointer to the prefilled GitHub issue is a notification instead
+  of a repair.
+- **Quick select buttons**: one button per quick select appears on the
+  receiver's device (Zone 2's start disabled).
+- **Distances** of a speaker removed on the receiver are now hidden like its
+  channel level.
+
 ## From 1.4.x to 1.5
 
 - **Grayed setup items**: an HDMI or video setup item the receiver grays out
@@ -118,8 +137,10 @@ silently. An automation or script stops at such an error. Where a setting is
 meant to be tried whatever the signal, add `continue_on_error: true` to that
 action.
 
-If Zone 2's input list was never chosen in the options, a repair asks once
-which inputs Zone 2 can play. Answer it, or ignore it to keep every input.
+If Zone 2's input list was never chosen in the options, it is chosen once
+for you (since 1.6 without asking): every input, or every input but the HDMI
+ones when the receiver reports no HDMI for Zone 2. Change it under
+**Configure → Sources**.
 
 ## From 0.9.3
 

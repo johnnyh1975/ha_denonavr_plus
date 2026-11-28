@@ -29,9 +29,7 @@ from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.transport import GoformClient
 
 from .common import entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 MAIN_STATUS: dict[str, Any] = {"power": True, "volume_db": -30.0, "muted": False}
 ZONE2_STATUS: dict[str, Any] = {"power": True, "volume_db": -50.0, "source": "TUNER"}
@@ -46,8 +44,7 @@ async def _drop_telnet_and_poll(
 ) -> None:
     telnet = FakeTelnet.instances[-1]
     telnet.connected = False
-    assert telnet._on_availability is not None
-    telnet._on_availability(False)
+    telnet.set_available(False)
     for _ in range(2):
         freezer.tick(timedelta(seconds=11))
         async_fire_time_changed(hass)
@@ -489,7 +486,7 @@ async def test_position_repeat_and_shuffle_come_from_heos(
 ) -> None:
     from homeassistant.components.media_player import MediaPlayerEntityFeature
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     heos_client = FakeHeos.instances[-1]
     heos_client.on_update(
@@ -603,7 +600,7 @@ async def test_the_browser_offers_sources_and_home_assistant_media(
 async def test_a_url_goes_to_heos(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     main = entity_id(hass, loaded_entry, "media_player_main")
     await hass.services.async_call(
@@ -619,6 +616,29 @@ async def test_a_url_goes_to_heos(
     assert ("url", "http://example.com/stream.mp3") in FakeHeos.instances[-1].calls
 
 
+async def test_a_url_with_a_line_break_is_refused(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from homeassistant.exceptions import ServiceValidationError
+
+    from .fakes import FakeHeos
+
+    main = entity_id(hass, loaded_entry, "media_player_main")
+    with pytest.raises(ServiceValidationError) as err:
+        await hass.services.async_call(
+            "media_player",
+            "play_media",
+            {
+                "entity_id": main,
+                "media_content_type": "music",
+                "media_content_id": "http://example.com/a.mp3\nheos://system/reboot",
+            },
+            blocking=True,
+        )
+    assert err.value.translation_key == "play_url_invalid"
+    assert not [call for call in FakeHeos.instances[-1].calls if call[0] == "url"]
+
+
 async def test_quick_selects_and_home_assistant_media_play(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -626,7 +646,7 @@ async def test_quick_selects_and_home_assistant_media_play(
 
     from homeassistant.components.media_player import BrowseMedia
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     device = loaded_entry.runtime_data.device
     device.discovery.quick_select_names = {1: "Kino", 2: "Radio"}
@@ -723,7 +743,7 @@ async def test_zone_2_shows_what_the_main_zone_plays(
     """Zone 2 on SOURCE hears the main zone's network player, and can pause it."""
     from homeassistant.components.media_player import MediaPlayerEntityFeature
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SINET", "Z2ON", "Z2CD")
     FakeHeos.instances[-1].on_update(
@@ -1207,7 +1227,7 @@ async def test_heos_music_and_favorites_on_a_heos_receiver(
     """HEOS sources in the browser, favorites in the source menu, enqueue options."""
     from homeassistant.components.media_player import MediaPlayerEntityFeature
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     heos = FakeHeos.instances[-1]
     heos.connected = True
@@ -1335,7 +1355,7 @@ async def test_search_finds_by_name_for_voice(
     """Assist's "play Kino on the receiver": search, then the first result plays."""
     from homeassistant.components.media_player import MediaClass, SearchMediaQuery
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     device = loaded_entry.runtime_data.device
     device.discovery.quick_select_names = {1: "Kino", 2: "Kinoabend Spezial"}
@@ -1384,7 +1404,7 @@ async def test_favorites_and_quick_selects_play_by_name(
     """As the HEOS integration takes them: media_content_type favorite or quick_select."""
     from homeassistant.exceptions import ServiceValidationError
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     device = loaded_entry.runtime_data.device
     device.discovery.quick_select_names = {1: "Kino", 2: "Radio"}
@@ -1433,7 +1453,7 @@ async def test_the_heos_queue_and_what_plays_from_where(
 
     from custom_components.denonavr_plus.const import DOMAIN
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     heos = FakeHeos.instances[-1]
     heos.connected = True
@@ -1559,7 +1579,7 @@ async def test_heos_features_wait_for_the_heos_link(
 
     from custom_components.denonavr_plus.const import DOMAIN
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     heos = FakeHeos.instances[-1]
     heos.connected = False
@@ -1604,7 +1624,7 @@ async def test_a_source_zone_2_does_not_take_leaves_its_list(
     """Zone 2 of an AVR-X2600H plays no HDMI input: it says so and drops it."""
     await _push(hass, "PWON", "Z2ON", "Z2NET")
     zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
-    source = "DVD"
+    source = "CD"
     assert source in hass.states.get(zone2).attributes["source_list"]
     with (
         patch("custom_components.denonavr_plus.avr.device.ZONE_SOURCE_WAIT", 0.05),
@@ -1623,10 +1643,10 @@ async def test_a_source_zone_2_does_not_take_leaves_its_list(
     await asyncio.sleep(0.2)
     await hass.async_block_till_done()
     chosen = loaded_entry.options["sources"]["zone2"]
-    assert "DVD" not in chosen and "AUX1" in chosen
+    assert "CD" not in chosen and "TUNER" in chosen
 
 
-@pytest.mark.parametrize(("echo", "zone_on"), [("Z2DVD", True), (None, False)])
+@pytest.mark.parametrize(("echo", "zone_on"), [("Z2CD", True), (None, False)])
 async def test_a_late_echo_or_a_waking_zone_does_not_hide_a_source_for_good(
     hass: HomeAssistant, loaded_entry: MockConfigEntry, echo: str | None, zone_on: bool
 ) -> None:
@@ -1640,16 +1660,16 @@ async def test_a_late_echo_or_a_waking_zone_does_not_hide_a_source_for_good(
         pytest.raises(HomeAssistantError),
     ):
         await hass.services.async_call(
-            "media_player", "select_source", {"entity_id": zone2, "source": "DVD"}, blocking=True
+            "media_player", "select_source", {"entity_id": zone2, "source": "CD"}, blocking=True
         )
     if echo:
         await _push(hass, echo)
-        assert hass.states.get(zone2).attributes["source"] == "DVD"
-        assert "DVD" in hass.states.get(zone2).attributes["source_list"]
+        assert hass.states.get(zone2).attributes["source"] == "CD"
+        assert "CD" in hass.states.get(zone2).attributes["source_list"]
     await asyncio.sleep(0.2)
     await hass.async_block_till_done()
-    assert "sources" not in loaded_entry.options or "DVD" in (
-        loaded_entry.options["sources"].get("zone2") or ["DVD"]
+    assert "sources" not in loaded_entry.options or "CD" in (
+        loaded_entry.options["sources"].get("zone2") or ["CD"]
     )
 
 
@@ -2148,7 +2168,7 @@ async def test_music_assistant_on_the_network_input(
     """Its title and queue on the receiver's player; HEOS's own details step aside."""
     from homeassistant.components.media_player import DATA_COMPONENT
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SINET")
     main = entity_id(hass, loaded_entry, "media_player_main")
@@ -2184,7 +2204,7 @@ async def test_heos_speaks_on_the_network_input_while_music_assistant_is_idle(
     """A HEOS favorite or a phone's stream on NET keeps its title and transport."""
     from homeassistant.components.media_player import DATA_COMPONENT
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SINET")
     main = entity_id(hass, loaded_entry, "media_player_main")
@@ -2262,7 +2282,7 @@ async def test_voice_finds_music_assistants_library_through_the_receiver(
     """"Play Queen on the receiver": the linked library is searched and plays on its input."""
     from homeassistant.components.media_player import DATA_COMPONENT, SearchMediaQuery
 
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     mass = _SearchingPlayer(_MASS)
     broken = _SearchingPlayer("media_player.broken_library", fails=True)
@@ -2421,7 +2441,7 @@ async def test_heos_speaks_while_music_assistant_is_paused_and_heos_plays(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     """A phone's stream started on NET while Music Assistant's queue is paused."""
-    from .test_init import FakeHeos
+    from .fakes import FakeHeos
 
     await _push(hass, "PWON", "ZMON", "SINET")
     main = entity_id(hass, loaded_entry, "media_player_main")

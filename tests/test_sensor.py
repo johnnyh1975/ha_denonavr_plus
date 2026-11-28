@@ -8,9 +8,7 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .common import entity_id, registry_entry
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 async def test_only_the_decoder_starts_enabled(
@@ -35,7 +33,7 @@ async def test_the_sound_mode_sensor_shows_the_mode(
     import asyncio
 
     from .common import async_enable, entity_id
-    from .test_init import FakeTelnet
+    from .fakes import FakeTelnet
 
     await async_enable(hass, loaded_entry, "sensor_sound_mode")
     FakeTelnet.instances[-1].push("MSSTEREO")
@@ -53,7 +51,7 @@ async def test_the_source_sensor_shows_the_name_home_assistant_uses(
     from custom_components.denonavr_plus import choices
 
     from .common import async_enable, entity_id
-    from .test_init import FakeTelnet
+    from .fakes import FakeTelnet
 
     assert registry_entry(hass, loaded_entry, "sensor_source_main").disabled_by is not None
     hass.config_entries.async_update_entry(

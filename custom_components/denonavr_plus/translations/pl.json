@@ -85,6 +85,7 @@
     "step": {
       "init": {
         "title": "Opcje",
+        "description": "Źródła, tryby dźwięku, odtwarzanie, aktywności i test amplitunera pojawiają się, gdy amplituner jest połączony.",
         "menu_options": {
           "volume": "Głośność",
           "zones": "Strefy i włączanie",
@@ -235,21 +236,15 @@
       },
       "playback": {
         "title": "Odtwarzanie",
-        "description": "Jak odtwarzacze multimedialne pokazują, co gra na wejściu. Wybierz wejście, aby powiązać podłączone do niego urządzenie, np. Apple TV lub streamer, albo zatwierdź, aby zapisać.",
-        "data": {
-          "input": "Powiąż odtwarzacz z wejściem",
-          "pause_on_off": "Wstrzymaj połączony odtwarzacz po wyłączeniu strefy",
-          "signal_state": "Odtwarzanie lub brak aktywności według sygnału wejściowego"
-        },
-        "data_description": {
-          "input": "Gdy wejście gra, jego strefa pokazuje tytuł, okładkę, pozycję i stan powiązanego odtwarzacza, a odtwarzanie, pauza, przeskok i przewijanie trafiają do niego. Zasilanie, głośność i wejście pozostają przy amplitunerze. Wejście z odtwarzaczem pokazuje go za strzałką. Wejście sieciowe przyjmuje odtwarzacz Music Assistant: jego kolejka i biblioteka przychodzą wtedy razem z nim. Wyszukiwanie głosowe na amplitunerze przeszukuje też połączone odtwarzacze, które to potrafią, np. Music Assistant.",
-          "pause_on_off": "Wyłączenie strefy w Home Assistant wstrzymuje połączony odtwarzacz wejścia, które grała, aby nie grał dalej bez słuchacza. Nie, gdy inna strefa nadal gra to wejście.",
-          "signal_state": "Strefa na wejściu bez powiązanego odtwarzacza pokazuje „odtwarzanie”, gdy wejście ma sygnał, i „brak aktywności” bez sygnału, zamiast „włączono”. Źródła sieciowe i tuner zachowują własny stan. Jeszcze niewypróbowane na amplitunerze: nie wiadomo, czy każdy model zgłasza koniec sygnału. Źródło HDMI pokazujące swoje menu często też wysyła sygnał."
+        "description": "Jak odtwarzacze multimedialne pokazują, co gra na wejściu. Każda zmiana jest zapisywana po przesłaniu.",
+        "menu_options": {
+          "playback_link": "Powiąż odtwarzacz z wejściem",
+          "playback_display": "Wyświetlanie odtwarzania"
         }
       },
       "linked_input": {
         "title": "Powiązany odtwarzacz",
-        "description": "**{input}**: odtwarzacz multimedialny urządzenia podłączonego do tego wejścia. Zostaw puste, aby usunąć powiązanie; przełączniki nie mają wtedy znaczenia.",
+        "description": "**{input}**: odtwarzacz multimedialny urządzenia podłączonego do tego wejścia. Zostaw puste, aby usunąć powiązanie; przełączniki nie mają wtedy znaczenia. Prześlij zapisuje powiązanie.",
         "data": {
           "player": "Odtwarzacz multimedialny",
           "follow": "Strefa główna przełącza na to wejście, gdy odtwarzacz zacznie grać",
@@ -261,14 +256,6 @@
           "follow": "Gdy odtwarzacz rusza, strefa główna w razie potrzeby się włącza i przełącza tutaj. Powiązane odtwarzacze, których nie gra żadna strefa, zostają wtedy wstrzymane, także gdy strefa główna zostanie przełączona ręcznie lub pilotem na inne wejście z powiązanym odtwarzaczem. Odtwarzacz, który ruszy w ciągu 5 sekund od zmiany, zostaje wstrzymany zamiast tego.",
           "full_volume": "Głośność ustawia się na amplitunerze: dopóki włączona strefa gra to wejście, odtwarzacz jest ustawiany na pełną głośność i odciszany, a potem ponownie, gdy tylko zmieni się jego głośność. Nie dla urządzenia z własnymi głośnikami, np. telewizora: grałoby tam z pełną głośnością.",
           "power": "Gdy strefa przełączy się na to wejście, odtwarzacz zostanie włączony, jeśli jest wyłączony; gdy wszystkie strefy, które go odtwarzały, zostaną wyłączone, odtwarzacz też zostanie wyłączony. Gdy strefa tylko zmienia wejście, pozostaje włączony."
-        }
-      },
-      "playback_next": {
-        "title": "Więcej wejść?",
-        "description": "Zmiana dla {input} jest zapamiętana. Zostanie zapisana razem z pozostałymi po wybraniu Zapisz.",
-        "menu_options": {
-          "playback": "Powiąż kolejne wejście",
-          "playback_save": "Zapisz"
         }
       },
       "connection": {
@@ -344,47 +331,69 @@
       },
       "activities": {
         "title": "Aktywności",
-        "description": "Aktywność przygotowuje strefę za jednym razem: wejście, tryb dźwięku, głośność, wyjście HDMI i wyrazistość dialogów. Każda strefa z aktywnościami dostaje wybór do ich uruchamiania. Na razie {count} aktywności. Wybierz jedną, aby ją zmienić lub usunąć, albo zostaw pole puste dla nowej.",
-        "data": {
-          "activity": "Aktywność"
-        },
-        "data_description": {
-          "activity": "Puste: nowa aktywność."
+        "description": "Aktywność przygotowuje strefę za jednym razem: wejście, tryb dźwięku, głośność, wyjście HDMI i wyrazistość dialogów. Każda strefa z aktywnościami dostaje wybór do ich uruchamiania. Na razie {count} aktywności.",
+        "menu_options": {
+          "activity_new": "Nowa aktywność",
+          "activity_change": "Zmień lub usuń aktywność"
         }
       },
       "activity": {
         "title": "Aktywność",
-        "description": "Strefa włącza się i przyjmuje te ustawienia po kolei. Potrzebne są tylko nazwa, strefa i wejście.",
+        "description": "Nazwa i strefa. Następny krok zawiera wejście i to, co jeszcze przejmuje strefa.",
         "data": {
           "name": "Nazwa",
           "zone": "Strefa",
+          "delete": "Usuń tę aktywność"
+        },
+        "data_description": {
+          "name": "Widoczna w wyborze i używana przez akcję uruchomienia aktywności oraz polecenia głosowe."
+        }
+      },
+      "playback_link": {
+        "title": "Powiąż odtwarzacz z wejściem",
+        "description": "Gdy wejście gra, jego strefa pokazuje tytuł, okładkę, pozycję i stan powiązanego odtwarzacza, a odtwarzanie, pauza, przeskok i przewijanie trafiają do niego. Zasilanie, głośność i wejście pozostają przy amplitunerze. Wejście z odtwarzaczem pokazuje go za strzałką. Wejście sieciowe przyjmuje odtwarzacz Music Assistant: jego kolejka i biblioteka przychodzą wtedy razem z nim. Wyszukiwanie głosowe na amplitunerze przeszukuje też połączone odtwarzacze, które to potrafią, np. Music Assistant.",
+        "data": {
+          "input": "Wejście"
+        }
+      },
+      "playback_display": {
+        "title": "Wyświetlanie odtwarzania",
+        "data": {
+          "pause_on_off": "Wstrzymaj połączony odtwarzacz po wyłączeniu strefy",
+          "signal_state": "Odtwarzanie lub brak aktywności według sygnału wejściowego"
+        },
+        "data_description": {
+          "pause_on_off": "Wyłączenie strefy w Home Assistant wstrzymuje połączony odtwarzacz wejścia, które grała, aby nie grał dalej bez słuchacza. Nie, gdy inna strefa nadal gra to wejście.",
+          "signal_state": "Strefa na wejściu bez powiązanego odtwarzacza pokazuje „odtwarzanie”, gdy wejście ma sygnał, i „brak aktywności” bez sygnału, zamiast „włączono”. Źródła sieciowe i tuner zachowują własny stan. Eksperymentalne: nie każdy amplituner może zgłaszać koniec sygnału. Źródło HDMI pokazujące swoje menu często też wysyła sygnał."
+        }
+      },
+      "activity_change": {
+        "title": "Zmień lub usuń aktywność",
+        "data": {
+          "activity": "Aktywność"
+        }
+      },
+      "activity_details": {
+        "title": "{activity}",
+        "description": "Strefa włącza się i przyjmuje te ustawienia po kolei. Potrzebne jest tylko wejście; Prześlij zapisuje aktywność.",
+        "data": {
           "source": "Wejście",
           "sound_mode": "Tryb dźwięku",
           "volume_db": "Głośność",
           "hdmi_output": "Wyjście HDMI",
+          "audio_delay": "Opóźnienie dźwięku",
           "clarity": "Wyrazistość dialogów",
           "wake_player": "Włącz powiązany odtwarzacz",
-          "delete": "Usuń tę aktywność",
-          "audio_delay": "Opóźnienie dźwięku",
           "wake_entity": "Włącz także"
         },
         "data_description": {
-          "name": "Widoczna w wyborze i używana przez akcję uruchomienia aktywności oraz polecenia głosowe.",
-          "sound_mode": "Tylko strefa główna. Puste: tryb dźwięku zostaje bez zmian.",
+          "sound_mode": "Puste: tryb dźwięku zostaje bez zmian.",
           "volume_db": "W dB na skali amplitunera. Puste: głośność włączenia lub głośność bez zmian. Pozostaje poniżej maksymalnej głośności strefy.",
-          "hdmi_output": "Tylko strefa główna. Puste: wyjście zostaje bez zmian.",
-          "clarity": "Tylko strefa główna: włącz lub wyłącz przełącznik wyrazistości dialogów albo zostaw go.",
+          "hdmi_output": "Puste: wyjście zostaje bez zmian.",
+          "audio_delay": "Do synchronizacji dźwięku z obrazem tej aktywności. Puste: opóźnienie zostaje bez zmian. Auto Lip Sync amplitunera może je nadpisać.",
+          "clarity": "Włącz lub wyłącz przełącznik wyrazistości dialogów albo zostaw go.",
           "wake_player": "Włącza odtwarzacz multimedialny powiązany z wejściem (Konfiguruj → Odtwarzanie), np. przystawkę do streamingu.",
-          "audio_delay": "Tylko strefa główna, do synchronizacji dźwięku z obrazem tej aktywności. Puste: opóźnienie zostaje bez zmian. Auto Lip Sync amplitunera może je nadpisać.",
           "wake_entity": "Kolejne urządzenie do włączenia, np. telewizor, gdy odtwarzaczem powiązanym z wejściem jest przystawka do streamingu."
-        }
-      },
-      "activities_next": {
-        "title": "Więcej aktywności?",
-        "description": "{activity} zapisano wstępnie. Zostanie zapisana razem z pozostałymi, gdy wybierzesz Zapisz.",
-        "menu_options": {
-          "activities": "Kolejna aktywność",
-          "activities_save": "Zapisz"
         }
       }
     },
@@ -1311,6 +1320,9 @@
       "eq_default": {
         "name": "Domyślne"
       },
+      "quick_select_recall": {
+        "name": "Quick Select {name}"
+      },
       "quick_select_save": {
         "name": "Zapisz Quick Select {name}"
       },
@@ -1379,6 +1391,9 @@
     "cannot_reach": {
       "message": "Nie można połączyć się z amplitunerem pod adresem {host} ({error}). Konfiguracja zostanie ponowiona."
     },
+    "model_not_named_yet": {
+      "message": "Amplituner pod adresem {host} odpowiada, ale nie podał jeszcze swojego modelu; prawdopodobnie wciąż się uruchamia. Konfiguracja zostanie ponowiona."
+    },
     "play_url_unsupported": {
       "message": "{model} nie odtwarza adresów internetowych: nie ma HEOS. Wybierz źródło lub Quick Select."
     },
@@ -1402,6 +1417,9 @@
     },
     "play_url_main_zone": {
       "message": "{model} odtwarza adresy internetowe w strefie głównej (przez HEOS). Odtwórz je tam i dołącz tę strefę do strefy głównej."
+    },
+    "play_url_invalid": {
+      "message": "Adres internetowy zawiera znak sterujący, na przykład znak nowego wiersza. {model} nie może go odtworzyć."
     },
     "heos_unavailable": {
       "message": "HEOS nie jest teraz połączony w {model}."
@@ -1543,6 +1561,12 @@
     },
     "speaker_layout_busy": {
       "message": "Układ głośników jest właśnie zapisywany lub przywracany; spróbuj ponownie za chwilę."
+    },
+    "capability_report_title": {
+      "message": "Pomóż w obsłudze {model}"
+    },
+    "capability_report_message": {
+      "message": "Test amplitunera {model} zakończony; wyniki są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Otwórz [wstępnie wypełnione zgłoszenie]({url}) i dołącz tam plik. Zignoruj ten komunikat, jeśli nie chcesz go udostępniać. To, co słychać i widać, można przetestować w Konfiguruj → Testuj amplituner."
     }
   },
   "issues": {
@@ -1595,17 +1619,9 @@
         }
       }
     },
-    "capability_report": {
-      "title": "Pomóż w obsłudze {model}",
-      "description": "Test amplitunera {model} zakończony; wyniki są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Otwórz wstępnie wypełnione zgłoszenie przez „Dowiedz się więcej” i dołącz tam plik. Zignoruj ten komunikat, jeśli nie chcesz go udostępniać. To, co słychać i widać, można przetestować w Konfiguruj → Testuj amplituner."
-    },
     "heos_playback_error": {
       "title": "{model} nie mógł tego odtworzyć",
       "description": "HEOS w {model} zgłosił błąd odtwarzania: {error}\n\nCzęste przyczyny to adres, którego amplituner nie osiąga, format, którego nie odtwarza, lub usługa wymagająca logowania w aplikacji HEOS. Komunikat zniknie sam, gdy coś znów zacznie grać."
-    },
-    "command_test_done": {
-      "title": "Test poleceń {model} zakończony",
-      "description": "{model} potwierdził {confirmed} z {total} poleceń. Nieprzywrócone ustawienia: {not_restored}; jeśli to nie 0, sprawdź je na amplitunerze. Szczegóły są w pliku diagnostycznym (Ustawienia → Urządzenia oraz usługi → Denon AVR Plus → ⋮ → Pobierz dane diagnostyczne). Otwórz wstępnie wypełnione zgłoszenie przez „Dowiedz się więcej” i dołącz tam plik. Zignoruj ten komunikat, jeśli nie chcesz go udostępniać."
     },
     "move_available": {
       "title": "{title} jest też skonfigurowany w {integration}",
@@ -1629,23 +1645,6 @@
             "title": "Automatyzacje sprawdzone?",
             "description": "Te automatyzacje i skrypty używają czegoś z oficjalnej integracji, co tutaj działa inaczej. Po lewej stronie strzałki to, czego używają, po prawej to, co to zastępuje (– oznacza: już niepotrzebne lub brak zamiennika). Nic nie zostało zmienione.\n\n{findings}\n\nPotwierdź, gdy je zmienisz; lista zniknie."
           }
-        }
-      }
-    },
-    "zone2_sources": {
-      "title": "Które wejścia może odtwarzać strefa 2 urządzenia {model}?",
-      "fix_flow": {
-        "step": {
-          "choose": {
-            "title": "Wejścia strefy 2",
-            "description": "Mniejsze amplitunery nie odtwarzają wejść HDMI w strefie 2. Wybierz wejścia, które strefa 2 może odtwarzać; pozostałe znikną z jej listy. Wejścia HDMI są odznaczone, gdy amplituner nie zgłasza HDMI dla strefy 2. Listę można później zmienić w opcjach, w sekcji Źródła.",
-            "data": {
-              "sources": "Wejścia strefy 2"
-            }
-          }
-        },
-        "abort": {
-          "not_loaded": "Integracja nie jest teraz załadowana; spróbuj ponownie, gdy amplituner będzie połączony."
         }
       }
     },

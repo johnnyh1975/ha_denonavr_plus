@@ -13,13 +13,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.denonavr_plus import layout_repair
 from custom_components.denonavr_plus.avr.speaker_layout import SpeakerLayout
 from custom_components.denonavr_plus.avr.transport import WebConfigClient
-from custom_components.denonavr_plus.button import DenonAvrQuickSelectSave
+from custom_components.denonavr_plus.button import DenonAvrQuickSelectRecall, DenonAvrQuickSelectSave
 from custom_components.denonavr_plus.const import DOMAIN
 
 from .common import async_enable, entity_id
-from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
-
-__all__ = ["loaded_entry", "receiver_network"]
+from .fakes import FakeTelnet
 
 
 async def test_rejected_eq_write_is_reported(
@@ -177,3 +175,54 @@ async def test_a_second_layout_change_goes_back_to_the_state_before_the_first(
     assert apply.await_args_list[1].args == (LAYOUT_POINT["before"],)
     # Nothing prepared the third time: the open repair stays as it was.
     assert layout_repair.open_point(hass, entry.entry_id) == second
+
+
+async def test_each_quick_select_has_a_button_per_zone(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """The select shows nothing once a preset is changed; a button is plain to use."""
+    from unittest.mock import patch
+
+    from homeassistant.const import CONF_HOST
+
+    from custom_components.denonavr_plus.avr.models import Discovery
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION
+
+    from .setup_api import FakeSetupApi, answering_receiver
+
+    answered = Discovery.has_control
+
+    def zone2_answers(self: Discovery, scope: Any, feature: Any, control_id: str) -> bool:
+        # As a receiver that answers Z2QUICK ? (an AVR-X2000 and an AVR-X2600H do).
+        return control_id == "zone2_quick_select" or answered(self, scope, feature, control_id)
+
+    with (
+        patch.object(Discovery, "has_control", zone2_answers),
+        answering_receiver(FakeSetupApi()),
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN, data={CONF_HOST: "192.0.2.10"}, minor_version=CONFIG_MINOR_VERSION
+        )
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        button = entity_id(hass, entry, "button_quick_select_main_2")
+        assert hass.states.get(button).attributes["friendly_name"].endswith("Quick Select Music")
+        telnet = FakeTelnet.instances[-1]
+        telnet.sent.clear()
+        await hass.services.async_call("button", "press", {"entity_id": button}, blocking=True)
+        assert telnet.sent == ["MSQUICK2"]
+        telnet.sent.clear()
+        await hass.services.async_call(
+            "button",
+            "press",
+            {"entity_id": entity_id(hass, entry, "button_quick_select_zone2_1")},
+            blocking=True,
+        )
+        assert telnet.sent == ["Z2QUICK1"]
+        coordinator = entry.runtime_data
+    # The main zone's start shown, Zone 2's with the zone's other settings hidden.
+    zones = {zone.id: zone for zone in coordinator.device.discovery.zones}
+    assert DenonAvrQuickSelectRecall(coordinator, zones["main"], 1).entity_registry_enabled_default
+    assert not DenonAvrQuickSelectRecall(coordinator, zones["zone2"], 1).entity_registry_enabled_default
+
