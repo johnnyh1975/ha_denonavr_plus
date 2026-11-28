@@ -172,20 +172,20 @@
       "menus": {"3": "HDMISetup", "7": "OnScreenDisplay", "8": "FourKSignalFormat", "9": "TVFormat"},
       "pass_through_values": {"Last": "1", "HDMI1": "2", "HDMI2": "3", "HDMI3": "4", "HDMI4": "5", "HDMI5": "6", "HDMI6": "7", "HDMI7": "8", "Front": "9"},
       "controls": [
-        {"id": "hdmi_control", "type": 3, "tag": "HDMIControl", "kind": "switch", "on": "1", "off": "2", "name": "HDMI Control"},
-        {"id": "arc", "type": 3, "tag": "ARC", "kind": "switch", "on": "1", "off": "2", "name": "ARC"},
-        {"id": "tv_audio_switching", "type": 3, "tag": "TVAudioSwitching", "kind": "switch", "on": "1", "off": "2", "name": "TV Audio Switching"},
-        {"id": "hdmi_power_off_control", "type": 3, "tag": "PowerOffControl", "kind": "select", "options": {"1": "All", "2": "Video", "3": "Off"}, "name": "HDMI Power Off Control"},
-        {"id": "hdmi_power_saving", "type": 3, "tag": "PowerSaving", "kind": "switch", "on": "1", "off": "2", "name": "HDMI Power Saving"},
-        {"id": "smart_menu", "type": 3, "tag": "SmartMenu", "kind": "switch", "on": "1", "off": "2", "name": "Smart Menu"},
-        {"id": "hdmi_pass_through", "type": 3, "tag": "HDMIPassThrough", "kind": "switch", "on": "1", "off": "2", "name": "HDMI Pass Through"},
-        {"id": "pass_through_source", "type": 3, "tag": "PassThroughSource", "field": "Source", "list": "List", "dynamic": true, "kind": "select", "name": "Pass Through Source"},
-        {"id": "rc_select", "type": 3, "tag": "RCSelect", "kind": "select", "options": {"1": "Power On + Source", "2": "Source Select Only"}, "name": "RC Select"},
-        {"id": "osd_volume", "type": 7, "tag": "Volume", "kind": "select", "options": {"1": "Bottom", "2": "Top", "3": "Off"}, "name": "On-Screen Volume"},
-        {"id": "osd_info", "type": 7, "tag": "Info", "kind": "switch", "on": "1", "off": "0", "name": "On-Screen Info"},
-        {"id": "osd_now_playing", "type": 7, "tag": "NowPlaying", "kind": "select", "options": {"1": "Always On", "2": "Auto Off"}, "name": "Now Playing Display"},
-        {"id": "hdmi_signal_format", "type": 8, "tag": "Format", "kind": "select", "options": {"1": "Standard", "2": "Enhanced", "3": "Custom", "4": "8K Enhanced"}, "name": "4K Signal Format"},
-        {"id": "tv_format", "type": 9, "tag": "TVFormat", "kind": "select", "options": {"1": "NTSC", "2": "PAL"}, "name": "TV Format"}
+        {"id": "hdmi_control", "type": 3, "tag": "HDMIControl", "kind": "switch", "on": "1", "off": "2"},
+        {"id": "arc", "type": 3, "tag": "ARC", "kind": "switch", "on": "1", "off": "2"},
+        {"id": "tv_audio_switching", "type": 3, "tag": "TVAudioSwitching", "kind": "switch", "on": "1", "off": "2"},
+        {"id": "hdmi_power_off_control", "type": 3, "tag": "PowerOffControl", "kind": "select", "options": {"1": "All", "2": "Video", "3": "Off"}},
+        {"id": "hdmi_power_saving", "type": 3, "tag": "PowerSaving", "kind": "switch", "on": "1", "off": "2"},
+        {"id": "smart_menu", "type": 3, "tag": "SmartMenu", "kind": "switch", "on": "1", "off": "2"},
+        {"id": "hdmi_pass_through", "type": 3, "tag": "HDMIPassThrough", "kind": "switch", "on": "1", "off": "2"},
+        {"id": "pass_through_source", "type": 3, "tag": "PassThroughSource", "field": "Source", "list": "List", "dynamic": true, "kind": "select"},
+        {"id": "rc_select", "type": 3, "tag": "RCSelect", "kind": "select", "options": {"1": "Power On + Source", "2": "Source Select Only"}},
+        {"id": "osd_volume", "type": 7, "tag": "Volume", "kind": "select", "options": {"1": "Bottom", "2": "Top", "3": "Off"}},
+        {"id": "osd_info", "type": 7, "tag": "Info", "kind": "switch", "on": "1", "off": "0"},
+        {"id": "osd_now_playing", "type": 7, "tag": "NowPlaying", "kind": "select", "options": {"1": "Always On", "2": "Auto Off"}},
+        {"id": "hdmi_signal_format", "type": 8, "tag": "Format", "kind": "select", "options": {"1": "Standard", "2": "Enhanced", "3": "Custom", "4": "8K Enhanced"}},
+        {"id": "tv_format", "type": 9, "tag": "TVFormat", "kind": "select", "options": {"1": "NTSC", "2": "PAL"}}
       ]
     },
     "speakers_web": {
@@ -203,7 +203,7 @@
       ],
       "menus": {"2": "AmpAssign"},
       "controls": [
-        {"id": "amp_assign", "type": 2, "tag": "AssignMode", "amptype_tag": "AmpType", "kind": "select", "name": "Amp Assign",
+        {"id": "amp_assign", "type": 2, "tag": "AssignMode", "amptype_tag": "AmpType", "kind": "select",
          "amptype_options": {
            "3": [["1", "7.1ch"]],
            "4": [["1", "Surround Back"], ["2", "ZONE2"], ["5", "Front Height"], ["8", "Top Front"], ["9", "Top Middle"], ["10", "Front Dolby"], ["11", "Surround Dolby"]],
@@ -219,9 +219,9 @@
            "14": [["1", "9.1ch"], ["2", "7.1ch + ZONE2"], ["7", "7.1ch (Bi-Amp)"], ["14", "5.1ch (Bi-Amp) + ZONE2"], ["6", "7.1ch + Front B"], ["17", "Pre Amplifier"]],
            "15": [["1", "9.1ch"], ["2", "7.1ch + ZONE2"], ["3", "7.1ch + ZONE3"], ["13", "5.1ch + ZONE2/3"], ["4", "7.1ch + ZONE2/3-MONO"], ["7", "7.1ch (Bi-Amp)"], ["14", "5.1ch (Bi-Amp) + ZONE2"], ["6", "7.1ch + Front B"], ["17", "Pre Amplifier"]]
          }},
-        {"id": "floor_layout", "type": 2, "tag": "FloorLayout", "kind": "select", "value_list": true, "name": "Floor Layout",
+        {"id": "floor_layout", "type": 2, "tag": "FloorLayout", "kind": "select", "value_list": true,
          "options": {"1": "5ch", "2": "5ch & SB", "3": "5ch & FW", "4": "5ch & SB & FW"}},
-        {"id": "height_speaker", "type": 2, "tag": "HeightSpeaker", "kind": "select", "value_list": true, "name": "Height Speakers",
+        {"id": "height_speaker", "type": 2, "tag": "HeightSpeaker", "kind": "select", "value_list": true,
          "options": {"1": "Height None / Dolby None", "2": "Height None / Dolby 2ch", "3": "Height None / Dolby 4ch", "4": "Height None / Dolby 6ch", "5": "Height 2ch / Dolby None", "6": "Height 2ch / Dolby 2ch", "7": "Height 2ch / Dolby 4ch", "8": "Height 4ch / Dolby None", "9": "Height 4ch / Dolby 2ch", "10": "Height 5ch / Dolby None", "11": "Height 5ch / Dolby 2ch", "12": "Height 6ch / Dolby None", "13": "Height 6ch / Dolby 2ch", "14": "Height 7ch / Dolby None", "15": "Height 8ch / Dolby None"}}
       ]
     }
@@ -364,35 +364,30 @@
   "readonly": {
     "input_signal": {
       "kind": "passthrough",
-      "name": "Input Signal",
       "query": "SSINFAISSIG ?",
       "prefix": "SSINFAISSIG",
       "doc": "Raw input signal type code."
     },
     "sample_rate": {
       "kind": "sample_rate",
-      "name": "Sample Rate",
       "query": "SSINFAISFSV ?",
       "prefix": "SSINFAISFSV",
       "doc": "Sample rate token such as '48K'. 'NON' means no active signal."
     },
     "audio_format": {
       "kind": "passthrough",
-      "name": "Audio Format",
       "query": "SSINFAISFOR ?",
       "prefix": "SSINFAISFOR",
       "doc": "Channel layout such as '2/0/.0'."
     },
     "decoder": {
       "kind": "trimmed",
-      "name": "Decoder",
       "query": "SYSDA ?",
       "prefix": "SYSDA ",
       "doc": "Active decoder/audio format, for example 'PCM' (space padded)."
     },
     "mode_info": {
       "kind": "trimmed",
-      "name": "Mode Info",
       "query": "SYSMI ?",
       "prefix": "SYSMI ",
       "doc": "Informational mode string, for example 'Stereo' (space padded)."
@@ -475,7 +470,6 @@
       "kind": "volume",
       "query": "MV?",
       "prefix": "MV",
-      "max_prefix": "MVMAX",
       "up": "MVUP",
       "down": "MVDOWN",
       "doc": "Master volume. Two/three digit half step scale, 80 == 0 dB reference."
@@ -595,7 +589,6 @@
       "on": "ON",
       "off": "OFF",
       "subdevice": "eq",
-      "name": "Enabled",
       "doc": "Graphic EQ on/off (telnet PSGEQ). The per-band values are on the setup config API, not telnet; this on/off switch lives on the EQ sub-device with the band numbers. Named 'Enabled' so it reads as 'Graphic EQ Enabled', not doubled."
     },
     "room_size": {
@@ -767,7 +760,6 @@
       "prefix": "SSVCTZMADIS ",
       "values": ["REL", "ABS"],
       "labels": ["Relative", "Absolute"],
-      "name": "Volume Scale",
       "doc": "Master volume display scale: Relative (dB around 0, e.g. -79.5..+18.0) or Absolute (0..98). SSVCTZMADIS (verified live). Core-scoped, no FuncName, parsed explicitly."
     },
     "volume_limit": {
@@ -778,7 +770,6 @@
       "prefix": "SSVCTZMALIM ",
       "values": ["OFF", "060", "070", "080"],
       "labels": ["Off", "-20 dB", "-10 dB", "0 dB"],
-      "name": "Volume Limit",
       "doc": "Maximum master volume limit. SSVCTZMALIM; the numeric values are the master-volume scale (060=-20 dB, 070=-10 dB, 080=0 dB). Verified live. Core-scoped, no FuncName, parsed explicitly."
     },
     "muting_level": {
@@ -789,7 +780,6 @@
       "prefix": "SSVCTZMAMLV ",
       "values": ["MUT", "040"],
       "labels": ["Full", "-40 dB"],
-      "name": "Muting Level",
       "doc": "Attenuation applied when muted: Full or -40 dB. SSVCTZMAMLV (MUT / 040; -20 dB is not offered on this model). Verified live. Core-scoped, no FuncName, parsed explicitly."
     },
     "all_zone_stereo": {
@@ -800,7 +790,6 @@
       "prefix": "MNZST ",
       "on": "ON",
       "off": "OFF",
-      "name": "All Zone Stereo",
       "doc": "All Zone Stereo: play the main zone audio in stereo across every zone. Set via 'MNZST ON|OFF' (verified live). Core-scoped (no Deviceinfo FuncName), parsed explicitly. Asked as 'MNZST?' without a space, the form Denon's FY21 AVR protocol table gives; 'MNZST ?' got no answer from an AVR-X2600H or an AVR-X3600H. As a fallback the on/off state is derived from the sound mode (MS reports 'ALL ZONE STEREO' when active, verified live) - this gives a known state (single toggle, not two buttons) from the resync MS? onwards; the MNZST echo/push updates it immediately on change. An AVR-X2600H (3.139.175) took 'MNZST ON' sent right after a MultEQ change and back, then answered nothing for the rest of a command test; the same command after other settings came and went normally."
     },
     "subwoofer_mode": {
@@ -811,7 +800,6 @@
       "prefix": "SSSWM ",
       "values": ["LFE", "L+M"],
       "labels": ["LFE", "LFE + Main"],
-      "name": "Subwoofer Mode",
       "doc": "Subwoofer mode: LFE only, or LFE + Main (the mains' low frequencies are also sent to the subwoofer). Verified live read/write via 'SSSWM <token>'. Core-scoped: it has no Deviceinfo FuncName, so it is always queried and parsed explicitly; labels are given here as there is no device option list."
     },
     "front_speaker": {
@@ -822,7 +810,6 @@
       "prefix": "PSFRONT ",
       "values": ["SPA", "SPB", "A+B"],
       "labels": ["Front A", "Front B", "A + B"],
-      "name": "Front Speaker",
       "doc": "Front speaker terminal selection (Denon PSFRONT SPA/SPB/A+B). NOTE the query is 'PSFRONT?' with NO space (unlike other PS controls); the set is 'PSFRONT <token>' with a space. Only applies when Amp Assign is set to Front B; the receiver reports/accepts it only in that mode, so the state may be unknown otherwise. Verified live: read via 'PSFRONT?' and set 'PSFRONT A+B' echoed."
     },
     "lpf_for_lfe": {
@@ -833,7 +820,6 @@
       "prefix": "SSLFL ",
       "values": ["080", "090", "100", "110", "120", "150", "180", "200", "250"],
       "labels": ["80 Hz", "90 Hz", "100 Hz", "110 Hz", "120 Hz", "150 Hz", "180 Hz", "200 Hz", "250 Hz"],
-      "name": "LPF for LFE",
       "doc": "Low-pass filter for the LFE channel (Denon SSLFL, 3-digit Hz, query 'SSLFL ?' WITH space). Verified live read/write (080<->090, reversible). The frequency set is the standard LFE LPF range, confirmed by the /ajax speakers type=17 SelectableValue list (80..250 Hz)."
     },
     "zone2_sleep_timer": {
@@ -1207,7 +1193,6 @@
       "feature": "ChannelLevel",
       "kind": "channel_set",
       "list_query": "SSLEV ?",
-      "list_prefix": "SSLEV",
       "read_query": "CV?",
       "set_prefix": "CV",
       "doc": "Per channel volume trim. Configured channels, their names and their dB ranges are all discovered from the receiver; live trims are read/written via CV<code>."

@@ -289,8 +289,8 @@ def alternative(spec: ControlSpec, value: Any, step: float = 0.5) -> Any:
         # Towards 0 dB: always inside the range of a valid value.
         return float(value) - step if float(value) > 0 else float(value) + step
     if kind in ("centered", "integer", "attenuation"):
-        step = int(spec.get("step", 1) or 1)
-        low, high = spec.get("min"), spec.get("max")
+        step = int(spec.step or 1)
+        low, high = spec.min, spec.max
         current = int(value)
         if high is None or current + step <= high:
             return current + step
@@ -298,8 +298,8 @@ def alternative(spec: ControlSpec, value: Any, step: float = 0.5) -> Any:
             return current - step
         return None
     if kind == "minutes":
-        step = int(spec.get("step", 10) or 10)
-        high = int(spec.get("max", 120) or 120)
+        step = int(spec.step or 10)
+        high = int(spec.max or 120)
         current = int(value)
         if current == 0:
             # The longest timer: the least harm if it were not put back.
@@ -390,7 +390,7 @@ def _level_step(device: DenonAvrDevice, spec: ControlSpec) -> float:
     meta = device.discovery.numeric_meta.get(spec.feature or "")
     if meta and meta.get("step"):
         return float(meta["step"])
-    return float(spec.get("step") or 0.5)
+    return float(spec.step or 0.5)
 
 
 def _wanted(device: DenonAvrDevice, control_id: str) -> Callable[[str], bool]:

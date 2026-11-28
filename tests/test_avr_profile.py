@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-from custom_components.denonavr_plus.avr.profile import load_profile
+from custom_components.denonavr_plus.avr.profile import load_profile, profile_for_receiver
 
 from .conftest import all_deviceinfo_files
 
@@ -28,7 +30,8 @@ def test_control_spec_fields() -> None:
     assert volume_limit.kind == "enum"
     assert volume_limit.prefix == "SSVCTZMALIM "
     assert volume_limit.values == ["OFF", "060", "070", "080"]
-    assert volume_limit.get("missing", "fallback") == "fallback"
+    # A key the control does not have reads as None or empty.
+    assert volume_limit.unit is None and volume_limit.labels
 
 
 def test_scales_and_references() -> None:
@@ -116,16 +119,15 @@ def test_the_variants_follow_the_receivers_generation() -> None:
     x2100w = profile_for_receiver(profile, 80, 300)
     x2600h = profile_for_receiver(profile, 8080, 301)
     assert (x2000.variant, x2100w.variant, x2600h.variant) == ("older", "older", None)
-    assert x2000.control("brightness").get("width") == 2
-    assert x2000.control("brightness").get("max") == 12
-    assert x2000.control("brightness").get("2013") is None
-    assert x2100w.control("brightness").get("width") == 3
+    assert x2000.control("brightness").width == 2
+    assert x2000.control("brightness").max == 12
+    assert x2100w.control("brightness").width == 3
     assert x2100w.control("dialog_level").query == "PSDIL ?"
     assert x2600h.control("dialog_level").query == "PSCLV ?"
     # Without a CommApiVers (2010-2012) the 2013 encodings apply too.
-    assert profile_for_receiver(profile, 80, None).control("contrast").get("width") == 2
+    assert profile_for_receiver(profile, 80, None).control("contrast").width == 2
     # The cached profile stays as it is for other receivers.
-    assert profile.control("brightness").get("width") == 3
+    assert profile.control("brightness").width == 3
 
 
 @pytest.mark.assumed(
@@ -190,8 +192,8 @@ def test_all_zone_stereo_is_asked_without_a_space() -> None:
 )
 def test_values_from_the_2020_table() -> None:
     profile = load_profile()
-    assert profile.control("imax").get("values") == ["AUTO", "ON", "OFF"]
-    assert profile.control("containment_amount").get("min") == 1
+    assert profile.control("imax").values == ["AUTO", "ON", "OFF"]
+    assert profile.control("containment_amount").min == 1
 
 
 def test_audio_delay_and_zone_2_levels_follow_denons_tables() -> None:
@@ -200,7 +202,7 @@ def test_audio_delay_and_zone_2_levels_follow_denons_tables() -> None:
     def field(profile: object, control_id: str, key: str) -> object:
         spec = profile.control(control_id)  # type: ignore[attr-defined]
         assert spec is not None
-        return spec.get(key)
+        return getattr(spec, key)
 
     profile = load_profile()
     assert (field(profile, "audio_delay", "max"), field(profile, "audio_delay", "step")) == (500, 1)
@@ -269,7 +271,7 @@ def test_the_restorer_follows_the_series(
     restorer = profile.control("restorer")
     assert restorer is not None
     assert restorer.values == values
-    assert restorer.get("labels") == ["High", "Medium", "Low", "Off"]
+    assert restorer.labels == ["High", "Medium", "Low", "Off"]
 
 
 def test_dynamic_volume_of_2011() -> None:
@@ -282,3 +284,40 @@ def test_dynamic_volume_of_2011() -> None:
     assert legacy is not None and legacy.values == ["NGT", "EVE", "DAY"]
     newer = profile_for_receiver(load_profile(), 80, 210, 0, "AVR-1713").control("dynamic_volume")
     assert newer is not None and newer.values == ["OFF", "LIT", "MED", "HEV"]
+
+
+def test_the_bundled_profile_loads_only_when_it_fits(tmp_path: Path) -> None:
+    import json
+
+    from custom_components.denonavr_plus.avr import profile as profile_module
+
+    raw = json.loads(profile_module._PROFILE_PATH.read_text(encoding="utf-8"))
+    raw["grammar"]["line_terminatr"] = "\r"
+    broken = tmp_path / "protocol_profile.json"
+    broken.write_text(json.dumps(raw), encoding="utf-8")
+    load_profile.cache_clear()
+    try:
+        with patch.object(profile_module, "_PROFILE_PATH", broken):
+            with pytest.raises(ValueError, match="line_terminatr"):
+                load_profile()
+    finally:
+        load_profile.cache_clear()
+
+
+@pytest.mark.parametrize(
+    ("port", "comm_api", "brand", "model"),
+    [
+        (8080, 301, 0, "AVR-X2600H"),
+        (8080, 301, 1, "SR6013"),
+        (80, 300, 0, "AVR-X2100W"),
+        (80, 220, 0, "AVR-X2000"),
+        (80, 220, 0, "AVR-2113CI"),
+        (80, None, 0, "AVR-1912"),
+    ],
+)
+def test_every_variant_of_the_profile_fits(port: int, comm_api: int | None, brand: int, model: str) -> None:
+    """Variants are partial overrides; applied, the profile still fits its shape."""
+    from custom_components.denonavr_plus.avr import profile_schema
+
+    applied = profile_for_receiver(load_profile(), port, comm_api, brand, model)
+    assert profile_schema.problems(applied._raw) == [], applied.variants  # noqa: SLF001

@@ -442,10 +442,10 @@ class TelnetParser:
         # for auto lip sync); the one answered is also the one written.
         self.variant_prefixes: dict[str, str] = {}
         variants = [
-            (str(variant["prefix"]), spec)
+            (prefix, spec)
             for spec in profile.controls.values()
-            for variant in spec.get("variants") or ()
-            if variant.get("prefix")
+            for prefix, _query in spec.variants
+            if prefix
         ]
         self._feature_matchers = sorted(
             self._feature_matchers + variants, key=lambda item: len(item[0]), reverse=True
@@ -588,7 +588,7 @@ class TelnetParser:
                 # 'PV', shared with the video-adjust tokens PVBR/PVCN/...) opts
                 # into exact matching: it only claims the line when the value is
                 # one of its known enum tokens, so it never swallows a sibling.
-                if control.get("exact_enum") and remainder.strip() not in control.values:
+                if control.exact_enum and remainder.strip() not in control.values:
                     continue
                 if prefix != control.prefix:
                     self.variant_prefixes[control.id] = prefix
@@ -914,7 +914,7 @@ class TelnetParser:
     def _known_spelling(self, spec: ControlSpec, remainder: str) -> str:
         """The profile's value for a number the receiver writes its own way."""
 
-        values = [str(value) for value in spec.get("values") or ()]
+        values = spec.values
         if remainder in values or not remainder.isdigit():
             return remainder
         for value in values:
@@ -1027,10 +1027,10 @@ class TelnetParser:
         kind = spec.kind
         remainder = remainder.strip()
         if kind == "onoff":
-            on, off = spec.get("on", "ON"), spec.get("off", "OFF")
+            on, off = spec.on or "ON", spec.off or "OFF"
             # A prefix shared with other values (BTTX reports the output mode
             # too, SSTTR ends its list with END) claims only its own two.
-            if spec.get("exact_onoff") and remainder not in (on, off):
+            if spec.exact_onoff and remainder not in (on, off):
                 return False
             state.values[spec.id] = remainder == on
         elif kind == "enum":
@@ -1041,7 +1041,7 @@ class TelnetParser:
                 return False
             state.values[spec.id] = value - self._profile.level_reference
         elif kind == "centered":
-            value = decode_centered(remainder, int(spec.get("center", 0)))
+            value = decode_centered(remainder, spec.center or 0)
             if value is None:
                 return False
             state.values[spec.id] = value
@@ -1056,7 +1056,7 @@ class TelnetParser:
                 return False
             state.values[spec.id] = -int(remainder)
         elif kind == "minutes":
-            off = spec.get("off", "OFF")
+            off = spec.off or "OFF"
             if remainder == off:
                 state.values[spec.id] = 0
             elif remainder.isdigit():

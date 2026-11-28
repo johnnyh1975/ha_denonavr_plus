@@ -493,7 +493,7 @@ class DenonAvrDevice:
         }
         # Option lists published under another name (Resolution on an AVC-X3700H).
         for spec in self._profile.controls.values():
-            for feature in spec.get("published_from") or ():
+            for feature in spec.published_from:
                 feature_names.add(feature)
                 enum_features.add(feature)
         if is_without_deviceinfo(xml_text):
@@ -1662,10 +1662,10 @@ class DenonAvrDevice:
                 or control.id in self._discovery.answered
             ):
                 add(control.query)
-                add(control.get("list_query"))
-                add(control.get("read_query"))
-                for variant in control.get("variants") or ():
-                    add(variant.get("query"))
+                add(control.list_query)
+                add(control.read_query)
+                for _prefix, query in control.variants:
+                    add(query)
         # Controls without a Deviceinfo name that answered at setup.
         for answered in self._profile.controls_by_scope("answered"):
             if answered.id in self._discovery.answered:
@@ -2116,7 +2116,7 @@ class DenonAvrDevice:
             spec = self._profile.control("main_power")
             if spec is None:
                 return
-            token = spec.get("on", "ON") if on else spec.get("off", "OFF")
+            token = (spec.on or "ON") if on else (spec.off or "OFF")
             await self._send(f"{spec.prefix}{token}")
             return
         zones = self._profile.zones
@@ -2129,7 +2129,7 @@ class DenonAvrDevice:
         spec = self._profile.control("system_power")
         if spec is None:
             return
-        token = spec.get("on", "ON") if on else spec.get("off", "STANDBY")
+        token = (spec.on or "ON") if on else (spec.off or "STANDBY")
         await self._send(f"{spec.prefix}{token}")
 
     async def async_set_volume_raw(self, zone_id: str, raw: float) -> None:
@@ -2154,7 +2154,7 @@ class DenonAvrDevice:
         spec = self._profile.control("main_volume")
         if spec is None:
             return
-        token = spec.get("up") if up else spec.get("down")
+        token = spec.up if up else spec.down
         if token:
             await self._send(token)
 
@@ -2166,7 +2166,7 @@ class DenonAvrDevice:
             spec = self._profile.control("main_mute")
             if spec is None:
                 return
-            token = spec.get("on", "ON") if muted else spec.get("off", "OFF")
+            token = (spec.on or "ON") if muted else (spec.off or "OFF")
             await self._send(f"{spec.prefix}{token}")
         else:
             # Additional zones mute through their overloaded prefix (Z2MUON/OFF).
@@ -2453,9 +2453,9 @@ class DenonAvrDevice:
         """The query to read with: that of the variant the receiver answered, if any."""
 
         prefix = self._parser.variant_prefixes.get(spec.id)
-        for variant in spec.get("variants") or ():
-            if variant.get("prefix") == prefix:
-                return str(variant.get("query") or spec.query or "") or None
+        for variant_prefix, query in spec.variants:
+            if variant_prefix == prefix:
+                return query or spec.query
         return spec.query
 
     async def async_set_control_confirmed(
@@ -2519,7 +2519,7 @@ class DenonAvrDevice:
         if spec is None:
             return
         raw = self._profile.level_reference + db
-        set_prefix = spec.get("set_prefix", "CV")
+        set_prefix = spec.set_prefix or "CV"
         await self._send(f"{set_prefix}{code} {encode_half_step(raw)}")
 
     async def async_set_channel_distance(self, code: str, meters: float) -> None:
@@ -2570,7 +2570,7 @@ class DenonAvrDevice:
 
         kind = spec.kind
         if kind == "onoff":
-            return str(spec.get("on", "ON") if value else spec.get("off", "OFF"))
+            return (spec.on or "ON") if value else (spec.off or "OFF")
         if kind == "enum":
             # In the receiver's own spelling, where it has one (see the parser).
             digits = self._parser.digits.get(spec.id)
@@ -2582,18 +2582,18 @@ class DenonAvrDevice:
             return encode_half_step(raw)
         if kind == "centered":
             # Fixed-width integer offset around a centre (picture controls).
-            width = int(spec.get("width", 3))
-            return encode_centered(float(value), int(spec.get("center", 0)), width)
+            width = spec.width or 3
+            return encode_centered(float(value), spec.center or 0, width)
         if kind == "attenuation":
-            return f"{abs(int(value)):0{int(spec.get('width', 2))}d}"
+            return f"{abs(int(value)):0{spec.width or 2}d}"
         if kind == "integer":
             # Zero pad to the wire width the receiver expects (e.g. 3 for PSDELAY).
-            width = int(spec.get("width", 0) or 0)
+            width = spec.width or 0
             return str(int(value)).zfill(width)
         if kind == "minutes":
             minutes = int(value)
             if minutes <= 0:
-                return str(spec.get("off", "OFF"))
+                return spec.off or "OFF"
             return f"{minutes:03d}"
         return str(value)
 

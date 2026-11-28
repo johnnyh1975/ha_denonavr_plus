@@ -12,7 +12,7 @@ without a telnet command, and HEOS (port 1255) for now playing.
 |---|---|
 | The integration | `custom_components/denonavr_plus/` |
 | The receiver client, without Home Assistant | `custom_components/denonavr_plus/avr/` |
-| The protocol grammar (command tokens, values) | `custom_components/denonavr_plus/avr/protocol_profile.json` |
+| The protocol grammar (command tokens, values) | `custom_components/denonavr_plus/avr/protocol_profile.json`, its schema in `avr/profile_schema.py` |
 | Its texts (English source) | `custom_components/denonavr_plus/strings.json` |
 | Translations | `custom_components/denonavr_plus/translations/` |
 | Tests | `tests/test_<module>.py`, `tests/test_avr_<module>.py` for `avr/` |

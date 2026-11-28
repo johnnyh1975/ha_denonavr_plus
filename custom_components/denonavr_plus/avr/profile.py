@@ -14,6 +14,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, cast
 
+from . import profile_schema
+
 # The profile file lives next to this module inside the avr package.
 _PROFILE_PATH = Path(__file__).parent / "protocol_profile.json"
 
@@ -79,10 +81,147 @@ class ControlSpec:
 
         return list(self._data.get("values", []))
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """Return a raw profile attribute (for kind specific extras)."""
+    # The other keys a control may have (profile_schema.CONTROL). None or
+    # empty when the control has none; the caller knows what that means for
+    # its kind.
 
-        return self._data.get(key, default)
+    def _str(self, key: str) -> str | None:
+        value = self._data.get(key)
+        return None if value is None else str(value)
+
+    def _number(self, key: str) -> float | None:
+        value = self._data.get(key)
+        return None if value is None else float(value)
+
+    def _int(self, key: str) -> int | None:
+        value = self._data.get(key)
+        return None if value is None else int(value)
+
+    def _strings(self, key: str) -> list[str]:
+        return [str(item) for item in self._data.get(key) or ()]
+
+    @property
+    def set_prefix(self) -> str | None:
+        """The token a value is written with, when it differs from `prefix`."""
+
+        return self._str("set_prefix")
+
+    @property
+    def read_query(self) -> str | None:
+        return self._str("read_query")
+
+    @property
+    def list_query(self) -> str | None:
+        return self._str("list_query")
+
+    @property
+    def labels(self) -> list[str]:
+        """The display labels of an enum, in the order of `values`."""
+
+        return self._strings("labels")
+
+    @property
+    def listed_as(self) -> list[str]:
+        """The names Deviceinfo.xml lists the values under, if not the labels."""
+
+        return self._strings("listed_as")
+
+    @property
+    def listed_only(self) -> list[str]:
+        """Values offered only when Deviceinfo.xml lists them."""
+
+        return self._strings("listed_only")
+
+    @property
+    def published_from(self) -> list[str]:
+        """The FuncNames under which Deviceinfo.xml lists the control's values."""
+
+        return self._strings("published_from")
+
+    @property
+    def range_from(self) -> list[str]:
+        """Where Deviceinfo.xml publishes the control's value range, in order."""
+
+        value = self._data.get("range_from")
+        if not value:
+            return []
+        return [value] if isinstance(value, str) else [str(item) for item in value]
+
+    @property
+    def on(self) -> str | None:
+        return self._str("on")
+
+    @property
+    def off(self) -> str | None:
+        return self._str("off")
+
+    @property
+    def up(self) -> str | None:
+        return self._str("up")
+
+    @property
+    def down(self) -> str | None:
+        return self._str("down")
+
+    @property
+    def unit(self) -> str | None:
+        return self._str("unit")
+
+    @property
+    def subdevice(self) -> str | None:
+        """The sub-device the control's entity sits on, when not by its group."""
+
+        return self._str("subdevice")
+
+    @property
+    def count_from(self) -> str | None:
+        """Where the number of values comes from (e.g. quick_select_names)."""
+
+        return self._str("count_from")
+
+    @property
+    def min(self) -> float | None:
+        return self._number("min")
+
+    @property
+    def max(self) -> float | None:
+        return self._number("max")
+
+    @property
+    def step(self) -> float | None:
+        return self._number("step")
+
+    @property
+    def center(self) -> int | None:
+        """The wire value of 0 for a centred level."""
+
+        return self._int("center")
+
+    @property
+    def width(self) -> int | None:
+        """The number of digits on the wire."""
+
+        return self._int("width")
+
+    @property
+    def exact_onoff(self) -> bool:
+        """Only the exact on/off tokens count (no prefix match)."""
+
+        return bool(self._data.get("exact_onoff"))
+
+    @property
+    def exact_enum(self) -> bool:
+        """Only the listed values count (no prefix match)."""
+
+        return bool(self._data.get("exact_enum"))
+
+    @property
+    def variants(self) -> list[tuple[str, str]]:
+        """Other (prefix, query) pairs the same control answers under."""
+
+        return [
+            (str(item["prefix"]), str(item["query"])) for item in self._data.get("variants") or ()
+        ]
 
 
 class ProtocolProfile:
@@ -322,13 +461,14 @@ def load_profile() -> ProtocolProfile:
 
     with _PROFILE_PATH.open(encoding="utf-8") as handle:
         raw = json.load(handle)
+    # A key or value the schema does not know is an error, not a function
+    # that silently goes missing (profile_schema.py).
+    if found := profile_schema.problems(raw):
+        raise ValueError("protocol profile: " + "; ".join(found))
     return ProtocolProfile(raw)
 
 
 def range_paths(spec: ControlSpec) -> list[str]:
     """Where in Deviceinfo.xml a control's plain value range is published, in order."""
 
-    paths = spec.get("range_from")
-    if not paths:
-        return []
-    return [paths] if isinstance(paths, str) else [str(path) for path in paths]
+    return spec.range_from

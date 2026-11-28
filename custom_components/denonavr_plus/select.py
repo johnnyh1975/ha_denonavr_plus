@@ -167,14 +167,14 @@ class DenonAvrSelect(DenonAvrEntity, SelectEntity):
         published = next(
             (
                 discovery.option_labels[feature]
-                for feature in spec.get("published_from") or [spec.get("feature") or ""]
+                for feature in spec.published_from or [spec.feature or ""]
                 if feature in discovery.option_labels
             ),
             None,
         )
-        if spec.get("count_from") == "quick_select_names" and discovery.quick_select_names:
+        if spec.count_from == "quick_select_names" and discovery.quick_select_names:
             # As many as the main zone has: the receiver's quick select buttons.
-            published = list(spec.get("labels") or [])[: len(discovery.quick_select_names)]
+            published = spec.labels[: len(discovery.quick_select_names)]
         options, self._key_to_value, self._value_to_key = enum_options(spec, published)
         self._attr_options = options
 

@@ -36,7 +36,7 @@ async def test_turning_a_switch_on_and_off_sends_its_command(
     assert spec is not None
     telnet = FakeTelnet.instances[-1]
     switch = entity_id(hass, loaded_entry, "switch_dynamic_eq")
-    for service, value in (("turn_on", spec.get("on")), ("turn_off", spec.get("off"))):
+    for service, value in (("turn_on", spec.on), ("turn_off", spec.off)):
         telnet.sent.clear()
         await hass.services.async_call(
             "switch", service, {"entity_id": switch}, blocking=True

@@ -117,8 +117,8 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
             # A plain integer control uses whatever unit the profile gives (or
             # none), for example milliseconds for the audio delay, surfaced as the
             # canonical HA unit constant where known.
-            unit = spec.get("unit")
-            self._attr_native_unit_of_measurement = _UNIT_TOKENS.get(unit, unit)
+            unit = spec.unit
+            self._attr_native_unit_of_measurement = _UNIT_TOKENS.get(unit, unit) if unit else None
             if unit == "ms":
                 self._attr_device_class = NumberDeviceClass.DURATION
         elif spec.kind == "centered":
@@ -202,7 +202,7 @@ class DenonAvrChannelDistance(DenonAvrEntity, NumberEntity):
         self._attr_native_step = dist.get("step", 0.1)
         unit = dist.get("unit")
         if unit:
-            self._attr_native_unit_of_measurement = _UNIT_TOKENS.get(unit, unit)
+            self._attr_native_unit_of_measurement = _UNIT_TOKENS.get(unit, unit) if unit else None
 
     @property
     def native_value(self) -> float | None:
@@ -225,7 +225,7 @@ def resolve_bounds(
         if meta:
             return meta["min"], meta["max"], meta["step"]
     # Fall back to the profile's protocol defined range (LFE, sleep timer).
-    return spec.get("min"), spec.get("max"), spec.get("step")
+    return spec.min, spec.max, spec.step
 
 
 class DenonAvrEqBand(DenonAvrEntity, NumberEntity):

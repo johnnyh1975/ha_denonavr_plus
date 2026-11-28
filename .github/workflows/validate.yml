@@ -134,6 +134,9 @@ jobs:
       - name: Every entity gets its icon from icons.json
         run: python3 scripts/check_icons.py
 
+      - name: The protocol profile fits its schema
+        run: python3 scripts/check_profile.py
+
   private-data:
     name: No Private Data
     runs-on: ubuntu-latest

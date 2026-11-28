@@ -76,7 +76,7 @@ def control_enabled_by_default(spec: ControlSpec) -> bool:
 def control_zone_shown(spec: ControlSpec, options: dict[str, Any]) -> bool:
     """Whether a control's zone is shown: zone 2 settings go with zone 2."""
 
-    sub_device = spec.get("subdevice")
+    sub_device = spec.subdevice
     if sub_device in ("zone2", "zone3"):
         return choices.zone_enabled(options, str(sub_device))
     return True
@@ -90,7 +90,7 @@ def control_sub_device(spec: ControlSpec) -> str | None:
     a per-control exception, then the control's command group.
     """
 
-    explicit = spec.get("subdevice")
+    explicit = spec.subdevice
     if explicit is not None:
         return str(explicit)
     if spec.id in _MAIN_DEVICE_CONTROLS:
@@ -161,15 +161,15 @@ def enum_options(
     """
 
     values = list(spec.values)
-    labels = spec.get("labels") or []
+    labels = spec.labels
     if len(labels) != len(values):
         labels = [humanize(value) for value in values]
-    names = [_comparable(name) for name in (spec.get("listed_as") or labels)]
+    names = [_comparable(name) for name in (spec.listed_as or labels)]
     offered = {_comparable(name) for name in published or ()}
     if offered and len(names) == len(values) and offered <= set(names):
         kept = [i for i, name in enumerate(names) if name in offered]
     else:
-        only_listed = set(spec.get("listed_only") or ())
+        only_listed = set(spec.listed_only)
         kept = [i for i, value in enumerate(values) if value not in only_listed]
     values = [values[i] for i in kept]
     labels = [labels[i] for i in kept]

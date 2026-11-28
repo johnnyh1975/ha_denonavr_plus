@@ -205,7 +205,7 @@ class ActivitySteps(OptionsFlowBase):
             self.hass, coordinator, "select", f"select_{activities.HDMI_OUTPUT_CONTROL}"
         ):
             values = spec.values
-            labels = list(spec.get("labels") or values)
+            labels = spec.labels or values
             fields[
                 vol.Optional(
                     activities.KEY_HDMI_OUTPUT,
