@@ -21,7 +21,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.transport import GoformClient
-from custom_components.denonavr_plus.coordinator import SNAPSHOT_SAVE_DELAY
+from custom_components.denonavr_plus.coordinator import SNAPSHOT_SAVE_DELAY, StartPath
 from custom_components.denonavr_plus.const import (
     CONFIG_MINOR_VERSION,
     DOMAIN,
@@ -138,6 +138,27 @@ async def _settle(hass: HomeAssistant) -> None:
     # Device updates are debounced by 0.1 s before they reach the coordinator.
     await asyncio.sleep(0.15)
     await hass.async_block_till_done()
+
+
+class _HeldResync:
+    """The resync ends when the test says so (async_await_resync waits for it)."""
+
+    def __init__(self) -> None:
+        self.done = asyncio.Event()
+        done = self.done
+
+        async def wait(device: DenonAvrDevice, timeout: float = 60.0) -> None:
+            await done.wait()
+
+        self.wait = wait
+
+
+async def _after_start(hass: HomeAssistant) -> None:
+    """Let the start finish: the resync is through, the snapshot saved and compared."""
+    for _ in range(3):
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+        await asyncio.sleep(0)
+        await hass.async_block_till_done()
 
 
 async def test_a_silent_receiver_starts_from_the_last_discovery(
@@ -472,6 +493,7 @@ async def test_a_change_while_running_is_kept_for_the_next_start(
 ) -> None:
     """Not only what the last start read: the state before the restart."""
     key = f"{DOMAIN}.{loaded_entry.entry_id}.discovery"
+    await _after_start(hass)
     FakeTelnet.instances[-1].push("SSQSNZMAQS1 Movie", "SSQSNZMA END")
     await _settle(hass)
     # Not at once: a speaker change or a resync may still be under way.
@@ -619,6 +641,63 @@ async def test_other_capabilities_after_a_start_from_the_snapshot_set_up_again_o
         await hass.async_block_till_done()
         reload.assert_called_once()
     coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+
+
+async def test_a_preloaded_start_is_set_up_again_when_the_receiver_reports_more(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """Started from a snapshot of another layout: checked once the resync is through.
+
+    Before, only a fast start compared; after a preloaded one the new quick
+    select had no entity until the next restart.
+    """
+    from custom_components.denonavr_plus import coordinator as coordinator_module
+
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+    resync = _HeldResync()
+    with (
+        patch.object(DenonAvrDevice, "async_await_resync", resync.wait),
+        patch.object(hass.config_entries, "async_schedule_reload") as reload,
+    ):
+        await _restart_from_the_snapshot(hass, loaded_entry, hass_storage, layout=False)
+        assert loaded_entry.runtime_data.start_path is StartPath.PRELOADED
+        FakeTelnet.instances[-1].push("SSQSNZMAQS2 Radio", "SSQSNZMA END")
+        await _settle(hass)
+        resync.done.set()
+        await _settle(hass)
+        reload.assert_called_once_with(loaded_entry.entry_id)
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+
+
+async def test_a_first_start_is_set_up_again_when_the_resync_brings_more(
+    hass: HomeAssistant, receiver_network: Any, hass_storage: dict[str, Any]
+) -> None:
+    """Quick selects that come after the first answers get their entity at once.
+
+    Before, the entities were built at the first answers and nothing looked
+    again; the snapshot saved then lacked them too.
+    """
+    from custom_components.denonavr_plus import coordinator as coordinator_module
+
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "192.0.2.10"}, minor_version=CONFIG_MINOR_VERSION)
+    entry.add_to_hass(hass)
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(entry.entry_id)
+    resync = _HeldResync()
+    with (
+        patch.object(DenonAvrDevice, "async_await_resync", resync.wait),
+        patch.object(hass.config_entries, "async_schedule_reload") as reload,
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        assert entry.runtime_data.start_path is StartPath.FULL
+        FakeTelnet.instances[-1].push("SSQSNZMAQS1 TV", "SSQSNZMA END")
+        await _settle(hass)
+        resync.done.set()
+        await _settle(hass)
+        reload.assert_called_once_with(entry.entry_id)
+        key = f"{DOMAIN}.{entry.entry_id}.discovery"
+        assert hass_storage[key]["data"]["quick_select_names"] == {"1": "TV"}
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(entry.entry_id)
+    assert await hass.config_entries.async_unload(entry.entry_id)
 
 
 async def test_a_snapshot_without_the_layout_starts_as_before(

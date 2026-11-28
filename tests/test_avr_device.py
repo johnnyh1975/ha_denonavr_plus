@@ -1354,3 +1354,16 @@ async def test_the_dts_decoder_version_comes_from_the_information_page(
         with patch.object(device._webconfig, "async_get", AsyncMock(return_value=answer)):
             await device._read_dts_version()
         assert device.discovery.device.dts_version == "4.30.10.15"
+
+
+def test_a_start_from_the_snapshot_uses_the_receivers_encodings() -> None:
+    """Offline, an AVR-X2000 still gets the variants of its generation (port 80, 0220)."""
+    from custom_components.denonavr_plus.avr import DenonAvrDevice
+
+    snapshot = {"device": {"model_name": "AVR-X2000", "comm_api_version": 220, "brand_code": 0}}
+    device = DenonAvrDevice(AsyncMock(), "192.0.2.10", http_port=80)
+    device.restore_discovery(snapshot)
+    assert device.profile.variants == ("older", "2013")
+    # The picture levels in two digits, as the receiver encodes them.
+    brightness = device.profile.control("brightness")
+    assert brightness is not None and brightness.width == 2

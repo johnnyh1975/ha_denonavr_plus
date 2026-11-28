@@ -510,21 +510,7 @@ class DenonAvrDevice:
                     for path in range_paths(spec)
                 },
             )
-        if not self._profile.variants:
-            # Older receivers encode some values differently, and Marantz
-            # names a few commands its own way; the profile's variants say
-            # how, by generation (port 80 until 2015, the 2013 encodings
-            # below CommApiVers 0250) and by brand.
-            fitted = profile_for_receiver(
-                self._profile,
-                self._http_port,
-                discovered.device.comm_api_version,
-                discovered.device.brand_code,
-                discovered.device.model_name,
-            )
-            if fitted is not self._profile:
-                self._profile = fitted
-                self._parser = TelnetParser(self._profile, self._discovery)
+        self._fit_profile(discovered.device)
         # Copy discovered data into our shared discovery object so the parser and
         # entities keep referencing a single instance.
         self._discovery.device = discovered.device
@@ -810,6 +796,28 @@ class DenonAvrDevice:
             await asyncio.sleep(0.2)
         await asyncio.sleep(RESYNC_QUIET)
 
+    def _fit_profile(self, device: DeviceInfo) -> None:
+        """Apply the profile variants that fit the receiver, once.
+
+        Older receivers encode some values differently, and Marantz names a
+        few commands its own way; the profile's variants say how, by
+        generation (port 80 until 2015, the 2013 encodings below CommApiVers
+        0250) and by brand.
+        """
+
+        if self._profile.variants:
+            return
+        fitted = profile_for_receiver(
+            self._profile,
+            self._http_port,
+            device.comm_api_version,
+            device.brand_code,
+            device.model_name,
+        )
+        if fitted is not self._profile:
+            self._profile = fitted
+            self._parser = TelnetParser(self._profile, self._discovery)
+
     def restore_discovery(self, snapshot: dict[str, Any]) -> None:
         """Fill the discovery from a snapshot, for a start without the receiver.
 
@@ -823,6 +831,9 @@ class DenonAvrDevice:
 
         discovery = self._discovery
         discovery.device = DeviceInfo(**known(DeviceInfo, snapshot.get("device", {})))
+        # The same variants as with the receiver answering: commands sent
+        # once it does, and the values read, use its encodings.
+        self._fit_profile(discovery.device)
         discovery.zones = [
             ZoneDescriptor(**known(ZoneDescriptor, zone)) for zone in snapshot.get("zones", [])
         ]

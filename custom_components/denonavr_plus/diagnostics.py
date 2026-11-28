@@ -36,7 +36,7 @@ async def async_get_config_entry_diagnostics(
 
     return {
         "available": device.available,
-        "started_offline": coordinator.started_offline,
+        "start_path": coordinator.start_path,
         "http_port": device.http_port,
         "setup_port": device.setup_port,
         # The receiver generation (docs/COMPATIBILITY.md); None: not described.
@@ -50,7 +50,6 @@ async def async_get_config_entry_diagnostics(
         # How long each part of the discovery at the last start took.
         "setup_timings_ms": device.setup_timings,
         # Started from the last start's discovery without asking (fast start).
-        "fast_start": device.fast_start,
         "telnet_response_ms": (
             None
             if device.telnet_response_time is None

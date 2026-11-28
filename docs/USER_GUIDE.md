@@ -675,5 +675,5 @@ reliable source.
 second start on it starts from what it learned last time and asks the
 receiver in the background. When the receiver reports something new (a
 firmware update, a speaker set up), it sets itself up once more. The
-diagnostics show `fast_start` and how long the start took.
+diagnostics show how the start went (`start_path`) and how long it took.
 

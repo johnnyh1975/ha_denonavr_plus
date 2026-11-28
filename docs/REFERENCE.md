@@ -883,14 +883,21 @@ a second. That state is saved at each start and again 10 seconds after a
 change while the receiver is connected, so a speaker or trim change made
 before a restart is what the next start shows. The rest is asked in the
 background, and the current values, including changes made on the receiver
-while Home Assistant was off, follow within a few seconds. If the receiver then reports other capabilities than last time (a
-firmware update, another speaker group, a new menu), the integration sets
-itself up once more. The first start after adding the receiver, after a
-firmware update, or while the answers of its model-dependent controls are
-not known yet (the receiver was in standby at every start so far), asks
-everything first and takes a few seconds. The diagnostics show how long
-each part took (`setup_timings_ms`) and whether the start came from the last
-one (`fast_start`).
+while Home Assistant was off, follow within a few seconds; until then an
+entity shows the value from before the restart. The first start after adding
+the receiver, after a firmware update, or while the answers of its
+model-dependent controls are not known yet (the receiver was in standby at
+every start so far), asks everything first and takes a few seconds.
+
+Whichever way it started, once the receiver has answered everything the
+integration compares what it reports with what the entities were built from.
+If the receiver reports other capabilities (a firmware update, another
+speaker group, a new menu, quick selects that came after its first answers),
+the integration sets itself up once more, at most once until Home Assistant
+restarts. The diagnostics show how long each part took (`setup_timings_ms`)
+and how the start went (`start_path`): `fast` from the last start, `preloaded`
+with part of it, `full` asking everything, `offline` while the receiver did
+not answer.
 
 ## Event: input followed
 

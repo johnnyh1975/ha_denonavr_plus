@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
+from enum import StrEnum
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -39,8 +40,23 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-#: Entries set up again after a fast start in this run (at most once each).
+#: Entries set up again after a start in this run because the receiver then
+#: reported other capabilities (at most once each).
 _REBUILT_AFTER_FAST_START: set[str] = set()
+
+
+class StartPath(StrEnum):
+    """How the entry started (coordinator.async_setup), shown in the diagnostics."""
+
+    #: The receiver did not answer: media players from the last discovery.
+    OFFLINE = "offline"
+    #: Everything the entities are built from came from the last start.
+    FAST = "fast"
+    #: Speakers, quick selects and inputs from the last start (another
+    #: firmware or snapshot layout); waits for the receiver's first answer.
+    PRELOADED = "preloaded"
+    #: No usable snapshot: asks and waits for the receiver's answers.
+    FULL = "full"
 
 # The typed config entry carries the coordinator as its runtime data.
 type DenonAvrConfigEntry = ConfigEntry[DenonAvrCoordinator]
@@ -116,9 +132,9 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._outage_reported = False
         self._playback_error: str | None = None
         self._app_control_off = False
-        # Set when the receiver did not answer at setup and the media players
-        # were built from the last discovery; the entry reloads once it answers.
-        self.started_offline = False
+        # How the entry started; with OFFLINE the entry reloads once the
+        # receiver answers.
+        self.start_path: StartPath | None = None
         self._reload_scheduled = False
         self._identify_after: datetime | None = None
         self._snapshot = snapshot_store(hass, entry.entry_id)
@@ -162,7 +178,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             if not snapshot:
                 raise
             self.device.restore_discovery(snapshot)
-            self.started_offline = True
+            self.start_path = StartPath.OFFLINE
             _LOGGER.info(
                 "%s does not answer; starting its media players from the last "
                 "discovery until it does",
@@ -186,41 +202,40 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         if self.device.fast_start:
             # Everything the entities are built from came from the last start:
             # no wait at all. What it took from the snapshot is read again in
-            # the background; if it differs, the entry is set up once more.
+            # the background.
+            self.start_path = StartPath.FAST
             await self.device.async_start()
-            assert self.config_entry is not None
-            self.config_entry.async_create_background_task(
-                self.hass, self._async_complete_fast_start(), "denonavr_plus fast start"
-            )
-            return
-        preloaded = self.device.preload_discovery(snapshot)
-        await self.device.async_start()
-        if preloaded:
+        elif self.device.preload_discovery(snapshot):
             # What the entities are built from is known from the last start:
             # wait for the receiver's first answer only; the resync goes on.
+            self.start_path = StartPath.PRELOADED
+            await self.device.async_start()
             await self.device.async_await_ready(preloaded=True)
-            assert self.config_entry is not None
-            self.config_entry.async_create_background_task(
-                self.hass, self._async_save_when_ready(), "denonavr_plus discovery snapshot"
-            )
-            return
-        # Give the initial resync a moment so per channel entities can be built.
-        await self.device.async_await_ready()
-        # Saved after the wait, which fills the sources from Deviceinfo when
-        # the telnet introspection brought none.
-        await self._async_save_snapshot()
-
-    async def _async_save_when_ready(self) -> None:
-        """Save the discovery once the resync has brought it, for the next start."""
-
-        await self.device.async_await_ready()
-        # The preloaded values already meet the ready condition: wait for the
-        # resync itself, so its answers are what is saved.
-        await self.device.async_await_resync()
-        try:
+            self.device.layout_at_start = self.device.entity_layout()
+        else:
+            self.start_path = StartPath.FULL
+            await self.device.async_start()
+            # Give the initial resync a moment so per channel entities can be built.
+            await self.device.async_await_ready()
+            self.device.layout_at_start = self.device.entity_layout()
+            # Saved after the wait, which fills the sources from Deviceinfo
+            # when the telnet introspection brought none; saved again once the
+            # resync is through (_async_after_start).
             await self._async_save_snapshot()
-        except Exception as err:  # noqa: BLE001 - a background task must not raise
-            _LOGGER.debug("Discovery snapshot not saved: %s", err)
+        # Whatever the path, once the receiver has answered everything the
+        # snapshot is saved and the entities are checked against it: if it
+        # reports other capabilities than they were built from, the entry is
+        # set up once more.
+        assert self.config_entry is not None
+        self.config_entry.async_create_background_task(
+            self.hass, self._async_after_start(), "denonavr_plus after start"
+        )
+
+    @property
+    def started_offline(self) -> bool:
+        """Whether the receiver did not answer at setup (StartPath.OFFLINE)."""
+
+        return self.start_path is StartPath.OFFLINE
 
     async def _async_save_snapshot(self) -> None:
         """Save the snapshot after a start; from then on changes are kept too."""
@@ -253,16 +268,23 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._saved_snapshot, self._pending_snapshot = snapshot, None
         return snapshot
 
-    async def _async_complete_fast_start(self) -> None:
-        """Read what a start from the snapshot took from it; rebuild if it changed."""
+    async def _async_after_start(self) -> None:
+        """Once the resync is through: save the snapshot, rebuild if the layout changed.
+
+        After a fast start this first reads what it took from the snapshot.
+        """
 
         assert self.config_entry is not None
         entry_id = self.config_entry.entry_id
         try:
-            await self.device.async_complete_fast_start()
+            if self.start_path is StartPath.FAST:
+                await self.device.async_complete_fast_start()
+            else:
+                await self.device.async_await_ready()
+                await self.device.async_await_resync()
             await self._async_save_snapshot()
         except Exception as err:  # noqa: BLE001 - a background task must not raise
-            _LOGGER.debug("Discovery after a fast start not completed: %s", err)
+            _LOGGER.debug("Discovery after the start not completed: %s", err)
             return
         layout = self.device.entity_layout()
         if layout == self.device.layout_at_start:
