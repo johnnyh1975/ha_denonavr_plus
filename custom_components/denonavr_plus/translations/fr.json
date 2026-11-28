@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} affiche {setting} grisé dans son menu en ce moment et le laisse tel quel. Un autre réglage en décide, comme le mode son, le signal ou HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "Une configuration d'enceintes est en cours d'écriture ou de restauration ; réessayez dans un instant."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "Le preset d'enceintes a changé, rien n'a donc été rétabli. Revenez au preset d'avant et réessayez.",
           "speaker_layout_layout_changed": "La disposition des enceintes a été modifiée à nouveau depuis, rien n'a donc été rétabli.",
           "speaker_layout_left": "{count} réglages n'ont pas pu être rétablis ; vérifiez-les sur l'ampli.",
-          "receiver_unavailable": "L'ampli n'a pas répondu. Réessayez quand il est sur le réseau."
+          "receiver_unavailable": "L'ampli n'a pas répondu. Réessayez quand il est sur le réseau.",
+          "speaker_layout_timeout": "Cela a pris trop de temps ; une partie des réglages est peut-être déjà restaurée. Vérifiez la configuration des enceintes sur l'ampli, puis réessayez."
+        },
+        "progress": {
+          "restoring": "Restauration de la configuration des enceintes et de ses réglages. Cela peut prendre jusqu'à une minute."
         }
       }
     }

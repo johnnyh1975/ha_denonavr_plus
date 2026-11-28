@@ -65,7 +65,7 @@ from homeassistant.helpers.start import async_at_started
 
 from . import choices
 from .const import DOMAIN
-from .coordinator import DenonAvrConfigEntry
+from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -248,6 +248,16 @@ def suggest_player(
         if any(want and set(want) <= have for want in wanted):
             fits.append(entity_id)
     return fits[0] if len(fits) == 1 else None
+
+
+def network_linked(coordinator: DenonAvrCoordinator) -> bool:
+    """Whether a media player is linked to the receiver's network input."""
+
+    entry = coordinator.config_entry
+    network = coordinator.device.network_source
+    if entry is None or network is None:
+        return False
+    return network in links_on_wire(dict(entry.options), coordinator.device)
 
 
 def issue_id(entry_id: str) -> str:

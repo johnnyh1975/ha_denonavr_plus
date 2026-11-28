@@ -536,11 +536,14 @@ AVC‑A10H describes it as 0–15).
   speaker sizes, distances, levels and crossovers again.
 - **Buttons**: save a quick select preset (one per preset the receiver reports),
   reset all channel levels, restart the network module. They start disabled.
-- **Remote**: the on-screen menu keys (see Actions).
+- **Remote**: the on-screen menu keys (see Actions). It starts disabled: its
+  on/off is the main zone's power, which the media player already has.
 - **Network Music** per zone, a switch for Music Assistant and automations: on turns
   the zone on and to the network input; off turns the zone off only while it
   still plays the network, so it never ends a film. It is on while the zone
-  plays the network.
+  plays the network. It starts disabled and is shown once a player is linked
+  to the network input (Configure → Playback); one you disabled yourself stays
+  disabled.
 - **Tuner**: the preset (a select, 01–56 or A1–G8) and the FM frequency in
   MHz (a number, to tune directly). While no zone plays the tuner both are
   unknown; choosing a preset or a frequency then turns the main zone on and
@@ -558,23 +561,26 @@ listening starts enabled:
 - tone (bass, treble, tone control), Dynamic EQ, Dynamic Volume, Dynamic
   Compression, MultEQ, Cinema EQ, center level and Dialog Control
 - subwoofer on/off and level, All Zone Stereo, sleep timer, front display dimmer
-- the trims of the speakers the receiver has configured. When a speaker is
-  set up or removed on the receiver later, its trim follows: removed, it is
-  disabled, even if you had enabled it; set up again, it comes back if the
-  integration had disabled it. A trim you disabled yourself stays disabled,
-  and trims of speakers that did not change are not touched.
 - the volume of each zone in dB
 - the decoder and connectivity sensors
 
-Everything else starts disabled: speaker setup (distances, crossovers, sizes,
-amp assign), video and HDMI setup, picture adjustment, the graphic EQ, volume
+Everything else starts disabled: speaker setup (channel levels, distances,
+crossovers, sizes, amp assign), video and HDMI setup, picture adjustment, the graphic EQ, volume
 limits and scale, the sound mode parameters, and the power and mute switches,
 which repeat the media player. The sample rate, input signal, audio format and
 mode info sensors also start disabled, because they change with every track and
 fill the history, and so do the sound mode and source sensors, which repeat the
 media player. Enable any of them on the device page under its entities, or
 in the entity's settings. Home Assistant keeps your choice from then on. To
-show a whole group at once, use Configure → **Entities** (see Options).
+show a whole group at once, use Configure → **Entities** (see Options); the
+Speakers group shows the channel levels of the speakers the receiver has.
+
+Channel levels follow the speakers: when a speaker is removed on the
+receiver, its level is disabled, even if you had enabled it; when one is set
+up again, its level comes back if the integration had disabled it and you use
+channel levels (one of a speaker that stayed is shown). A level you disabled
+yourself stays disabled, and those of speakers that did not change are not
+touched.
 
 Speaker crossover frequencies are a discrete, non-uniform set, so they are
 exposed as a select rather than a stepped number. The current crossover per group

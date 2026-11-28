@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} mostra {setting} in grigio nel menu in questo momento e lo lascia com'è. Lo decide un'altra impostazione, come la modalità audio, il segnale o HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "È in corso la scrittura o il ripristino di una configurazione dei diffusori; riprova tra poco."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "Il preset dei diffusori ora è un altro, quindi non è stato ripristinato nulla. Torna al preset di prima e riprova.",
           "speaker_layout_layout_changed": "La disposizione dei diffusori è stata cambiata di nuovo nel frattempo, quindi non è stato ripristinato nulla.",
           "speaker_layout_left": "{count} impostazioni non si sono potute ripristinare; controllale sul ricevitore.",
-          "receiver_unavailable": "Il ricevitore non ha risposto. Riprova quando è in rete."
+          "receiver_unavailable": "Il ricevitore non ha risposto. Riprova quando è in rete.",
+          "speaker_layout_timeout": "Ci è voluto troppo tempo; parte delle impostazioni potrebbe essere già ripristinata. Controlla la configurazione dei diffusori sul ricevitore, poi riprova."
+        },
+        "progress": {
+          "restoring": "Ripristino della configurazione dei diffusori e delle impostazioni. Può richiedere fino a un minuto."
         }
       }
     }

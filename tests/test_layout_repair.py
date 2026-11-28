@@ -53,7 +53,13 @@ async def _fix(hass: HomeAssistant, issue: str) -> Any:
     assert manager is not None
     result = await manager.async_init(DOMAIN, data={"issue_id": issue})
     assert result["type"] is FlowResultType.FORM and result["step_id"] == "confirm"
-    return await manager.async_configure(result["flow_id"], {})
+    result = await manager.async_configure(result["flow_id"], {})
+    if result["type"] is FlowResultType.SHOW_PROGRESS:
+        # Putting back runs as a task; the dialog shows its progress meanwhile.
+        assert result["progress_action"] == "restoring"
+        await hass.async_block_till_done()
+        result = await manager.async_configure(result["flow_id"])
+    return result
 
 
 async def test_what_a_layout_reset_becomes_a_repair_that_puts_it_back(
@@ -101,7 +107,7 @@ async def test_a_layout_that_reset_nothing_else_leaves_no_repair(
     [
         (RestoreRefused(PRESET_CHANGED), None, "speaker_layout_preset_changed"),
         (SetupWriteError("speaker_layout"), None, "receiver_unavailable"),
-        (TimeoutError(), None, "receiver_unavailable"),
+        (TimeoutError(), None, "speaker_layout_timeout"),
         (None, ["5"], "speaker_layout_left"),
     ],
 )
@@ -135,3 +141,35 @@ async def test_without_the_receiver_nothing_is_written(
         result["type"] is FlowResultType.ABORT
         and result["reason"] == "receiver_unavailable"
     )
+
+
+async def test_putting_back_shows_progress_until_it_is_done(
+    hass: HomeAssistant, web_control: Any
+) -> None:
+    """It can take a minute; the confirm step no longer waits for it."""
+    import asyncio
+
+    assert await async_setup_component(hass, "repairs", {})
+    issue = _report(hass, web_control, POINT)
+    release = asyncio.Event()
+
+    async def slow(point: dict[str, Any]) -> list[str]:
+        await release.wait()
+        return []
+
+    manager = repairs_flow_manager(hass)
+    assert manager is not None
+    with patch(f"{SPEAKER_LAYOUT}.async_restore", side_effect=slow):
+        result = await manager.async_init(DOMAIN, data={"issue_id": issue})
+        # Before, the confirm step waited for the whole restore.
+        async with asyncio.timeout(5):
+            result = await manager.async_configure(result["flow_id"], {})
+        assert result["type"] is FlowResultType.SHOW_PROGRESS
+        # Asked again while it runs: still in progress.
+        result = await manager.async_configure(result["flow_id"])
+        assert result["type"] is FlowResultType.SHOW_PROGRESS
+        release.set()
+        await hass.async_block_till_done()
+        result = await manager.async_configure(result["flow_id"])
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue) is None

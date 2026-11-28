@@ -238,6 +238,7 @@ async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) 
         )
         # Zone 2's inputs chosen in the options, or Zone 2 hidden: no question.
         zone_sources.async_update_issue(hass, entry)
+        _music_follows_link(hass, entry, coordinator)
     if (
         _shown_zones(entry, coordinator) != coordinator.shown_zones
         or connection_options(entry) != coordinator.connection
@@ -247,6 +248,28 @@ async def _async_entry_updated(hass: HomeAssistant, entry: DenonAvrConfigEntry) 
         hass.config_entries.async_schedule_reload(entry.entry_id)
         return
     coordinator.async_update_listeners()
+
+
+@callback
+def _music_follows_link(
+    hass: HomeAssistant, entry: DenonAvrConfigEntry, coordinator: DenonAvrCoordinator
+) -> None:
+    """A player linked to the network input shows the Network music switches.
+
+    They start hidden without one (linked_players.network_linked). Only those the
+    integration hid come back; one the user switched off stays off.
+    """
+
+    if not linked_players.network_linked(coordinator):
+        return
+    registry = er.async_get(hass)
+    for regentry in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if (
+            regentry.domain == "switch"
+            and "_switch_music_" in regentry.unique_id
+            and regentry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+        ):
+            registry.async_update_entity(regentry.entity_id, disabled_by=None)
 
 
 def _register_main_device(
@@ -409,9 +432,16 @@ def _apply_channel_defaults(
     previous = set(applied) if applied is not None else None
     # Trims an entity group switched stay with the group.
     grouped = set(entry.options.get(entity_groups.OPT_GROUP_ENABLED, []))
+    # Trims start hidden; one of a speaker set up again comes back only when
+    # the trims are in use (one of a speaker the receiver kept is shown).
+    in_use = any(
+        regentry.disabled_by is None
+        for regentry, code in channels
+        if code in configured and (previous is None or code in previous)
+    )
     for regentry, code in channels:
         removed = code not in configured and (previous is None or code in previous)
-        added = previous is not None and code in configured and code not in previous
+        added = previous is not None and code in configured and code not in previous and in_use
         if removed and regentry.disabled_by is None:
             registry.async_update_entity(
                 regentry.entity_id,

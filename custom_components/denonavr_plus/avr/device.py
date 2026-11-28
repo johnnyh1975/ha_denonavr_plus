@@ -2229,9 +2229,22 @@ class DenonAvrDevice:
         return self._heos.log
 
     def refused_sources(self, zone_id: str) -> frozenset[str]:
-        """The sources a zone did not switch to since Home Assistant started."""
+        """The sources a zone did not switch to since Home Assistant started.
 
-        return frozenset(self._refused_sources.get(zone_id, ()))
+        A source the zone plays after all (its echo came late) is no longer
+        refused.
+        """
+
+        refused = self._refused_sources.get(zone_id)
+        if not refused:
+            return frozenset()
+        refused.difference_update({listed for listed in refused if self.plays_source(zone_id, listed)})
+        return frozenset(refused)
+
+    def plays_source(self, zone_id: str, listed: str) -> bool:
+        """Whether the zone reports the source (by its listed code) as its own now."""
+
+        return self._state.zone(zone_id).source == self._wire_source(listed)
 
     async def async_select_sound_mode(self, name: str) -> None:
         """Select a surround / sound mode by its display name.

@@ -396,6 +396,60 @@ async def test_an_unreachable_receiver_is_retried_while_down() -> None:
     assert states == []
 
 
+async def test_a_line_that_fails_to_be_handled_keeps_the_session(
+    receiver: FakeReceiver,
+) -> None:
+    """An error in handling one line (a fault of ours) costs only that line."""
+    seen: list[str] = []
+
+    def on_line(line: str) -> None:
+        if line == "PWX":
+            raise KeyError(line)
+        seen.append(line)
+
+    await receiver.start()
+    client = TelnetClient(LOOPBACK, on_line=on_line, port=receiver.port)
+    await client.async_start()
+    try:
+        async with asyncio.timeout(5):
+            while not client.connected:
+                await asyncio.sleep(0.01)
+        await client.async_send("PW?")
+        await client.async_send("MV?")
+        async with asyncio.timeout(5):
+            while "MVX" not in seen:
+                await asyncio.sleep(0.01)
+        assert client.connected and len(receiver.received) == 2
+    finally:
+        await client.async_stop()
+
+
+async def test_an_error_on_connecting_is_followed_by_a_new_connection(
+    receiver: FakeReceiver,
+) -> None:
+    """Without this, the manager task died and the receiver stayed away for good."""
+    attempts = 0
+
+    async def on_connected() -> None:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise TypeError("a fault in the resync")
+
+    await receiver.start()
+    client = TelnetClient(
+        LOOPBACK, on_line=lambda line: None, on_connected=on_connected, port=receiver.port
+    )
+    with patch.object(telnet, "RECONNECT_BACKOFF_MIN", 0.05):
+        await client.async_start()
+        try:
+            async with asyncio.timeout(5):
+                while not client.connected or attempts < 2:
+                    await asyncio.sleep(0.01)
+        finally:
+            await client.async_stop()
+
+
 async def _raw_receiver(data: bytes) -> tuple[asyncio.Server, int]:
     """A receiver that sends ``data`` once and hangs up."""
 

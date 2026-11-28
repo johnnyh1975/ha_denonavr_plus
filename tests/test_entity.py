@@ -73,6 +73,11 @@ async def test_names_are_translated_but_ids_are_not(
     trim = next(eid for uid, eid in ids.items() if uid.endswith("_number_channel_trim_C"))
     assert volume == "number.avc_x3700h_volume"
     assert trim == "number.avc_x3700h_speakers_center_trim"
+    # Trims start hidden: show this one to see its name.
+    er.async_get(hass).async_update_entity(trim, disabled_by=None)
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
     volume_state = hass.states.get(volume)
     trim_state = hass.states.get(trim)
     assert volume_state is not None and "Lautstärke" in volume_state.attributes["friendly_name"]

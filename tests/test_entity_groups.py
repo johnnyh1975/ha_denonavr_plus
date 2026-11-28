@@ -54,13 +54,14 @@ async def test_the_groups_of_the_recording(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
     counts = entity_groups.hidden_counts(hass, loaded_entry, set())
+    # Channel trims, the remote and the network music switches start hidden too.
     assert counts == {
         "audio": 12,
-        "speakers": 29,
+        "speakers": 54,
         "video": 6,
         "graphic_eq": 15,
-        "zones": 1,
-        "receiver": 11,
+        "zones": 2,
+        "receiver": 13,
         "diagnostic": 7,
     }
 
@@ -123,8 +124,9 @@ async def test_speakers_the_receiver_does_not_have_stay_hidden(
     assert _disabled(hass, loaded_entry, "number_channel_distance_TFL") is INTEGRATION
     assert _disabled(hass, loaded_entry, "select_front_speaker") is None
     counts = entity_groups.hidden_counts(hass, loaded_entry, {"FL", "FR", "C", "SW"})
-    # Four distances and the three settings the group showed, plus the level reset.
-    assert counts["speakers"] == 8
+    # Four trims, four distances, the three settings the group showed, and the
+    # level reset.
+    assert counts["speakers"] == 12
 
 
 async def test_the_groups_apply_at_setup(hass: HomeAssistant, receiver_network: Any) -> None:

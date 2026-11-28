@@ -130,6 +130,12 @@ def _skip_reason(upnp: Any) -> str | None:
 #: The text after setup: where to go next (config.create_entry.created).
 CREATED = "created"
 
+def _not_offered(stored: Any, offered: set[str]) -> list[str]:
+    """The stored choices that are not offered now, kept as they were."""
+
+    return [str(code) for code in stored or [] if code not in offered]
+
+
 class DenonAvrConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Denon AVR."""
 
@@ -1235,27 +1241,35 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
             SelectOptionDict(value=source.code, label=source.name)
             for source in discovery.visible_sources()
         ]
+        every = {option["value"] for option in visible}
+        stored = options.get(OPT_SOURCES)
+        selection: dict[str, Any] = stored if isinstance(stored, dict) else {}
         if user_input is not None:
-            every = {option["value"] for option in visible}
             selection_in: dict[str, list[str]] = {}
             for zone in zones:
                 chosen = list(user_input.get(zone, {}).get(OPT_SOURCES, []))
                 # All of them means all, also sources the receiver adds later.
-                selection_in[zone] = [] if set(chosen) >= every else chosen
+                # A chosen source not offered now (hidden on the receiver) is
+                # kept for when it comes back.
+                selection_in[zone] = (
+                    [] if set(chosen) >= every else chosen + _not_offered(selection.get(zone), every)
+                )
             self._pending = {
                 OPT_SOURCES: selection_in,
                 OPT_SOURCE_SHORTCUTS: bool(user_input.get(OPT_SOURCE_SHORTCUTS, True)),
             }
             return await self.async_step_source_names()
-        stored = options.get(OPT_SOURCES)
-        selection: dict[str, Any] = stored if isinstance(stored, dict) else {}
         fields: dict[Any, Any] = {
             vol.Required(
                 OPT_SOURCE_SHORTCUTS, default=bool(options.get(OPT_SOURCE_SHORTCUTS, True))
             ): BooleanSelector()
         }
         for zone in zones:
-            chosen = selection.get(zone) or [option["value"] for option in visible]
+            # Only what is offered now: a stored source the receiver no longer
+            # offers would make the form's own default invalid.
+            chosen = [code for code in selection.get(zone) or [] if code in every] or [
+                option["value"] for option in visible
+            ]
             fields[vol.Required(zone)] = section(
                 vol.Schema(
                     {
@@ -1324,16 +1338,22 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, OptionsFlow):
         modes = self._known_sound_modes(discovery)
         if not modes:
             return self.async_abort(reason="no_sound_modes")
+        stored_modes = self.config_entry.options.get(OPT_SOUND_MODES)
         if user_input is not None:
             chosen_in = list(user_input[OPT_SOUND_MODES])
             # The names step lists the chosen modes; "all" is stored as empty.
+            # A chosen mode not reported now is kept for when it comes back.
             self._pending = {
-                OPT_SOUND_MODES: [] if set(chosen_in) >= set(modes) else chosen_in,
+                OPT_SOUND_MODES: (
+                    []
+                    if set(chosen_in) >= set(modes)
+                    else chosen_in + _not_offered(stored_modes, set(modes))
+                ),
                 OPT_READABLE_SOUND_MODES: bool(user_input.get(OPT_READABLE_SOUND_MODES, True)),
             }
             self._mode_names_for = chosen_in
             return await self.async_step_sound_mode_names()
-        chosen = self.config_entry.options.get(OPT_SOUND_MODES) or modes
+        chosen = [mode for mode in stored_modes or [] if mode in modes] or modes
         return self.async_show_form(
             step_id="sound_modes",
             data_schema=vol.Schema(

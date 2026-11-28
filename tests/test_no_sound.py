@@ -102,8 +102,10 @@ async def test_zone_2_following_the_main_zone_off_and_a_refused_input(
     )
     assert [item["check"] for item in response[player]["findings"]] == ["follows_main_off"]  # type: ignore[index]
 
+    # Zone 2 follows the main zone onto an input it refused (no HDMI in Zone 2).
+    # A zone reporting the input as its own took it after all (a late echo).
     device._refused_sources["zone2"] = {"CD"}
-    await _push(hass, "Z2CD")
+    await _push(hass, "ZMON", "SICD")
     response = await hass.services.async_call(
         DOMAIN, "why_no_sound", {"entity_id": player}, blocking=True, return_response=True
     )

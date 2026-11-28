@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} toont {setting} nu grijs in het menu en laat het zoals het is. Een andere instelling bepaalt het nu, zoals de geluidsmodus, het signaal of HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "Er wordt een luidsprekerindeling geschreven of teruggezet; probeer het zo opnieuw."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "De luidsprekerpreset is nu een andere, dus er is niets teruggezet. Ga terug naar de preset van eerst en probeer het opnieuw.",
           "speaker_layout_layout_changed": "De luidsprekerindeling is sindsdien opnieuw gewijzigd, dus er is niets teruggezet.",
           "speaker_layout_left": "{count} instellingen konden niet worden teruggezet; controleer ze op de receiver.",
-          "receiver_unavailable": "De receiver antwoordde niet. Probeer het opnieuw als hij op het netwerk is."
+          "receiver_unavailable": "De receiver antwoordde niet. Probeer het opnieuw als hij op het netwerk is.",
+          "speaker_layout_timeout": "Dat duurde te lang; een deel van de instellingen staat misschien al terug. Controleer de luidsprekerinstellingen op de receiver en probeer het opnieuw."
+        },
+        "progress": {
+          "restoring": "Luidsprekerindeling en instellingen worden teruggezet. Dit kan tot een minuut duren."
         }
       }
     }

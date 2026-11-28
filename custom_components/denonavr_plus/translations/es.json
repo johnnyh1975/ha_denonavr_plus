@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} muestra {setting} atenuado en su menú ahora y lo deja como está. Otro ajuste lo decide ahora, como el modo de sonido, la señal o HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "Se está escribiendo o restaurando una configuración de altavoces; inténtalo de nuevo en un momento."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "El preset de altavoces es otro ahora, así que no se restauró nada. Vuelve al preset que tenías e inténtalo de nuevo.",
           "speaker_layout_layout_changed": "La distribución de altavoces se cambió otra vez desde entonces, así que no se restauró nada.",
           "speaker_layout_left": "{count} ajustes no se pudieron restaurar; compruébalos en el receptor.",
-          "receiver_unavailable": "El receptor no respondió. Inténtalo de nuevo cuando esté en la red."
+          "receiver_unavailable": "El receptor no respondió. Inténtalo de nuevo cuando esté en la red.",
+          "speaker_layout_timeout": "Ha tardado demasiado; puede que parte de los ajustes ya se haya restaurado. Revisa la configuración de altavoces en el receptor e inténtalo de nuevo."
+        },
+        "progress": {
+          "restoring": "Restaurando la configuración de altavoces y sus ajustes. Puede tardar hasta un minuto."
         }
       }
     }

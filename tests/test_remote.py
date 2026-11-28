@@ -9,10 +9,17 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .common import entity_id
+from .common import async_enable, entity_id, registry_entry
 from .test_init import FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
 __all__ = ["loaded_entry", "receiver_network"]
+
+
+@pytest.fixture(autouse=True)
+async def remote_shown(hass: HomeAssistant, loaded_entry: MockConfigEntry) -> None:
+    """The remote starts hidden; these tests show it, as a user does."""
+    assert registry_entry(hass, loaded_entry, "remote").disabled_by is not None
+    await async_enable(hass, loaded_entry, "remote")
 
 
 async def _send(hass: HomeAssistant, entry: MockConfigEntry, **data: object) -> None:

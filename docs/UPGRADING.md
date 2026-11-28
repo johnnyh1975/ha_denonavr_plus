@@ -17,6 +17,16 @@ nothing from you are not listed. What changed in each version is in the
   Video and Speakers groups (Configure → Entities).
 - The device page shows the DTS decoder's version next to the firmware and
   the network module as hardware.
+- **New installations start with fewer entities shown**: the channel levels
+  (with the rest of the speaker setup), the Remote (its on/off repeats the
+  media player's power) and the Network Music switches (shown once a player
+  is linked to the network input). Installations you have keep their
+  entities as they are; to show them on a new one, use the Speakers and
+  Receiver groups (Configure → Entities) or the device page.
+- **Zone 2 inputs**: an input Zone 2 did not switch to leaves its list in the
+  options only when the zone was on and the input did not come within ten
+  seconds after all. Inputs taken out earlier stay out; put them back under
+  Configure → Sources if Zone 2 can play them.
 
 ## From 1.3.x to 1.4
 

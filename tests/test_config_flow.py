@@ -619,6 +619,49 @@ async def test_sound_modes_are_chosen_and_renamed(
     assert loaded_entry.options["readable_sound_modes"] is True
 
 
+async def test_a_stored_source_no_longer_offered_does_not_block_the_step(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """The form's defaults were the stored list, and submitting them failed."""
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={**loaded_entry.options, "sources": {"main": ["DVD", "GONE"]}}
+    )
+    await hass.async_block_till_done()
+    result = await _options_step(hass, loaded_entry, "sources")
+    # The form's own defaults, as a user who changes nothing sends them.
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"main": {}, "zone2": {}}
+    )
+    assert result["step_id"] == "source_names"
+    assert [str(key) for key in result["data_schema"].schema][0] == "DVD"
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    # Kept for when the receiver offers it again.
+    assert loaded_entry.options["sources"]["main"] == ["DVD", "GONE"]
+
+
+async def test_a_stored_sound_mode_no_longer_reported_does_not_block_the_step(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    import asyncio
+
+    from .test_init import FakeTelnet
+
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={**loaded_entry.options, "sound_modes": ["Stereo", "Gone"]}
+    )
+    await hass.async_block_till_done()
+    FakeTelnet.instances[-1].push(
+        "OPSMLALL MOV071Dolby Surround", "OPSMLALL MUS011Stereo", "OPSMLALL END"
+    )
+    await asyncio.sleep(0.15)
+    result = await _options_step(hass, loaded_entry, "sound_modes")
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    assert result["step_id"] == "sound_mode_names"
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    assert loaded_entry.options["sound_modes"] == ["Stereo", "Gone"]
+
+
 async def test_zones_can_be_switched_off(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:

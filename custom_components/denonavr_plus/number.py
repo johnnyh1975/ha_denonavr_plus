@@ -70,10 +70,9 @@ async def async_setup_entry(
             continue
         entities.append(DenonAvrNumber(coordinator, spec))
 
-    # One trim per known channel. Channels that the receiver reports as
-    # configured (from SSSPC) are enabled; the rest are registered but disabled
-    # by default so they stay out of the way yet can be enabled from the UI.
-    configured = discovery.configured_channels
+    # One trim per known channel. Like the rest of the speaker setup they
+    # start disabled; the Speakers group in the options shows those of the
+    # speakers the receiver has.
     calibrated = [c.code for c in discovery.channels] or sorted(
         coordinator.data.channel_levels
     )
@@ -81,8 +80,7 @@ async def async_setup_entry(
     # there are no distances in a form this integration reads.
     codes = calibrated or list(coordinator.data.channel_trims)
     for code in codes:
-        enabled = (not configured) or code in configured
-        entities.append(DenonAvrChannelTrim(coordinator, code, enabled))
+        entities.append(DenonAvrChannelTrim(coordinator, code))
         if calibrated:
             entities.append(DenonAvrChannelDistance(coordinator, code))
 
@@ -156,16 +154,13 @@ class DenonAvrChannelTrim(DenonAvrEntity, NumberEntity):
     _attr_mode = NumberMode.SLIDER
     _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
 
-    def __init__(
-        self, coordinator: DenonAvrCoordinator, code: str, enabled: bool
-    ) -> None:
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: DenonAvrCoordinator, code: str) -> None:
         super().__init__(
             coordinator, f"number_channel_trim_{code}", sub_device="speakers"
         )
         self._code = code
-        # Channels the receiver has not configured are registered but disabled by
-        # default; the user can still enable them from the UI.
-        self._attr_entity_registry_enabled_default = enabled
         discovery = coordinator.device.discovery
         self._attr_translation_key = "channel_trim"
         self._attr_translation_placeholders = {"channel": discovery.channel_name(code)}

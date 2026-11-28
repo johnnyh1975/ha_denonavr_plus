@@ -47,6 +47,10 @@ async def async_setup_entry(
 class DenonAvrRemote(DenonAvrEntity, RemoteEntity):
     """The receiver's on-screen menu keys."""
 
+    # Its on/off is the main zone's power, a second switch beside the media
+    # player on the device page; the menu keys are for scripts and cards.
+    _attr_entity_registry_enabled_default = False
+
     def __init__(self, coordinator: DenonAvrCoordinator) -> None:
         super().__init__(coordinator, "remote")
         self._attr_translation_key = "remote"

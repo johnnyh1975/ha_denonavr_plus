@@ -298,6 +298,10 @@ class TelnetClient:
                 raise
             except (OSError, asyncio.TimeoutError) as err:
                 _LOGGER.debug("Telnet connection to %s failed: %s", self._host, err)
+            except Exception:
+                # A fault of ours (on connecting, in a reply) must not end the
+                # link for good: log it and connect again.
+                _LOGGER.exception("Telnet session with %s ended by an error", self._host)
             finally:
                 await self._set_connected(False)
                 self._clear_queue()
@@ -398,7 +402,11 @@ class TelnetClient:
         if self._awaiting is not None and line.startswith(self._awaiting):
             self._replied.set()
         self._record("<", line)
-        self._on_line(line)
+        try:
+            self._on_line(line)
+        except Exception:
+            # One line handled wrongly is no reason to drop the session.
+            _LOGGER.exception("Handling the line %r from %s failed", line, self._host)
 
     async def _write_loop(self) -> None:
         """Write queued commands, each after the reply to the one before."""

@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} shows {setting} grayed out in its menu right now and keeps it as it is. Another setting decides it now, such as the sound mode, the signal or HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "A speaker layout is being written or put back; try again in a moment."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "The speaker preset is another one now, so nothing was put back. Switch back to the preset you had and try again.",
           "speaker_layout_layout_changed": "The speaker layout was changed again since, so nothing was put back.",
           "speaker_layout_left": "{count} settings could not be put back; check them on the receiver.",
-          "receiver_unavailable": "The receiver did not answer. Try again when it is on the network."
+          "receiver_unavailable": "The receiver did not answer. Try again when it is on the network.",
+          "speaker_layout_timeout": "It took too long; part of the settings may be back already. Check the speaker setup on the receiver, then try again."
+        },
+        "progress": {
+          "restoring": "Putting back the speaker layout and settings. This can take up to a minute."
         }
       }
     }

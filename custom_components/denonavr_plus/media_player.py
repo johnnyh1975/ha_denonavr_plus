@@ -79,7 +79,7 @@ from homeassistant.core import (
     State,
     callback,
 )
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
@@ -144,6 +144,9 @@ _REPEAT_TO_HEOS = {mode: heos for heos, mode in _REPEAT_FROM_HEOS.items()}
 # moment longer: a receiver that is still starting can drop the command
 # (docs/protocol/02, "Timing": 1 s after PWON, 3 to 5 s for a full boot).
 TURN_ON_WAIT = 15.0
+#: How long a source the zone refused may still come (a late echo) before
+#: it leaves the zone's list for good.
+SOURCE_REFUSAL_GRACE = 10.0
 TURN_ON_SETTLE = 1.0
 #: The shortest time between two steps of a volume ramp. The receiver takes
 #: commands faster, but each answers with MV, and a quicker ramp sounds no
@@ -1128,12 +1131,32 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         try:
             await self._device.async_choose_source(self._zone.id, code)
         except SourceNotTaken:
-            self._hide_source(code)
+            self._hide_source_later(code)
             raise
 
     @property
     def _model_name(self) -> str:
         return self._device.discovery.device.model_name or "Denon AVR"
+
+    @callback
+    def _hide_source_later(self, code: str) -> None:
+        """Take a refused source out of the zone's list for good, unless it comes after all.
+
+        Only when the zone was on: one that is waking up drops commands. And
+        only after a grace time: a late echo (slow HDMI or CEC switching, a
+        busy link) shows the zone took it after all.
+        """
+
+        zone_id = self._zone.id
+        if not self.coordinator.data.zone(zone_id).power:
+            return
+
+        @callback
+        def _decide(_now: Any) -> None:
+            if code in self._device.refused_sources(zone_id):
+                self._hide_source(code)
+
+        self.async_on_remove(async_call_later(self.hass, SOURCE_REFUSAL_GRACE, _decide))
 
     def _hide_source(self, code: str) -> None:
         """Take a source the zone refused out of its list, for good.

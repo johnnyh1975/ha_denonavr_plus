@@ -18,7 +18,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoreEntity
 
-from . import choices, clarity, volume
+from . import choices, clarity, linked_players, volume
 from .avr.models import ZoneDescriptor
 from .avr.video_config import VideoConfigController
 from .avr.profile import ControlSpec
@@ -136,6 +136,9 @@ class DenonAvrMusicSwitch(DenonAvrEntity, SwitchEntity):
         super().__init__(coordinator, f"switch_music_{zone.id}", sub_device=zone_device(zone))
         self._zone = zone
         self._attr_translation_key = "music"
+        # Shown with a player linked to the network input (Music Assistant);
+        # linking one later shows it then (_music_follows_link in __init__).
+        self._attr_entity_registry_enabled_default = linked_players.network_linked(coordinator)
 
     @property
     def is_on(self) -> bool:
@@ -247,3 +250,4 @@ class DenonAvrVideoSwitch(DenonAvrEntity, SwitchEntity):
     @receiver_action
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._set(self._off)
+

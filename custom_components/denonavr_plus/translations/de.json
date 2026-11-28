@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} zeigt {setting} gerade ausgegraut im Menü und lässt es, wie es ist. Eine andere Einstellung bestimmt es gerade, etwa der Klangmodus, das Signal oder HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "Gerade wird ein Lautsprecher-Layout geschrieben oder zurückgestellt; versuche es gleich noch einmal."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "Das Lautsprecher-Preset ist jetzt ein anderes, daher wurde nichts zurückgestellt. Wechsle zurück zum vorherigen Preset und versuche es erneut.",
           "speaker_layout_layout_changed": "Das Lautsprecher-Layout wurde seitdem erneut geändert, daher wurde nichts zurückgestellt.",
           "speaker_layout_left": "{count} Einstellungen ließen sich nicht zurückstellen; prüfe sie am Receiver.",
-          "receiver_unavailable": "Der Receiver hat nicht geantwortet. Versuche es erneut, wenn er im Netzwerk ist."
+          "receiver_unavailable": "Der Receiver hat nicht geantwortet. Versuche es erneut, wenn er im Netzwerk ist.",
+          "speaker_layout_timeout": "Das hat zu lange gedauert; ein Teil der Einstellungen ist vielleicht schon zurück. Prüfe die Lautsprecher-Einrichtung am Receiver und versuche es dann erneut."
+        },
+        "progress": {
+          "restoring": "Lautsprecher-Layout und Einstellungen werden zurückgestellt. Das kann bis zu einer Minute dauern."
         }
       }
     }

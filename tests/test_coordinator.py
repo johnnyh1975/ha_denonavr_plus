@@ -702,3 +702,22 @@ async def test_the_device_card_shows_the_dts_decoder_and_the_network_module(
     assert device is not None
     assert device.sw_version == "3.139.174 (DTS 4.30.10.15)"
     assert device.hw_version == "Aios 6.5V"
+
+
+async def test_a_pushed_change_does_not_put_off_the_poll(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Every push restarted the poll timer; a chatty receiver was never polled."""
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
+    main = next(
+        state.entity_id
+        for state in hass.states.async_all("number")
+        if state.entity_id.endswith("_volume") and "zone_2" not in state.entity_id
+    )
+    with patch.object(DataUpdateCoordinator, "_schedule_refresh") as reschedule:
+        FakeTelnet.instances[-1].push("MV41")
+        await asyncio.sleep(0.15)
+        await hass.async_block_till_done()
+    assert hass.states.get(main).state == "-39.0"
+    reschedule.assert_not_called()

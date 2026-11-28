@@ -18,9 +18,11 @@ __all__ = ["loaded_entry", "receiver_network"]
 async def test_distances_and_eq_bands_start_disabled(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
-    for key in ("number_bass", "number_sleep_timer", "number_channel_trim_C"):
+    for key in ("number_bass", "number_sleep_timer"):
         assert registry_entry(hass, loaded_entry, key).disabled_by is None, key
     for key in (
+        # Trims start hidden like the rest of the speaker setup.
+        "number_channel_trim_C",
         "number_channel_distance_C",
         "number_eq_Eq1kHz",
         "number_lfe",

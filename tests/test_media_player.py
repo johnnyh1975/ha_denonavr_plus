@@ -1608,6 +1608,7 @@ async def test_a_source_zone_2_does_not_take_leaves_its_list(
     assert source in hass.states.get(zone2).attributes["source_list"]
     with (
         patch("custom_components.denonavr_plus.avr.device.ZONE_SOURCE_WAIT", 0.05),
+        patch("custom_components.denonavr_plus.media_player.SOURCE_REFUSAL_GRACE", 0.1),
         pytest.raises(HomeAssistantError) as err,
     ):
         await hass.services.async_call(
@@ -1617,9 +1618,39 @@ async def test_a_source_zone_2_does_not_take_leaves_its_list(
     assert err.value.translation_placeholders["source"] == source
     await _push(hass)
     assert source not in hass.states.get(zone2).attributes["source_list"]
-    # For good: out of the zone's list in the options, where it can come back.
+    # For good once no late echo came: out of the zone's list in the options,
+    # where it can come back.
+    await asyncio.sleep(0.2)
+    await hass.async_block_till_done()
     chosen = loaded_entry.options["sources"]["zone2"]
     assert "DVD" not in chosen and "AUX1" in chosen
+
+
+@pytest.mark.parametrize(("echo", "zone_on"), [("Z2DVD", True), (None, False)])
+async def test_a_late_echo_or_a_waking_zone_does_not_hide_a_source_for_good(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, echo: str | None, zone_on: bool
+) -> None:
+    """One missed echo removed the input from the options, though the zone took it."""
+    await _push(hass, "PWON", "Z2ON" if zone_on else "Z2OFF", "Z2NET")
+    zone2 = entity_id(hass, loaded_entry, "media_player_zone2")
+    with (
+        patch("custom_components.denonavr_plus.avr.device.ZONE_SOURCE_WAIT", 0.05),
+        patch("custom_components.denonavr_plus.media_player.SOURCE_REFUSAL_GRACE", 0.1),
+        patch("custom_components.denonavr_plus.media_player.TURN_ON_WAIT", 0.05),
+        pytest.raises(HomeAssistantError),
+    ):
+        await hass.services.async_call(
+            "media_player", "select_source", {"entity_id": zone2, "source": "DVD"}, blocking=True
+        )
+    if echo:
+        await _push(hass, echo)
+        assert hass.states.get(zone2).attributes["source"] == "DVD"
+        assert "DVD" in hass.states.get(zone2).attributes["source_list"]
+    await asyncio.sleep(0.2)
+    await hass.async_block_till_done()
+    assert "sources" not in loaded_entry.options or "DVD" in (
+        loaded_entry.options["sources"].get("zone2") or ["DVD"]
+    )
 
 
 async def test_a_source_or_sound_mode_is_found_in_any_case(

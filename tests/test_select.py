@@ -652,3 +652,24 @@ async def test_a_speaker_layout_is_only_prepared_by_its_select(
     state = hass.states.get(entity)
     assert state.state == "preamplifier" and state.attributes["prepared"] is True
     assert web_control.writes == []
+
+
+async def test_a_speaker_layout_chosen_while_one_is_written_is_refused(
+    hass: HomeAssistant, web_control: FakeSetupApi
+) -> None:
+    """It was silently dropped: the select kept showing the old layout."""
+    from unittest.mock import PropertyMock, patch
+
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    from custom_components.denonavr_plus.avr.speaker_layout import SpeakerLayout
+
+    entry = web_control.entry  # type: ignore[attr-defined]
+    entity = entity_id(hass, entry, "select_speaker_layout")
+    with patch.object(SpeakerLayout, "busy", new_callable=PropertyMock, return_value=True):
+        with pytest.raises(HomeAssistantError) as err:
+            await hass.services.async_call(
+                "select", "select_option", {"entity_id": entity, "option": "preamplifier"}, blocking=True
+            )
+    assert err.value.translation_key == "speaker_layout_busy"

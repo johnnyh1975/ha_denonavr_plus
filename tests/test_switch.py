@@ -14,7 +14,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.denonavr_plus.avr.profile import load_profile
 from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
 
-from .common import entity_id, registry_entry
+from .common import async_enable, entity_id, registry_entry
 from .setup_api import FakeSetupApi, answering_receiver
 from .test_init import HOST, FakeTelnet, loaded_entry, receiver_network  # noqa: F401 -- fixtures
 
@@ -86,6 +86,7 @@ async def test_the_music_switch_never_ends_a_film(
     """On: zone on and on the network. Off: only while it plays the network."""
     import asyncio
 
+    await async_enable(hass, loaded_entry, "switch_music_main", "switch_music_zone2")
     telnet = FakeTelnet.instances[-1]
     music = entity_id(hass, loaded_entry, "switch_music_main")
     zone2_music = entity_id(hass, loaded_entry, "switch_music_zone2")
@@ -141,6 +142,7 @@ async def test_the_music_switch_turns_on_at_the_turn_on_volume(
 
     from custom_components.denonavr_plus import volume
 
+    await async_enable(hass, loaded_entry, "switch_music_main")
     hass.config_entries.async_update_entry(
         loaded_entry, options={"main": {volume.OPT_TURN_ON_VOLUME: -30.0}}
     )
@@ -362,3 +364,12 @@ async def test_speech_clarity_keeps_what_it_could_not_put_back(
         await hass.services.async_call("switch", "turn_off", {"entity_id": switch}, blocking=True)
     assert telnet.sent == ["PSDYNVOL OFF"]
     assert hass.states.get(switch).state == "off"
+
+
+async def test_the_music_switch_starts_hidden_without_a_linked_player(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Meant as Music Assistant's power control; without a player it is clutter."""
+    for key in ("switch_music_main", "switch_music_zone2"):
+        assert registry_entry(hass, loaded_entry, key).disabled_by is not None
+

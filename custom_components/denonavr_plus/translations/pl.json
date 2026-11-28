@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} pokazuje teraz {setting} jako wyszarzone w menu i pozostawia bez zmian. Decyduje o tym teraz inne ustawienie, np. tryb dźwięku, sygnał lub HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "Układ głośników jest właśnie zapisywany lub przywracany; spróbuj ponownie za chwilę."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "Preset głośników jest teraz inny, więc nic nie przywrócono. Wróć do poprzedniego presetu i spróbuj ponownie.",
           "speaker_layout_layout_changed": "Układ głośników został od tego czasu ponownie zmieniony, więc nic nie przywrócono.",
           "speaker_layout_left": "Nie udało się przywrócić {count} ustawień; sprawdź je na amplitunerze.",
-          "receiver_unavailable": "Amplituner nie odpowiedział. Spróbuj ponownie, gdy będzie w sieci."
+          "receiver_unavailable": "Amplituner nie odpowiedział. Spróbuj ponownie, gdy będzie w sieci.",
+          "speaker_layout_timeout": "Trwało to zbyt długo; część ustawień mogła już zostać przywrócona. Sprawdź konfigurację głośników w amplitunerze i spróbuj ponownie."
+        },
+        "progress": {
+          "restoring": "Przywracanie układu głośników i ustawień. Może to potrwać do minuty."
         }
       }
     }

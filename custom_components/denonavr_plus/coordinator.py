@@ -329,7 +329,13 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         self._check_app_control()
         self._follow_firmware()
         self._keep_snapshot()
-        self.async_set_updated_data(self.device.state)
+        # Not async_set_updated_data: that also moves the next poll a full
+        # interval on, so a receiver that reports more often than the poll
+        # interval would never be polled (firmware check, setup refresh,
+        # the HTTP fallback while telnet is down).
+        self.data = self.device.state
+        self.last_update_success = True
+        self.async_update_listeners()
 
     @callback
     def _follow_firmware(self) -> None:

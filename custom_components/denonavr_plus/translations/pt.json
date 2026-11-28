@@ -1540,6 +1540,9 @@
     },
     "setting_not_taken_menu_grayed": {
       "message": "{model} mostra {setting} esbatido no menu neste momento e deixa-o como está. Outra definição decide agora, como o modo de som, o sinal ou o HDMI Control."
+    },
+    "speaker_layout_busy": {
+      "message": "Está a ser escrita ou reposta uma disposição das colunas; tente novamente dentro de momentos."
     }
   },
   "issues": {
@@ -1674,7 +1677,11 @@
           "speaker_layout_preset_changed": "O preset de colunas é agora outro, por isso nada foi reposto. Volte ao preset anterior e tente de novo.",
           "speaker_layout_layout_changed": "A disposição das colunas foi alterada de novo entretanto, por isso nada foi reposto.",
           "speaker_layout_left": "Não foi possível repor {count} definições; verifique-as no recetor.",
-          "receiver_unavailable": "O recetor não respondeu. Tente de novo quando estiver na rede."
+          "receiver_unavailable": "O recetor não respondeu. Tente de novo quando estiver na rede.",
+          "speaker_layout_timeout": "Demorou demasiado; parte das definições pode já ter sido reposta. Verifique a configuração das colunas no recetor e tente novamente."
+        },
+        "progress": {
+          "restoring": "A repor a disposição das colunas e as definições. Pode demorar até um minuto."
         }
       }
     }

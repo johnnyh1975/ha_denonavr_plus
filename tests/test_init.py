@@ -492,6 +492,32 @@ async def test_a_pending_move_whose_old_entry_is_gone(
     assert entry.state is ConfigEntryState.LOADED
 
 
+def _show_trims(hass: HomeAssistant, entry: MockConfigEntry, codes: tuple[str, ...]) -> None:
+    """Show channel trims as a user does (they start hidden)."""
+    from .common import registry_entry
+
+    registry = er.async_get(hass)
+    for code in codes:
+        item = registry_entry(hass, entry, f"number_channel_trim_{code}")
+        registry.async_update_entity(item.entity_id, disabled_by=None)
+
+
+async def test_a_speaker_set_up_later_keeps_its_trim_hidden_while_none_is_shown(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Trims start hidden; one speaker added must not show its trim alone."""
+    from .common import registry_entry
+
+    telnet = FakeTelnet.instances[-1]
+    with patch("custom_components.denonavr_plus.SPEAKERS_SETTLE", 0):
+        telnet.push("SSSPCFRO SMA", "SSSPCCEN NON", "SSSPCSUA NON", "SSSPCSWF NO")
+        await _settle(hass)
+        assert registry_entry(hass, loaded_entry, "number_channel_trim_FL").disabled_by is not None
+        telnet.push("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSUA NON", "SSSPCSWF NO")
+        await _settle(hass)
+    assert registry_entry(hass, loaded_entry, "number_channel_trim_C").disabled_by is not None
+
+
 async def test_channels_follow_a_speaker_set_up_or_removed_on_the_receiver(
     hass: HomeAssistant, loaded_entry: MockConfigEntry
 ) -> None:
@@ -509,6 +535,8 @@ async def test_channels_follow_a_speaker_set_up_or_removed_on_the_receiver(
     with patch("custom_components.denonavr_plus.SPEAKERS_SETTLE", 0):
         telnet.push("SSSPCFRO SMA", "SSSPCCEN SMA", "SSSPCSUA SMA", "SSSPCSWF YES")
         await _settle(hass)
+        # Trims start hidden; this owner shows those of the speakers there.
+        _show_trims(hass, loaded_entry, ("FL", "FR", "C", "SL", "SR", "SW"))
         assert [state(c) for c in ("C", "SL", "SW")] == [None, None, None]
         assert state("SBL") is disabled
         # Turned on by the user although the receiver has no such speaker.
@@ -544,6 +572,7 @@ async def test_channels_wait_until_the_speaker_answer_is_complete(
     telnet = FakeTelnet.instances[-1]
     telnet.push("SSSPCFRO SMA")
     await _settle(hass)
+    _show_trims(hass, loaded_entry, ("C",))
     trim = registry_entry(hass, loaded_entry, "number_channel_trim_C")
     assert trim.disabled_by is None
     telnet.push("SSSPCCEN SMA", "SSSPCSUA NON")
@@ -593,3 +622,30 @@ async def test_activities_reload_only_when_a_zone_gains_or_loses_its_select(
     from homeassistant.helpers import entity_registry as er
 
     assert er.async_get(hass).async_get(select) is None
+
+
+async def test_linking_a_player_to_the_network_input_shows_the_music_switches(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    from .common import registry_entry
+
+    registry = er.async_get(hass)
+    # One the user switched off stays off.
+    registry.async_update_entity(
+        registry_entry(hass, loaded_entry, "switch_music_zone2").entity_id,
+        disabled_by=er.RegistryEntryDisabler.USER,
+    )
+    hass.config_entries.async_update_entry(
+        loaded_entry,
+        options={
+            **loaded_entry.options,
+            "linked_players": {"NETWORK": {"player": "media_player.music_assistant"}},
+        },
+    )
+    await hass.async_block_till_done()
+    assert registry_entry(hass, loaded_entry, "switch_music_main").disabled_by is None
+    assert (
+        registry_entry(hass, loaded_entry, "switch_music_zone2").disabled_by
+        is er.RegistryEntryDisabler.USER
+    )
+

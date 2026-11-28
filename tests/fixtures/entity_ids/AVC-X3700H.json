@@ -196,127 +196,127 @@
   },
   "number_channel_trim_BDL": {
     "entity_id": "number.avc_x3700h_speakers_back_dolby_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_BDR": {
     "entity_id": "number.avc_x3700h_speakers_back_dolby_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_C": {
     "entity_id": "number.avc_x3700h_speakers_center_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_FDL": {
     "entity_id": "number.avc_x3700h_speakers_front_dolby_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_FDR": {
     "entity_id": "number.avc_x3700h_speakers_front_dolby_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_FHL": {
     "entity_id": "number.avc_x3700h_speakers_front_height_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_FHR": {
     "entity_id": "number.avc_x3700h_speakers_front_height_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_FL": {
     "entity_id": "number.avc_x3700h_speakers_front_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_FR": {
     "entity_id": "number.avc_x3700h_speakers_front_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_RHL": {
     "entity_id": "number.avc_x3700h_speakers_rear_height_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_RHR": {
     "entity_id": "number.avc_x3700h_speakers_rear_height_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SB": {
     "entity_id": "number.avc_x3700h_speakers_surround_back_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SBL": {
     "entity_id": "number.avc_x3700h_speakers_surround_back_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SBR": {
     "entity_id": "number.avc_x3700h_speakers_surround_back_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SDL": {
     "entity_id": "number.avc_x3700h_speakers_surround_dolby_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SDR": {
     "entity_id": "number.avc_x3700h_speakers_surround_dolby_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SL": {
     "entity_id": "number.avc_x3700h_speakers_surround_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SR": {
     "entity_id": "number.avc_x3700h_speakers_surround_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_SW": {
     "entity_id": "number.avc_x3700h_speakers_subwoofer_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_TFL": {
     "entity_id": "number.avc_x3700h_speakers_top_front_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_TFR": {
     "entity_id": "number.avc_x3700h_speakers_top_front_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_TML": {
     "entity_id": "number.avc_x3700h_speakers_top_middle_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_TMR": {
     "entity_id": "number.avc_x3700h_speakers_top_middle_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_TRL": {
     "entity_id": "number.avc_x3700h_speakers_top_rear_l_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_channel_trim_TRR": {
     "entity_id": "number.avc_x3700h_speakers_top_rear_r_trim",
-    "enabled": true,
+    "enabled": false,
     "category": "config"
   },
   "number_containment_amount": {
@@ -421,7 +421,7 @@
   },
   "remote": {
     "entity_id": "remote.avc_x3700h_remote",
-    "enabled": true,
+    "enabled": false,
     "category": null
   },
   "select_aspect_ratio": {
@@ -656,12 +656,12 @@
   },
   "switch_music_main": {
     "entity_id": "switch.avc_x3700h_network_music",
-    "enabled": true,
+    "enabled": false,
     "category": null
   },
   "switch_music_zone2": {
     "entity_id": "switch.avc_x3700h_zone_2_network_music",
-    "enabled": true,
+    "enabled": false,
     "category": null
   },
   "switch_speaker_virtualizer": {

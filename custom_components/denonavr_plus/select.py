@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -882,6 +883,10 @@ class DenonAvrSpeakerLayoutSelect(DenonAvrEntity, SelectEntity):
         return {"prepared": self._layout.pending is not None}
 
     async def async_select_option(self, option: str) -> None:
-        if (mode := self._layout.mode_of(option)) is not None:
-            self._layout.stage(mode)
-            self.async_write_ha_state()
+        mode = self._layout.mode_of(option)
+        if mode is None or not self._layout.stage(mode):
+            # While a layout is written or put back, nothing can be prepared.
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="speaker_layout_busy"
+            )
+        self.async_write_ha_state()
