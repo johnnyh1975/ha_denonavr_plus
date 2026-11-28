@@ -2,8 +2,8 @@ blueprint:
   name: Denon AVR Plus – night mode
   description: >-
     Between two times, keep the receiver quiet: cap the volume and, if set,
-    switch the dynamic volume (Audyssey Dynamic Volume) to a night setting,
-    and back when the night is over.
+    switch the dynamic volume (Audyssey Dynamic Volume) to a night setting and
+    speech clarity on, and back when the night is over.
   domain: automation
   source_url: https://github.com/johnnyh1975/ha_denonavr_plus/blob/main/blueprints/automation/denonavr_plus/night_mode.yaml
   input:
@@ -54,6 +54,20 @@ blueprint:
       default: ""
       selector:
         text: {}
+    speech_clarity:
+      name: Speech clarity
+      description: >-
+        Optional. The receiver's Speech clarity switch: on at night, so voices
+        stay clear when it is quiet, and off by day, which puts back what it
+        changed. It sets Dynamic Volume itself where it was off; leave the
+        dynamic volume above empty then.
+      default: []
+      selector:
+        entity:
+          filter:
+            - integration: denonavr_plus
+              domain: switch
+          multiple: true
 mode: restart
 trigger:
   - trigger: time
@@ -74,6 +88,7 @@ variables:
   dynamic_volume: !input dynamic_volume
   night_option: !input dynamic_volume_night
   day_option: !input dynamic_volume_day
+  speech_clarity: !input speech_clarity
   is_night: >-
     {% set now_t = now().strftime('%H:%M:%S') %}
     {{ (start <= now_t or now_t < end) if start > end else (start <= now_t < end) }}
@@ -109,3 +124,17 @@ action:
           entity_id: "{{ dynamic_volume }}"
         data:
           option: "{{ day_option }}"
+  - if:
+      - condition: template
+        value_template: "{{ trigger.id == 'night' and speech_clarity | count > 0 }}"
+    then:
+      - action: switch.turn_on
+        target:
+          entity_id: "{{ speech_clarity }}"
+  - if:
+      - condition: template
+        value_template: "{{ trigger.id == 'day' and speech_clarity | count > 0 }}"
+    then:
+      - action: switch.turn_off
+        target:
+          entity_id: "{{ speech_clarity }}"

@@ -374,7 +374,7 @@
           "volume_db": "En dB sur l'échelle de l'ampli. Vide : le volume à l'allumage ou le volume tel quel. Reste sous le volume maximal de la zone.",
           "hdmi_output": "Zone principale seulement. Vide : la sortie reste telle quelle.",
           "clarity": "Zone principale seulement : allumer ou éteindre l'interrupteur de clarté des dialogues, ou le laisser.",
-          "wake_player": "Allume le lecteur multimédia associé à l'entrée (Configurer → Lecture), par exemple le téléviseur ou le boîtier de streaming.",
+          "wake_player": "Allume le lecteur multimédia associé à l'entrée (Configurer → Lecture), par exemple un boîtier de streaming.",
           "audio_delay": "Zone principale seulement, pour caler le son sur l'image de cette activité. Vide : le retard reste tel quel. L'Auto Lip Sync de l'ampli peut le remplacer.",
           "wake_entity": "Un autre appareil à allumer, par exemple le téléviseur quand le lecteur associé à l'entrée est un boîtier de streaming."
         }

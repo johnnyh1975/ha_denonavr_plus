@@ -285,6 +285,8 @@ for a new one; then add another or save. Each zone with activities gets an
 shows *Film* while the zone stays on that input. The action **Start
 activity** and voice commands (section 10) do the same.
 
+![An activity: name, zone, input, and what else it sets](images/guide/options-activity.png)
+
 > **Recommended:**
 > - One activity per thing you really do, named as you would say it:
 >   *Film*, *Music*, *Radio*, *Games*.
@@ -329,7 +331,7 @@ GitHub address:
   turns off, but only if it still plays the TV.
 - [Night mode](../blueprints/automation/denonavr_plus/night_mode.yaml):
   between two times the volume stays below a limit, and Dynamic Volume can
-  switch to a night setting and back.
+  switch to a night setting and speech clarity on, and back.
 
 Good practice for your own:
 

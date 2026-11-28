@@ -37,6 +37,15 @@ the devices on its inputs, and live updates over the local network.
   input when the device starts playing and keeps the device at full volume.
   Music Assistant fits the same way: linked to the network input, its queue
   and library come with it.
+- **One choice for what you do.** Activities such as *Film* or *Music* set a
+  zone's input, sound mode, volume, HDMI output, audio delay and speech
+  clarity at once and switch on the devices that belong to them, from a
+  select, an action or by voice.
+- **Voices you can follow.** A *Speech clarity* switch raises dialogue
+  (Dialogue Enhancer, or the center level, and Dynamic Volume) and puts back
+  exactly what it changed.
+- **Ask it.** Assist and AI conversation agents can start an activity, set
+  the sound mode and say why a zone is silent.
 - **Instant and robust.** Changes arrive the moment they happen. When the
   control connection drops, power, volume, mute and source keep working.
 - **Safe to try.** It takes a receiver over from the official integration
@@ -57,7 +66,7 @@ be installed; only one should control a receiver at a time. As of November
 | **Receivers** | Denon and Marantz network receivers, including models before 2016 | HEOS generation (2016 and later); older models with fewer settings |
 | **Connection** | HTTP poll every 10 s; telnet push optional (on for new setups) | Telnet push always; HTTP for discovery, a check and as fallback |
 | **When telnet drops** | Falls back to the HTTP poll | Media players, sound mode, tone and Audyssey stay usable over HTTP; a repair explains what is wrong |
-| **Entities** | One media player per zone | Media players plus selects, switches, numbers, sensors (an activity per zone: film, TV, music, radio, game), buttons and a remote, on sub-devices |
+| **Entities** | One media player per zone | Media players plus selects, switches, numbers, sensors (an activity per zone: film, TV, music, radio, game), buttons and a remote, on sub-devices; a speech clarity switch |
 | **Zones** | Zone 2 and 3 as media players of the receiver | Each zone its own device, for its own room; zone 2 can join the main zone |
 | **Sources** | As the receiver names them; option to show deleted ones | As the receiver names and hides them; per zone choice and renaming; quick selects and HEOS favorites in the list |
 | **Sound modes** | One list, matched by the library; unknown modes as `sound_mode_raw` | Genre group and the modes the current signal allows, from the receiver; choice and renaming |
@@ -69,7 +78,9 @@ be installed; only one should control a receiver at a time. As of November
 | **Now playing** | Title, artist and cover of network sources | Over HEOS: cover, position, repeat, shuffle, queue, favorites and HEOS music in the media browser; text to speech and announcements |
 | **Devices on the inputs** | — | A linked media player per input (an Apple TV, a streamer): its title, cover and buttons on the receiver's player; switch to its input when it starts, switch it on and off with the input, keep it at full volume, pause it when the zone is switched off; voice search finds its media (Music Assistant's library) |
 | **Tuner** | — | Preset select and FM frequency |
-| **Actions** | Raw HTTP command, Dynamic EQ, Audyssey refresh | Raw command, why no sound, volume ramp, snapshot and restore, tuner preset, HEOS queue; remote with the menu keys; device trigger; two blueprints |
+| **Activities** | — | Per zone, set in the options: input, sound mode, volume, HDMI output, audio delay, speech clarity and devices to switch on, started from a select, an action or by voice |
+| **Voice and AI agents** | Home Assistant's media player intents | Those, plus intents to start an activity, set the sound mode and ask why there is no sound, offered to AI agents as tools; example sentences in English and German |
+| **Actions** | Raw HTTP command, Dynamic EQ, Audyssey refresh | Raw command, start activity, why no sound, volume ramp, snapshot and restore, tuner preset, HEOS queue; remote with the menu keys; device trigger; two blueprints |
 | **Setup** | Discovery or address | Discovery or address; follows a new address by itself; reconfigure |
 | **Help when something is off** | Log messages, diagnostics | A *Why no sound?* button per zone that names the cause and fixes power, mute and HDMI audio; repairs, diagnostics without addresses, a receiver test that puts every setting back, the reason when the receiver keeps a setting, firmware updates under Settings → Updates |
 | **Languages** | Home Assistant's translations | Eight languages, English entity IDs |

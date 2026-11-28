@@ -374,7 +374,7 @@
           "volume_db": "W dB na skali amplitunera. Puste: głośność włączenia lub głośność bez zmian. Pozostaje poniżej maksymalnej głośności strefy.",
           "hdmi_output": "Tylko strefa główna. Puste: wyjście zostaje bez zmian.",
           "clarity": "Tylko strefa główna: włącz lub wyłącz przełącznik wyrazistości dialogów albo zostaw go.",
-          "wake_player": "Włącza odtwarzacz multimedialny powiązany z wejściem (Konfiguruj → Odtwarzanie), np. telewizor lub przystawkę do streamingu.",
+          "wake_player": "Włącza odtwarzacz multimedialny powiązany z wejściem (Konfiguruj → Odtwarzanie), np. przystawkę do streamingu.",
           "audio_delay": "Tylko strefa główna, do synchronizacji dźwięku z obrazem tej aktywności. Puste: opóźnienie zostaje bez zmian. Auto Lip Sync amplitunera może je nadpisać.",
           "wake_entity": "Kolejne urządzenie do włączenia, np. telewizor, gdy odtwarzaczem powiązanym z wejściem jest przystawka do streamingu."
         }

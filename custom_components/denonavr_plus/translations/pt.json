@@ -374,7 +374,7 @@
           "volume_db": "Em dB na escala do recetor. Vazio: o volume ao ligar ou o volume tal como está. Fica abaixo do volume máximo da zona.",
           "hdmi_output": "Só zona principal. Vazio: a saída fica como está.",
           "clarity": "Só zona principal: ligar ou desligar o interruptor de clareza de voz, ou deixá-lo.",
-          "wake_player": "Liga o leitor multimédia associado à entrada (Configurar → Reprodução), como o televisor ou a box de streaming.",
+          "wake_player": "Liga o leitor multimédia associado à entrada (Configurar → Reprodução), como uma box de streaming.",
           "audio_delay": "Só zona principal, para sincronizar o som com a imagem desta atividade. Vazio: o atraso fica como está. O Auto Lip Sync do recetor pode sobrepor-se.",
           "wake_entity": "Outro dispositivo a ligar, como o televisor quando o leitor associado à entrada é uma box de streaming."
         }

@@ -374,7 +374,7 @@
           "volume_db": "In dB auf der Skala des Receivers. Leer: die Einschaltlautstärke oder die Lautstärke, wie sie ist. Bleibt unter der Höchstlautstärke der Zone.",
           "hdmi_output": "Nur Hauptzone. Leer: der Ausgang bleibt, wie er ist.",
           "clarity": "Nur Hauptzone: den Schalter Sprachverständlichkeit ein- oder ausschalten oder lassen.",
-          "wake_player": "Schaltet den mit dem Eingang verknüpften Media Player ein (Konfigurieren → Wiedergabe), etwa den Fernseher oder die Streaming-Box.",
+          "wake_player": "Schaltet den mit dem Eingang verknüpften Media Player ein (Konfigurieren → Wiedergabe), etwa eine Streaming-Box.",
           "audio_delay": "Nur Hauptzone, für lippensynchronen Ton zum Bild dieser Aktivität. Leer: die Verzögerung bleibt, wie sie ist. Auto Lip Sync am Receiver kann sie übersteuern.",
           "wake_entity": "Ein weiteres Gerät zum Einschalten, etwa der Fernseher, wenn der verknüpfte Player des Eingangs eine Streaming-Box ist."
         }

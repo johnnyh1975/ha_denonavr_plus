@@ -374,7 +374,7 @@
           "volume_db": "In dB op de schaal van de receiver. Leeg: het inschakelvolume of het volume zoals het is. Blijft onder het maximale volume van de zone.",
           "hdmi_output": "Alleen hoofdzone. Leeg: de uitgang blijft zoals hij is.",
           "clarity": "Alleen hoofdzone: de schakelaar spraakhelderheid aan- of uitzetten, of laten.",
-          "wake_player": "Zet de mediaspeler aan die aan de ingang gekoppeld is (Configureren → Afspelen), zoals de tv of de streamingbox.",
+          "wake_player": "Zet de mediaspeler aan die aan de ingang gekoppeld is (Configureren → Afspelen), zoals een streamingbox.",
           "audio_delay": "Alleen hoofdzone, voor lipsynchroon geluid bij het beeld van deze activiteit. Leeg: de vertraging blijft zoals hij is. Auto Lip Sync van de receiver kan hem overschrijven.",
           "wake_entity": "Nog een apparaat om in te schakelen, zoals de tv als de gekoppelde speler van de ingang een streamingbox is."
         }

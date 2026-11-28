@@ -8,7 +8,9 @@
 #   input) as its background;
 # - tile cards with the media player features (source, sound mode, volume,
 #   playback) and select options as buttons for the quick selects;
-# - the tuner, shown only while it plays (its preset is unknown otherwise).
+# - the tuner, shown only while it plays (its preset is unknown otherwise);
+# - the activities as buttons, once the zone has activities (Configure →
+#   Activities), and the speech clarity switch.
 #
 # With a linked player (Configure → Playback, for example an Apple TV on its
 # input), the same cards show what that player plays, and their play, pause
@@ -43,6 +45,17 @@ sections:
         features:
           - type: select-options
             style: buttons
+      # Only once the main zone has activities; remove it otherwise.
+      - type: tile
+        entity: select.avr_x2600h_activity
+        name: Activity
+        features_position: bottom
+        features:
+          - type: select-options
+            style: buttons
+      - type: tile
+        entity: switch.avr_x2600h_speech_clarity
+        name: Speech clarity
       - type: tile
         entity: number.avr_x2600h_volume
         name: Volume (dB)

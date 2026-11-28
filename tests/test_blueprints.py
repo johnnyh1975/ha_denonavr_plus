@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from homeassistant.components.automation.config import async_validate_config_item
@@ -26,6 +27,7 @@ _INPUTS = {
         "dynamic_volume": ["select.avr_x2600h_audio_dynamic_volume"],
         "dynamic_volume_night": "heavy",
         "dynamic_volume_day": "off",
+        "speech_clarity": ["switch.avr_x2600h_speech_clarity"],
     },
 }
 
@@ -113,5 +115,55 @@ def test_the_example_dashboard_uses_entity_ids_a_new_setup_has() -> None:
         if "entity" in card
     }
     # Created only when the receiver reports quick selects; the recording does not.
-    model_dependent = {"select.avc_x3700h_quick_select"}
+    # Created only once the main zone has activities (test_select pins its id).
+    model_dependent = {"select.avc_x3700h_quick_select", "select.avc_x3700h_activity"}
     assert entities - model_dependent <= known, entities - model_dependent - known
+
+
+# The automation's next time trigger stays scheduled when the test ends.
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_night_mode_switches_speech_clarity_on_at_night_and_off_by_day(
+    hass: HomeAssistant, freezer: Any
+) -> None:
+    from datetime import timedelta
+
+    from homeassistant.setup import async_setup_component
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import (
+        async_fire_time_changed,
+        async_mock_service,
+    )
+
+    path = ROOT / "blueprints" / "automation" / "denonavr_plus" / "night_mode.yaml"
+    blueprint = models.Blueprint(
+        yaml.load_yaml(str(path)), expected_domain="automation", schema=BLUEPRINT_SCHEMA
+    )
+    inputs = {
+        "receiver": "media_player.avr_x2600h",
+        "speech_clarity": ["switch.avr_x2600h_speech_clarity"],
+        "start": "22:00:00",
+        "end": "07:00:00",
+    }
+    config = models.BlueprintInputs(
+        blueprint, {"use_blueprint": {"path": path.name, "input": inputs}}
+    ).async_substitute()
+    config["id"] = "night_mode"
+    turn_on = async_mock_service(hass, "switch", "turn_on")
+    turn_off = async_mock_service(hass, "switch", "turn_off")
+    hass.states.async_set("media_player.avr_x2600h", "on", {"volume_level": 0.2})
+    now = dt_util.now().replace(hour=21, minute=59, second=59, microsecond=0)
+    freezer.move_to(now)
+    assert await async_setup_component(hass, "automation", {"automation": [config]})
+    await hass.async_block_till_done()
+
+    freezer.move_to(now + timedelta(seconds=1))
+    async_fire_time_changed(hass, now + timedelta(seconds=1))
+    await hass.async_block_till_done()
+    assert [call.data["entity_id"] for call in turn_on] == [["switch.avr_x2600h_speech_clarity"]]
+    assert turn_off == []
+
+    morning = now.replace(hour=7, minute=0, second=0) + timedelta(days=1)
+    freezer.move_to(morning)
+    async_fire_time_changed(hass, morning)
+    await hass.async_block_till_done()
+    assert [call.data["entity_id"] for call in turn_off] == [["switch.avr_x2600h_speech_clarity"]]

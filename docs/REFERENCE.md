@@ -875,7 +875,7 @@ Two automation blueprints, to import in Home Assistant (Settings → Automations
   while it still plays the TV's input.
 - [Night mode](../blueprints/automation/denonavr_plus/night_mode.yaml): between
   two times the volume stays below a limit and, if set, Dynamic Volume
-  switches to a night setting and back.
+  switches to a night setting and speech clarity switches on, and back.
 
 [An example dashboard view](../examples/dashboard.yaml) shows what the standard
 cards do with this integration: the media control card with the cover or the

@@ -374,7 +374,7 @@
           "volume_db": "In dB sulla scala del ricevitore. Vuoto: il volume all'accensione o il volume com'è. Resta sotto il volume massimo della zona.",
           "hdmi_output": "Solo zona principale. Vuoto: l'uscita resta com'è.",
           "clarity": "Solo zona principale: accendere o spegnere l'interruttore della chiarezza dei dialoghi, o lasciarlo.",
-          "wake_player": "Accende il lettore multimediale collegato all'ingresso (Configura → Riproduzione), come il televisore o il box di streaming.",
+          "wake_player": "Accende il lettore multimediale collegato all'ingresso (Configura → Riproduzione), come un box di streaming.",
           "audio_delay": "Solo zona principale, per sincronizzare l'audio con l'immagine di questa attività. Vuoto: il ritardo resta com'è. L'Auto Lip Sync del ricevitore può prevalere.",
           "wake_entity": "Un altro dispositivo da accendere, come il televisore quando il lettore collegato all'ingresso è un box di streaming."
         }
