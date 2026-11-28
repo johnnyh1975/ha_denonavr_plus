@@ -149,10 +149,7 @@ async def test_every_input_chosen_for_zone_2_stays_chosen(
     """
     from custom_components.denonavr_plus import zone_sources
 
-    options = dict(loaded_entry.options)
-    options.pop(zone_sources.OPT_ZONE2_SOURCES_ASKED)
-    hass.config_entries.async_update_entry(loaded_entry, options=options)
-    await hass.async_block_till_done()
+    loaded_entry.runtime_data.markers.remove(zone_sources.OPT_ZONE2_SOURCES_ASKED)
     every = [s.code for s in loaded_entry.runtime_data.device.discovery.visible_sources()]
     result = await options_step(hass, loaded_entry, "sources")
     result = await hass.config_entries.options.async_configure(

@@ -339,9 +339,8 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, PlaybackSteps, ActivitySteps, Optio
                 OPT_SOURCES: selection_in,
                 OPT_SOURCE_SHORTCUTS: bool(user_input.get(OPT_SOURCE_SHORTCUTS, True)),
             }
-            if zone_sources.ZONE in zones:
-                # Chosen here, every input included: no preselection later.
-                self._pending[zone_sources.OPT_ZONE2_SOURCES_ASKED] = True
+            # Chosen here, every input included: no preselection later.
+            self._zone2_chosen = zone_sources.ZONE in zones
             return await self.async_step_source_names()
         fields: dict[Any, Any] = {
             vol.Required(
@@ -394,6 +393,10 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, PlaybackSteps, ActivitySteps, Optio
             if any(shown.count(name) > 1 for name in names.values()):
                 errors["base"] = "duplicate_name"
             else:
+                if getattr(self, "_zone2_chosen", False):
+                    self.config_entry.runtime_data.markers.set(
+                        zone_sources.OPT_ZONE2_SOURCES_ASKED, True
+                    )
                 return self._save({**self._pending, OPT_SOURCE_NAMES: names})
         current = dict(self.config_entry.options.get(OPT_SOURCE_NAMES) or {})
         fields = {

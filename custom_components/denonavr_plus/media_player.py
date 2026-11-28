@@ -87,7 +87,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.helpers.trigger import PluggableAction
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import activities, artwork, choices, heos_media, linked_players, no_sound, sound_modes
+from . import activities, artwork, choices, heos_media, linked_players, markers, no_sound, sound_modes
 from .announcement import Announcement
 from . import volume as _volume
 from .avr.device import FOLLOW_MAIN
@@ -1178,14 +1178,12 @@ class DenonAvrMediaPlayer(DenonAvrEntity, MediaPlayerEntity):
         entry = self.coordinator.config_entry
         if entry is None:
             return
-        options = dict(entry.options)
-        selection = dict(options.get(choices.OPT_SOURCES) or {})
+        selection = dict(entry.options.get(choices.OPT_SOURCES) or {})
         chosen = selection.get(self._zone.id) or [
             source.code for source in self._device.discovery.visible_sources()
         ]
         selection[self._zone.id] = [item for item in chosen if item != code]
-        options[choices.OPT_SOURCES] = selection
-        self.hass.config_entries.async_update_entry(entry, options=options)
+        markers.update_options(self.hass, entry, changes={choices.OPT_SOURCES: selection})
 
     def _sound_mode_for(self, sound_mode: str) -> str | None:
         """The receiver's mode a name stands for, or None."""

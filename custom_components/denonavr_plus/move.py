@@ -38,6 +38,7 @@ from homeassistant.helpers.device_registry import format_mac
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import UNDEFINED, UndefinedType
 
+from . import markers
 from .const import DOMAIN
 from .move_check import Finding, Replacements, findings
 from .volume import OPT_OFFICIAL_SCALE
@@ -55,7 +56,7 @@ NAMES = {OFFICIAL: "Denon AVR Network Receivers", LASERGURUGUY: "Denon AVR"}
 
 #: Entry option: the old entries to take over at the next setup (chosen when
 #: the receiver was added; the old entries are disabled already).
-OPT_MOVE_PENDING = "move_pending"
+OPT_MOVE_PENDING = markers.MOVE_PENDING
 ISSUE_AVAILABLE = "move_available"
 ISSUE_CHECK = "move_check"
 
@@ -206,17 +207,18 @@ async def async_move(
             new_unique_id=_changed(item.unique_id, counterpart.unique_id),
             new_device_id=None,
         )
-    options = {k: v for k, v in entry.options.items() if k != OPT_MOVE_PENDING}
-    pending = [item for item in entry.options.get(OPT_MOVE_PENDING, []) if item != old.entry_id]
-    if pending:
-        options[OPT_MOVE_PENDING] = pending
-    if old.domain == OFFICIAL and not options.get(OPT_OFFICIAL_SCALE):
-        options[OPT_OFFICIAL_SCALE] = True
+    if (coordinator := getattr(entry, "runtime_data", None)) is not None:
+        pending = [item for item in coordinator.markers.get(OPT_MOVE_PENDING, []) if item != old.entry_id]
+        if pending:
+            coordinator.markers.set(OPT_MOVE_PENDING, pending)
+        else:
+            coordinator.markers.remove(OPT_MOVE_PENDING)
+    if old.domain == OFFICIAL and not entry.options.get(OPT_OFFICIAL_SCALE):
+        markers.update_options(hass, entry, changes={OPT_OFFICIAL_SCALE: True})
         moved.official_scale = True
     kept = await store(hass, entry.entry_id).async_load() or {}
     moves = [item for item in kept.get("moves", []) if item["entry_id"] != old.entry_id]
     await store(hass, entry.entry_id).async_save({"moves": [*moves, moved.as_dict()]})
-    hass.config_entries.async_update_entry(entry, options=options)
     _LOGGER.info(
         "Took over %s entities from %s (%s)", len(moved.entities), old.title, old.domain
     )
@@ -234,13 +236,12 @@ async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     Not a task of the entry: the reload at the end would cancel it.
     """
 
-    for entry_id in list(entry.options.get(OPT_MOVE_PENDING, [])):
+    pending = entry.runtime_data.markers
+    for entry_id in list(pending.get(OPT_MOVE_PENDING, [])):
         old = hass.config_entries.async_get_entry(entry_id)
         if old is not None:
             await async_move(hass, entry, old, reload=False)
-    if entry.options.get(OPT_MOVE_PENDING):
-        options = {k: v for k, v in entry.options.items() if k != OPT_MOVE_PENDING}
-        hass.config_entries.async_update_entry(entry, options=options)
+    pending.remove(OPT_MOVE_PENDING)
     hass.config_entries.async_schedule_reload(entry.entry_id)
 
 
@@ -276,8 +277,7 @@ async def async_move_back(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> No
             )
         await hass.config_entries.async_set_disabled_by(old.entry_id, None)
     if any(move.get("official_scale") for move in moves):
-        options = {k: v for k, v in entry.options.items() if k != OPT_OFFICIAL_SCALE}
-        hass.config_entries.async_update_entry(entry, options=options)
+        markers.update_options(hass, entry, remove=(OPT_OFFICIAL_SCALE,))
     await store(hass, entry.entry_id).async_remove()
     ir.async_delete_issue(hass, DOMAIN, f"{ISSUE_CHECK}_{entry.entry_id}")
 

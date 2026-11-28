@@ -82,7 +82,7 @@ async def test_a_group_is_shown_and_hidden_again(
     assert _disabled(hass, loaded_entry, "number_lfe") is USER
     # Other groups stay as they were.
     assert _disabled(hass, loaded_entry, "select_aspect_ratio") is INTEGRATION
-    ours = loaded_entry.options["entity_groups_enabled"]
+    ours = loaded_entry.runtime_data.markers.get("entity_groups_enabled")
     assert len(ours) == 10
     assert not any(uid.endswith(("number_lfe", "switch_center_spread")) for uid in ours)
 
@@ -94,7 +94,7 @@ async def test_a_group_is_shown_and_hidden_again(
     assert _disabled(hass, loaded_entry, "switch_loudness_management") is INTEGRATION
     assert _disabled(hass, loaded_entry, "switch_center_spread") is None
     assert _disabled(hass, loaded_entry, "number_effect_level") is USER
-    assert "entity_groups_enabled" not in loaded_entry.options
+    assert loaded_entry.runtime_data.markers.get("entity_groups_enabled") == []
 
 
 async def test_shown_entities_come_with_the_reload(
@@ -109,7 +109,7 @@ async def test_shown_entities_come_with_the_reload(
     assert hass.states.get(item.entity_id) is not None
     # Applied again at the setup of the reload: nothing changes.
     assert loaded_entry.options["entity_groups"] == ["video"]
-    assert len(loaded_entry.options["entity_groups_enabled"]) == 6
+    assert len(loaded_entry.runtime_data.markers.get("entity_groups_enabled")) == 6
 
 
 async def test_speakers_the_receiver_does_not_have_stay_hidden(
@@ -140,7 +140,7 @@ async def test_the_groups_apply_at_setup(hass: HomeAssistant, receiver_network: 
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
     assert _disabled(hass, entry, "sensor_sample_rate") is None
-    assert len(entry.options["entity_groups_enabled"]) == 7
+    assert len(entry.runtime_data.markers.get("entity_groups_enabled")) == 7
 
 
 async def test_only_groups_with_hidden_entities_are_offered(

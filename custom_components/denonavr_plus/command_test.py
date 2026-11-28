@@ -18,6 +18,7 @@ from homeassistant.util import dt as dt_util
 
 from .avr.command_test import GROUPS
 from .avr.errors import CommandNotSent
+from . import markers
 from .const import DOMAIN
 
 if TYPE_CHECKING:
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 #: Entry option: the groups to test once after setup (chosen when adding).
-OPT_TEST_PENDING = "command_test_pending"
+OPT_TEST_PENDING = markers.TEST_PENDING
 _STORE_VERSION = 1
 
 
@@ -94,8 +95,8 @@ async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     the option. When the receiver is not reachable, it stays pending.
     """
 
-    groups = [group for group in entry.options.get(OPT_TEST_PENDING, []) if group in GROUPS]
     coordinator = entry.runtime_data
+    groups = [group for group in coordinator.markers.get(OPT_TEST_PENDING, []) if group in GROUPS]
     if groups:
         try:
             result = await coordinator.command_test.async_run(coordinator, groups)
@@ -107,5 +108,4 @@ async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
             return
         # One message for the check and the test (the check did not send its own).
         coordinator.capabilities.async_report(coordinator.capabilities.result or result)
-    options = {k: v for k, v in entry.options.items() if k != OPT_TEST_PENDING}
-    hass.config_entries.async_update_entry(entry, options=options)
+    coordinator.markers.remove(OPT_TEST_PENDING)

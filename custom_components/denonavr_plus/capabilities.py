@@ -25,6 +25,7 @@ from homeassistant.util import dt as dt_util
 from .avr.capability_check import KNOWN_MODELS, RELATED_MODELS
 from .avr.errors import CommandNotSent
 from .avr.generation import generation_of
+from . import markers
 from .const import DOMAIN
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ _LOGGER = logging.getLogger(__name__)
 
 #: Entry option: run the check once after setup (asked when adding a model
 #: that has not been checked).
-OPT_CHECK_PENDING = "capability_check_pending"
+OPT_CHECK_PENDING = markers.CHECK_PENDING
 ISSUE_CHECK = "capability_check"
 ISSUE_REPORT = "capability_report"
 _STORE_VERSION = 1
@@ -230,5 +231,4 @@ async def async_run_pending(
     except Exception:  # a background task must not raise
         _LOGGER.exception("Capability check failed")
         return
-    options = {k: v for k, v in entry.options.items() if k != OPT_CHECK_PENDING}
-    hass.config_entries.async_update_entry(entry, options=options)
+    coordinator.markers.remove(OPT_CHECK_PENDING)

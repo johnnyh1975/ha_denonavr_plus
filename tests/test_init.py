@@ -575,5 +575,5 @@ async def test_showing_zone_2_later_reloads_once(
         )
         await hass.async_block_till_done()
     assert len(reloads) == 1
-    assert entry.options[zone_sources.OPT_ZONE2_SOURCES_ASKED] is True
+    assert entry.runtime_data.markers.get(zone_sources.OPT_ZONE2_SOURCES_ASKED) is True
     assert await hass.config_entries.async_unload(entry.entry_id)

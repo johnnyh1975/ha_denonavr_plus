@@ -21,7 +21,7 @@ DOMAIN = "denonavr_plus"
 # add a step in migrations.py, whenever entry data, options, unique ids or
 # device identifiers change.
 CONFIG_VERSION = 1
-CONFIG_MINOR_VERSION = 3
+CONFIG_MINOR_VERSION = 4
 
 # Options markers for the channel trims (migrations.py and __init__.py): the
 # one-time marker that the trims of speakers the receiver lacks were disabled,

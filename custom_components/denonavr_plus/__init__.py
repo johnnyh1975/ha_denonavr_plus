@@ -31,6 +31,7 @@ from . import (
     entity_groups,
     entity_plan,
     layout_repair,
+    markers,
     linked_players,
     move,
     zone_sources,
@@ -42,8 +43,6 @@ from .const import (
     CONF_HOST,
     CONF_PORT,
     DOMAIN,
-    OPT_CHANNELS_APPLIED,
-    OPT_CHANNELS_INITIALIZED,
     PLATFORMS,
 )
 from .coordinator import (
@@ -53,8 +52,7 @@ from .coordinator import (
     connection_options,
     snapshot_store,
 )
-from .capabilities import OPT_CHECK_PENDING, CapabilityResults, async_run_pending
-from .command_test import OPT_TEST_PENDING
+from .capabilities import CapabilityResults, async_run_pending
 from .entity import ZONE_DEVICES
 from .migrations import async_migrate_entry as async_migrate_entry  # Home Assistant looks it up here
 from .services import async_setup_services
@@ -112,6 +110,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     # (Audio/Video/Speakers/…) can link to it by id via `via_device_id`; the old
     # `via_device` identifier tuple is deprecated (removed in HA 2027.8.0).
     _register_main_device(hass, entry, coordinator)
+    # What the setup flow left for the first start, into the markers.
+    coordinator.markers.async_take_pending(hass, entry)
     coordinator.shown_zones = _shown_zones(entry, coordinator)
     coordinator.activity_zones = activities.zones_with_activities(dict(entry.options))
     _remove_hidden_zones(hass, entry, coordinator)
@@ -136,7 +136,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         # Started from the stored data, the entry reloads once the receiver
         # answers; its generation is read then.
         coordinator.capabilities.async_update_issues(coordinator.device.discovery.device)
-    if entry.options.get(move.OPT_MOVE_PENDING):
+    if coordinator.markers.get(markers.MOVE_PENDING):
         # Taking another integration's entry over, chosen when the receiver
         # was added; the reload after it runs what else is pending. It starts
         # once this setup has finished, which the reload would otherwise cut.
@@ -156,7 +156,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
         entry.async_on_unload(entry.add_update_listener(_async_entry_updated))
         return True
     move.async_update_issue(hass, entry)
-    pending = entry.options.get(OPT_CHECK_PENDING) or entry.options.get(OPT_TEST_PENDING)
+    pending = coordinator.markers.get(markers.CHECK_PENDING) or coordinator.markers.get(
+        markers.TEST_PENDING
+    )
     if pending and not coordinator.started_offline:
         entry.async_create_background_task(
             hass, _async_run_pending(hass, entry), "denonavr_plus capability check"
@@ -168,11 +170,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
 async def _async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
     """What was chosen when the receiver was added: the check, then the command test."""
 
-    test = bool(entry.options.get(OPT_TEST_PENDING))
-    if entry.options.get(OPT_CHECK_PENDING):
+    pending = entry.runtime_data.markers
+    test = bool(pending.get(markers.TEST_PENDING))
+    if pending.get(markers.CHECK_PENDING):
         # With the test after it, the pointer to GitHub comes once, after both.
         await async_run_pending(hass, entry, report=not test)
-    if test and not entry.options.get(OPT_CHECK_PENDING):
+    if test and not pending.get(markers.CHECK_PENDING):
         await command_test.async_run_pending(hass, entry)
 
 
@@ -195,6 +198,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) ->
     results.async_delete_issues()
     await command_test.CommandTestResults(hass, entry.entry_id, results.lock).async_remove()
     await move.store(hass, entry.entry_id).async_remove()
+    await markers.async_remove(hass, entry.entry_id)
     for issue in (move.ISSUE_AVAILABLE, move.ISSUE_CHECK):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
     ir.async_delete_issue(hass, DOMAIN, zone_sources.issue_id(entry.entry_id))
@@ -428,7 +432,7 @@ def _apply_channel_defaults(
     if not configured:
         # Speaker configuration unknown; do not disable anything (safe fallback).
         return
-    applied = entry.options.get(OPT_CHANNELS_APPLIED)
+    applied = coordinator.markers.get(markers.CHANNELS_APPLIED)
     if applied is not None and set(applied) == configured:
         return
 
@@ -437,7 +441,7 @@ def _apply_channel_defaults(
     # them for entries from before they were kept).
     previous = set(applied) if applied is not None else None
     # Channel entities an entity group switched stay with the group.
-    grouped = set(entry.options.get(entity_groups.OPT_GROUP_ENABLED, []))
+    grouped = set(coordinator.markers.get(markers.GROUP_ENABLED, []))
     for marker in (CHANNEL_TRIM_MARKER, CHANNEL_DISTANCE_MARKER):
         channels = [
             (regentry, regentry.unique_id.split(marker)[-1])
@@ -468,14 +472,8 @@ def _apply_channel_defaults(
             ):
                 registry.async_update_entity(regentry.entity_id, disabled_by=None)
 
-    hass.config_entries.async_update_entry(
-        entry,
-        options={
-            **entry.options,
-            OPT_CHANNELS_INITIALIZED: True,
-            OPT_CHANNELS_APPLIED: sorted(configured),
-        },
-    )
+    coordinator.markers.set(markers.CHANNELS_INITIALIZED, True)
+    coordinator.markers.set(markers.CHANNELS_APPLIED, sorted(configured))
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> bool:

@@ -63,7 +63,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.start import async_at_started
 
-from . import choices
+from . import choices, markers
 from .const import DOMAIN
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 
@@ -368,12 +368,10 @@ class LinkedPlayers:
                 code: (replace(link, entity_id=new) if link.entity_id == old else link)
                 for code, link in current.items()
             }
-            self._hass.config_entries.async_update_entry(
+            markers.update_options(
+                self._hass,
                 self._entry,
-                options={
-                    **self._entry.options,
-                    OPT_LINKED_PLAYERS: {code: link.stored() for code, link in renamed.items()},
-                },
+                changes={OPT_LINKED_PLAYERS: {code: link.stored() for code, link in renamed.items()}},
             )
             return
         if data["action"] in ("create", "remove") and data["entity_id"] in players:
@@ -783,8 +781,6 @@ class LinkedPlayerRepairFlow(ConfirmRepairFlow):
             if registry.async_get(link.entity_id) is not None
             or self.hass.states.get(link.entity_id) is not None
         }
-        self.hass.config_entries.async_update_entry(
-            entry, options={**entry.options, OPT_LINKED_PLAYERS: kept}
-        )
+        markers.update_options(self.hass, entry, changes={OPT_LINKED_PLAYERS: kept})
         ir.async_delete_issue(self.hass, DOMAIN, issue_id(self._entry_id))
         return self.async_create_entry(data={})

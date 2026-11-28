@@ -153,7 +153,7 @@ async def test_1_2_stores_the_trims_left_on_as_the_speakers(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
-    assert (entry.version, entry.minor_version) == (1, 3)
+    assert (entry.version, entry.minor_version) == (1, CONFIG_MINOR_VERSION)
     assert entry.options["channels_configured"] == ["C", "FL"]
 
 
@@ -162,5 +162,28 @@ async def test_1_2_without_disabled_trims_stores_nothing(
 ) -> None:
     """Never applied (the speakers were never known): the first time stays the first."""
     entry = await _set_up(hass, 1, 2)
-    assert (entry.version, entry.minor_version) == (1, 3)
+    assert (entry.version, entry.minor_version) == (1, CONFIG_MINOR_VERSION)
     assert "channels_configured" not in entry.options
+
+
+async def test_1_3_moves_the_markers_into_their_store_and_keeps_them_as_options(
+    hass: HomeAssistant, receiver_network: Any, hass_storage: dict[str, Any]
+) -> None:
+    """1.7: the integration's own markers leave the options; 1.6 still finds them there."""
+    markers = {
+        "channels_initialized": True,
+        "channels_configured": ["C", "FL", "FR"],
+        "entity_groups_enabled": ["aa:bb:cc:dd:ee:ff_number_bass"],
+        "zone2_sources_asked": True,
+    }
+    entry = await _set_up(hass, 1, 3, sources={"zone2": []}, **markers)
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (1, 4)
+    stored = hass_storage[f"{DOMAIN}.{entry.entry_id}.markers"]["data"]
+    assert stored["entity_groups_enabled"] == ["aa:bb:cc:dd:ee:ff_number_bass"]
+    assert stored["zone2_sources_asked"] is True
+    assert stored["channels_initialized"] is True
+    # Kept for going back to 1.6, untouched.
+    assert {key: entry.options[key] for key in markers} == markers
+    # Read from the store: "every input" for Zone 2 was chosen, it stays.
+    assert entry.options["sources"]["zone2"] == []

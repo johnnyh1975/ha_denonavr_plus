@@ -184,3 +184,19 @@ async def test_diagnostics_show_the_options_and_the_linked_players(
         }
     }
     assert "Severance" not in json.dumps(result)
+
+
+async def test_the_diagnostics_hold_no_unique_id_of_a_group(
+    hass: HomeAssistant, hass_client: ClientSessionGenerator, loaded_entry: MockConfigEntry
+) -> None:
+    """The unique ids a group turned on carry the MAC; before 1.7 they were options."""
+    from custom_components.denonavr_plus import markers
+
+    mac_id = "01:23:45:67:89:ab_number_bass"
+    hass.config_entries.async_update_entry(
+        loaded_entry, options={**loaded_entry.options, markers.GROUP_ENABLED: [mac_id]}
+    )
+    loaded_entry.runtime_data.markers.set(markers.GROUP_ENABLED, [mac_id])
+    result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
+    assert "01:23:45:67:89:ab" not in str(result)
+    assert result["markers"]["entities_a_group_turned_on"] == 1

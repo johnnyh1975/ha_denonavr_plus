@@ -14,7 +14,7 @@ from __future__ import annotations
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 
-from . import choices
+from . import choices, markers
 from .avr.models import Discovery
 from .const import DOMAIN
 from .coordinator import DenonAvrConfigEntry
@@ -22,7 +22,7 @@ from .coordinator import DenonAvrConfigEntry
 ISSUE = "zone2_sources"
 ZONE = "zone2"
 #: Set once Zone 2's inputs were chosen (before 1.6 through a repair).
-OPT_ZONE2_SOURCES_ASKED = "zone2_sources_asked"
+OPT_ZONE2_SOURCES_ASKED = markers.ZONE2_SOURCES_ASKED
 #: The control whose answer tells that Zone 2 has HDMI.
 HDMI_CONTROL = "zone2_hdmi_audio"
 #: Inputs with an HDMI connector on receivers of the X series as delivered;
@@ -64,7 +64,7 @@ def async_preselect(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
     if (
         not any(zone.id == ZONE for zone in discovery.zones)
         or not choices.zone_enabled(dict(options), ZONE)
-        or options.get(OPT_ZONE2_SOURCES_ASKED)
+        or entry.runtime_data.markers.get(OPT_ZONE2_SOURCES_ASKED)
         or chosen
         or not discovery.visible_sources()
     ):
@@ -74,7 +74,5 @@ def async_preselect(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
     new_selection = dict(selection) if isinstance(selection, dict) else {}
     # All of them means all: also inputs the receiver adds later.
     new_selection[ZONE] = [] if set(picked) >= set(every) else picked
-    hass.config_entries.async_update_entry(
-        entry,
-        options={**options, choices.OPT_SOURCES: new_selection, OPT_ZONE2_SOURCES_ASKED: True},
-    )
+    entry.runtime_data.markers.set(OPT_ZONE2_SOURCES_ASKED, True)
+    markers.update_options(hass, entry, changes={choices.OPT_SOURCES: new_selection})

@@ -15,7 +15,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import ATTR_SUPPORTED_FEATURES, CONF_HOST
 from homeassistant.core import HomeAssistant
 
-from . import linked_players
+from . import linked_players, markers
 
 from .avr.device import DenonAvrDevice
 from .avr.generation import generation_of
@@ -84,9 +84,32 @@ async def async_get_config_entry_diagnostics(
             "channel_trims": state.channel_trims,
         },
         # What is set in the options (zones, sources, names, playback), and
-        # the linked players as Home Assistant has them now.
-        "options": async_redact_data(dict(entry.options), TO_REDACT | {CONF_HOST}),
+        # the linked players as Home Assistant has them now. The markers that
+        # were options before 1.7 (still there for going back) are left out:
+        # the unique ids a group turned on carry the MAC address.
+        "options": async_redact_data(
+            {
+                key: value
+                for key, value in entry.options.items()
+                if key not in markers.PERSISTENT + markers.PENDING
+            },
+            TO_REDACT | {CONF_HOST},
+        ),
+        "markers": _markers(coordinator),
         "linked_players": _linked_players(hass, entry),
+    }
+
+
+def _markers(coordinator: Any) -> dict[str, Any]:
+    """The integration's own markers, the entities a group turned on as a count."""
+
+    kept = coordinator.markers
+    return {
+        "channels_applied": kept.get(markers.CHANNELS_APPLIED),
+        "channels_initialized": kept.get(markers.CHANNELS_INITIALIZED),
+        "zone2_sources_asked": kept.get(markers.ZONE2_SOURCES_ASKED),
+        "entities_a_group_turned_on": len(kept.get(markers.GROUP_ENABLED) or []),
+        "pending": [key for key in markers.PENDING if kept.get(key)],
     }
 
 

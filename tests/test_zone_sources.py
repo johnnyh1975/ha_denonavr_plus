@@ -29,7 +29,7 @@ async def test_zone_2_starts_without_the_hdmi_inputs_and_nothing_is_asked(
     # Named as in the Deviceinfo source list the recording's inputs come from.
     assert not {"CBLSAT", "Blu-ray", "Media Player"} & set(chosen)
     assert "CD" in chosen and "TUNER" in chosen
-    assert loaded_entry.options[zone_sources.OPT_ZONE2_SOURCES_ASKED] is True
+    assert loaded_entry.runtime_data.markers.get(zone_sources.OPT_ZONE2_SOURCES_ASKED) is True
     zone2 = hass.states.get(entity_id(hass, loaded_entry, "media_player_zone2"))
     assert "CD" in zone2.attributes["source_list"]
     assert "AUX2" not in zone2.attributes["source_list"]
@@ -71,7 +71,7 @@ async def test_nothing_is_chosen_for_a_hidden_zone_2_or_one_already_chosen(
         entry.add_to_hass(hass)
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
-        assert zone_sources.OPT_ZONE2_SOURCES_ASKED not in entry.options
+        assert entry.runtime_data.markers.get(zone_sources.OPT_ZONE2_SOURCES_ASKED) is None
         assert entry.options.get(choices.OPT_SOURCES, {}).get("zone2") in (None, ["CD"])
         await hass.config_entries.async_remove(entry.entry_id)
         await hass.async_block_till_done()

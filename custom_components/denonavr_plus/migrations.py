@@ -25,6 +25,10 @@ Version history (the entry version, not the release version):
                per zone, absent means none.
   1.3:         options hold the channels the trim defaults were last applied
                for (channels_configured), next to the one-time marker.
+  1.4 (1.7.0): the integration's own markers (channels applied, channel
+               defaults done, entities a group turned on, Zone 2 inputs
+               chosen) live in a store of the entry (markers.py); the
+               options keep them unchanged for one release, unread.
 
 To add a step: raise CONFIG_VERSION or CONFIG_MINOR_VERSION in const.py,
 register a function under the version it starts from in STEPS, and add a
@@ -40,6 +44,7 @@ from collections.abc import Awaitable, Callable
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
+from . import markers
 from .const import (
     CHANNEL_TRIM_MARKER,
     CONFIG_MINOR_VERSION,
@@ -93,10 +98,25 @@ async def _store_trim_channels(
     return (1, 3)
 
 
+async def _markers_out_of_the_options(
+    hass: HomeAssistant, entry: DenonAvrConfigEntry
+) -> tuple[int, int]:
+    """1.3 -> 1.4: the integration's own markers move to a store (markers.py).
+
+    They stay in the options as they are, for one release: going back to 1.6
+    finds them there and does not apply the channel defaults or the Zone 2
+    preselection again. 1.7 neither reads nor writes them there.
+    """
+
+    await markers.async_copy_from_options(hass, entry)
+    return (1, 4)
+
+
 #: The steps, by the version they start from.
 STEPS: dict[tuple[int, int], Step] = {
     (1, 1): _remove_volume_sensor,
     (1, 2): _store_trim_channels,
+    (1, 3): _markers_out_of_the_options,
 }
 
 

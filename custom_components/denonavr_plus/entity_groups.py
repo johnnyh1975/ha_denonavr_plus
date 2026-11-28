@@ -17,12 +17,13 @@ receiver does not have stay off.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
+from . import markers
 from .const import DOMAIN
 
 if TYPE_CHECKING:
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 #: Entry option: the groups shown.
 OPT_ENTITY_GROUPS = "entity_groups"
 #: Entry option: the unique ids the groups turned on (and only these go off again).
-OPT_GROUP_ENABLED = "entity_groups_enabled"
+OPT_GROUP_ENABLED = markers.GROUP_ENABLED
 
 GROUPS = ("audio", "speakers", "video", "graphic_eq", "zones", "receiver", "diagnostic")
 
@@ -86,7 +87,10 @@ def hidden_counts(
     """Per group, how many entities it can show: hidden by the integration or by it."""
 
     devices = _device_groups(hass, entry.entry_id)
-    ours = set(entry.options.get(OPT_GROUP_ENABLED, []))
+    # Without the entry loaded its markers are not: then the groups count
+    # only what the integration hid (enough to offer them).
+    coordinator = getattr(entry, "runtime_data", None)
+    ours = set(coordinator.markers.get(OPT_GROUP_ENABLED, [])) if coordinator is not None else set()
     counts: dict[str, int] = {}
     for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id):
         hidden = item.disabled_by is er.RegistryEntryDisabler.INTEGRATION
@@ -108,7 +112,7 @@ def async_apply(
     """
 
     wanted = set(entry.options.get(OPT_ENTITY_GROUPS, []))
-    ours = set(entry.options.get(OPT_GROUP_ENABLED, []))
+    ours = set(entry.runtime_data.markers.get(OPT_GROUP_ENABLED, []))
     registry = er.async_get(hass)
     devices = _device_groups(hass, entry.entry_id)
     enabled = False
@@ -134,8 +138,5 @@ def async_apply(
             kept.add(item.unique_id)
             enabled = True
     if kept != ours:
-        options: dict[str, Any] = {**entry.options, OPT_GROUP_ENABLED: sorted(kept)}
-        if not kept:
-            options.pop(OPT_GROUP_ENABLED)
-        hass.config_entries.async_update_entry(entry, options=options)
+        entry.runtime_data.markers.set(OPT_GROUP_ENABLED, sorted(kept))
     return enabled

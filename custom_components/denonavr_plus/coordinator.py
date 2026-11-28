@@ -26,6 +26,7 @@ from homeassistant.util import dt as dt_util
 from .avr import AvrState, DenonAvrDevice
 from .avr.models import KnownAnswers
 from .capabilities import CapabilityResults
+from .markers import Markers
 from .command_test import CommandTestResults
 from .const import (
     CONF_PORT,
@@ -141,6 +142,8 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # Platform -> the unique ids it was set up with (entity.add_planned),
         # and whether all platforms are (set by the setup in __init__).
         self.planned: dict[str, frozenset[str]] = {}
+        # The integration's own bookkeeping about the entry (markers.py).
+        self.markers = Markers(hass, entry.entry_id)
         self.platforms_ready = asyncio.Event()
         self._reload_scheduled = False
         self._identify_after: datetime | None = None
@@ -163,6 +166,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         entry setup is retried by Home Assistant.
         """
 
+        await self.markers.async_load()
         await self.capabilities.async_load()
         await self.command_test.async_load()
         snapshot = await self._snapshot.async_load()
@@ -320,6 +324,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """Stop the telnet transport when the entry is unloaded."""
 
         await self.device.async_stop()
+        await self.markers.async_save()
         if self._pending_snapshot is not None:
             # A reload starts from it; the delayed save would come too late.
             await self._snapshot.async_save(self._take_pending_snapshot())

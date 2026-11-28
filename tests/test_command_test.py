@@ -64,6 +64,7 @@ async def test_a_test_chosen_at_setup_runs_once(
     assert run.await_args.args[0] == ["quiet"]
     assert entry.state is ConfigEntryState.LOADED
     assert "command_test_pending" not in entry.options
+    assert entry.runtime_data.markers.get("command_test_pending") is None
     # A notification, not a repair: nothing to fix.
     issue = _issue(hass, entry)
     assert issue is not None and "AVC-X3700H" in issue["title"]
@@ -97,6 +98,7 @@ async def test_the_check_runs_before_the_test(
         )
     assert order == ["check", "test"]
     assert "command_test_pending" not in entry.options
+    assert entry.runtime_data.markers.get("command_test_pending") is None
     assert _issue(hass, entry) is not None
 
 
@@ -116,7 +118,7 @@ async def test_a_postponed_check_postpones_the_test(
             hass, capability_check_pending=True, command_test_pending=["quiet"]
         )
     run.assert_not_awaited()
-    assert entry.options["command_test_pending"] == ["quiet"]
+    assert entry.runtime_data.markers.get("command_test_pending") == ["quiet"]
 
 
 async def test_a_test_chosen_waits_for_the_connection(
@@ -125,7 +127,7 @@ async def test_a_test_chosen_waits_for_the_connection(
     failing = AsyncMock(side_effect=CommandNotSent("query_needs_telnet"))
     with patch.object(DenonAvrDevice, "async_command_test", failing):
         entry = await _setup(hass, command_test_pending=["audible"])
-    assert entry.options["command_test_pending"] == ["audible"]
+    assert entry.runtime_data.markers.get("command_test_pending") == ["audible"]
     assert _issue(hass, entry) is None
 
 
@@ -136,7 +138,7 @@ async def test_a_failing_test_after_setup_is_only_logged(
     with patch.object(DenonAvrDevice, "async_command_test", failing):
         entry = await _setup(hass, command_test_pending=["quiet"])
     assert entry.state is ConfigEntryState.LOADED
-    assert entry.options["command_test_pending"] == ["quiet"]
+    assert entry.runtime_data.markers.get("command_test_pending") == ["quiet"]
 
 
 async def test_no_group_left_only_clears_the_option(
@@ -146,12 +148,13 @@ async def test_no_group_left_only_clears_the_option(
     with patch.object(DenonAvrDevice, "async_command_test", run):
         entry = await _setup(hass, command_test_pending=[])
         # An empty list is not "pending": nothing runs at setup.
-        assert entry.options["command_test_pending"] == []
+        assert entry.runtime_data.markers.get("command_test_pending") == []
         from custom_components.denonavr_plus import command_test
 
         await command_test.async_run_pending(hass, entry)
     run.assert_not_awaited()
     assert "command_test_pending" not in entry.options
+    assert entry.runtime_data.markers.get("command_test_pending") is None
 
 
 async def test_removing_the_entry_removes_the_test(

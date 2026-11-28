@@ -119,6 +119,7 @@ async def test_a_check_asked_for_at_setup_runs_once(
     check.assert_awaited_once()
     assert entry.state is ConfigEntryState.LOADED
     assert "capability_check_pending" not in entry.options
+    assert entry.runtime_data.markers.get("capability_check_pending") is None
     assert report_notification(hass, entry) is not None
 
 
@@ -128,7 +129,7 @@ async def test_a_check_asked_for_waits_for_the_connection(
     failing = AsyncMock(side_effect=CommandNotSent("query_needs_telnet"))
     with patch.object(DenonAvrDevice, "async_check_capabilities", failing):
         entry = await _setup(hass, capability_check_pending=True)
-    assert entry.options["capability_check_pending"] is True
+    assert entry.runtime_data.markers.get("capability_check_pending") is True
 
 
 async def test_a_failing_check_after_setup_is_only_logged(
@@ -138,7 +139,7 @@ async def test_a_failing_check_after_setup_is_only_logged(
     with patch.object(DenonAvrDevice, "async_check_capabilities", failing):
         entry = await _setup(hass, capability_check_pending=True)
     assert entry.state is ConfigEntryState.LOADED
-    assert entry.options["capability_check_pending"] is True
+    assert entry.runtime_data.markers.get("capability_check_pending") is True
 
 
 async def test_removing_the_entry_removes_the_check(
