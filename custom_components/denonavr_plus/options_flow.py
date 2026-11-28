@@ -393,11 +393,14 @@ class DenonAvrOptionsFlow(ReceiverTestSteps, PlaybackSteps, ActivitySteps, Optio
             if any(shown.count(name) > 1 for name in names.values()):
                 errors["base"] = "duplicate_name"
             else:
+                chosen: dict[str, Any] = {}
                 if getattr(self, "_zone2_chosen", False):
                     self.config_entry.runtime_data.markers.set(
                         zone_sources.OPT_ZONE2_SOURCES_ASKED, True
                     )
-                return self._save({**self._pending, OPT_SOURCE_NAMES: names})
+                    # In the options too (markers.MIRRORED): 1.6 would choose again.
+                    chosen[zone_sources.OPT_ZONE2_SOURCES_ASKED] = True
+                return self._save({**self._pending, **chosen, OPT_SOURCE_NAMES: names})
         current = dict(self.config_entry.options.get(OPT_SOURCE_NAMES) or {})
         fields = {
             vol.Optional(

@@ -141,9 +141,16 @@ def add_planned(
     """
 
     coordinator.planned[platform] = frozenset(
-        entity.unique_id for entity in entities if entity.unique_id is not None
+        key for entity in entities if (key := plan_key(entity)) is not None
     )
     return entities
+
+
+def plan_key(entity: Entity) -> str | None:
+    """What the check after the start compares: the unique id, and for an
+    entity whose build depends on the state at that moment, that state too."""
+
+    return cast(str | None, getattr(entity, "plan_key", entity.unique_id))
 
 
 class DenonAvrEntity(CoordinatorEntity[DenonAvrCoordinator]):

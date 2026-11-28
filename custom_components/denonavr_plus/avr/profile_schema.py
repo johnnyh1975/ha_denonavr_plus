@@ -228,6 +228,8 @@ _SETUP_CONTROL = Struct(
 _SETUP_PAGES: dict[str, Spec] = {
     "config_section": STR,
     "availability_type": INT,
+    "write_settle_seconds": NUMBER,
+    "wrap_root": BOOL,
     "collections": ListOf(_SETUP_COLLECTION),
     "controls": ListOf(_SETUP_CONTROL),
     "menus": MapOf(STR),
@@ -280,8 +282,8 @@ GRAMMAR = Struct(
         "speakers_web": Struct(
             {
                 **_SETUP_PAGES,
-                "wrap_root": BOOL,
                 "layout_settle_seconds": NUMBER,
+                "restore_timeout": NUMBER,
                 "layout_attempts": INT,
                 "amp_modes": MapOf(STR),
             }

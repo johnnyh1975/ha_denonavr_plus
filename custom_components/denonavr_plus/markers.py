@@ -13,11 +13,14 @@ stops.
 
 Before 1.7 the markers were options. The migration to entry version 1.4
 copies them here and leaves them in the options for one release, so going
-back to 1.6 finds them (it would otherwise apply the channel defaults and
-the Zone 2 preselection again). The hand-over from the setup flow
-(`PENDING`) still goes through the options (the flow has no entry id to
-store under yet): every setup takes those into the store and removes them
-from the options.
+back to 1.6 finds them. The two that are set once and never change back
+(`MIRRORED`: the channel defaults were applied, Zone 2's inputs were chosen)
+are also written to the options when 1.7 sets them first: 1.6 would apply
+the channel defaults or the Zone 2 preselection again without them. They
+are never read from there. The hand-over from the setup flow (`PENDING`)
+still goes through the options (the flow has no entry id to store under
+yet): every setup takes those into the store and removes them from the
+options.
 """
 
 from __future__ import annotations
@@ -42,6 +45,8 @@ GROUP_ENABLED = "entity_groups_enabled"
 ZONE2_SOURCES_ASKED = "zone2_sources_asked"
 #: Markers that were options before 1.7; the migration copies them.
 PERSISTENT = (CHANNELS_APPLIED, CHANNELS_INITIALIZED, GROUP_ENABLED, ZONE2_SOURCES_ASKED)
+#: Set once, never back: also written to the options, for going back to 1.6.
+MIRRORED = (CHANNELS_INITIALIZED, ZONE2_SOURCES_ASKED)
 
 #: Left by the setup flow for the first start: the capability check, the
 #: command test, taking another integration's entry over.
@@ -65,6 +70,7 @@ class Markers:
     def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
         self._store = _store(hass, entry_id)
         self._data: dict[str, Any] = {}
+        self._closed = False
 
     async def async_load(self) -> None:
         self._data = dict(await self._store.async_load() or {})
@@ -74,14 +80,14 @@ class Markers:
 
     @callback
     def set(self, key: str, value: Any) -> None:
-        if self._data.get(key) == value and key in self._data:
+        if self._closed or (key in self._data and self._data[key] == value):
             return
         self._data[key] = value
         self._store.async_delay_save(lambda: dict(self._data), SAVE_DELAY)
 
     @callback
     def remove(self, key: str) -> None:
-        if key in self._data:
+        if not self._closed and key in self._data:
             del self._data[key]
             self._store.async_delay_save(lambda: dict(self._data), SAVE_DELAY)
 
@@ -89,6 +95,13 @@ class Markers:
         """Write now (at unload: the next setup reads the store)."""
 
         await self._store.async_save(dict(self._data))
+
+    async def async_close(self) -> None:
+        """Write now and take no more changes: after an unload the next setup
+        has its own markers, and a late write of this one would overwrite them."""
+
+        await self.async_save()
+        self._closed = True
 
     @callback
     def async_take_pending(self, hass: HomeAssistant, entry: ConfigEntry) -> None:

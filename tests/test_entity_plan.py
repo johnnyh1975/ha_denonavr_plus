@@ -25,12 +25,13 @@ def _registered(hass: HomeAssistant, entry: MockConfigEntry) -> set[str]:
 
 def _check_plan(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     coordinator = entry.runtime_data
-    planned = set().union(*coordinator.planned.values())
+    options = dict(entry.options)
+    unique_ids = set().union(*entity_plan.unique_ids(coordinator, options, list(PLATFORMS)).values())
     # Every platform was set up from its plan, and nothing else was added.
     assert set(coordinator.planned) == set(PLATFORMS)
-    assert planned == _registered(hass, entry)
+    assert unique_ids == _registered(hass, entry)
     # Built again from the same receiver, the plan is the same.
-    assert entity_plan.unique_ids(coordinator, dict(entry.options), list(PLATFORMS)) == coordinator.planned
+    assert entity_plan.plan_keys(coordinator, options, list(PLATFORMS)) == coordinator.planned
     assert entity_plan.changed(coordinator, dict(entry.options)) == []
 
 

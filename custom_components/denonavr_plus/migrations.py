@@ -28,7 +28,7 @@ Version history (the entry version, not the release version):
   1.4 (1.7.0): the integration's own markers (channels applied, channel
                defaults done, entities a group turned on, Zone 2 inputs
                chosen) live in a store of the entry (markers.py); the
-               options keep them unchanged for one release, unread.
+               options keep them for one release, unread.
 
 To add a step: raise CONFIG_VERSION or CONFIG_MINOR_VERSION in const.py,
 register a function under the version it starts from in STEPS, and add a
@@ -105,7 +105,7 @@ async def _markers_out_of_the_options(
 
     They stay in the options as they are, for one release: going back to 1.6
     finds them there and does not apply the channel defaults or the Zone 2
-    preselection again. 1.7 neither reads nor writes them there.
+    preselection again. 1.7 does not read them there (markers.MIRRORED).
     """
 
     await markers.async_copy_from_options(hass, entry)

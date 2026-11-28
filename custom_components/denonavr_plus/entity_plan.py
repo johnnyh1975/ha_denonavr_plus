@@ -26,6 +26,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import Entity
 
+from .entity import plan_key
+
 from . import (
     activities,
     binary_sensor,
@@ -61,20 +63,37 @@ def unique_ids(
 ) -> dict[str, frozenset[str]]:
     """The unique ids the plan gives each platform."""
 
+    return _keys(coordinator, options, platforms, lambda entity: entity.unique_id)
+
+
+def plan_keys(
+    coordinator: DenonAvrCoordinator, options: dict[str, Any], platforms: list[str]
+) -> dict[str, frozenset[str]]:
+    """What the check after the start compares (entity.plan_key)."""
+
+    return _keys(coordinator, options, platforms, plan_key)
+
+
+def _keys(
+    coordinator: DenonAvrCoordinator,
+    options: dict[str, Any],
+    platforms: list[str],
+    key: Callable[[Entity], str | None],
+) -> dict[str, frozenset[str]]:
     return {
         platform: frozenset(
-            entity.unique_id
+            value
             for entity in PLANS[platform](coordinator, options)
-            if isinstance(entity, Entity) and entity.unique_id is not None
+            if isinstance(entity, Entity) and (value := key(entity)) is not None
         )
         for platform in platforms
     }
 
 
 def changed(coordinator: DenonAvrCoordinator, options: dict[str, Any]) -> list[str]:
-    """The unique ids the plan adds or drops against what the platforms were set up with."""
+    """What the plan adds or drops against what the platforms were set up with."""
 
-    now = unique_ids(coordinator, options, list(coordinator.planned))
+    now = plan_keys(coordinator, options, list(coordinator.planned))
     return sorted(
         unique_id
         for platform, built in coordinator.planned.items()

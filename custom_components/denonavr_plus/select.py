@@ -522,6 +522,12 @@ class DenonAvrSubwooferCount(DenonAvrEntity, SelectEntity):
         self._label_to_token = {v: k for k, v in self._labels.items()}
 
     @property
+    def plan_key(self) -> str | None:
+        """With the answer family: its options are fixed when it is built."""
+
+        return f"{self.unique_id}#{'/'.join(sorted(self._labels))}"
+
+    @property
     def current_option(self) -> str | None:
         return self._labels.get(self.coordinator.data.speaker_sizes.get("SWF"))
 

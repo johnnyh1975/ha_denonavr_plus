@@ -577,3 +577,52 @@ async def test_showing_zone_2_later_reloads_once(
     assert len(reloads) == 1
     assert entry.runtime_data.markers.get(zone_sources.OPT_ZONE2_SOURCES_ASKED) is True
     assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_the_check_chosen_at_setup_waits_until_the_start_is_settled(
+    hass: HomeAssistant, receiver_network: Any
+) -> None:
+    """A reload after the first start no longer cuts it off (review 1.7, F2)."""
+    from custom_components.denonavr_plus import coordinator as coordinator_module
+    from custom_components.denonavr_plus import markers
+
+    from .test_coordinator import _HeldResync
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: HOST},
+        minor_version=CONFIG_MINOR_VERSION,
+        options={markers.CHECK_PENDING: True},
+    )
+    entry.add_to_hass(hass)
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(entry.entry_id)
+    resync = _HeldResync()
+    calls: list[str] = []
+
+    async def check(self: DenonAvrDevice, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        calls.append("start")
+        try:
+            await asyncio.sleep(30)
+        except asyncio.CancelledError:
+            calls.append("cancelled")
+            raise
+        return {}
+
+    with (
+        patch.object(DenonAvrDevice, "async_await_resync", resync.wait),
+        patch.object(DenonAvrDevice, "async_check_capabilities", check),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await _settle(hass)
+        # Not while the start is still being checked.
+        assert calls == []
+        FakeTelnet.instances[-1].push("SSQSNZMAQS1 TV", "SSQSNZMA END")
+        await _settle(hass)
+        resync.done.set()
+        await _settle(hass)
+        await hass.async_block_till_done()
+        await _settle(hass)
+        # Reloaded once for the quick select; the check runs in the new setup only.
+        assert calls == ["start"]
+        assert await hass.config_entries.async_unload(entry.entry_id)
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(entry.entry_id)

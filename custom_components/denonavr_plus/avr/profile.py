@@ -90,8 +90,9 @@ class ControlSpec:
         return None if value is None else str(value)
 
     def _number(self, key: str) -> float | None:
+        # As written in the profile: a whole number stays an int.
         value = self._data.get(key)
-        return None if value is None else float(value)
+        return None if value is None else cast(float, value)
 
     def _int(self, key: str) -> int | None:
         value = self._data.get(key)

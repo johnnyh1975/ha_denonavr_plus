@@ -700,6 +700,28 @@ async def test_a_first_start_is_set_up_again_when_the_resync_brings_more(
     assert await hass.config_entries.async_unload(entry.entry_id)
 
 
+async def test_a_subwoofer_answered_another_way_sets_the_select_up_again(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """Same unique id, other options: YES/NO before the restart, a count now (review 1.7, F3)."""
+    from custom_components.denonavr_plus import coordinator as coordinator_module
+
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+    resync = _HeldResync()
+    with (
+        patch.object(DenonAvrDevice, "async_await_resync", resync.wait),
+        patch.object(hass.config_entries, "async_schedule_reload") as reload,
+    ):
+        await _restart_from_the_snapshot(hass, loaded_entry, hass_storage)
+        assert loaded_entry.runtime_data.start_path is StartPath.FAST
+        FakeTelnet.instances[-1].push("SSSPCSWF 2SP", "SSSPC END")
+        await _settle(hass)
+        resync.done.set()
+        await _settle(hass)
+        reload.assert_called_once_with(loaded_entry.entry_id)
+    coordinator_module._REBUILT_AFTER_FAST_START.discard(loaded_entry.entry_id)
+
+
 async def test_a_snapshot_without_the_layout_starts_as_before(
     hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
 ) -> None:

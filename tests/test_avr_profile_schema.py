@@ -76,3 +76,22 @@ def test_each_shape(spec: Spec, value: object, problem: str | None) -> None:
 def test_a_shape_must_say_how_it_checks() -> None:
     with pytest.raises(NotImplementedError):
         Spec().check(1, "x", [])
+
+
+def test_every_key_the_setup_page_modules_read_is_known() -> None:
+    """A key the code reads but the schema rejects would fail every setup once set."""
+    import re
+    from pathlib import Path
+
+    avr = Path(profile_module.__file__).parent
+    sections = {
+        "video_config.py": ("video_web", "speakers_web"),
+        "speaker_layout.py": ("speakers_web",),
+        "graphic_eq.py": ("graphic_eq",),
+    }
+    grammar = profile_schema.GRAMMAR.keys
+    for module, names in sections.items():
+        read = set(re.findall(r"grammar\.get\(\"(\w+)\"", (avr / module).read_text(encoding="utf-8")))
+        # video_config.py reads both setup-page sections; each key in one of them.
+        known = set().union(*(grammar[name].keys for name in names))  # type: ignore[attr-defined]
+        assert read and not read - known, (module, read - known)

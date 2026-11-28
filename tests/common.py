@@ -52,3 +52,32 @@ def report_notification(hass: HomeAssistant, entry: Any) -> dict[str, Any] | Non
 
     notifications = persistent_notification._async_get_or_create_notifications(hass)
     return notifications.get(f"{DOMAIN}_capability_report_{entry.entry_id}")
+
+
+async def set_up_and_settle(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
+    """Set up an entry and wait until its start is settled (the check after it is through).
+
+    What the setup flow left to do (check, test) starts only then.
+    """
+    import asyncio
+    from unittest.mock import patch
+
+    from homeassistant.const import CONF_HOST
+
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: "192.0.2.10"},
+        options=options,
+        minor_version=CONFIG_MINOR_VERSION,
+    )
+    entry.add_to_hass(hass)
+    with patch("custom_components.denonavr_plus.avr.device.RESYNC_QUIET", 0.05):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        if hasattr(entry, "runtime_data"):
+            async with asyncio.timeout(5):
+                await entry.runtime_data.start_settled.wait()
+    await hass.async_block_till_done()
+    return entry

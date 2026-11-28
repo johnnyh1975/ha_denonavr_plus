@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, patch
 from urllib.parse import parse_qs, urlparse
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -18,7 +17,7 @@ from custom_components.denonavr_plus import capabilities
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
 from custom_components.denonavr_plus.avr.models import DeviceInfo
-from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+from custom_components.denonavr_plus.const import DOMAIN
 
 
 
@@ -31,7 +30,7 @@ RESULT: dict[str, Any] = {
         "PSFOO ?": {"group": "Test", "result": "no reply", "lines": []},
     },
 }
-from .common import report_notification
+from .common import report_notification, set_up_and_settle
 
 
 def _issue(hass: HomeAssistant, entry: MockConfigEntry, kind: str) -> ir.IssueEntry | None:
@@ -98,16 +97,7 @@ async def test_a_known_model_gets_none(
 
 
 async def _setup(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={CONF_HOST: "192.0.2.10"},
-        options=options,
-        minor_version=CONFIG_MINOR_VERSION,
-    )
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    return entry
+    return await set_up_and_settle(hass, **options)
 
 
 async def test_a_check_asked_for_at_setup_runs_once(

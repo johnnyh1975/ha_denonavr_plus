@@ -26,7 +26,7 @@ from homeassistant.util import dt as dt_util
 from .avr import AvrState, DenonAvrDevice
 from .avr.models import KnownAnswers
 from .capabilities import CapabilityResults
-from .markers import Markers
+from .markers import MOVE_PENDING, Markers
 from .command_test import CommandTestResults
 from .const import (
     CONF_PORT,
@@ -145,6 +145,9 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # The integration's own bookkeeping about the entry (markers.py).
         self.markers = Markers(hass, entry.entry_id)
         self.platforms_ready = asyncio.Event()
+        # Set once the check after the start is through without a reload:
+        # what the setup flow left to do waits for it (__init__.py).
+        self.start_settled = asyncio.Event()
         self._reload_scheduled = False
         self._identify_after: datetime | None = None
         self._snapshot = snapshot_store(hass, entry.entry_id)
@@ -294,37 +297,55 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             await self._async_save_snapshot()
         except Exception as err:  # noqa: BLE001 - a background task must not raise
             _LOGGER.debug("Discovery after the start not completed: %s", err)
+            self.start_settled.set()
             return
-        # What the platforms were built from is compared once they are all set up.
+        if await self._async_entities_differ():
+            _REBUILT_AFTER_FAST_START.add(entry_id)
+            self.hass.config_entries.async_schedule_reload(entry_id)
+            return
+        # Nothing more to set up: what the setup flow left to do may start.
+        self.start_settled.set()
+
+    async def _async_entities_differ(self) -> bool:
+        """Whether the entities have to be set up again (once the platforms are)."""
+
+        assert self.config_entry is not None
         try:
             async with asyncio.timeout(PLATFORMS_READY_WAIT):
                 await self.platforms_ready.wait()
         except TimeoutError:
-            return
+            return False
+        if self.markers.get(MOVE_PENDING):
+            # Taking another entry over reloads by itself at its end; a reload
+            # now would run it twice (move.async_run_pending).
+            return False
         # The plan holds the platforms, which import this module.
         from .entity_plan import changed  # noqa: PLC0415
 
-        difference = changed(self, dict(self.config_entry.options))
+        try:
+            difference = changed(self, dict(self.config_entry.options))
+        except Exception:  # a background task must not raise
+            _LOGGER.exception("Entities not compared after the start")
+            return False
         if not difference:
-            return
-        if entry_id in _REBUILT_AFTER_FAST_START:
+            return False
+        if self.config_entry.entry_id in _REBUILT_AFTER_FAST_START:
             # Once per run: a receiver whose answers vary must not reload in turn.
             _LOGGER.debug("Entities changed again after a rebuild; keeping them")
-            return
-        _REBUILT_AFTER_FAST_START.add(entry_id)
+            return False
         _LOGGER.info(
             "%s reports other capabilities than its entities were built from "
             "(%d entities differ); setting them up again",
             self.device.discovery.device.model_name or "Denon AVR",
             len(difference),
         )
-        self.hass.config_entries.async_schedule_reload(entry_id)
+        return True
 
     async def async_shutdown(self) -> None:
         """Stop the telnet transport when the entry is unloaded."""
 
         await self.device.async_stop()
-        await self.markers.async_save()
+        await self.markers.async_close()
         if self._pending_snapshot is not None:
             # A reload starts from it; the delayed save would come too late.
             await self._snapshot.async_save(self._take_pending_snapshot())

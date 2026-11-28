@@ -28,7 +28,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.config_entries import ConfigEntry, ConfigEntryDisabler
+from homeassistant.config_entries import ConfigEntry, ConfigEntryDisabler, ConfigEntryState
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -57,6 +57,8 @@ NAMES = {OFFICIAL: "Denon AVR Network Receivers", LASERGURUGUY: "Denon AVR"}
 #: Entry option: the old entries to take over at the next setup (chosen when
 #: the receiver was added; the old entries are disabled already).
 OPT_MOVE_PENDING = markers.MOVE_PENDING
+#: Entries whose pending move runs now (async_run_pending).
+_RUNNING: set[str] = set()
 ISSUE_AVAILABLE = "move_available"
 ISSUE_CHECK = "move_check"
 
@@ -207,6 +209,20 @@ async def async_move(
             new_unique_id=_changed(item.unique_id, counterpart.unique_id),
             new_device_id=None,
         )
+    kept = await store(hass, entry.entry_id).async_load() or {}
+    earlier = [item for item in kept.get("moves", []) if item["entry_id"] == old.entry_id]
+    if not moved.entities and earlier and earlier[0].get("entities"):
+        # Taken over already (a second run for the same entry): the record
+        # of the first is what moving back needs.
+        _LOGGER.debug("Entities of %s were taken over already", old.title)
+        record = earlier[0]
+        return Moved(
+            record["domain"],
+            record["entry_id"],
+            record["title"],
+            list(record["entities"]),
+            bool(record.get("official_scale")),
+        )
     if (coordinator := getattr(entry, "runtime_data", None)) is not None:
         pending = [item for item in coordinator.markers.get(OPT_MOVE_PENDING, []) if item != old.entry_id]
         if pending:
@@ -216,7 +232,6 @@ async def async_move(
     if old.domain == OFFICIAL and not entry.options.get(OPT_OFFICIAL_SCALE):
         markers.update_options(hass, entry, changes={OPT_OFFICIAL_SCALE: True})
         moved.official_scale = True
-    kept = await store(hass, entry.entry_id).async_load() or {}
     moves = [item for item in kept.get("moves", []) if item["entry_id"] != old.entry_id]
     await store(hass, entry.entry_id).async_save({"moves": [*moves, moved.as_dict()]})
     _LOGGER.info(
@@ -236,12 +251,23 @@ async def async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
     Not a task of the entry: the reload at the end would cancel it.
     """
 
-    pending = entry.runtime_data.markers
-    for entry_id in list(pending.get(OPT_MOVE_PENDING, [])):
-        old = hass.config_entries.async_get_entry(entry_id)
-        if old is not None:
-            await async_move(hass, entry, old, reload=False)
-    pending.remove(OPT_MOVE_PENDING)
+    if entry.entry_id in _RUNNING:
+        # One at a time: a reload while it runs starts the setup again, which
+        # would start it a second time.
+        return
+    _RUNNING.add(entry.entry_id)
+    try:
+        for entry_id in list(entry.runtime_data.markers.get(OPT_MOVE_PENDING, [])):
+            old = hass.config_entries.async_get_entry(entry_id)
+            if old is not None:
+                await async_move(hass, entry, old, reload=False)
+        # The entry's markers as they are now: a reload meanwhile made new ones.
+        if entry.state is ConfigEntryState.LOADED:
+            entry.runtime_data.markers.remove(OPT_MOVE_PENDING)
+    except Exception:  # a background task must not raise
+        _LOGGER.exception("Taking %s over failed", entry.title)
+    finally:
+        _RUNNING.discard(entry.entry_id)
     hass.config_entries.async_schedule_reload(entry.entry_id)
 
 

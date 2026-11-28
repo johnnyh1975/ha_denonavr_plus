@@ -75,4 +75,7 @@ def async_preselect(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
     # All of them means all: also inputs the receiver adds later.
     new_selection[ZONE] = [] if set(picked) >= set(every) else picked
     entry.runtime_data.markers.set(OPT_ZONE2_SOURCES_ASKED, True)
-    markers.update_options(hass, entry, changes={choices.OPT_SOURCES: new_selection})
+    # The marker in the options too (markers.MIRRORED): 1.6 would choose again.
+    markers.update_options(
+        hass, entry, changes={choices.OPT_SOURCES: new_selection, OPT_ZONE2_SOURCES_ASKED: True}
+    )

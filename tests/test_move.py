@@ -245,3 +245,54 @@ async def test_another_integration_running_the_receiver_is_a_repair(
     await move.async_disable(hass, old)
     move.async_update_issue(hass, loaded_entry)
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_a_reload_during_the_pending_move_keeps_the_undo_record(
+    hass: HomeAssistant, receiver_network: Any, hass_storage: dict[str, Any]
+) -> None:
+    """A reload while the move chosen at setup runs (review 1.7, F1).
+
+    Before, the setup after the reload started a second move, which found
+    nothing left to take over and saved an empty record over the real one:
+    moving back then returned nothing.
+    """
+    import asyncio
+
+    from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION
+
+    old = MockConfigEntry(domain="denonavr", unique_id="AVC-X3700H-1", data={CONF_HOST: HOST}, title="Wohnzimmer")
+    old.add_to_hass(hass)
+    er.async_get(hass).async_get_or_create(
+        "media_player", "denonavr", "AVC-X3700H-1-Main", config_entry=old, suggested_object_id="wohnzimmer"
+    )
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_HOST: HOST},
+        minor_version=CONFIG_MINOR_VERSION,
+        options={"move_pending": [old.entry_id]},
+    )
+    entry.add_to_hass(hass)
+    original = move.async_disable
+    gate = asyncio.Event()
+    calls = 0
+
+    async def slow_disable(hass_: HomeAssistant, old_: Any) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            await gate.wait()
+        await original(hass_, old_)
+
+    with patch.object(move, "async_disable", slow_disable):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await asyncio.sleep(0.15)
+        await hass.async_block_till_done()
+        assert calls == 1
+        await hass.config_entries.async_reload(entry.entry_id)
+        await asyncio.sleep(0.15)
+        await hass.async_block_till_done()
+        gate.set()
+        await hass.async_block_till_done(wait_background_tasks=True)
+    record = hass_storage[f"{DOMAIN}.{entry.entry_id}.move"]["data"]["moves"]
+    assert [len(item["entities"]) for item in record] == [1]
+    await hass.config_entries.async_unload(entry.entry_id)

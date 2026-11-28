@@ -23,8 +23,10 @@ async def test_a_marker_change_does_not_touch_the_options(
 
     coordinator = loaded_entry.runtime_data
     coordinator.device.discovery.configured_channels = {"FL", "FR", "C"}
+    # The first time also marks it in the options, once (markers.MIRRORED).
+    _apply_channel_defaults(hass, loaded_entry, coordinator)
+    assert loaded_entry.options[markers.CHANNELS_INITIALIZED] is True
     with patch.object(hass.config_entries, "async_update_entry") as update:
-        _apply_channel_defaults(hass, loaded_entry, coordinator)
         # The receiver reports a speaker less: the defaults follow.
         coordinator.device.discovery.configured_channels = {"FL", "FR"}
         _apply_channel_defaults(hass, loaded_entry, coordinator)
@@ -85,3 +87,23 @@ async def test_the_markers_go_with_the_entry(
     await hass.config_entries.async_remove(loaded_entry.entry_id)
     await hass.async_block_till_done()
     assert key not in hass_storage
+
+
+async def test_the_markers_set_once_are_in_the_options_too(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry
+) -> None:
+    """Going back to 1.6, it finds them and chooses nothing again (review 1.7, F4)."""
+    assert loaded_entry.runtime_data.markers.get(markers.ZONE2_SOURCES_ASKED) is True
+    assert loaded_entry.options[markers.ZONE2_SOURCES_ASKED] is True
+
+
+async def test_closed_markers_take_no_more_changes(
+    hass: HomeAssistant, loaded_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """A task of the unloaded entry must not overwrite what the next setup keeps."""
+    kept = loaded_entry.runtime_data.markers
+    assert await hass.config_entries.async_unload(loaded_entry.entry_id)
+    kept.set(markers.GROUP_ENABLED, ["late"])
+    kept.remove(markers.ZONE2_SOURCES_ASKED)
+    assert kept.get(markers.GROUP_ENABLED) != ["late"]
+    assert kept.get(markers.ZONE2_SOURCES_ASKED) is True

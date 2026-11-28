@@ -170,6 +170,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> 
 async def _async_run_pending(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> None:
     """What was chosen when the receiver was added: the check, then the command test."""
 
+    # Not before the check after the start: a reload there would cut it off
+    # and run it again from the beginning (the entry's tasks end with it).
+    await entry.runtime_data.start_settled.wait()
     pending = entry.runtime_data.markers
     test = bool(pending.get(markers.TEST_PENDING))
     if pending.get(markers.CHECK_PENDING):
@@ -474,6 +477,9 @@ def _apply_channel_defaults(
 
     coordinator.markers.set(markers.CHANNELS_INITIALIZED, True)
     coordinator.markers.set(markers.CHANNELS_APPLIED, sorted(configured))
+    # Once per entry, in the options too (markers.MIRRORED): 1.6 would
+    # apply the first-time defaults again.
+    markers.update_options(hass, entry, changes={markers.CHANNELS_INITIALIZED: True})
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: DenonAvrConfigEntry) -> bool:

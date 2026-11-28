@@ -7,14 +7,13 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.denonavr_plus import capabilities
 from custom_components.denonavr_plus.avr import DenonAvrDevice
 from custom_components.denonavr_plus.avr.errors import CommandNotSent
-from custom_components.denonavr_plus.const import CONFIG_MINOR_VERSION, DOMAIN
+from custom_components.denonavr_plus.const import DOMAIN
 from custom_components.denonavr_plus.diagnostics import (
     async_get_config_entry_diagnostics,
 )
@@ -34,7 +33,7 @@ RESULT: dict[str, Any] = {
         "lfe": {"group": "quiet", "result": "no_value"},
     },
 }
-from .common import report_notification
+from .common import report_notification, set_up_and_settle
 
 
 def _issue(hass: HomeAssistant, entry: MockConfigEntry) -> dict[str, Any] | None:
@@ -43,16 +42,7 @@ def _issue(hass: HomeAssistant, entry: MockConfigEntry) -> dict[str, Any] | None
 
 
 async def _setup(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={CONF_HOST: "192.0.2.10"},
-        options=options,
-        minor_version=CONFIG_MINOR_VERSION,
-    )
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    return entry
+    return await set_up_and_settle(hass, **options)
 
 
 async def test_a_test_chosen_at_setup_runs_once(
