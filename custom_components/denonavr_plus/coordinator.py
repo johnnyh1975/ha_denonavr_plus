@@ -38,6 +38,8 @@ from .const import (
     OPT_SETUP_REFRESH,
     RECONCILE_INTERVAL,
     TELNET_OUTAGE_GRACE,
+    TELNET_UNSTABLE_DROPS,
+    TELNET_UNSTABLE_WINDOW,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -134,6 +136,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         # long outage has already been reported (log once, repair while it lasts).
         self._link_down_since: datetime | None = None
         self._outage_reported = False
+        self._unstable_reported = False
         self._playback_error: str | None = None
         self._app_control_off = False
         # How the entry started; with OFFLINE the entry reloads once the
@@ -350,6 +353,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
             # A reload starts from it; the delayed save would come too late.
             await self._snapshot.async_save(self._take_pending_snapshot())
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id)
+        ir.async_delete_issue(self.hass, DOMAIN, self._unstable_issue_id)
         # A playback error is about the session that ends here.
         ir.async_delete_issue(self.hass, DOMAIN, self._playback_issue_id)
         # Asked again at the next start; the new coordinator starts from "on".
@@ -506,6 +510,7 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
         """
 
         self._set_poll_interval()
+        self._check_unstable_link()
         if (
             self.started_offline
             and not self._reload_scheduled
@@ -560,6 +565,52 @@ class DenonAvrCoordinator(DataUpdateCoordinator[AvrState]):
                 translation_key="telnet_unavailable",
                 translation_placeholders={"model": model},
             )
+
+    @callback
+    def _check_unstable_link(self) -> None:
+        """Report a telnet link that keeps going down, and clear it once it holds.
+
+        Each drop alone is short and stays below the outage grace, so a link
+        that another program takes over again and again (the receiver allows
+        one telnet session) would otherwise only show as push updates that
+        come late. Counted only while the receiver answers over HTTP: a
+        receiver going to standby without network standby is no fault.
+        """
+
+        now = dt_util.utcnow()
+        recent = [t for t in self.device.link_drops if now - t <= TELNET_UNSTABLE_WINDOW]
+        if len(recent) >= TELNET_UNSTABLE_DROPS and self.device.http_reachable:
+            if self._unstable_reported:
+                return
+            self._unstable_reported = True
+            model = self.device.discovery.device.model_name or "Denon AVR"
+            minutes = int(TELNET_UNSTABLE_WINDOW.total_seconds() // 60)
+            _LOGGER.warning(
+                "The telnet connection to %s went down %s times within %s minutes; "
+                "another program may keep taking over the only telnet session, "
+                "or the network connection is unstable",
+                model,
+                len(recent),
+                minutes,
+            )
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                self._unstable_issue_id,
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="telnet_unstable",
+                translation_placeholders={"model": model, "minutes": str(minutes)},
+            )
+            return
+        if self._unstable_reported and not recent:
+            self._unstable_reported = False
+            ir.async_delete_issue(self.hass, DOMAIN, self._unstable_issue_id)
+
+    @property
+    def _unstable_issue_id(self) -> str:
+        assert self.config_entry is not None
+        return f"telnet_unstable_{self.config_entry.entry_id}"
 
     async def _async_reload_when_described(self) -> None:
         """Reload once Deviceinfo answers; otherwise try again a minute later."""

@@ -312,6 +312,12 @@ Notes:
   ([test](protocol/09-status-diagnostics-and-discovery.md#test-concurrent-telnet-sessions)).
   Connect one integration or program to it at a time. The Denon and
   Marantz AVR Remote app counts too while its tuner screen is open.
+  A link that stays down for 5 minutes while the receiver answers over
+  HTTP raises the repair *"… does not accept a control connection"*; one
+  that goes down at least 5 times in 10 minutes raises *"Control
+  connection to … keeps breaking"*. The author of Denon Advanced Audio
+  reports collisions with a second telnet client on an AVR-X3700H, which
+  that integration opens once per 30 s poll.
 - The HEOS (1255) and setup‑config (10443) channels are only opened when the
   receiver advertises the matching capability; both are non‑disruptive.
 - Protocol details per receiver generation, a model comparison and test

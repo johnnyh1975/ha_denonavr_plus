@@ -83,6 +83,71 @@ async def test_telnet_down_while_http_answers_raises_a_repair(
     assert _issue(hass, loaded_entry) is None
 
 
+def _unstable_issue(hass: HomeAssistant, entry: MockConfigEntry) -> ir.IssueEntry | None:
+    return ir.async_get(hass).async_get_issue(DOMAIN, f"telnet_unstable_{entry.entry_id}")
+
+
+async def _break_link(hass: HomeAssistant, freezer: FrozenDateTimeFactory, times: int) -> None:
+    """Let the link drop and come back, a minute apart: another program taking it over."""
+    telnet = FakeTelnet.instances[-1]
+    for _ in range(times):
+        telnet.set_available(False)
+        telnet.set_available(True)
+        await _pass(hass, freezer, 1)
+
+
+async def test_a_link_that_keeps_breaking_raises_a_repair(
+    hass: HomeAssistant,
+    loaded_entry: MockConfigEntry,
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Each drop is short, below the outage grace; together they are a fault."""
+    with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=HTTP_OK)):
+        await _break_link(hass, freezer, 4)
+        assert _unstable_issue(hass, loaded_entry) is None
+
+        await _break_link(hass, freezer, 1)
+        issue = _unstable_issue(hass, loaded_entry)
+        assert issue is not None
+        assert issue.translation_key == "telnet_unstable"
+        assert issue.translation_placeholders == {"model": "AVC-X3700H", "minutes": "10"}
+        assert issue.severity is ir.IssueSeverity.WARNING
+        # The outage repair is for a link that stays down; this one came back.
+        assert _issue(hass, loaded_entry) is None
+        assert "went down 5 times" in caplog.text
+
+        # Gone once a whole window passes without a drop.
+        await _pass(hass, freezer, 9)
+        assert _unstable_issue(hass, loaded_entry) is not None
+        await _pass(hass, freezer, 2)
+    assert _unstable_issue(hass, loaded_entry) is None
+
+
+async def test_drops_without_http_are_no_unstable_link(
+    hass: HomeAssistant,
+    loaded_entry: MockConfigEntry,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A receiver that answers nothing at all goes to standby; that is no fault."""
+    with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=None)):
+        await _break_link(hass, freezer, 6)
+    assert _unstable_issue(hass, loaded_entry) is None
+
+
+async def test_unload_removes_the_unstable_link_repair(
+    hass: HomeAssistant,
+    loaded_entry: MockConfigEntry,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    with patch.object(GoformClient, "async_get_status", AsyncMock(return_value=HTTP_OK)):
+        await _break_link(hass, freezer, 5)
+    assert _unstable_issue(hass, loaded_entry) is not None
+    assert await hass.config_entries.async_unload(loaded_entry.entry_id)
+    await hass.async_block_till_done()
+    assert _unstable_issue(hass, loaded_entry) is None
+
+
 async def test_receiver_fully_unreachable_only_warns(
     hass: HomeAssistant,
     loaded_entry: MockConfigEntry,

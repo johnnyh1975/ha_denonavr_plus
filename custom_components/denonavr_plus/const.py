@@ -72,3 +72,10 @@ HTTP_FALLBACK_INTERVAL = timedelta(seconds=10)
 # log and, if the receiver still answers over HTTP, as a repair. Short drops
 # (a reboot, a firmware update, a brief network hiccup) stay quiet.
 TELNET_OUTAGE_GRACE = timedelta(minutes=5)
+
+# The telnet link going down this often within this window, while the receiver
+# answers over HTTP, means something keeps breaking the session: another
+# program taking the receiver's one telnet session over, or an unstable
+# network. That is a repair, cleared once a whole window passes without a drop.
+TELNET_UNSTABLE_DROPS = 5
+TELNET_UNSTABLE_WINDOW = timedelta(minutes=10)

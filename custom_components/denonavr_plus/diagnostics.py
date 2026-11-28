@@ -55,6 +55,9 @@ async def async_get_config_entry_diagnostics(
             if device.telnet_response_time is None
             else round(device.telnet_response_time * 1000)
         ),
+        # When the telnet link went down (UTC, oldest first): many in a short
+        # time mean another program takes the one session over, or the network.
+        "telnet_link_drops": [drop.isoformat() for drop in device.link_drops],
         "device": async_redact_data(asdict(discovery.device), TO_REDACT),
         "features": sorted(discovery.features),
         "zones": [asdict(zone) for zone in discovery.zones],

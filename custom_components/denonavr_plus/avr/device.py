@@ -17,8 +17,10 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import logging
+from collections import deque
 from collections.abc import Awaitable, Callable, Coroutine, Sequence
 from dataclasses import asdict, fields, replace
+from datetime import UTC, datetime
 from typing import Any
 from xml.etree import ElementTree as ET
 
@@ -88,6 +90,9 @@ from .transport import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+#: How many times the telnet link went down are kept (diagnostics, repair).
+LINK_DROPS = 20
 
 #: What a firmware update changes in the UPnP description (the device card
 #: and the update entity show them).
@@ -267,6 +272,10 @@ class DenonAvrDevice:
         self._available = False
         # Set at the first connection; a later one reads the versions again.
         self._connected_before = False
+        # When the telnet link went down, the last LINK_DROPS times: many in a
+        # short time mean another program keeps taking the one session over,
+        # or the network keeps breaking.
+        self._link_drops: deque[datetime] = deque(maxlen=LINK_DROPS)
         # Whether the last HTTP reconciliation poll got an answer. Tells a
         # blocked or occupied telnet port apart from a receiver that is off.
         self._http_reachable = False
@@ -1547,6 +1556,8 @@ class DenonAvrDevice:
     def _handle_availability(self, available: bool) -> None:
         """React to the telnet link going up or down."""
 
+        if self._available and not available:
+            self._link_drops.append(datetime.now(UTC))
         self._available = available
         if available:
             # Telnet reports everything again.
@@ -2197,6 +2208,12 @@ class DenonAvrDevice:
         refused.add(listed)
         self._schedule_update()
         raise SourceNotTaken(zone_id, listed)
+
+    @property
+    def link_drops(self) -> list[datetime]:
+        """When the telnet link went down, the last LINK_DROPS times, oldest first."""
+
+        return list(self._link_drops)
 
     @property
     def communication_log(self) -> list[str]:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import datetime
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -132,6 +133,24 @@ async def test_diagnostics_hold_the_telnet_lines_and_refused_sources(
     result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
     assert result["communication_log"] == ["12:00:00.000 > MS?", "12:00:00.060 < MSSTEREO"]
     assert result["refused_sources"] == {"main": [], "zone2": []}
+
+
+async def test_diagnostics_hold_when_the_link_went_down(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    loaded_entry: MockConfigEntry,
+) -> None:
+    """Many drops in a short time point to another program or the network."""
+    telnet = FakeTelnet.instances[-1]
+    telnet.set_available(False)
+    telnet.set_available(True)
+    # Going down twice in a row is one drop.
+    telnet.set_available(False)
+    telnet.set_available(False)
+    result = await get_diagnostics_for_config_entry(hass, hass_client, loaded_entry)
+    drops = result["telnet_link_drops"]
+    assert len(drops) == 2
+    assert all(datetime.fromisoformat(drop).tzinfo is not None for drop in drops)
 
 
 async def test_diagnostics_hold_the_heos_lines(
